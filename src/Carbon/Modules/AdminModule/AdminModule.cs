@@ -12,6 +12,7 @@ namespace Carbon.Modules;
 
 public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 {
+	public static readonly string Title = "<b>Admin Centre</b>";
 	public override string Name => "Admin";
 	public override VersionNumber Version => new(1, 8, 0);
 	public override Type Type => typeof(AdminModule);
@@ -151,7 +152,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var action = new Action<BasePlayer, string, string[]>((player, cmd, args) =>
 			{
-				if (!CanAccess(player)) return;
+				if (!CanAccess(player))
+				{
+					return;
+				}
 
 				var ap = GetPlayerSession(player);
 
@@ -163,8 +167,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (ap.SelectedTab == null)
 				{
-					ap.SelectedTab = Tabs.FirstOrDefault(x => HasAccess(player, x.Access));
+					ap.SelectedTab = Tabs.FirstOrDefault(x => !DataInstance.IsTabHidden(x.Id) && HasAccess(player, x.Access));
 					ap.Clear();
+				}
+				else if(DataInstance.IsTabHidden(ap.SelectedTab.Id) || !HasAccess(player, ap.SelectedTab.Access))
+				{
+					ap.SelectedTab = null;
 				}
 
 				var tab = GetTab(player);
@@ -346,11 +354,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		RegisterTab(CarbonTab.Get());
 		RegisterTab(PlayersTab.Get());
-		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
+		RegisterTab(EntitiesTab.Get());
 		RegisterTab(PermissionsTab.Get());
 		RegisterTab(ModulesTab.Get());
 		RegisterTab(EnvironmentTab.Get());
-		if (!ConfigInstance.DisablePluginsTab) RegisterTab(PluginsTab.Get());
+		RegisterTab(PluginsTab.Get());
 	}
 
 	[Conditional("!MINIMAL")]
@@ -1316,13 +1324,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using (TimeMeasure.New($"{Name}.Main"))
 			{
-				if (tab == null || !tab.IsFullscreen)
+				if (tab is not { IsFullscreen: true })
 				{
 					#region Title
 
 					cui.CreateText(container, parent: main,
 						color: "1 1 1 0.8",
-						text: "<b>Admin Settings</b>", 18,
+						text: Title, 18,
 						xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
 						align: TextAnchor.UpperLeft,
 						font: Handler.FontTypes.RobotoCondensedBold);
@@ -1333,21 +1341,22 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					try
 					{
 						var tabButtons = cui.CreatePanel(container, parent: main, id: null,
-							color: "0 0 0 0.6",
-							xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
+							color: "0 0 0 0.6", xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
 
-						TabButton(cui, container, tabButtons, "<", PanelId + ".changetab down", 0.03f, 0);
-						TabButton(cui, container, tabButtons, ">", PanelId + ".changetab up", 0.03f, 0.97f);
-
-						var tabIndex = 0.03f;
-						var amount = Tabs.Count;
-						var tabWidth = amount == 0 ? 0f : 0.94f / amount;
+						var availableTabs = Tabs.Where(x => !DataInstance.IsTabHidden(x.Id));
+						var tabIndex = 0f;
+						var amount = availableTabs.Count();
+						var tabWidth = amount == 0 ? 0f : 1f / amount;
 
 						for (int i = ap.TabSkip; i < amount; i++)
 						{
-							var _tab = Tabs[ap.TabSkip + i];
+							var _tab = availableTabs.ElementAt(ap.TabSkip + i);
+							if (DataInstance.IsTabHidden(_tab.Id))
+							{
+								continue;
+							}
 							var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
-							TabButton(cui, container, tabButtons, $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i, !HasAccess(player, _tab.Access));
+							TabButton(cui, container, tabButtons, $"{(availableTabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {_tab.Id}", tabWidth, tabIndex, availableTabs.IndexOf(ap.SelectedTab) == i, !HasAccess(player, _tab.Access));
 							tabIndex += tabWidth;
 						}
 					}
@@ -1758,39 +1767,18 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(player);
 		var previous = ap.SelectedTab;
 
-		var tab = Tabs.FirstOrDefault(x => HasAccess(player, x.Access) && x.Id == id);
+		var tab = Tabs.FirstOrDefault(x => !DataInstance.IsTabHidden(x.Id) && HasAccess(player, x.Access) && x.Id == id);
 		if (tab != null)
 		{
 			ap.Tooltip = null;
-			ap.SelectedTab = tab;
 			if (onChange) try { tab?.OnChange?.Invoke(ap, tab); } catch { }
 		}
+		ap.SelectedTab = tab;
 
 		if (ap.SelectedTab != previous)
 		{
 			ap.Input = ap.PreviousInput = null;
-			ap.SelectedTab.ResetHiddens();
-			Draw(player);
-		}
-	}
-	public void SetTab(BasePlayer player, int index, bool onChange = true)
-	{
-		var ap = GetPlayerSession(player);
-		var previous = ap.SelectedTab;
-
-		var lookupTab = Tabs[index];
-		var tab = HasAccess(player, lookupTab.Access) ? lookupTab : Tabs.FirstOrDefault(x => HasAccess(player, x.Access));
-		if (tab != null)
-		{
-			ap.Tooltip = null;
-			ap.SelectedTab = tab;
-			if (onChange) try { tab?.OnChange?.Invoke(ap, tab); } catch { }
-		}
-
-		if (ap.SelectedTab != previous)
-		{
-			ap.Input = ap.PreviousInput = null;
-			ap.SelectedTab.ResetHiddens();
+			ap.SelectedTab?.ResetHiddens();
 			Draw(player);
 		}
 	}
@@ -1799,18 +1787,22 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(player);
 		var previous = ap.SelectedTab;
 
-		tab = string.IsNullOrEmpty(tab.Access) ? tab : HasAccess(player, tab.Access) ? tab : Tabs.FirstOrDefault(x => HasAccess(player, x.Access));
+		tab = string.IsNullOrEmpty(tab.Access) ? tab : HasAccess(player, tab.Access) ? tab : Tabs.FirstOrDefault(x => !DataInstance.IsTabHidden(x.Id) && HasAccess(player, x.Access));
+		if (DataInstance.IsTabHidden(tab.Id))
+		{
+			tab = null;
+		}
 		if (tab != null)
 		{
 			ap.Tooltip = null;
-			ap.SelectedTab = tab;
 			if (onChange) try { tab?.OnChange?.Invoke(ap, tab); } catch { }
 		}
+		ap.SelectedTab = tab;
 
 		if (ap.SelectedTab != previous)
 		{
 			ap.Input = ap.PreviousInput = null;
-			ap.SelectedTab.ResetHiddens();
+			ap.SelectedTab?.ResetHiddens();
 			Draw(player);
 		}
 	}
@@ -2438,12 +2430,10 @@ public class AdminConfig
 	[JsonProperty("OpenCommands")]
 	public string[] OpenCommands = ["cp", "cpanel"];
 	public int MinimumAuthLevel = 2;
-	public bool DisableEntitiesTab = true;
-	public bool DisablePluginsTab = false;
-	public bool DisableConsole = false;
 	public bool SpectatingInfoOverlay = true;
 	public bool SpectatingEndTeleportBack = false;
 	public List<ActionButton> QuickActions = new();
+	public bool HideConsole = false;
 
 	public class ActionButton
 	{
@@ -2456,13 +2446,23 @@ public class AdminConfig
 }
 public class AdminData
 {
-	[JsonProperty("WizardDisplayed")]
 	public bool WizardDisplayed = false;
 	public bool HidePluginIcons = false;
 	public bool Maximize = false;
 	public bool BackgroundBlur = true;
 	public float BackgroundOpacity = 0.75f;
 	public DataColors Colors = new();
+	public Dictionary<string, bool> TabsHiddenStatus = new();
+
+	public bool IsTabHidden(string id)
+	{
+		return TabsHiddenStatus.TryGetValue(id, out var hidden) && hidden;
+	}
+
+	public void MarkTabHidden(string id, bool wants)
+	{
+		TabsHiddenStatus[id] = wants;
+	}
 
 	public class DataColors
 	{

@@ -130,7 +130,7 @@ public partial class AdminModule
 
 				Singleton.DataInstance.WizardDisplayed = true;
 				Singleton.GenerateTabs();
-				Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, 0));
+				Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "carbon"));
 			}));
 
 			return tab;
@@ -238,13 +238,7 @@ public partial class AdminModule
 
 		internal bool IsFeatureEnabled(string feature)
 		{
-			switch (feature)
-			{
-				case "plugins":
-					return !Singleton.ConfigInstance.DisablePluginsTab;
-			}
-
-			return false;
+			return !Singleton.DataInstance.IsTabHidden(feature);
 		}
 
 		public class Page
@@ -280,7 +274,7 @@ public partial class AdminModule
 			Community.Runtime.Core.NextTick(() =>
 			{
 				Save();
-				Singleton.SetTab(ap.Player, 0);
+				Singleton.SetTab(ap.Player, "carbon");
 				Draw(ap.Player);
 			});
 		}
@@ -311,14 +305,7 @@ public partial class AdminModule
 	{
 		var ap = GetPlayerSession(arg.Player());
 		var feature = arg.GetString(0);
-
-		switch (feature)
-		{
-			case "plugins":
-				ConfigInstance.DisablePluginsTab = !ConfigInstance.DisablePluginsTab;
-				break;
-		}
-
+		DataInstance.MarkTabHidden(feature, !DataInstance.IsTabHidden(feature));
 		Draw(ap.Player);
 	}
 

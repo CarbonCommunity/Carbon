@@ -186,7 +186,7 @@ public partial class AdminModule
 
 			var entity = selectedEntitites[0];
 			var multiSelection = selectedEntitites.Count > 1;
-			var sameTypeSelection = selectedEntitites.All(x => x.GetType() == entity.GetType());
+			var sameTypeSelection = selectedEntitites.All(x => x != null && entity != null && x.GetType() == entity.GetType());
 
 			tab.AddName(column, "Hierarchy");
 
