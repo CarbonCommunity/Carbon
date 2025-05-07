@@ -102,7 +102,7 @@ public partial class AdminModule
 			OsEx.Folder.Create(Path.Combine(Defines.GetScriptsFolder(), "backups"));
 
 			Tab tab = null;
-			tab = new Tab("plugins", "Plugins", Community.Runtime.Core, onChange: (session, tab1) =>
+			tab = new Tab("plugins", "Plugins", Community.Runtime.Core, access: "plugins.use", onChange: (session, tab1) =>
 			{
 				tab.AddColumn(0, true);
 				tab.AddColumn(1, true);
