@@ -1783,7 +1783,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var previous = ap.SelectedTab;
 
 		var lookupTab = Tabs[index];
-		var tab = HasAccess(player, lookupTab.Access) ? lookupTab : Tabs.FirstOrDefault(x => HasAccess(player, x.Access));
+		var tab = HasAccess(player, lookupTab.Access) ? lookupTab : Tabs.FirstOrDefault(x => !DataInstance.IsTabHidden(x.Id) && HasAccess(player, x.Access));
 		if (tab != null)
 		{
 			ap.Tooltip = null;
