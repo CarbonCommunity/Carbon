@@ -131,34 +131,27 @@ public sealed class BridgeServer
 					var bridgeConnection = Pool.Get<BridgeConnection>().Init(socket, Messages);
 					socket.OnOpen = () =>
 					{
-						lock (Listener.clients)
-						{
-							Listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
-							Connections[connectionId] = bridgeConnection;
-							OnNewConnection?.Invoke(bridgeConnection);
-						}
+						Listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
+						Connections[connectionId] = bridgeConnection;
+						OnNewConnection?.Invoke(bridgeConnection);
 					};
 					socket.OnClose = () =>
 					{
-						lock (Listener.clients)
+						Listener._subscribedRconClients.Remove(connectionId);
+						Listener.clients.Remove(connectionId);
+						if (Connections.TryGetValue(connectionId, out var bridgeConnection))
 						{
-							Listener._subscribedRconClients.Remove(connectionId);
-							Listener.clients.Remove(connectionId);
-							if (Connections.TryGetValue(connectionId, out var bridgeConnection))
-							{
-								Pool.Free(ref bridgeConnection);
-								Connections.Remove(connectionId);
-							}
-
-							OnClosedConnection?.Invoke(bridgeConnection);
+							Pool.Free(ref bridgeConnection);
+							Connections.Remove(connectionId);
 						}
+
+						OnClosedConnection?.Invoke(bridgeConnection);
 					};
 					socket.OnBinary += data =>
 					{
-						var buffer = BufferStream.RentBuffer(data.Length);
 						using var stream = Pool.Get<BufferStream>().Initialize();
-						stream._buffer = buffer;
-						stream._length = buffer.Length;
+						stream._buffer = BufferStream.RentBuffer(data.Length);
+						stream._length = stream._buffer.Length;
 						stream._isBufferOwned = true;
 						for (var i = 0; i < data.Length; i++)
 						{
