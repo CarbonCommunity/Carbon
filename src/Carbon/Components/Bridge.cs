@@ -226,11 +226,11 @@ public sealed class BridgeClient
 
 	public async ValueTask Disconnect()
 	{
-		await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Shutdown", CancellationToken.Token);
+		await Socket?.CloseAsync(WebSocketCloseStatus.NormalClosure, "Shutdown", CancellationToken.Token)!;
 
 		CancellationToken.Cancel();
 		CancellationToken = null;
-		Socket.Dispose();
+		Socket?.Dispose();
 		Socket = null;
 	}
 
@@ -275,6 +275,8 @@ public sealed class BridgeClient
 				Logger.Error("Carbon.Bridge.ReceiveLoop failure", ex);
 			}
 		}
+
+		await Disconnect();
 	}
 }
 
@@ -319,7 +321,7 @@ public sealed class BridgeRead : NetRead
 	public static BridgeRead Rent(BufferStream stream, BridgeConnection conn = null)
 	{
 		var read = Pool.Get<BridgeRead>();
-		read.Init(conn, stream);
+		read.Init(stream, conn);
 		return read;
 	}
 
@@ -329,7 +331,7 @@ public sealed class BridgeRead : NetRead
 		Pool.Free(ref read);
 	}
 
-	public void Init(BridgeConnection conn, BufferStream stream)
+	public void Init(BufferStream stream, BridgeConnection conn = null)
 	{
 		this.stream = stream;
 		this.Connection = conn;
