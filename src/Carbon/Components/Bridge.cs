@@ -177,6 +177,15 @@ public sealed class BridgeServer
 		};
 		Logger.Log($"Carbon.Bridge Started on {port}");
 	}
+
+	public void Shutdown()
+	{
+		Listener.Shutdown();
+		Listener = null;
+		OnNewConnection = null;
+		OnClosedConnection = null;
+		Messages = null;
+	}
 }
 
 /// <summary>
