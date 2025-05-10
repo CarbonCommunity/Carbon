@@ -209,7 +209,7 @@ public sealed class BridgeClient
 		{
 			await Socket.ConnectAsync(new Uri($"ws://{ip}:{port}/{Vault.ApplyReplacement(password) ?? password}"), CancellationToken.Token);
 
-			Task.Run(async () => await ReceiveLoop());
+			_ = Task.Run(async () => await ReceiveLoop());
 		}
 		catch (Exception ex)
 		{
