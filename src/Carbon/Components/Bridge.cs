@@ -180,7 +180,7 @@ public sealed class BridgeServer
 
 	public void Shutdown()
 	{
-		Listener.Shutdown();
+		Listener?.Shutdown();
 		Listener = null;
 		OnNewConnection = null;
 		OnClosedConnection = null;
