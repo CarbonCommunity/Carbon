@@ -23,12 +23,12 @@ public partial class CorePlugin
 
 		AdminModule.Singleton.SetTab(player, AdminModule.ConfigEditor.Make(OsEx.File.ReadText(file), (_, _) =>
 		{
-			AdminModule.Singleton.SetTab(player, 0);
+			AdminModule.Singleton.SetTab(player, "carbon");
 			AdminModule.Singleton.Close(player);
 		}, (_, jobj) =>
 		{
 			OsEx.File.Create(file, jobj.ToString(Newtonsoft.Json.Formatting.Indented));
-			AdminModule.Singleton.SetTab(player, 0);
+			AdminModule.Singleton.SetTab(player, "carbon");
 			AdminModule.Singleton.Close(player);
 		}, null, true));
 	}

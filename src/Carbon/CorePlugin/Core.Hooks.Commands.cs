@@ -1,5 +1,6 @@
 ﻿using API.Commands;
 using ConVar;
+using Facepunch;
 using Command = API.Commands.Command;
 
 namespace Carbon.Core;
@@ -118,6 +119,10 @@ public partial class CorePlugin
 
 	internal static object IOnRconInitialize()
 	{
+		Bridge.Server.Start(
+			port: Switches.GetBridgePort($"{RCon.Port + 1}").ToInt(),
+			password: Switches.GetBridgePassword("unset"),
+			ip: Switches.GetBridgeIp());
 		return !Community.Runtime.Config.Rcon ? Cache.False : null;
 	}
 	internal static object IOnRunCommandLine()

@@ -1,22 +1,30 @@
-﻿namespace Carbon.Core;
+﻿using Rust.Ai.Gen2;
+
+namespace Carbon.Core;
 
 #pragma warning disable IDE0051
 
 public partial class CorePlugin
 {
-	internal static object IOnNpcTarget(BaseNpc npc, BaseEntity target)
+	internal static object IOnNpcTarget(SenseComponent sense, BaseEntity target)
 	{
-		// OnNpcTarget
-		if (HookCaller.CallStaticHook(1066895325, npc, target) == null)
+		if (!sense || !target)
 		{
 			return null;
 		}
 
-		npc.SetFact(BaseNpc.Facts.HasEnemy, 0);
-		npc.SetFact(BaseNpc.Facts.EnemyRange, 3);
-		npc.SetFact(BaseNpc.Facts.AfraidRange, 1);
+		var baseEntity = sense.baseEntity;
 
-		npc.playerTargetDecisionStartTime = 0f;
-		return 0f;
+		if (baseEntity == null)
+		{
+			return null;
+		}
+
+		if (HookCaller.CallStaticHook(1066895325, baseEntity, target) != null)
+		{
+			return Cache.False;
+		}
+
+		return null;
 	}
 }
