@@ -6,74 +6,107 @@ using Facepunch.Rcon;
 
 namespace Carbon.Components;
 
+/// <summary>
+/// A self-managing bridge system dedicated to allow server owners and plugin developers communicate between the server network, directly.
+/// It uses Rust's network reading/writing with the only difference being, this allows you to communicate with one or multiple servers at once.
+/// </summary>
 public static class Bridge
 {
 	public static BridgeServer Server = new();
 
+	/// <summary>
+	/// Opens the connection to a local or external Bridge server. The other server must have a Bridge.Server initialized. Think of it RCon but not really.
+	/// </summary>
+	/// <param name="ip">Bridge localhost or external IP address</param>
+	/// <param name="port">Bridge server port</param>
+	/// <param name="password">Bridge server password</param>
+	/// <param name="messages">Bridge messages set of channels</param>
+	/// <param name="maxBufferSize">Bridge maximum buffer size. Expand or lower if you know what you're doing, depending on the types of data sizes you work with.</param>
+	/// <returns></returns>
 	public static async ValueTask<BridgeClient> StartClient(string ip, int port, string password, BridgeMessages messages, int maxBufferSize = 8192)
 	{
 		return await new BridgeClient().Connect(ip, port, password, messages, maxBufferSize);
 	}
 }
 
-public class BridgeMessages : Pool.IPooled
+/// <summary>
+/// Meant to be overriden to handle custom logic. Use BridgeRead.Connection.Send to respond back using BridgeWrite.
+/// </summary>
+public abstract class BridgeMessages
 {
-	public Action<BridgeRead> OnRpc;
-	public Action<BridgeRead> OnCommand;
-	public Action<BridgeRead> OnCustom;
+	protected abstract void OnRpc(BridgeRead read);
+	protected abstract void OnCommand(BridgeRead read);
+	protected abstract void OnCustom(BridgeRead read);
+	protected abstract void OnUnhandled(BridgeRead read);
 
-	public static BridgeMessages Rent() => Pool.Get<BridgeMessages>();
-
-	public static void Return(ref BridgeMessages messages) => Pool.Free(ref messages);
-
-	public void HandleRead(BridgeRead read)
+	public void HandleChannelRead(BridgeRead read)
 	{
 		switch (read.BridgeMessage())
 		{
-			case Types.Rpc:
-				OnRpc?.Invoke(read);
+			case Channels.Rpc:
+				OnRpc(read);
 				break;
-			case Types.Command:
-				OnCommand?.Invoke(read);
+			case Channels.Command:
+				OnCommand(read);
 				break;
-			case Types.Custom:
-				OnCustom?.Invoke(read);
+			case Channels.Custom:
+				OnCustom(read);
+				break;
+			default:
+				OnUnhandled(read);
 				break;
 		}
 	}
 
-	public enum Types
+	public enum Channels
 	{
 		Rpc,
 		Command,
 		Custom
 	}
+}
 
-	public void EnterPool()
+/// <summary>
+/// A default message set for the bridge events and channels.
+/// </summary>
+public class DefaultBridgeMessages : BridgeMessages
+{
+	protected override void OnRpc(BridgeRead read)
 	{
-		OnRpc = null;
-		OnCommand = null;
-		OnCustom = null;
 	}
-	public void LeavePool()
+
+	protected override void OnCommand(BridgeRead read)
+	{
+	}
+
+	protected override void OnCustom(BridgeRead read)
+	{
+	}
+
+	protected override void OnUnhandled(BridgeRead read)
 	{
 	}
 }
 
-public class BridgeServer
+/// <summary>
+/// At its core, it uses Fleck (AKA Facepunch RCon's listener). It's entirely independent to Rust's RCon system, it just uses the core components at base (connection and memory management, etc.).
+/// </summary>
+public sealed class BridgeServer
 {
 	public Listener Listener;
 	public Action<BridgeConnection> OnNewConnection;
 	public Action<BridgeConnection> OnClosedConnection;
-	public BridgeMessages Messages = new();
+	public BridgeMessages Messages;
 	public readonly Dictionary<int, BridgeConnection> Connections = [];
 
-	public void Start(int port, string password, string ip = null)
+	public void Start(int port, string password, string ip = null, BridgeMessages messages = null)
 	{
 		if (password is null or "unset" or "password")
 		{
 			return;
 		}
+
+		Messages = messages ?? new DefaultBridgeMessages();
 
 		Listener = new Listener();
 		if (!string.IsNullOrEmpty(ip))
@@ -131,8 +164,8 @@ public class BridgeServer
 						{
 							stream._buffer[i] = data[i];
 						}
-						var read = BridgeRead.Rent(bridgeConnection, stream);
-						Messages.HandleRead(read);
+						var read = BridgeRead.Rent(stream, bridgeConnection);
+						Messages.HandleChannelRead(read);
 						BridgeRead.Return(ref read);
 					};
 					socket.OnError = e =>
@@ -146,7 +179,10 @@ public class BridgeServer
 	}
 }
 
-public class BridgeClient
+/// <summary>
+/// A simple client websocket connector. Designed to connect to BridgeServer infrastructure and easily understand/communicate Bridge messages back and forth.
+/// </summary>
+public sealed class BridgeClient
 {
 	public ClientWebSocket Socket;
 	public CancellationTokenSource CancellationToken;
@@ -181,10 +217,6 @@ public class BridgeClient
 		CancellationToken = null;
 		Socket.Dispose();
 		Socket = null;
-		if (Messages != null)
-		{
-			BridgeMessages.Return(ref Messages);
-		}
 	}
 
 	private async ValueTask ReceiveLoop()
@@ -205,11 +237,11 @@ public class BridgeClient
 				switch (result.MessageType)
 				{
 					case WebSocketMessageType.Binary:
-						var read = BridgeRead.Rent(null, stream);
+						var read = BridgeRead.Rent(stream);
 						read.stream = stream;
 						try
 						{
-							Messages.HandleRead(read);
+							Messages.HandleChannelRead(read);
 						}
 						catch (Exception ex)
 						{
@@ -231,7 +263,10 @@ public class BridgeClient
 	}
 }
 
-public class BridgeConnection : Pool.IPooled
+/// <summary>
+/// Base Bridge.Server connection. It uses pooling as connections can turn on and off frequently so we're reusing memory up in here. Use BridgeConnection.Send to respond back to the other Bridge server.
+/// </summary>
+public sealed class BridgeConnection : Pool.IPooled
 {
 	public IWebSocketConnection Socket;
 	public BridgeMessages Messages;
@@ -253,18 +288,20 @@ public class BridgeConnection : Pool.IPooled
 		Messages = null;
 		Socket = null;
 	}
-
 	public void LeavePool()
 	{
 
 	}
 }
 
+/// <summary>
+/// A small wrapper of Rust's NetRead. Use BridgeRead.Rent and BridgeRead.Return to properly initialize it.
+/// </summary>
 public sealed class BridgeRead : NetRead
 {
-	public BridgeConnection bridgeConnection;
+	public BridgeConnection Connection;
 
-	public static BridgeRead Rent(BridgeConnection conn, BufferStream stream)
+	public static BridgeRead Rent(BufferStream stream, BridgeConnection conn = null)
 	{
 		var read = Pool.Get<BridgeRead>();
 		read.Init(conn, stream);
@@ -280,20 +317,23 @@ public sealed class BridgeRead : NetRead
 	public void Init(BridgeConnection conn, BufferStream stream)
 	{
 		this.stream = stream;
-		this.bridgeConnection = conn;
+		this.Connection = conn;
 	}
 
-	public BridgeMessages.Types PeekBridgeMessage() => Peek<BridgeMessages.Types>();
+	public BridgeMessages.Channels PeekBridgeMessage() => Peek<BridgeMessages.Channels>();
 
-	public BridgeMessages.Types BridgeMessage() => (BridgeMessages.Types)Int32();
+	public BridgeMessages.Channels BridgeMessage() => (BridgeMessages.Channels)Int32();
 
 	public new void EnterPool()
 	{
-		bridgeConnection = null;
+		Connection = null;
 		base.EnterPool();
 	}
 }
 
+/// <summary>
+/// A small wrapper of Rust's NetWrite. Use BridgeWrite.Rent and BridgeWrite.Return to properly initialize it.
+/// </summary>
 public sealed class BridgeWrite : NetWrite
 {
 	public static BridgeWrite Rent()
@@ -314,7 +354,7 @@ public sealed class BridgeWrite : NetWrite
 		return new MemoryBuffer(buffer.Buffer, buffer.Length, fromPool);
 	}
 
-	public void BridgeMessage(BridgeMessages.Types message)
+	public void BridgeMessage(BridgeMessages.Channels message)
 	{
 		Int32((int)message);
 	}
