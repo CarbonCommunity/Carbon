@@ -31,6 +31,15 @@ public sealed class Switches
 
 	[Switch(Name = "-harmonydir", Help = "Overrides the directory of Rust's HarmonyMods folder.")]
 	public static string GetHarmonyDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-harmonydir", defaultValue);
+
+	[Switch(Name = "-bridge.ip", Help = "Assigns the ip of the Carbon.Bridge server.")]
+	public static string GetBridgeIp(string defaultValue = null) => CommandLineEx.GetArgumentResult("-bridge.ip", defaultValue);
+
+	[Switch(Name = "-bridge.port", Help = "Assigns the port of the Carbon.Bridge server.")]
+	public static string GetBridgePort(string defaultValue = null) => CommandLineEx.GetArgumentResult("-bridge.port", defaultValue);
+
+	[Switch(Name = "-bridge.pwd", Help = "Assigns the password of the Carbon.Bridge server.")]
+	public static string GetBridgePwd(string defaultValue = null) => CommandLineEx.GetArgumentResult("-bridge.pwd", defaultValue);
 }
 
 [AttributeUsage(AttributeTargets.Method)]

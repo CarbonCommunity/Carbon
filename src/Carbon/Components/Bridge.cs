@@ -1,177 +1,205 @@
-﻿using System.Net.WebSockets;
-using Facepunch;
+﻿using System.Net;
+using Fleck;
 using Network;
+using Facepunch;
+using Facepunch.Rcon;
 
 namespace Carbon.Components;
 
-public class Bridge
+public static class Bridge
 {
-	public static readonly int MAX_BUFFER_SIZE = 8192;
-	public static readonly Dictionary<uint, BridgeConnection> Connections = [];
+	public static Listener Listener;
 
-	public static BridgeConnection BeginConnection(string connectionString, Action<NetRead> onReceived)
+	public static Action<BridgeConnection> OnNewConnection;
+	public static Action<BridgeConnection> OnClosedConnection;
+
+	public static readonly Dictionary<int, BridgeConnection> Connections = [];
+
+	public static void StartServer(int port, string password, string ip = null)
 	{
-		if (string.IsNullOrEmpty(connectionString))
-		{
-			return null;
-		}
-		if (Connections.TryGetValue(Vault.Pool.Get(connectionString), out var connection))
-		{
-			return connection;
-		}
-		connection = Pool.Get<BridgeConnection>();
-		connection.Init(connectionString, onReceived);
-		return connection;
-	}
-	public static BridgeConnection BeginConnection(string ip, string port, string password, Action<NetRead> onReceive)
-	{
-		return BeginConnection($"ws://{ip}:{port}/{Vault.ApplyReplacement(password) ?? password}", onReceive);
-	}
-
-	public static void Broadcast(NetWrite write)
-	{
-		foreach (var connection in Connections.Values)
-		{
-			_ = connection.Send(write);
-		}
-	}
-}
-
-public class BridgeConnection : Pool.IPooled
-{
-	private Uri uri;
-	private ClientWebSocket socket;
-	private event Action<NetRead> onReceived;
-	private CancellationTokenSource tokenSource;
-	private string connectionString;
-
-	public BridgeConnection Init(string connectionString, Action<NetRead> onReceive)
-	{
-		uri = new Uri(this.connectionString = connectionString);
-		this.onReceived = onReceive;
-		return this;
-	}
-	public BridgeConnection Init(string ip, string port, string password, Action<NetRead> onReceive)
-	{
-		return Init($"ws://{ip}:{port}/{Vault.ApplyReplacement(password) ?? password}", onReceive);
-	}
-
-	public async ValueTask Connect()
-	{
-		socket = new ClientWebSocket();
-		tokenSource = new CancellationTokenSource();
-
-		try
-		{
-			await socket.ConnectAsync(uri, tokenSource.Token);
-
-			Bridge.Connections[Vault.Pool.Get(connectionString)] = this;
-
-			Task.Run(async () => await ReceiveLoop(tokenSource.Token));
-		}
-		catch (Exception ex)
-		{
-			Logger.Error($"Carbon.Bridge connection attempt to '{connectionString}' failed", ex);
-		}
-	}
-	public async ValueTask Disconnect(bool sendToPool = true)
-	{
-		try
-		{
-			Bridge.Connections.Remove(Vault.Pool.Get(connectionString));
-			if (socket?.State == WebSocketState.Open)
-			{
-				await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", tokenSource.Token);
-			}
-		}
-		finally
-		{
-			socket?.Dispose();
-			socket = null;
-			tokenSource?.Cancel();
-			tokenSource = null;
-
-			if (sendToPool)
-			{
-				var self = this;
-				Pool.Free(ref self);
-			}
-		}
-	}
-	public async ValueTask Send(NetWrite stream)
-	{
-		if (socket?.State != WebSocketState.Open)
+		if (password is null or "unset")
 		{
 			return;
 		}
-		try
+
+		Listener = new Listener();
+		if (!string.IsNullOrEmpty(ip))
 		{
-			await socket.SendAsync(stream.stream.GetBuffer(), WebSocketMessageType.Binary, true, tokenSource.Token);
+			Listener.Address = ip;
 		}
-		catch (Exception ex)
+
+		Listener.Password = Vault.ApplyReplacement(password) ?? password;
+		Listener.Port = port;
+		Listener.Start();
+		Listener.server._config = socket =>
 		{
-			Logger.Error($"Carbon.Bridge.Send exception", ex);
-		}
-	}
-	private async ValueTask ReceiveLoop(CancellationToken token)
-	{
-		while (socket.State == WebSocketState.Open && !token.IsCancellationRequested)
-		{
-			using var stream = Pool.Get<BufferStream>().Initialize();
-			stream._isBufferOwned = true;
-			stream._buffer = BufferStream.RentBuffer(Bridge.MAX_BUFFER_SIZE);
-			stream._length = stream._buffer.Length;
-			stream._position = 0;
-			try
+			lock (Listener.clients)
 			{
-				var result = (WebSocketReceiveResult)null;
-				do result = await socket.ReceiveAsync(new ArraySegment<byte>(stream._buffer), token);
-				while (!result.EndOfMessage);
-
-				switch (result.MessageType)
+				if (socket.ConnectionInfo.Path != $"/{Listener.Password}")
 				{
-					case WebSocketMessageType.Binary:
-						var read = Pool.Get<NetRead>();
-						read.stream = stream;
-						try
+					socket.Close();
+				}
+				else
+				{
+					var connectionId = Interlocked.Increment(ref Listener.nextClientId);
+					var bridgeConnection = Pool.Get<BridgeConnection>().Init(socket);
+					socket.OnOpen = () =>
+					{
+						lock (Listener.clients)
 						{
-							onReceived?.Invoke(read);
+							Listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
+							Connections[connectionId] = bridgeConnection;
+							OnNewConnection?.Invoke(bridgeConnection);
 						}
-						catch (Exception ex)
+					};
+					socket.OnClose = () =>
+					{
+						lock (Listener.clients)
 						{
-							Logger.Error("Carbon.Bridge.ReceiveLoop[OnRead] failure", ex);
+							Listener._subscribedRconClients.Remove(connectionId);
+							Listener.clients.Remove(connectionId);
+							if (Connections.TryGetValue(connectionId, out var bridgeConnection))
+							{
+								Pool.Free(ref bridgeConnection);
+								Connections.Remove(connectionId);
+							}
+							OnClosedConnection?.Invoke(bridgeConnection);
 						}
-
-						Pool.Free(ref read);
-						break;
-
-					case WebSocketMessageType.Close:
-						await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server closed", token);
-						break;
+					};
+					socket.OnBinary += data =>
+					{
+						var buffer = BufferStream.RentBuffer(data.Length);
+						using var stream = Pool.Get<BufferStream>().Initialize();
+						stream._buffer = buffer;
+						stream._length = buffer.Length;
+						stream._isBufferOwned = true;
+						for (var i = 0; i < data.Length; i++)
+						{
+							stream._buffer[i] = data[i];
+						}
+						var read = BridgeRead.Rent(bridgeConnection, stream);
+						bridgeConnection.OnRead(read);
+						BridgeRead.Return(ref read);
+					};
+					socket.OnError = e =>
+					{
+						Logger.Error("Socket failure", e);
+					};
 				}
 			}
-			catch (Exception ex)
-			{
-				Logger.Error("Carbon.Bridge.ReceiveLoop failure", ex);
-			}
-		}
+		};
+		Logger.Log($"Carbon.Bridge Started on {port}");
+	}
+
+	public static void StartClient()
+	{
+
+	}
+}
+
+public class BridgeClient : Pool.IPooled
+{
+	public void EnterPool()
+	{
+
+	}
+
+	public void LeavePool()
+	{
+	}
+}
+
+public sealed class BridgeConnection : Pool.IPooled
+{
+	public IWebSocketConnection Socket;
+	public Action<BridgeRead> OnRead;
+
+	public BridgeConnection Init(IWebSocketConnection connection)
+	{
+		this.Socket = connection;
+		this.OnRead = OnRead;
+		return this;
+	}
+
+	public void Send(BridgeWrite write)
+	{
+		Socket.Send(write.GetMemory());
 	}
 
 	public void EnterPool()
 	{
-		onReceived = null;
-		uri = null;
-		if (socket is { State: WebSocketState.Open })
-		{
-			socket.Dispose();
-		}
-		socket = null;
-		tokenSource?.Cancel();
-		tokenSource = null;
-		connectionString = null;
+		OnRead = null;
+		Socket = null;
 	}
+
 	public void LeavePool()
 	{
 
+	}
+}
+
+public enum BridgeMessages
+{
+	Handshake,
+	Rpc
+}
+
+public sealed class BridgeRead : NetRead
+{
+	public BridgeConnection bridgeConnection;
+
+	public static BridgeRead Rent(BridgeConnection conn, BufferStream stream)
+	{
+		var read = Pool.Get<BridgeRead>();
+		read.Init(conn, stream);
+		return read;
+	}
+
+	public static void Return(ref BridgeRead read)
+	{
+		read.stream = null;
+		Pool.Free(ref read);
+	}
+
+	public void Init(BridgeConnection conn, BufferStream stream)
+	{
+		this.stream = stream;
+		this.bridgeConnection = conn;
+	}
+
+	public BridgeMessages PeekBridgeMessage() => Peek<BridgeMessages>();
+
+	public BridgeMessages BridgeMessage() => (BridgeMessages)Int32();
+
+	public new void EnterPool()
+	{
+		bridgeConnection = null;
+		base.EnterPool();
+	}
+}
+
+public sealed class BridgeWrite : NetWrite
+{
+	public static BridgeWrite Rent()
+	{
+		var write = Pool.Get<BridgeWrite>();
+		write.Start(Net.sv);
+		return write;
+	}
+
+	public static void Return(ref BridgeWrite write)
+	{
+		Pool.Free(ref write);
+	}
+
+	public MemoryBuffer GetMemory(bool fromPool = false)
+	{
+		var buffer = GetBuffer();
+		return new MemoryBuffer(buffer.Buffer, buffer.Length, fromPool);
+	}
+
+	public void BridgeMessage(BridgeMessages message)
+	{
+		Int32((int)message);
 	}
 }
