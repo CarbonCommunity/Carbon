@@ -218,6 +218,12 @@ public sealed class BridgeClient
 
 		return this;
 	}
+
+	public async ValueTask Send(BridgeWrite write)
+	{
+		await Socket.SendAsync(new ArraySegment<byte>(write.GetBuffer().Buffer), WebSocketMessageType.Binary, true, CancellationToken.Token);
+	}
+
 	public async ValueTask Disconnect()
 	{
 		await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Shutdown", CancellationToken.Token);
