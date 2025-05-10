@@ -202,7 +202,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Permissions.RegisterPermission($"adminmodule.{perm}", this);
 		}
 
-		ImageDatabase.Queue(DataInstance.BackgroundImage);
+		ImageDatabase.Queue(true, DataInstance.BackgroundImage);
 	}
 	public override void OnDisabled(bool initialized)
 	{
