@@ -1,4 +1,4 @@
-﻿using System.Net;
+﻿using System.Net.WebSockets;
 using Fleck;
 using Network;
 using Facepunch;
@@ -8,14 +8,24 @@ namespace Carbon.Components;
 
 public static class Bridge
 {
-	public static Listener Listener;
+	public static BridgeServer Server = new();
 
-	public static Action<BridgeConnection> OnNewConnection;
-	public static Action<BridgeConnection> OnClosedConnection;
+	public static async ValueTask<BridgeClient> StartClient(string ip, int port, string password, Action<BridgeRead> onRead, int maxBufferSize = 8192)
+	{
+		var client = new BridgeClient();
+		await client.Connect(ip, port, password, onRead, maxBufferSize);
+		return client;
+	}
+}
 
-	public static readonly Dictionary<int, BridgeConnection> Connections = [];
+public class BridgeServer
+{
+	public Listener Listener;
+	public Action<BridgeConnection> OnNewConnection;
+	public Action<BridgeConnection> OnClosedConnection;
+	public readonly Dictionary<int, BridgeConnection> Connections = [];
 
-	public static void StartServer(int port, string password, string ip = null)
+	public void Start(int port, string password, string ip = null)
 	{
 		if (password is null or "unset")
 		{
@@ -63,6 +73,7 @@ public static class Bridge
 								Pool.Free(ref bridgeConnection);
 								Connections.Remove(connectionId);
 							}
+
 							OnClosedConnection?.Invoke(bridgeConnection);
 						}
 					};
@@ -77,6 +88,7 @@ public static class Bridge
 						{
 							stream._buffer[i] = data[i];
 						}
+
 						var read = BridgeRead.Rent(bridgeConnection, stream);
 						bridgeConnection.OnRead(read);
 						BridgeRead.Return(ref read);
@@ -90,26 +102,89 @@ public static class Bridge
 		};
 		Logger.Log($"Carbon.Bridge Started on {port}");
 	}
-
-	public static void StartClient()
-	{
-
-	}
 }
 
-public class BridgeClient : Pool.IPooled
+public class BridgeClient
 {
-	public void EnterPool()
-	{
+	public ClientWebSocket Socket;
+	public CancellationTokenSource CancellationToken;
+	public Action<BridgeRead> OnRead;
+	public int MaxBufferSize;
 
+	public async ValueTask Connect(string ip, int port, string password, Action<BridgeRead> onRead, int maxBufferSize = 8192)
+	{
+		MaxBufferSize = maxBufferSize;
+		OnRead = onRead;
+		Socket = new ClientWebSocket();
+		CancellationToken = new CancellationTokenSource();
+
+		try
+		{
+			await Socket.ConnectAsync(new Uri($"ws://{ip}:{port}/{Vault.ApplyReplacement(password) ?? password}"), CancellationToken.Token);
+
+			Task.Run(async () => await ReceiveLoop());
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Carbon.Bridge Client connection attempt to '{ip}:{port}' failed", ex);
+		}
+	}
+	public async ValueTask Disconnect()
+	{
+		await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Shutdown", CancellationToken.Token);
+
+		CancellationToken.Cancel();
+		CancellationToken = null;
+		Socket.Dispose();
+		Socket = null;
+		OnRead = null;
 	}
 
-	public void LeavePool()
+	private async ValueTask ReceiveLoop()
 	{
+		while (Socket.State == WebSocketState.Open && !CancellationToken.IsCancellationRequested)
+		{
+			using var stream = Pool.Get<BufferStream>().Initialize();
+			stream._isBufferOwned = true;
+			stream._buffer = BufferStream.RentBuffer(MaxBufferSize);
+			stream._length = stream._buffer.Length;
+			stream._position = 0;
+			try
+			{
+				var result = (WebSocketReceiveResult)null;
+				do result = await Socket.ReceiveAsync(new ArraySegment<byte>(stream._buffer), CancellationToken.Token);
+				while (!result.EndOfMessage);
+
+				switch (result.MessageType)
+				{
+					case WebSocketMessageType.Binary:
+						var read = BridgeRead.Rent(null, stream);
+						read.stream = stream;
+						try
+						{
+							OnRead?.Invoke(read);
+						}
+						catch (Exception ex)
+						{
+							Logger.Error("Carbon.Bridge.ReceiveLoop[OnRead] failure", ex);
+						}
+						BridgeRead.Return(ref read);
+						break;
+
+					case WebSocketMessageType.Close:
+						await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server closed", CancellationToken.Token);
+						break;
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error("Carbon.Bridge.ReceiveLoop failure", ex);
+			}
+		}
 	}
 }
 
-public sealed class BridgeConnection : Pool.IPooled
+public class BridgeConnection : Pool.IPooled
 {
 	public IWebSocketConnection Socket;
 	public Action<BridgeRead> OnRead;
