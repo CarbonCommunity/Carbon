@@ -14,6 +14,9 @@ public sealed class Switches
 	[Switch(Name = "-carbon.datadir", Help = "Overrides the data directory of Carbon, aka the \"carbon/data\" folder.")]
 	public static string GetDataDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.datadir", defaultValue);
 
+	[Switch(Name = "-carbon.modifierdir", Help = "Overrides the modifier directory of Carbon, aka the \"carbon/modifiers\" folder.")]
+	public static string GetModifierDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.modifierdir", defaultValue);
+
 	[Switch(Name = "-carbon.langdir", Help = "Overrides the lang directory of Carbon, aka the \"carbon/lang\" folder.")]
 	public static string GetLangDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.langdir", defaultValue);
 
