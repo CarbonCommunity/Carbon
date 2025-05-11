@@ -43,7 +43,6 @@ public class Modifier
 				invalidMembers += modifier.GetInvalidMembers();
 				modifier.ClearInvalidMembers();
 			}
-			Console.WriteLine($"Collected {All.Count:n0} modifiers and {All.Sum(x => x.Fields.Count):n0} field members");
 		}
 	}
 

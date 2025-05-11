@@ -60,6 +60,8 @@ public class Patch : IDisposable
 	public byte[] processed;
 	public string filePath;
 	public string fileName;
+	public int modifiers;
+	public int members;
 
 	public bool ShouldPublicize => Config.Singleton.Publicizer.PublicizedAssemblies.Any(x => fileName.StartsWith(x, StringComparison.OrdinalIgnoreCase));
 
@@ -191,6 +193,7 @@ public class Patch : IDisposable
 				return;
 			}
 
+			modifiers++;
 			for (int i = 0; i < modifier.Fields.Count; i++)
 			{
 				var field = modifier.Fields[i];
@@ -206,6 +209,7 @@ public class Patch : IDisposable
 				newField.IsStatic = field.IsStatic;
 				newField.Constant = field.DefaultValue;
 				type.Fields.Add(newField);
+				members++;
 			}
 		}
 		catch(Exception ex)
@@ -259,7 +263,7 @@ public class Patch : IDisposable
 		UpdateBuffer();
 		var assembly = Assembly.Load(processed);
 		PatchMapping[assembly] = Path.Combine(filePath, fileName);
-		Console.WriteLine($" Loading patched assembly {fileName}");
+		Console.WriteLine($" Loading patched assembly '{fileName}' {(modifiers != 0 || members != 0 ? $"[{modifiers:n0} {(members == 1 ? "mod" : "mods")}, {members:n0} {(members == 1 ? "fld" : "flds")}]" : string.Empty)}");
 	}
 
 	public void Dispose()
