@@ -166,7 +166,7 @@ public class Patch : IDisposable
 		onBufferUpdate?.Invoke((fileName, processed));
 	}
 
-	public void ApplyModifiers()
+	private void ApplyModifiers()
 	{
 		var name = Path.GetFileNameWithoutExtension(fileName);
 		for (int i = 0; i < Core.Modifier.All.Count; i++)
@@ -204,9 +204,18 @@ public class Patch : IDisposable
 					continue;
 				}
 
-				var newField = new FieldDefinition(field.Name, FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(fieldType));
-				newField.IsStatic = field.IsStatic;
-				newField.Constant = field.DefaultValue;
+				if (type.Fields.FirstOrDefault(x => x.Name.Equals(field.Name)) != null ||
+				    type.Properties.FirstOrDefault(x => x.Name.Equals(field.Name)) != null)
+				{
+					Console.WriteLine($" Couldn't create field for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}] as a member with the same name already exists");
+					continue;
+				}
+
+				var newField = new FieldDefinition(field.Name, FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(fieldType))
+				{
+					IsStatic = field.IsStatic,
+					Constant = field.DefaultValue
+				};
 				type.Fields.Add(newField);
 				members++;
 			}
@@ -217,9 +226,9 @@ public class Patch : IDisposable
 		}
 	}
 
-	public TypeDefinition GetTypeDefinition(string fullName)
+	private TypeDefinition GetTypeDefinition(string name)
 	{
-		var type = assembly.MainModule.GetType(fullName);
+		var type = assembly.MainModule.GetType(name);
 		if (type != null)
 		{
 			return type;
@@ -230,7 +239,7 @@ public class Patch : IDisposable
 			try
 			{
 				var resolvedAsm = assembly.MainModule.AssemblyResolver.Resolve(nameReference);
-				var externalType = resolvedAsm.MainModule.GetType(fullName);
+				var externalType = resolvedAsm.MainModule.GetType(name);
 				if (externalType != null)
 				{
 					return externalType;
@@ -242,15 +251,15 @@ public class Patch : IDisposable
 		return null;
 	}
 
-	public TypeReference GetTypeReference(string fullName)
+	private TypeReference GetTypeReference(string name)
 	{
-		var tickIndex = fullName.IndexOf('`');
-		var bracketIndex = fullName.IndexOf('[');
+		var tickIndex = name.IndexOf('`');
+		var bracketIndex = name.IndexOf('[');
 
 		if (tickIndex != -1 && bracketIndex != -1)
 		{
-			var baseName = fullName.Substring(0, bracketIndex);
-			var argsString = fullName.Substring(bracketIndex + 1, fullName.Length - bracketIndex - 2);
+			var baseName = name.Substring(0, bracketIndex);
+			var argsString = name.Substring(bracketIndex + 1, name.Length - bracketIndex - 2);
 			var argNames = argsString.Split(',').Select(arg => arg.Trim()).ToList();
 
 			var openGeneric = GetTypeDefinition(baseName);
@@ -275,7 +284,7 @@ public class Patch : IDisposable
 			return genericInstance;
 		}
 
-		var type = assembly.MainModule.GetType(fullName);
+		var type = assembly.MainModule.GetType(name);
 		if (type != null)
 		{
 			return type;
@@ -288,7 +297,7 @@ public class Patch : IDisposable
 				var resolvedAsm = assembly.MainModule.AssemblyResolver.Resolve(asmRef);
 				foreach (var t in resolvedAsm.MainModule.Types)
 				{
-					if (t.FullName == fullName)
+					if (t.FullName == name)
 					{
 						return t;
 					}
