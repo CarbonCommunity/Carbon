@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Carbon.Core;
 using Mono.Cecil;
+using FieldAttributes = Mono.Cecil.FieldAttributes;
 
 namespace Carbon.Publicizer;
 
@@ -18,6 +20,7 @@ public class Patch : IDisposable
 	public static Action<(string path, byte[] buffer)> onBufferUpdate;
 	public static Action<(string path, byte[] buffer)> onPatchUpdate;
 
+	public static string CarbonModifierDirectory;
 	public static string CarbonManagedDirectory;
 	public static string RustManagedDirectory;
 
@@ -26,8 +29,9 @@ public class Patch : IDisposable
 	public AssemblyDefinition assembly;
 	public ReaderParameters readerParameters;
 
-	public static void Init(string carbonManagedDir, string rustManagedDir)
+	public static void Init(string carbonModifierDir, string carbonManagedDir, string rustManagedDir)
 	{
+		CarbonModifierDirectory = carbonModifierDir;
 		CarbonManagedDirectory = carbonManagedDir;
 		RustManagedDirectory = rustManagedDir;
 
@@ -42,6 +46,8 @@ public class Patch : IDisposable
 			new AssemblyCSharp(),
 			new RustHarmony()
 		];
+
+		Core.Modifier.Collect(carbonModifierDir);
 	}
 	public static void Uninit()
 	{
@@ -142,6 +148,7 @@ public class Patch : IDisposable
 			return false;
 		}
 
+		ApplyModifiers();
 		Publicize();
 		Publicized.Add(this);
 		return true;
@@ -156,6 +163,80 @@ public class Patch : IDisposable
 		assembly.Write(memoryStream);
 		processed = memoryStream.ToArray();
 		onBufferUpdate?.Invoke((fileName, processed));
+	}
+
+	public void ApplyModifiers()
+	{
+		var name = Path.GetFileNameWithoutExtension(fileName);
+		for (int i = 0; i < Core.Modifier.All.Count; i++)
+		{
+			var modifier = Core.Modifier.All[i];
+			if (!modifier.Assembly.Equals(name, StringComparison.CurrentCultureIgnoreCase))
+			{
+				continue;
+			}
+			ApplyModifiersImpl(modifier);
+		}
+	}
+
+	private void ApplyModifiersImpl(Core.Modifier modifier)
+	{
+		try
+		{
+			var type = FindTypeByFullName(modifier.Name);
+
+			if (type == null)
+			{
+				Console.WriteLine($" Couldn't find type for modifier: {modifier.Name} [{modifier.Assembly}]");
+				return;
+			}
+
+			for (int i = 0; i < modifier.Fields.Count; i++)
+			{
+				var field = modifier.Fields[i];
+				var fieldType = FindTypeByFullName(field.Type);
+
+				if (fieldType == null)
+				{
+					Console.WriteLine($" Couldn't find field type for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}]");
+					continue;
+				}
+
+				var newField = new FieldDefinition(field.Name, FieldAttributes.NotSerialized, fieldType);
+				newField.IsStatic = field.IsStatic;
+				newField.Constant = field.DefaultValue;
+				type.Fields.Add(newField);
+			}
+		}
+		catch(Exception ex)
+		{
+			Console.WriteLine($" Failed applying modifier: {modifier.Name} [{modifier.Assembly}] ({ex.Message})\n{ex.StackTrace}");
+		}
+	}
+
+	public TypeDefinition FindTypeByFullName( string fullName)
+	{
+		var type = assembly.MainModule.GetType(fullName);
+		if (type != null)
+		{
+			return type;
+		}
+
+		foreach (var nameReference in assembly.MainModule.AssemblyReferences)
+		{
+			try
+			{
+				var resolvedAsm = assembly.MainModule.AssemblyResolver.Resolve(nameReference);
+				var externalType = resolvedAsm.MainModule.GetType(fullName);
+				if (externalType != null)
+				{
+					return externalType;
+				}
+			}
+			catch { }
+		}
+
+		return null;
 	}
 
 	public void Write(string path)
@@ -188,7 +269,7 @@ public class Patch : IDisposable
 		assembly = null;
 	}
 
-	protected void Publicize()
+	public void Publicize()
 	{
 		if (assembly == null)
 		{
