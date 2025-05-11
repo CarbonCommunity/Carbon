@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Collections.Concurrent;
 using System.Text;
 using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
@@ -18,7 +15,7 @@ public class InternalCallHook
 {
 	public static List<AssemblyDefinition> Assemblies = new();
 
-	internal static Dictionary<string, int> InheritanceCache = new();
+	internal static ConcurrentDictionary<string, int> InheritanceCache = new();
 
 	private static TypeDefinition? FindTypeInAssemblies(string fullName)
 	{
