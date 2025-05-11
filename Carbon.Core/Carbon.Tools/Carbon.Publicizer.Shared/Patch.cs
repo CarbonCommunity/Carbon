@@ -166,7 +166,7 @@ public class Patch : IDisposable
 		onBufferUpdate?.Invoke((fileName, processed));
 	}
 
-	public void ApplyModifiers()
+	private void ApplyModifiers()
 	{
 		var name = Path.GetFileNameWithoutExtension(fileName);
 		for (int i = 0; i < Core.Modifier.All.Count; i++)
@@ -226,7 +226,7 @@ public class Patch : IDisposable
 		}
 	}
 
-	public TypeDefinition GetTypeDefinition(string name)
+	private TypeDefinition GetTypeDefinition(string name)
 	{
 		var type = assembly.MainModule.GetType(name);
 		if (type != null)
@@ -251,7 +251,7 @@ public class Patch : IDisposable
 		return null;
 	}
 
-	public TypeReference GetTypeReference(string name)
+	private TypeReference GetTypeReference(string name)
 	{
 		var tickIndex = name.IndexOf('`');
 		var bracketIndex = name.IndexOf('[');
