@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Carbon.Core;
 using Mono.Cecil;
 using FieldAttributes = Mono.Cecil.FieldAttributes;
 
@@ -185,7 +184,7 @@ public class Patch : IDisposable
 	{
 		try
 		{
-			var type = FindTypeByFullName(modifier.Name);
+			var type = GetTypeDefinition(modifier.Name);
 
 			if (type == null)
 			{
@@ -197,7 +196,7 @@ public class Patch : IDisposable
 			for (int i = 0; i < modifier.Fields.Count; i++)
 			{
 				var field = modifier.Fields[i];
-				var fieldType = FindTypeByFullName(field.Type);
+				var fieldType = GetTypeReference(field.Type);
 
 				if (fieldType == null)
 				{
@@ -205,7 +204,7 @@ public class Patch : IDisposable
 					continue;
 				}
 
-				var newField = new FieldDefinition(field.Name, FieldAttributes.NotSerialized, fieldType);
+				var newField = new FieldDefinition(field.Name, FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(fieldType));
 				newField.IsStatic = field.IsStatic;
 				newField.Constant = field.DefaultValue;
 				type.Fields.Add(newField);
@@ -218,7 +217,7 @@ public class Patch : IDisposable
 		}
 	}
 
-	public TypeDefinition FindTypeByFullName( string fullName)
+	public TypeDefinition GetTypeDefinition(string fullName)
 	{
 		var type = assembly.MainModule.GetType(fullName);
 		if (type != null)
@@ -240,6 +239,63 @@ public class Patch : IDisposable
 			catch { }
 		}
 
+		return null;
+	}
+
+	public TypeReference GetTypeReference(string fullName)
+	{
+		var tickIndex = fullName.IndexOf('`');
+		var bracketIndex = fullName.IndexOf('[');
+
+		if (tickIndex != -1 && bracketIndex != -1)
+		{
+			var baseName = fullName.Substring(0, bracketIndex);
+			var argsString = fullName.Substring(bracketIndex + 1, fullName.Length - bracketIndex - 2);
+			var argNames = argsString.Split(',').Select(arg => arg.Trim()).ToList();
+
+			var openGeneric = GetTypeDefinition(baseName);
+			if (openGeneric == null)
+			{
+				Console.WriteLine($"Could not resolve open generic type: {baseName}");
+				return null;
+			}
+
+			var genericInstance = new GenericInstanceType(openGeneric);
+			foreach (var arg in argNames)
+			{
+				var resolvedArg = GetTypeDefinition(arg);
+				if (resolvedArg == null)
+				{
+					Console.WriteLine($"Could not resolve generic argument: {arg}");
+					return null;
+				}
+				genericInstance.GenericArguments.Add(resolvedArg);
+			}
+
+			return genericInstance;
+		}
+
+		var type = assembly.MainModule.GetType(fullName);
+		if (type != null)
+		{
+			return type;
+		}
+
+		foreach (var asmRef in assembly.MainModule.AssemblyReferences)
+		{
+			try
+			{
+				var resolvedAsm = assembly.MainModule.AssemblyResolver.Resolve(asmRef);
+				foreach (var t in resolvedAsm.MainModule.Types)
+				{
+					if (t.FullName == fullName)
+					{
+						return t;
+					}
+				}
+			}
+			catch { }
+		}
 		return null;
 	}
 
