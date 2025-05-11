@@ -15,7 +15,7 @@
 *.csproj.user
 
 # Rider
-.idea/*
+*/.idea/*
 
 # Code gen
 Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Build.cs
