@@ -540,7 +540,10 @@ public class ScriptLoader : IScriptLoader
 			catch (Exception exception)
 			{
 				HasFinished = true;
-				Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}': ", exception);
+				if (InitialSource != null)
+				{
+					Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}': ", exception);
+				}
 			}
 
 			yield return null;

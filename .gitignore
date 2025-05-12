@@ -14,6 +14,9 @@
 *.code-workspace
 *.csproj.user
 
+# Rider
+*/.idea/*
+
 # Code gen
 Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Build.cs
 [Gg]enerated/
