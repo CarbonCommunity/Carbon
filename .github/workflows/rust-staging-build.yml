@@ -37,7 +37,7 @@ jobs:
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=2.3.$(curl -s -L 'https://carbonmod.gg/version?id=staging&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
+          echo "version=2.3.$(curl -s -L 'https://api.carbonmod.gg/version?id=staging&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
           git config --global --add safe.directory /__w/Carbon/Carbon
 
       - name: Rust Setup
@@ -56,10 +56,15 @@ jobs:
           which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
           x86_64-w64-mingw32-dlltool --version
 
-      - name: Dotnet Setup
+      - name: Setup .NET 8 SDK
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 8.0.406
+      
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 9.0.203
 
       - name: Carbon.Native Toolchain
         uses: dtolnay/rust-toolchain@stable
