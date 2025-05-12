@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Mono.Cecil;
+using FieldAttributes = Mono.Cecil.FieldAttributes;
 
 namespace Carbon.Publicizer;
 
@@ -18,6 +19,7 @@ public class Patch : IDisposable
 	public static Action<(string path, byte[] buffer)> onBufferUpdate;
 	public static Action<(string path, byte[] buffer)> onPatchUpdate;
 
+	public static string CarbonModifierDirectory;
 	public static string CarbonManagedDirectory;
 	public static string RustManagedDirectory;
 
@@ -26,8 +28,9 @@ public class Patch : IDisposable
 	public AssemblyDefinition assembly;
 	public ReaderParameters readerParameters;
 
-	public static void Init(string carbonManagedDir, string rustManagedDir)
+	public static void Init(string carbonModifierDir, string carbonManagedDir, string rustManagedDir)
 	{
+		CarbonModifierDirectory = carbonModifierDir;
 		CarbonManagedDirectory = carbonManagedDir;
 		RustManagedDirectory = rustManagedDir;
 
@@ -42,6 +45,8 @@ public class Patch : IDisposable
 			new AssemblyCSharp(),
 			new RustHarmony()
 		];
+
+		Core.Modifier.Collect(carbonModifierDir);
 	}
 	public static void Uninit()
 	{
@@ -54,6 +59,8 @@ public class Patch : IDisposable
 	public byte[] processed;
 	public string filePath;
 	public string fileName;
+	public int modifiers;
+	public int members;
 
 	public bool ShouldPublicize => Config.Singleton.Publicizer.PublicizedAssemblies.Any(x => fileName.StartsWith(x, StringComparison.OrdinalIgnoreCase));
 
@@ -96,7 +103,7 @@ public class Patch : IDisposable
 			return assembly;
 		}
 
-		protected void RegisterAssembly (AssemblyDefinition assembly)
+		public void RegisterAssembly (AssemblyDefinition assembly)
 		{
 			if (assembly == null)
 				throw new ArgumentNullException (nameof(assembly));
@@ -142,6 +149,7 @@ public class Patch : IDisposable
 			return false;
 		}
 
+		ApplyModifiers();
 		Publicize();
 		Publicized.Add(this);
 		return true;
@@ -156,6 +164,148 @@ public class Patch : IDisposable
 		assembly.Write(memoryStream);
 		processed = memoryStream.ToArray();
 		onBufferUpdate?.Invoke((fileName, processed));
+	}
+
+	private void ApplyModifiers()
+	{
+		var name = Path.GetFileNameWithoutExtension(fileName);
+		for (int i = 0; i < Core.Modifier.All.Count; i++)
+		{
+			var modifier = Core.Modifier.All[i];
+			if (!modifier.Assembly.Equals(name, StringComparison.CurrentCultureIgnoreCase))
+			{
+				continue;
+			}
+			ApplyModifiersImpl(modifier);
+		}
+	}
+
+	private void ApplyModifiersImpl(Core.Modifier modifier)
+	{
+		try
+		{
+			var type = GetTypeDefinition(modifier.Name);
+
+			if (type == null)
+			{
+				Console.WriteLine($" Couldn't find type for modifier: {modifier.Name} [{modifier.Assembly}]");
+				return;
+			}
+
+			modifiers++;
+			for (int i = 0; i < modifier.Fields.Count; i++)
+			{
+				var field = modifier.Fields[i];
+				var fieldType = GetTypeReference(field.Type);
+
+				if (fieldType == null)
+				{
+					Console.WriteLine($" Couldn't find field type for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}]");
+					continue;
+				}
+
+				if (type.Fields.FirstOrDefault(x => x.Name.Equals(field.Name)) != null ||
+				    type.Properties.FirstOrDefault(x => x.Name.Equals(field.Name)) != null)
+				{
+					Console.WriteLine($" Couldn't create field for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}] as a member with the same name already exists");
+					continue;
+				}
+
+				var newField = new FieldDefinition(field.Name, FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(fieldType))
+				{
+					IsStatic = field.IsStatic,
+					Constant = field.DefaultValue
+				};
+				type.Fields.Add(newField);
+				members++;
+			}
+		}
+		catch(Exception ex)
+		{
+			Console.WriteLine($" Failed applying modifier: {modifier.Name} [{modifier.Assembly}] ({ex.Message})\n{ex.StackTrace}");
+		}
+	}
+
+	private TypeDefinition GetTypeDefinition(string name)
+	{
+		var type = assembly.MainModule.GetType(name);
+		if (type != null)
+		{
+			return type;
+		}
+
+		foreach (var nameReference in assembly.MainModule.AssemblyReferences)
+		{
+			try
+			{
+				var resolvedAsm = assembly.MainModule.AssemblyResolver.Resolve(nameReference);
+				var externalType = resolvedAsm.MainModule.GetType(name);
+				if (externalType != null)
+				{
+					return externalType;
+				}
+			}
+			catch { }
+		}
+
+		return null;
+	}
+
+	private TypeReference GetTypeReference(string name)
+	{
+		var tickIndex = name.IndexOf('`');
+		var bracketIndex = name.IndexOf('[');
+
+		if (tickIndex != -1 && bracketIndex != -1)
+		{
+			var baseName = name.Substring(0, bracketIndex);
+			var argsString = name.Substring(bracketIndex + 1, name.Length - bracketIndex - 2);
+			var argNames = argsString.Split(',').Select(arg => arg.Trim()).ToList();
+
+			var openGeneric = GetTypeDefinition(baseName);
+			if (openGeneric == null)
+			{
+				Console.WriteLine($"Could not resolve open generic type: {baseName}");
+				return null;
+			}
+
+			var genericInstance = new GenericInstanceType(openGeneric);
+			foreach (var arg in argNames)
+			{
+				var resolvedArg = GetTypeDefinition(arg);
+				if (resolvedArg == null)
+				{
+					Console.WriteLine($"Could not resolve generic argument: {arg}");
+					return null;
+				}
+				genericInstance.GenericArguments.Add(resolvedArg);
+			}
+
+			return genericInstance;
+		}
+
+		var type = assembly.MainModule.GetType(name);
+		if (type != null)
+		{
+			return type;
+		}
+
+		foreach (var asmRef in assembly.MainModule.AssemblyReferences)
+		{
+			try
+			{
+				var resolvedAsm = assembly.MainModule.AssemblyResolver.Resolve(asmRef);
+				foreach (var t in resolvedAsm.MainModule.Types)
+				{
+					if (t.FullName == name)
+					{
+						return t;
+					}
+				}
+			}
+			catch { }
+		}
+		return null;
 	}
 
 	public void Write(string path)
@@ -178,7 +328,7 @@ public class Patch : IDisposable
 		UpdateBuffer();
 		var assembly = Assembly.Load(processed);
 		PatchMapping[assembly] = Path.Combine(filePath, fileName);
-		Console.WriteLine($" Loading patched assembly {fileName}");
+		Console.WriteLine($" Loading patched assembly '{fileName}' {(modifiers != 0 || members != 0 ? $"[{modifiers:n0} {(members == 1 ? "mod" : "mods")}, {members:n0} {(members == 1 ? "fld" : "flds")}]" : string.Empty)}");
 	}
 
 	public void Dispose()
@@ -188,7 +338,7 @@ public class Patch : IDisposable
 		assembly = null;
 	}
 
-	protected void Publicize()
+	public void Publicize()
 	{
 		if (assembly == null)
 		{

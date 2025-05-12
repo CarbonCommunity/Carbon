@@ -6,7 +6,7 @@ var input = args[0];
 var patchableFiles = Directory.EnumerateFiles(input);
 
 Config.Init(null!);
-Patch.Init(null!, input);
+Patch.Init(null!, null!, input);
 foreach (var file in patchableFiles)
 {
 	try
