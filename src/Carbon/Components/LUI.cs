@@ -369,17 +369,31 @@ public class LUI : IDisposable
 	#endregion
 
 	/// <summary>
+	/// Gets the built UI in bytes. Useful when redrawing whole UI, and we want to minimalize delay between destroy and draw.
+	/// </summary>
+	public byte[] GetUiBytes()
+	{
+		using LuiBuilderInstance cbi = new LuiBuilderInstance(this);
+		return cbi.GetMergedBytes();
+	}
+
+	/// <summary>
 	/// Builds and sends UI to player.
 	/// </summary>
 	public void SendUi(BasePlayer player) => Send(new SendInfo(player.Connection));
 
 	/// <summary>
-	/// Builds and sends UI to player. Preffered SendUi(BasePlayer) over this method.
+	/// Builds and sends UI to player. Preferred SendUi(BasePlayer) over this method.
 	/// </summary>
 	public void SendUiJson(BasePlayer player) => SendJson(new SendInfo(player.Connection));
 
 	/// <summary>
-	/// Returns string JSON of currently builded UI.
+	/// Sends already buit UI to player. Need to run GetUiBytes() in order to get the bytes before.
+	/// </summary>
+	public void SendUiBytes(BasePlayer player, byte[] bytes) => SendBytes(new SendInfo(player.Connection), bytes);
+
+	/// <summary>
+	/// Returns string JSON of currently built UI.
 	/// </summary>
 	public string ToJson()
 	{
@@ -395,6 +409,16 @@ public class LUI : IDisposable
 		write.EntityID(CommunityEntity.ServerInstance.net.ID);
 		write.UInt32(StringPool.Get("AddUI"));
 		write.BytesWithSize(cbi.GetMergedBytes());
+		write.Send(send);
+	}
+
+	private void SendBytes(SendInfo send, byte[] bytes)
+	{
+		NetWrite write = Net.sv.StartWrite();
+		write.PacketID(Message.Type.RPCMessage);
+		write.EntityID(CommunityEntity.ServerInstance.net.ID);
+		write.UInt32(StringPool.Get("AddUI"));
+		write.BytesWithSize(bytes);
 		write.Send(send);
 	}
 
@@ -827,7 +851,7 @@ public class LUI : IDisposable
 
 		public LuiContainer SetRawImage(string png = null, string color = null)
 		{
-			if (luiComponents.TryGetValue<LuiRawImageComp>(LuiCompType.Image, out var img))
+			if (luiComponents.TryGetValue<LuiRawImageComp>(LuiCompType.RawImage, out var img))
 			{
 				if (png != null)
 					img.png = png;
