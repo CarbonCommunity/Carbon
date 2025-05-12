@@ -18,7 +18,7 @@ public partial class CorePlugin
 	{
 		arg.ReplyWith($"To get started, run the `c.find c.` to list all Carbon commands.\n" +
 		              $"To list all currently loaded plugins, execute `c.plugins`.\n" +
-		              $"For more information, please visit https://docs.carbonmod.gg or join the Discord server at https://discord.gg/carbonmod\n" +
+		              $"For more information, please visit https://carbonmod.gg or join the Discord server at https://discord.gg/carbonmod\n" +
 		              $"You're currently running {Community.Runtime.Analytics.Version}.");
 	}
 
