@@ -14,6 +14,9 @@ public sealed class Switches
 	[Switch(Name = "-carbon.datadir", Help = "Overrides the data directory of Carbon, aka the \"carbon/data\" folder.")]
 	public static string GetDataDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.datadir", defaultValue);
 
+	[Switch(Name = "-carbon.modifierdir", Help = "Overrides the modifier directory of Carbon, aka the \"carbon/modifiers\" folder.")]
+	public static string GetModifierDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.modifierdir", defaultValue);
+
 	[Switch(Name = "-carbon.langdir", Help = "Overrides the lang directory of Carbon, aka the \"carbon/lang\" folder.")]
 	public static string GetLangDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.langdir", defaultValue);
 
@@ -31,6 +34,15 @@ public sealed class Switches
 
 	[Switch(Name = "-harmonydir", Help = "Overrides the directory of Rust's HarmonyMods folder.")]
 	public static string GetHarmonyDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-harmonydir", defaultValue);
+
+	[Switch(Name = "-bridge.ip", Help = "Assigns the ip of the Carbon.Bridge server.")]
+	public static string GetBridgeIp(string defaultValue = null) => CommandLineEx.GetArgumentResult("-bridge.ip", defaultValue);
+
+	[Switch(Name = "-bridge.port", Help = "Assigns the port of the Carbon.Bridge server.")]
+	public static string GetBridgePort(string defaultValue = null) => CommandLineEx.GetArgumentResult("-bridge.port", defaultValue);
+
+	[Switch(Name = "-bridge.password", Help = "Assigns the password of the Carbon.Bridge server.")]
+	public static string GetBridgePassword(string defaultValue = null) => CommandLineEx.GetArgumentResult("-bridge.password", defaultValue);
 }
 
 [AttributeUsage(AttributeTargets.Method)]

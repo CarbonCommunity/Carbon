@@ -4,10 +4,9 @@ public sealed class Updater
 {
 	private static string GithubReleaseUrl(string file, string protocol = null)
 	{
-		var suffix = (Community.Runtime.Analytics.Platform == "linux") ? "unix" : default;
+		var suffix = (Community.Runtime.Analytics.Platform == "linux") ? "unix" : null;
 		var target = (Community.Runtime.Analytics.Branch == "Release") ? "release" : "debug";
-
-		return $"https://carbonmod.gg/redist/server/{target}{suffix}/{(protocol is null ? $"{file}" : $"{protocol}/{file}")}";
+		return $"https://cdn.carbonmod.gg/hooks/server/{target}{suffix}/{(protocol is null ? $"{file}" : $"{protocol}/{file}")}";
 	}
 
 	public static async void DoUpdate(Action<bool> callback = null)

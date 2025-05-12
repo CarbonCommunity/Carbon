@@ -30,6 +30,7 @@ public class Defines
 	internal static string _customScriptFolder;
 	internal static string _customConfigFolder;
 	internal static string _customDataFolder;
+	internal static string _customModifierFolder;
 	internal static string _customLangFolder;
 	internal static string _customModuleFolder;
 	internal static string _customExtensionsFolder;
@@ -46,6 +47,7 @@ public class Defines
 		_customScriptFolder = Switches.GetScriptDir();
 		_customConfigFolder = Switches.GetConfigDir();
 		_customDataFolder = Switches.GetDataDir();
+		_customModifierFolder = Switches.GetModifierDir();
 		_customLangFolder = Switches.GetLangDir();
 		_customModuleFolder = Switches.GetModuleDir();
 		_customExtensionsFolder = Switches.GetExtDir();
@@ -124,6 +126,14 @@ public class Defines
 	{
 		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customDataFolder) ? Path.Combine(GetRootFolder(), "data") : _customDataFolder);
+		Directory.CreateDirectory(folder);
+
+		return folder;
+	}
+	public static string GetModifierFolder()
+	{
+		_initializeCommandLine();
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customModifierFolder) ? Path.Combine(GetRootFolder(), "modifiers") : _customModifierFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;
