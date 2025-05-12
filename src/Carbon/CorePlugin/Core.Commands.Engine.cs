@@ -58,18 +58,21 @@ public partial class CorePlugin
 	}
 
 	[ConsoleCommand("build", "Information about the currently running Carbon build.")]
+	[AuthLevel(2)]
 	private void BuildCall(ConsoleSystem.Arg arg)
 	{
 		arg.ReplyWith(Community.Runtime.Analytics.InformationalVersion);
 	}
 
 	[ConsoleCommand("protocol", "Protocol information used by the hook system of the Carbon build.")]
+	[AuthLevel(2)]
 	private void Protocol(ConsoleSystem.Arg arg)
 	{
 		arg.ReplyWith(Community.Runtime.Analytics.Protocol);
 	}
 
 	[ConsoleCommand("commit", "Information about the Git commit of this build.")]
+	[AuthLevel(2)]
 	private void Commit(ConsoleSystem.Arg arg)
 	{
 		var builder = Pool.Get<StringBuilder>();

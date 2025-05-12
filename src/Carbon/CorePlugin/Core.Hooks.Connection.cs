@@ -41,11 +41,6 @@ public partial class CorePlugin
 			return Cache.True;
 		}
 
-		if (Community.Runtime.ClientConfig.Enabled)
-		{
-			Community.Runtime.CarbonClient.OnConnected(connection);
-		}
-
 		// OnUserApprove
 		if (HookCaller.CallStaticHook(2666432541, connection) != null)
 		{
@@ -91,11 +86,6 @@ public partial class CorePlugin
 					Logger.Warn($"Moved admin player {player.net.connection} on the object underneath so it doesn't die from fall damage.");
 				}
 			}
-		}
-
-		if (Community.Runtime.ClientConfig.Enabled)
-		{
-			Community.Runtime.CarbonClient.OnDisconnected(player.Connection);
 		}
 	}
 	private void OnPlayerKicked(BasePlayer basePlayer, string reason)

@@ -105,9 +105,16 @@ public partial class CorePlugin
 		}
 
 		var path = Path.Combine(Defines.GetRootFolder(), arg.GetString(0));
-		OsEx.File.Delete(path);
-		OsEx.Folder.Delete(path);
-		arg.ReplyWith($"Deleted '{path}'");
+		if (OsEx.File.Exists(path) || OsEx.Folder.Exists(path))
+		{
+			OsEx.File.Delete(path);
+			OsEx.Folder.Delete(path);
+			arg.ReplyWith($"Deleted '{path}'");
+		}
+		else
+		{
+			arg.ReplyWith($"Couldn't delete '{path}' as it doesn't exist.");
+		}
 	}
 
 	[ConsoleCommand("deleteext", "Locally deletes all files with a specified extension relative to the server root. Syntax: c.deleteext \"path/to\" \"cs\"")]
@@ -123,7 +130,6 @@ public partial class CorePlugin
 
 		var folder = Path.Combine(Defines.GetRootFolder(), arg.GetString(0));
 		var extension = arg.GetString(1);
-
 		var files = OsEx.Folder.GetFilesWithExtension(folder, extension);
 		OsEx.Folder.DeleteFilesWithExtension(folder, extension);
 		for (int i = 0; i < files.Length; i++)
