@@ -19,7 +19,7 @@ public partial class AdminModule
 					OyMin: -20, OyMax: -20);
 				cui.CreateText(container, panel,
 					color: "1 1 1 0.5",
-					text: "Welcome to <b>Carbon</b>!\n\n<size=12><color=grey>If you've seen this panel again, your existent settings have not been reset.\nFor more information, go to <color=orange>docs.carbonmod.gg</color>.</color></size>",
+					text: "Welcome to <b>Carbon</b>!\n\n<size=12><color=grey>If you've seen this panel again, your existent settings have not been reset.\nFor more information, go to <color=orange>carbonmod.gg</color>.</color></size>",
 					18,
 					yMax: 0.495f, OyMin: -20, OyMax: -20, align: TextAnchor.UpperCenter);
 				cui.CreateProtectedButton(container, panel, "#7d8f32", "1 1 1 1", "Continue ▶", 9,

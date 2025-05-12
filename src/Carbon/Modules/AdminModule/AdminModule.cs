@@ -2460,7 +2460,7 @@ public class AdminData
 	public bool BackgroundBlur = true;
 	public float BackgroundOpacity = 0.75f;
 	public float BackgroundImageOpacity = 0.75f;
-	public string BackgroundImage = "http://carbonmod.gg/assets/media/carbon-full-bg.png";
+	public string BackgroundImage = "http://cdn.carbonmod.gg/cui/carbon-background.png";
 	public Vector2 BackgroundImageYAnchor = new(0.15f, 1);
 	public float BackgroundColumnOpacity = 0.5f;
 	public DataColors Colors = new();
