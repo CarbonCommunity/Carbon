@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)BuiltInPatches.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Config.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\Assembly-CSharp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\Rust.Harmony.cs" />

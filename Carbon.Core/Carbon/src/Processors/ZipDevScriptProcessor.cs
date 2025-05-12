@@ -203,7 +203,6 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 	public class ZipDevScriptParser : Parser, IBaseProcessor.IParser
 	{
-		internal const string Harmony = "Harmony";
 		internal const string FOOT = "FindObjectsOfType";
 
 		public override void Process(string file, string input, out string output)
@@ -212,11 +211,6 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 			{
 				try
 				{
-					if (input.Contains(Harmony))
-					{
-						Logger.Warn($" Warning! '{Path.GetFileNameWithoutExtension(file)}' uses Harmony. That may cause instability, use at your own discretion!");
-					}
-
 					if (input.Contains(FOOT))
 					{
 						Logger.Warn($" Warning! '{Path.GetFileNameWithoutExtension(file)}' uses UnityEngine.GameObject.FindObjectsOfType. That may cause significant performance drops, and/or server stalls. Report to the developer or use at your own discretion!");

@@ -239,9 +239,7 @@ public class ScriptLoader : IScriptLoader
 				var source = Sources[i];
 				Parser.Process(source.FilePath, source.Content, out var content);
 
-				yield return null;
-
-				if (!string.IsNullOrEmpty(content))
+				if (Sources != null && !string.IsNullOrEmpty(content))
 				{
 					Sources[i] = new BaseSource
 					{
@@ -258,7 +256,6 @@ public class ScriptLoader : IScriptLoader
 		if (Sources == null || Sources.Count == 0)
 		{
 			HasFinished = true;
-			// Logger.Warn("Attempted to compile an empty string of source code.");
 			yield break;
 		}
 
@@ -543,7 +540,10 @@ public class ScriptLoader : IScriptLoader
 			catch (Exception exception)
 			{
 				HasFinished = true;
-				Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}': ", exception);
+				if (InitialSource != null)
+				{
+					Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}': ", exception);
+				}
 			}
 
 			yield return null;
