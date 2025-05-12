@@ -93,7 +93,7 @@ jobs:
     - name: 🔨 Built Carbon Hooks on Windows
       shell: cmd
       run: |            
-        set OXIDE_HOOKS=https://cdn.carbonmod.gg/oxide/%RUST_BRANCH%.opj
+        set OXIDE_HOOKS=https://api.carbonmod.gg/oxide/%RUST_BRANCH%.opj
 
         if NOT "%OXIDE_HOOKS_OVERRIDE%" EQU "" (
             set OXIDE_HOOKS=%OXIDE_HOOKS_OVERRIDE%
