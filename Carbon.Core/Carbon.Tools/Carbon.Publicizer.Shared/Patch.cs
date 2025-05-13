@@ -251,59 +251,86 @@ public class Patch : IDisposable
 		return null;
 	}
 
-	private TypeReference GetTypeReference(string name)
+	private TypeReference GetTypeReference(string fullName)
 	{
-		var tickIndex = name.IndexOf('`');
-		var bracketIndex = name.IndexOf('[');
-
-		if (tickIndex != -1 && bracketIndex != -1)
+		if (!fullName.Contains('`') || !fullName.Contains('['))
 		{
-			var baseName = name.Substring(0, bracketIndex);
-			var argsString = name.Substring(bracketIndex + 1, name.Length - bracketIndex - 2);
-			var argNames = argsString.Split(',').Select(arg => arg.Trim()).ToList();
-
-			var openGeneric = GetTypeDefinition(baseName);
-			if (openGeneric == null)
-			{
-				Console.WriteLine($"Could not resolve open generic type: {baseName}");
-				return null;
-			}
-
-			var genericInstance = new GenericInstanceType(openGeneric);
-			foreach (var arg in argNames)
-			{
-				var resolvedArg = GetTypeDefinition(arg);
-				if (resolvedArg == null)
-				{
-					Console.WriteLine($"Could not resolve generic argument: {arg}");
-					return null;
-				}
-				genericInstance.GenericArguments.Add(resolvedArg);
-			}
-
-			return genericInstance;
+			return TryResolveSimple(fullName);
 		}
 
-		var type = assembly.MainModule.GetType(name);
-		if (type != null)
+		var bracketStart = fullName.IndexOf('[');
+		var baseName = fullName.Substring(0, bracketStart);
+
+		var argsString = fullName.Substring(bracketStart + 1, fullName.Length - bracketStart - 2);
+		var argNames = SplitGenericArgs(argsString);
+
+		var openType = GetTypeDefinition(baseName);
+		if (openType == null)
 		{
-			return type;
+			Console.WriteLine($"Could not resolve open generic type: {baseName}");
+			return null;
+		}
+
+		var genericInstance = new GenericInstanceType(openType);
+		foreach (var arg in argNames)
+		{
+			var argType = GetTypeReference(arg);
+			if (argType == null)
+			{
+				Console.WriteLine($"Could not resolve generic argument: {arg}");
+				return null;
+			}
+			genericInstance.GenericArguments.Add(argType);
+		}
+
+		return genericInstance;
+	}
+
+	private List<string> SplitGenericArgs(string input)
+	{
+		var args = new List<string>();
+		var depth = 0;
+		var lastSplit = 0;
+		for (int i = 0; i < input.Length; i++)
+		{
+			switch (input[i])
+			{
+				case '[':
+					depth++;
+					break;
+				case ']':
+					depth--;
+					break;
+				case ',' when depth == 0:
+					args.Add(input.Substring(lastSplit, i - lastSplit).Trim());
+					lastSplit = i + 1;
+					break;
+			}
+		}
+		args.Add(input.Substring(lastSplit).Trim());
+		return args;
+	}
+
+	private TypeReference TryResolveSimple(string name)
+	{
+		var typeRef = assembly.MainModule.GetType(name);
+		if (typeRef != null)
+		{
+			return typeRef;
 		}
 
 		foreach (var asmRef in assembly.MainModule.AssemblyReferences)
 		{
 			try
 			{
-				var resolvedAsm = assembly.MainModule.AssemblyResolver.Resolve(asmRef);
-				foreach (var t in resolvedAsm.MainModule.Types)
+				var asm = assembly.MainModule.AssemblyResolver.Resolve(asmRef);
+				var found = asm.MainModule.Types.FirstOrDefault(t => t.FullName == name);
+				if (found != null)
 				{
-					if (t.FullName == name)
-					{
-						return t;
-					}
+					return assembly.MainModule.ImportReference(found);
 				}
 			}
-			catch { }
+			catch { } // Ignore
 		}
 		return null;
 	}
