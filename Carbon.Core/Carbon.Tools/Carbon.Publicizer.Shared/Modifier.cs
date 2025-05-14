@@ -198,11 +198,18 @@ public class Modifier
 
 			var baseDataType = Patch.common.MainModule.GetType("Carbon.Components", "StoredModifiers").NestedTypes[0];
 			var dataType = type.NestedTypes.FirstOrDefault(x => x.Name.Equals(DataType, StringComparison.CurrentCulture)) ?? new TypeDefinition(type.Namespace, DataType, TypeAttributes.NestedPublic | TypeAttributes.Class, assembly.MainModule.ImportReference(typeof(object)));
+			var module = assembly.MainModule;
 			if (!type.NestedTypes.Contains(dataType))
 			{
 				type.NestedTypes.Add(dataType);
 
-				var module = assembly.MainModule;
+				// Protobuf attribute
+				var protoContractAttrCtor = module.ImportReference(typeof(ProtoBuf.ProtoContractAttribute).GetConstructor(Type.EmptyTypes));
+				var enumType = typeof(ProtoBuf.ImplicitFields);
+				var attr = new CustomAttribute(module.ImportReference(protoContractAttrCtor));
+				attr.Properties.Add(new CustomAttributeNamedArgument("ImplicitFields", new CustomAttributeArgument(module.ImportReference(enumType), ProtoBuf.ImplicitFields.AllPublic)));
+				dataType.CustomAttributes.Add(attr);
+
 				var runtimeModelType = module.ImportReference(typeof(ProtoBuf.Meta.RuntimeTypeModel));
 				var typeModelType = module.ImportReference(typeof(ProtoBuf.Meta.TypeModel));
 				var metaTypeType = module.ImportReference(typeof(ProtoBuf.Meta.MetaType));
