@@ -184,7 +184,7 @@ public class Modifier
 				return;
 			}
 
-			var newType = new TypeDefinition(type.Namespace, "CarbonSerialized", TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Serializable);
+			var newType = new TypeDefinition(type.Namespace, "CarbonData", TypeAttributes.NestedPublic | TypeAttributes.Class, assembly.MainModule.ImportReference(typeof(object)));
 			type.NestedTypes.Add(newType);
 
 			ApplyModifiersImpl(assembly, modifier, newType, ref modifiers, ref members);
