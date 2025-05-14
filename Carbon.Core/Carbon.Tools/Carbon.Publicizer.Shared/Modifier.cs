@@ -61,6 +61,18 @@ public class Modifier
 		return !string.IsNullOrEmpty(Assembly) && !string.IsNullOrEmpty(Name);
 	}
 
+	public bool HasSavedFields()
+	{
+		for (int i = 0; i < Fields.Count; i++)
+		{
+			if (Fields[i].ShouldSave)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public int GetInvalidMembers()
 	{
 		var invalidMembers = 0;
@@ -252,6 +264,7 @@ public class Modifier
 		public string Type;
 		public object DefaultValue;
 		public bool IsStatic;
+		public bool ShouldSave;
 
 		public bool Validate()
 		{
