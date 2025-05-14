@@ -271,7 +271,7 @@ public class Modifier
 
 	private static TypeReference TryResolveSimple(AssemblyDefinition assembly, string name)
 	{
-		var typeRef = assembly.MainModule.GetType(name);
+		var typeRef = assembly.MainModule.GetType(name, true);
 		if (typeRef != null)
 		{
 			return typeRef;
@@ -282,7 +282,7 @@ public class Modifier
 			try
 			{
 				var asm = assembly.MainModule.AssemblyResolver.Resolve(asmRef);
-				var found = asm.MainModule.Types.FirstOrDefault(t => t.FullName == name);
+				var found = asm.MainModule.Types.FirstOrDefault(t => t.FullName.Equals(name));
 				if (found != null)
 				{
 					return assembly.MainModule.ImportReference(found);
