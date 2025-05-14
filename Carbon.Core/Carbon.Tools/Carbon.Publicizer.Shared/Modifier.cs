@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using Mono.Cecil;
 using Newtonsoft.Json;
 
 namespace Carbon.Core;
@@ -85,6 +86,164 @@ public class Modifier
 			Fields.RemoveAt(i);
 			i--;
 		}
+	}
+
+	public static void ApplyModifiers(string assemblyFileName, AssemblyDefinition assembly, ref int modifiers, ref int members)
+	{
+		var name = Path.GetFileNameWithoutExtension(assemblyFileName);
+		for (int i = 0; i < All.Count; i++)
+		{
+			var modifier = All[i];
+			if (!modifier.Assembly.Equals(name, StringComparison.CurrentCultureIgnoreCase))
+			{
+				continue;
+			}
+			ApplyModifiersImpl(assembly, modifier, ref modifiers, ref members);
+		}
+	}
+
+	private static void ApplyModifiersImpl(AssemblyDefinition assembly, Modifier modifier, ref int modifiers, ref int members)
+	{
+		try
+		{
+			var type = GetTypeDefinition(assembly, modifier.Name);
+
+			if (type == null)
+			{
+				Console.WriteLine($" Couldn't find type for modifier: {modifier.Name} [{modifier.Assembly}]");
+				return;
+			}
+
+			modifiers++;
+			for (int i = 0; i < modifier.Fields.Count; i++)
+			{
+				var field = modifier.Fields[i];
+				var fieldType = GetTypeReference(assembly, field.Type);
+
+				if (fieldType == null)
+				{
+					Console.WriteLine($" Couldn't find field type for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}]");
+					continue;
+				}
+
+				if (type.Fields.FirstOrDefault(x => x.Name.Equals(field.Name)) != null ||
+				    type.Properties.FirstOrDefault(x => x.Name.Equals(field.Name)) != null)
+				{
+					Console.WriteLine($" Couldn't create field for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}] as a member with the same name already exists");
+					continue;
+				}
+
+				var newField = new FieldDefinition(field.Name, FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(fieldType))
+				{
+					IsStatic = field.IsStatic,
+					Constant = field.DefaultValue
+				};
+				type.Fields.Add(newField);
+				members++;
+			}
+		}
+		catch(Exception ex)
+		{
+			Console.WriteLine($" Failed applying modifier: {modifier.Name} [{modifier.Assembly}] ({ex.Message})\n{ex.StackTrace}");
+		}
+	}
+
+	private static TypeDefinition GetTypeDefinition(AssemblyDefinition assembly, string name)
+	{
+		var type = assembly.MainModule.GetType(name);
+		if (type != null)
+		{
+			return type;
+		}
+
+		foreach (var nameReference in assembly.MainModule.AssemblyReferences)
+		{
+			try
+			{
+				var resolvedAsm = assembly.MainModule.AssemblyResolver.Resolve(nameReference);
+				var externalType = resolvedAsm.MainModule.GetType(name);
+				if (externalType != null)
+				{
+					return externalType;
+				}
+			}
+			catch { }
+		}
+
+		return null;
+	}
+
+	private static TypeReference GetTypeReference(AssemblyDefinition assembly, string fullName)
+	{
+		if (!fullName.Contains('`') || !fullName.Contains('['))
+		{
+			return TryResolveSimple(assembly, fullName);
+		}
+
+		var bracketStart = fullName.IndexOf('[');
+		var baseName = fullName[..bracketStart];
+
+		var argsString = fullName.Substring(bracketStart + 1, fullName.Length - bracketStart - 2);
+		var argNames = SplitGenericArgs(argsString);
+
+		var openType = GetTypeDefinition(assembly, baseName);
+
+		var genericInstance = new GenericInstanceType(openType);
+		foreach (var arg in argNames)
+		{
+			genericInstance.GenericArguments.Add(GetTypeReference(assembly, arg));
+		}
+
+		return genericInstance;
+	}
+
+	private static List<string> SplitGenericArgs(string input)
+	{
+		var args = new List<string>();
+		var depth = 0;
+		var lastSplit = 0;
+		for (int i = 0; i < input.Length; i++)
+		{
+			switch (input[i])
+			{
+				case '[':
+					depth++;
+					break;
+				case ']':
+					depth--;
+					break;
+				case ',' when depth == 0:
+					args.Add(input.Substring(lastSplit, i - lastSplit).Trim());
+					lastSplit = i + 1;
+					break;
+			}
+		}
+		args.Add(input.Substring(lastSplit).Trim());
+		return args;
+	}
+
+	private static TypeReference TryResolveSimple(AssemblyDefinition assembly, string name)
+	{
+		var typeRef = assembly.MainModule.GetType(name);
+		if (typeRef != null)
+		{
+			return typeRef;
+		}
+
+		foreach (var asmRef in assembly.MainModule.AssemblyReferences)
+		{
+			try
+			{
+				var asm = assembly.MainModule.AssemblyResolver.Resolve(asmRef);
+				var found = asm.MainModule.Types.FirstOrDefault(t => t.FullName == name);
+				if (found != null)
+				{
+					return assembly.MainModule.ImportReference(found);
+				}
+			}
+			catch { } // Ignore
+		}
+		return null;
 	}
 
 	public class Field

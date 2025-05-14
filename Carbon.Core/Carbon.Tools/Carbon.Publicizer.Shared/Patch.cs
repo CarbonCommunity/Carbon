@@ -64,18 +64,13 @@ public class Patch : IDisposable
 
 	public bool ShouldPublicize => Config.Singleton.Publicizer.PublicizedAssemblies.Any(x => fileName.StartsWith(x, StringComparison.OrdinalIgnoreCase));
 
-	public class CarbonAssemblyResolver : BaseAssemblyResolver {
-
-		readonly IDictionary<string, AssemblyDefinition> cache;
-
-		public CarbonAssemblyResolver ()
-		{
-			cache = new Dictionary<string, AssemblyDefinition> (StringComparer.Ordinal);
-		}
+	public class CarbonAssemblyResolver : BaseAssemblyResolver
+	{
+		private readonly IDictionary<string, AssemblyDefinition> _cache = new Dictionary<string, AssemblyDefinition> (StringComparer.Ordinal);
 
 		public override AssemblyDefinition Resolve (AssemblyNameReference name)
 		{
-			if (cache.TryGetValue (name.FullName, out var assembly))
+			if (_cache.TryGetValue (name.FullName, out var assembly))
 				return assembly;
 
 			var directories = GetSearchDirectories();
@@ -99,28 +94,16 @@ public class Patch : IDisposable
 				}
 			}
 
-			cache [name.FullName] = assembly;
+			_cache [name.FullName] = assembly;
 			return assembly;
-		}
-
-		public void RegisterAssembly (AssemblyDefinition assembly)
-		{
-			if (assembly == null)
-				throw new ArgumentNullException (nameof(assembly));
-
-			var name = assembly.Name.FullName;
-			if (cache.ContainsKey (name))
-				return;
-
-			cache [name] = assembly;
 		}
 
 		protected override void Dispose (bool disposing)
 		{
-			foreach (var assembly in cache.Values)
+			foreach (var assembly in _cache.Values)
 				assembly.Dispose ();
 
-			cache.Clear ();
+			_cache.Clear ();
 
 			base.Dispose (disposing);
 		}
@@ -149,7 +132,7 @@ public class Patch : IDisposable
 			return false;
 		}
 
-		ApplyModifiers();
+		Carbon.Core.Modifier.ApplyModifiers(fileName, assembly, ref modifiers, ref members);
 		Publicize();
 		Publicized.Add(this);
 		return true;
@@ -164,175 +147,6 @@ public class Patch : IDisposable
 		assembly.Write(memoryStream);
 		processed = memoryStream.ToArray();
 		onBufferUpdate?.Invoke((fileName, processed));
-	}
-
-	private void ApplyModifiers()
-	{
-		var name = Path.GetFileNameWithoutExtension(fileName);
-		for (int i = 0; i < Core.Modifier.All.Count; i++)
-		{
-			var modifier = Core.Modifier.All[i];
-			if (!modifier.Assembly.Equals(name, StringComparison.CurrentCultureIgnoreCase))
-			{
-				continue;
-			}
-			ApplyModifiersImpl(modifier);
-		}
-	}
-
-	private void ApplyModifiersImpl(Core.Modifier modifier)
-	{
-		try
-		{
-			var type = GetTypeDefinition(modifier.Name);
-
-			if (type == null)
-			{
-				Console.WriteLine($" Couldn't find type for modifier: {modifier.Name} [{modifier.Assembly}]");
-				return;
-			}
-
-			modifiers++;
-			for (int i = 0; i < modifier.Fields.Count; i++)
-			{
-				var field = modifier.Fields[i];
-				var fieldType = GetTypeReference(field.Type);
-
-				if (fieldType == null)
-				{
-					Console.WriteLine($" Couldn't find field type for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}]");
-					continue;
-				}
-
-				if (type.Fields.FirstOrDefault(x => x.Name.Equals(field.Name)) != null ||
-				    type.Properties.FirstOrDefault(x => x.Name.Equals(field.Name)) != null)
-				{
-					Console.WriteLine($" Couldn't create field for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}] as a member with the same name already exists");
-					continue;
-				}
-
-				var newField = new FieldDefinition(field.Name, FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(fieldType))
-				{
-					IsStatic = field.IsStatic,
-					Constant = field.DefaultValue
-				};
-				type.Fields.Add(newField);
-				members++;
-			}
-		}
-		catch(Exception ex)
-		{
-			Console.WriteLine($" Failed applying modifier: {modifier.Name} [{modifier.Assembly}] ({ex.Message})\n{ex.StackTrace}");
-		}
-	}
-
-	private TypeDefinition GetTypeDefinition(string name)
-	{
-		var type = assembly.MainModule.GetType(name);
-		if (type != null)
-		{
-			return type;
-		}
-
-		foreach (var nameReference in assembly.MainModule.AssemblyReferences)
-		{
-			try
-			{
-				var resolvedAsm = assembly.MainModule.AssemblyResolver.Resolve(nameReference);
-				var externalType = resolvedAsm.MainModule.GetType(name);
-				if (externalType != null)
-				{
-					return externalType;
-				}
-			}
-			catch { }
-		}
-
-		return null;
-	}
-
-	private TypeReference GetTypeReference(string fullName)
-	{
-		if (!fullName.Contains('`') || !fullName.Contains('['))
-		{
-			return TryResolveSimple(fullName);
-		}
-
-		var bracketStart = fullName.IndexOf('[');
-		var baseName = fullName.Substring(0, bracketStart);
-
-		var argsString = fullName.Substring(bracketStart + 1, fullName.Length - bracketStart - 2);
-		var argNames = SplitGenericArgs(argsString);
-
-		var openType = GetTypeDefinition(baseName);
-		if (openType == null)
-		{
-			Console.WriteLine($"Could not resolve open generic type: {baseName}");
-			return null;
-		}
-
-		var genericInstance = new GenericInstanceType(openType);
-		foreach (var arg in argNames)
-		{
-			var argType = GetTypeReference(arg);
-			if (argType == null)
-			{
-				Console.WriteLine($"Could not resolve generic argument: {arg}");
-				return null;
-			}
-			genericInstance.GenericArguments.Add(argType);
-		}
-
-		return genericInstance;
-	}
-
-	private List<string> SplitGenericArgs(string input)
-	{
-		var args = new List<string>();
-		var depth = 0;
-		var lastSplit = 0;
-		for (int i = 0; i < input.Length; i++)
-		{
-			switch (input[i])
-			{
-				case '[':
-					depth++;
-					break;
-				case ']':
-					depth--;
-					break;
-				case ',' when depth == 0:
-					args.Add(input.Substring(lastSplit, i - lastSplit).Trim());
-					lastSplit = i + 1;
-					break;
-			}
-		}
-		args.Add(input.Substring(lastSplit).Trim());
-		return args;
-	}
-
-	private TypeReference TryResolveSimple(string name)
-	{
-		var typeRef = assembly.MainModule.GetType(name);
-		if (typeRef != null)
-		{
-			return typeRef;
-		}
-
-		foreach (var asmRef in assembly.MainModule.AssemblyReferences)
-		{
-			try
-			{
-				var asm = assembly.MainModule.AssemblyResolver.Resolve(asmRef);
-				var found = asm.MainModule.Types.FirstOrDefault(t => t.FullName == name);
-				if (found != null)
-				{
-					return assembly.MainModule.ImportReference(found);
-				}
-			}
-			catch { } // Ignore
-		}
-		return null;
 	}
 
 	public void Write(string path)
