@@ -23,7 +23,8 @@ public class Patch : IDisposable
 	public static string CarbonManagedDirectory;
 	public static string RustManagedDirectory;
 
-	protected static AssemblyDefinition bootstrap;
+	public static AssemblyDefinition bootstrap;
+	public static AssemblyDefinition common;
 
 	public AssemblyDefinition assembly;
 	public ReaderParameters readerParameters;
@@ -36,6 +37,7 @@ public class Patch : IDisposable
 
 		try
 		{
+			common = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(carbonManagedDir, "Carbon.Common.dll"))));
 			bootstrap = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(carbonManagedDir, "Carbon.Bootstrap.dll"))));
 		}
 		catch { }

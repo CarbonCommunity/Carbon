@@ -2,13 +2,20 @@
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
+using Carbon.Publicizer;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Newtonsoft.Json;
 
 namespace Carbon.Core;
 
 public class Modifier
 {
+	public static readonly string DataType = "CarbonData";
+	public static readonly string StoredModifiers = "StoredModifiers";
+
 	public static List<Modifier> All = [];
 
 	public static void Collect(string directory)
@@ -55,6 +62,11 @@ public class Modifier
 	public string Assembly;
 	public string Name;
 	public List<Field> Fields;
+
+	private static uint ManifestHash(string str)
+	{
+		return string.IsNullOrEmpty(str) ? 0 : BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(str)), 0);
+	}
 
 	public bool Validate()
 	{
@@ -168,7 +180,7 @@ public class Modifier
 		}
 	}
 
-	public static void ApplySavedModifiersImpl(AssemblyDefinition assembly, Modifier modifier, ref int modifiers, ref int members)
+	private static void ApplySavedModifiersImpl(AssemblyDefinition assembly, Modifier modifier, ref int modifiers, ref int members)
 	{
 		if (!modifier.HasSavedFields())
 		{
@@ -184,10 +196,46 @@ public class Modifier
 				return;
 			}
 
-			var newType = new TypeDefinition(type.Namespace, "CarbonData", TypeAttributes.NestedPublic | TypeAttributes.Class, assembly.MainModule.ImportReference(typeof(object)));
-			type.NestedTypes.Add(newType);
+			var baseDataType = Patch.common.MainModule.GetType("Carbon.Components", "StoredModifiers").NestedTypes[0];
+			var dataType = type.NestedTypes.FirstOrDefault(x => x.Name.Equals(DataType, StringComparison.CurrentCulture)) ?? new TypeDefinition(type.Namespace, DataType, TypeAttributes.NestedPublic | TypeAttributes.Class, assembly.MainModule.ImportReference(typeof(object)));
+			if (!type.NestedTypes.Contains(dataType))
+			{
+				type.NestedTypes.Add(dataType);
 
-			ApplyModifiersImpl(assembly, modifier, newType, ref modifiers, ref members);
+				var module = assembly.MainModule;
+				var runtimeModelType = module.ImportReference(typeof(ProtoBuf.Meta.RuntimeTypeModel));
+				var typeModelType = module.ImportReference(typeof(ProtoBuf.Meta.TypeModel));
+				var metaTypeType = module.ImportReference(typeof(ProtoBuf.Meta.MetaType));
+
+				var defaultProperty = new MethodReference("get_Default", typeModelType, runtimeModelType) { HasThis = false };
+				var itemMethod = new MethodReference("get_Item", metaTypeType, typeModelType) { HasThis = true, Parameters = { new ParameterDefinition(module.ImportReference(typeof(Type))) } };
+				var addSubTypeMethod = new MethodReference("AddSubType", module.TypeSystem.Void, metaTypeType)
+					{ HasThis = true, Parameters = { new ParameterDefinition(module.TypeSystem.Int32), new ParameterDefinition(module.ImportReference(typeof(Type))) } };
+
+				var cctor = new MethodDefinition(".cctor", MethodAttributes.Private | MethodAttributes.Static | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+					module.TypeSystem.Void);
+
+				var il = cctor.Body.GetILProcessor();
+
+				// RuntimeTypeModel.Default
+				il.Append(il.Create(OpCodes.Call, defaultProperty));
+
+				// [Default][typeof(Data)]
+				il.Append(il.Create(OpCodes.Ldtoken, assembly.MainModule.ImportReference(baseDataType)));
+				il.Append(il.Create(OpCodes.Call, module.ImportReference(typeof(Type).GetMethod("GetTypeFromHandle"))));
+				il.Append(il.Create(OpCodes.Callvirt, itemMethod));
+
+				// .AddSubType(100, typeof(ThisType))
+				var tagId = unchecked((int)ManifestHash(dataType.FullName)) & 0x0FFFFFFF; // Clamp to 28-bit range
+				il.Append(il.Create(OpCodes.Ldc_I4, tagId));
+				il.Append(il.Create(OpCodes.Ldtoken, dataType));
+				il.Append(il.Create(OpCodes.Call, module.ImportReference(typeof(Type).GetMethod("GetTypeFromHandle"))));
+				il.Append(il.Create(OpCodes.Callvirt, addSubTypeMethod));
+				il.Append(il.Create(OpCodes.Ret));
+
+				dataType.Methods.Add(cctor);
+			}
+			ApplyModifiersImpl(assembly, modifier, dataType, ref modifiers, ref members);
 		}
 		catch (Exception ex)
 		{
