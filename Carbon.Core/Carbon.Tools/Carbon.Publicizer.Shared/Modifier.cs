@@ -110,15 +110,18 @@ public class Modifier
 			{
 				continue;
 			}
-			ApplyModifiersImpl(assembly, modifier, ref modifiers, ref members);
+
+			ApplySavedModifiersImpl(assembly, modifier, ref modifiers, ref members);
+			ApplyModifiersImpl(assembly, modifier, null, ref modifiers, ref members);
 		}
 	}
 
-	private static void ApplyModifiersImpl(AssemblyDefinition assembly, Modifier modifier, ref int modifiers, ref int members)
+	private static void ApplyModifiersImpl(AssemblyDefinition assembly, Modifier modifier, TypeDefinition? type, ref int modifiers, ref int members)
 	{
 		try
 		{
-			var type = GetTypeDefinition(assembly, modifier.Name);
+			var saveType = type != null;
+			type ??= GetTypeDefinition(assembly, modifier.Name);
 
 			if (type == null)
 			{
@@ -130,6 +133,11 @@ public class Modifier
 			for (int i = 0; i < modifier.Fields.Count; i++)
 			{
 				var field = modifier.Fields[i];
+				if ((saveType && !field.ShouldSave) || (!saveType && field.ShouldSave))
+				{
+					continue;
+				}
+
 				var fieldType = GetTypeReference(assembly, field.Type);
 
 				if (fieldType == null)
@@ -160,7 +168,34 @@ public class Modifier
 		}
 	}
 
-	private static TypeDefinition GetTypeDefinition(AssemblyDefinition assembly, string name)
+	public static void ApplySavedModifiersImpl(AssemblyDefinition assembly, Modifier modifier, ref int modifiers, ref int members)
+	{
+		if (!modifier.HasSavedFields())
+		{
+			return;
+		}
+
+		try
+		{
+			var type = GetTypeDefinition(assembly, modifier.Name);
+
+			if (type == null)
+			{
+				return;
+			}
+
+			var newType = new TypeDefinition(type.Namespace, "CarbonSerialized", TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Serializable);
+			type.NestedTypes.Add(newType);
+
+			ApplyModifiersImpl(assembly, modifier, newType, ref modifiers, ref members);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($" Failed applying saved modifier: {modifier.Name} [{modifier.Assembly}] ({ex.Message})\n{ex.StackTrace}");
+		}
+	}
+
+	private static TypeDefinition? GetTypeDefinition(AssemblyDefinition assembly, string name)
 	{
 		var type = assembly.MainModule.GetType(name);
 		if (type != null)

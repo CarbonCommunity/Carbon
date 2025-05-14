@@ -144,7 +144,7 @@ public class Patch : IDisposable
 			return false;
 		}
 
-		Carbon.Core.Modifier.ApplyModifiers(fileName, assembly, ref modifiers, ref members);
+		Core.Modifier.ApplyModifiers(fileName, assembly, ref modifiers, ref members);
 		Publicize();
 		Publicized.Add(this);
 		return true;
