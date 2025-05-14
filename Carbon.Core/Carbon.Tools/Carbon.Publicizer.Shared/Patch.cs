@@ -98,6 +98,18 @@ public class Patch : IDisposable
 			return assembly;
 		}
 
+		public void RegisterAssembly (AssemblyDefinition assembly)
+		{
+			if (assembly == null)
+				throw new ArgumentNullException (nameof(assembly));
+
+			var name = assembly.Name.FullName;
+			if (_cache.ContainsKey (name))
+				return;
+
+			_cache [name] = assembly;
+		}
+
 		protected override void Dispose (bool disposing)
 		{
 			foreach (var assembly in _cache.Values)

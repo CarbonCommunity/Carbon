@@ -181,7 +181,7 @@ public class Modifier
 		}
 
 		var bracketStart = fullName.IndexOf('[');
-		var baseName = fullName[..bracketStart];
+		var baseName = fullName.Substring(0, bracketStart);
 
 		var argsString = fullName.Substring(bracketStart + 1, fullName.Length - bracketStart - 2);
 		var argNames = SplitGenericArgs(argsString);
