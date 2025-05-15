@@ -24,7 +24,7 @@ public partial class Community
 				Components.Analytics.on_server_startup();
 			});
 
-			var newlineSplit = new char[] { '\n' };
+			var newlineSplit = new[] { '\n' };
 
 			Application.logMessageReceived += (string condition, string stackTrace, LogType type) =>
 			{
@@ -97,6 +97,7 @@ public partial class Community
 
 	public virtual void Initialize()
 	{
+		StoredModifiers.Init();
 		UniTaskInjector.Inject(SynchronizationContext.Current, Thread.CurrentThread.ManagedThreadId, injectTimings: InjectPlayerLoopTimings.Minimum);
 	}
 	public virtual void Uninitialize()
