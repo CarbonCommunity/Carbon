@@ -44,10 +44,10 @@ public partial class CorePlugin
 		StoredModifiers.Load();
 	}
 
-	[AutoPatch, HarmonyPatch(typeof(SaveRestore), "DoAutomatedSave")]
-	public class _DoAutomatedSave
+	[AutoPatch, HarmonyPatch(typeof(SaveRestore), "Save", typeof(bool))]
+	public class Save
 	{
-		public static void Postfix(bool AndWait = false)
+		public static void Postfix(bool AndWait)
 		{
 			StoredModifiers.Save();
 		}
