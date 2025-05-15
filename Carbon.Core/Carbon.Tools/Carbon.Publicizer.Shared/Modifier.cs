@@ -129,7 +129,7 @@ public class Modifier
 		}
 	}
 
-	private static void ApplyModifiersImpl(AssemblyDefinition assembly, Modifier modifier, TypeDefinition? type, ref int modifiers, ref int members)
+	private static void ApplyModifiersImpl(AssemblyDefinition assembly, Modifier modifier, TypeDefinition type, ref int modifiers, ref int members)
 	{
 		try
 		{
@@ -319,7 +319,7 @@ public class Modifier
 		}
 	}
 
-	private static TypeDefinition? GetTypeDefinition(AssemblyDefinition assembly, string name)
+	private static TypeDefinition GetTypeDefinition(AssemblyDefinition assembly, string name)
 	{
 		var type = assembly.MainModule.GetType(name);
 		if (type != null)
