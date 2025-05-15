@@ -3,7 +3,7 @@ using ProtoBuf;
 
 namespace Carbon.Components;
 
-public class StoredModifiers
+public sealed class StoredModifiers
 {
 	public static Dictionary<ulong, Data> Entities = [];
 
@@ -15,15 +15,12 @@ public class StoredModifiers
 		{
 			return;
 		}
-
 		var id = entity.net.ID.Value;
-
 		if (data == null)
 		{
 			Entities.Remove(id);
 			return;
 		}
-
 		Entities[id] = data;
 	}
 
@@ -35,7 +32,6 @@ public class StoredModifiers
 		}
 		var id = entity.net.ID.Value;
 		Entities.TryGetValue(id, out var entityData);
-		Logger.Warn($"StoredModifiers.TryGetData {entity}[{id}] {info.fromDisk} | {entityData == null}");
 		data = entityData as T;
 	}
 
@@ -43,12 +39,11 @@ public class StoredModifiers
 	{
 		using var types = Pool.Get<PooledList<Type>>();
 		types.AddRange(AccessToolsEx.AllTypes());
-		foreach (var type in types)
+		for(int i = 0; i < types.Count; i++)
 		{
-			if (type.GetNestedType("CarbonData") is Type carbonData)
+			if (types[i].GetNestedType("CarbonData") is Type carbonData)
 			{
 				carbonData.GetMethod("Initialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).Invoke(null, null);
-				Logger.Warn($"Initialized {carbonData.FullName}");
 			}
 		}
 	}
@@ -94,7 +89,7 @@ public class StoredModifiers
 			using (var file = File.OpenWrite(savePath))
 			{
 				Serializer.Serialize(file, Entities);
-				Logger.Log($"Saved {Entities.Count:n0} {Entities.Count.Plural("ent", "ents")} (skipped {deadIds.Count:n0}) with Carbon modifier data");
+				Logger.Log($"Saved {Entities.Count:n0} {Entities.Count.Plural("ent", "ents")}, {deadIds.Count:n0} ded with Carbon modifier data");
 			}
 		}
 	}
