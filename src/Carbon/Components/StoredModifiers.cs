@@ -11,6 +11,8 @@ public sealed class StoredModifiers
 
 	public static string GetSavePath() => $"{World.SaveFolderName}/{Path.GetFileNameWithoutExtension(World.SaveFileName)}.carbon.sav";
 
+	public static bool HasLocalSave() => File.Exists(GetSavePath());
+
 	private static uint ManifestHash(string str)
 	{
 		return string.IsNullOrEmpty(str) ? 0 : BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(str)), 0);
@@ -32,6 +34,11 @@ public sealed class StoredModifiers
 			if (Entities.TryGetValue(netId, out dict))
 			{
 				dict.Remove(id);
+
+				if (dict.Count == 0)
+				{
+					Entities.Remove(netId);
+				}
 			}
 			return;
 		}
@@ -79,13 +86,12 @@ public sealed class StoredModifiers
 
 	public static void Load()
 	{
-		var savePath = GetSavePath();
-
-		if (!File.Exists(savePath))
+		if (!HasLocalSave())
 		{
 			return;
 		}
 
+		var savePath = GetSavePath();
 		using (var file = File.OpenRead(savePath))
 		{
 			using (TimeMeasure.New("StoredModifiers.Load", warn: $"Carbon modifier entity data"))
@@ -98,6 +104,11 @@ public sealed class StoredModifiers
 
 	public static void Save()
 	{
+		if (Entities.Count == 0 && !HasLocalSave())
+		{
+			return;
+		}
+
 		var savePath = GetSavePath();
 
 		using (TimeMeasure.New("StoredModifiers.Save", warn: $"saved {Entities.Count:n0} entities"))
