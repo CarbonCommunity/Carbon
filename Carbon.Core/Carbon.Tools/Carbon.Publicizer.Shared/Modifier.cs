@@ -14,8 +14,6 @@ namespace Carbon.Core;
 public class Modifier
 {
 	public static readonly string DataType = "CarbonData";
-	public static readonly string DataTypeField = "carbonData";
-	public static readonly string StoredModifiers = "StoredModifiers";
 
 	public static List<Modifier> All = [];
 
