@@ -72,14 +72,25 @@ public sealed class StoredModifiers
 		using var types = Pool.Get<PooledList<Type>>();
 		var baseType = typeof(Data);
 		types.AddRange(AccessToolsEx.AllTypes());
-		for(int i = 0; i < types.Count; i++)
+
+		foreach (var assembly in AccessToolsEx.AllAssemblies())
 		{
-			var type = types[i];
-			if (type != baseType && baseType.IsAssignableFrom(type))
+			try
 			{
-				Logger.Warn($"Inited {type}");
-				type.GetMethod("Initialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).Invoke(null, null);
+				foreach (var type in assembly.GetExportedTypes())
+				{
+					try
+					{
+						if (type != baseType && baseType.IsAssignableFrom(type))
+						{
+							Logger.Warn($"Inited {type}");
+							type.GetMethod("Initialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).Invoke(null, null);
+						}
+					}
+					catch { } // we don't care
+				}
 			}
+			catch { } // again, we don't care
 		}
 	}
 
