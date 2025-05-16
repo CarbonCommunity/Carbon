@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Facepunch;
 using ProtoBuf;
 
@@ -13,14 +11,9 @@ public sealed class StoredModifiers
 
 	public static bool HasLocalSave() => File.Exists(GetSavePath());
 
-	private static uint ManifestHash(string str)
-	{
-		return string.IsNullOrEmpty(str) ? 0 : BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(str)), 0);
-	}
-
 	public static void TryUpdateData<T>(BaseNetworkable entity, Data data, BaseNetworkable.SaveInfo info) where T : Data
 	{
-		if (!info.forDisk)
+		if (!info.forDisk || !entity.IsValid() || Entities == null)
 		{
 			return;
 		}
@@ -53,7 +46,7 @@ public sealed class StoredModifiers
 
 	public static void TryGetData<T>(BaseNetworkable entity, ref T data, BaseNetworkable.LoadInfo info) where T : Data
 	{
-		if (!info.fromDisk)
+		if (!info.fromDisk || !entity.IsValid() || Entities == null)
 		{
 			return;
 		}
