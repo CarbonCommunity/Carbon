@@ -103,7 +103,7 @@ public sealed class StoredModifiers
 			using (TimeMeasure.New("StoredModifiers.Load", warn: $"Carbon modifier entity data"))
 			{
 				Entities = Serializer.Deserialize<Dictionary<ulong, Dictionary<uint, Data>>>(file);
-				Logger.Log($"Processed {Entities.Count:n0} {Entities.Count.Plural("entity", "entities")} with Carbon modifier data");
+				Logger.Log($"Processed {Entities.Count} {Entities.Count.Plural("entity", "entities")} with Carbon modifier data");
 			}
 		}
 	}
