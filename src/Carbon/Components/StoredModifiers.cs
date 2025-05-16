@@ -45,8 +45,7 @@ public sealed class StoredModifiers
 
 		if (!Entities.TryGetValue(netId, out dict))
 		{
-			dict = new();
-			Entities.Add(netId, dict);
+			Entities[netId] = (dict = new());
 		}
 
 		dict[id] = data;
