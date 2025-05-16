@@ -69,10 +69,7 @@ public sealed class StoredModifiers
 
 	public static void Init()
 	{
-		using var types = Pool.Get<PooledList<Type>>();
 		var baseType = typeof(Data);
-		types.AddRange(AccessToolsEx.AllTypes());
-
 		foreach (var assembly in AccessToolsEx.AllAssemblies())
 		{
 			try
@@ -83,7 +80,6 @@ public sealed class StoredModifiers
 					{
 						if (type != baseType && baseType.IsAssignableFrom(type))
 						{
-							Logger.Warn($"Inited {type}");
 							type.GetMethod("Initialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).Invoke(null, null);
 						}
 					}
