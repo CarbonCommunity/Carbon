@@ -181,6 +181,14 @@ public class Modifier
 		}
 	}
 
+	private static string PascalToCamel(string text)
+	{
+		if (string.IsNullOrEmpty(text) || char.IsLower(text[0]))
+			return text;
+
+		return char.ToLowerInvariant(text[0]) + text.Substring(1);
+	}
+
 	private static void ApplySavedModifiersImpl(AssemblyDefinition assembly, Modifier modifier, ref int modifiers, ref int members)
 	{
 		if (!modifier.HasSavedFields())
@@ -200,14 +208,14 @@ public class Modifier
 			var module = assembly.MainModule;
 			var storeModifiers = Patch.common.MainModule.GetType("Carbon.Components", "StoredModifiers");
 			var baseDataType = storeModifiers.NestedTypes[0];
-			var dataType = type.NestedTypes.FirstOrDefault(x => x.Name.Equals(DataType, StringComparison.CurrentCulture)) ?? new TypeDefinition(type.Namespace, DataType, TypeAttributes.NestedPublic | TypeAttributes.Class, module.ImportReference(baseDataType));
+			var dataType = module.Types.FirstOrDefault(x => x.Name.Equals(type.Name + DataType, StringComparison.CurrentCulture)) ?? new TypeDefinition(type.Namespace, type.Name + DataType, TypeAttributes.NestedPublic | TypeAttributes.Class, module.ImportReference(baseDataType));
 			var baseNetworkable = assembly.MainModule.GetType("BaseNetworkable");
 			var saveInfoType = baseNetworkable.NestedTypes.First(t => t.Name.Equals("SaveInfo", StringComparison.CurrentCulture));
 			var loadInfoType = baseNetworkable.NestedTypes.First(t => t.Name.Equals("LoadInfo", StringComparison.CurrentCulture));
-			if (!type.NestedTypes.Contains(dataType))
+			if (!module.Types.Contains(dataType))
 			{
-				type.NestedTypes.Add(dataType);
-				var carbonDataField = new FieldDefinition(DataTypeField, FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(dataType));
+				module.Types.Add(dataType);
+				var carbonDataField = new FieldDefinition(PascalToCamel(type.Name + DataType), FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(dataType));
 				type.Fields.Add(carbonDataField);
 
 				// Protobuf attribute
@@ -218,9 +226,9 @@ public class Modifier
 
 				HandleRustSave();
 				HandleRustLoad();
-				HandleConstructor();
+				HandleInitializer();
 
-				void HandleConstructor()
+				void HandleInitializer()
 				{
 					var defaultProperty = module.ImportReference(typeof(ProtoBuf.Meta.RuntimeTypeModel).GetProperty("Default").GetMethod);
 					var itemMethod = module.ImportReference(typeof(ProtoBuf.Meta.RuntimeTypeModel).GetProperty("Item").GetMethod);
@@ -264,51 +272,53 @@ public class Modifier
 						dataType.Methods.Add(mainConstructor);
 					}
 				}
-
 				void HandleRustSave()
 				{
 					var rustSaveMethod = type.Methods.FirstOrDefault(x => x.Name.Equals("Save", StringComparison.CurrentCulture)) ?? new MethodDefinition("Save", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.ReuseSlot, module.TypeSystem.Void);
 					var il = rustSaveMethod.Body.GetILProcessor();
+					var save = module.ImportReference(type.BaseType.Resolve().Methods.FirstOrDefault(m => m.Name.Equals("Save", StringComparison.CurrentCulture) && m.Parameters.Count == 1));
 					if (!type.Methods.Contains(rustSaveMethod))
 					{
 						rustSaveMethod.Parameters.Add(new ParameterDefinition("info", ParameterAttributes.None, saveInfoType));
 						il.Append(il.Create(OpCodes.Ldarg_0));
 						il.Append(il.Create(OpCodes.Ldarg_1));
-						il.Append(il.Create(OpCodes.Call,  module.ImportReference(type.BaseType.Resolve().Methods.FirstOrDefault(m => m.Name.Equals("Save", StringComparison.CurrentCulture) && m.Parameters.Count == 1))));
+						il.Append(il.Create(OpCodes.Call, save));
 						il.Append(il.Create(OpCodes.Ret));
 						type.Methods.Add(rustSaveMethod);
 					}
 
-					var firstInstr = rustSaveMethod.Body.Instructions.FirstOrDefault() ?? il.Create(OpCodes.Nop);
-					il.InsertBefore(firstInstr, il.Create(OpCodes.Ldarg_0));
-					il.InsertBefore(firstInstr, il.Create(OpCodes.Ldarg_0));
-					il.InsertBefore(firstInstr, il.Create(OpCodes.Ldfld, module.ImportReference(carbonDataField)));
-					il.InsertBefore(firstInstr, il.Create(OpCodes.Ldarg_1));
-					il.InsertBefore(firstInstr, il.Create(OpCodes.Call, module.ImportReference(storeModifiers.Methods.FirstOrDefault(m => m.Name.Equals("TryUpdateData", StringComparison.CurrentCulture)))));
+					var instr = rustSaveMethod.Body.Instructions.IndexOf(rustSaveMethod.Body.Instructions.FirstOrDefault(x => x.OpCode == OpCodes.Call && x.Operand == save)) + 1;
+					il.Body.Instructions.Insert(instr, il.Create(OpCodes.Ldarg_0));
+					il.Body.Instructions.Insert(instr + 1, il.Create(OpCodes.Ldarg_0));
+					il.Body.Instructions.Insert(instr + 2, il.Create(OpCodes.Ldfld, module.ImportReference(carbonDataField)));
+					il.Body.Instructions.Insert(instr + 3, il.Create(OpCodes.Ldarg_1));
+					var carbonDataLoad = new GenericInstanceMethod(storeModifiers.Methods.FirstOrDefault(m => m.Name.Equals("TryUpdateData", StringComparison.CurrentCulture)).Resolve());
+					carbonDataLoad.GenericArguments.Add(dataType);
+					il.Body.Instructions.Insert(instr + 4, il.Create(OpCodes.Call, module.ImportReference(carbonDataLoad)));
 				}
-
 				void HandleRustLoad()
 				{
 					var rustLoadMethod = type.Methods.FirstOrDefault(x => x.Name.Equals("Load", StringComparison.CurrentCulture)) ?? new MethodDefinition("Load", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.ReuseSlot, module.TypeSystem.Void);
 					var il = rustLoadMethod.Body.GetILProcessor();
+					var load = module.ImportReference(type.BaseType.Resolve().Methods.FirstOrDefault(m => m.Name.Equals("Load", StringComparison.CurrentCulture) && m.Parameters.Count == 1));
 					if (!type.Methods.Contains(rustLoadMethod))
 					{
 						rustLoadMethod.Parameters.Add(new ParameterDefinition("info", ParameterAttributes.None, loadInfoType));
 						il.Append(il.Create(OpCodes.Ldarg_0));
 						il.Append(il.Create(OpCodes.Ldarg_1));
-						il.Append(il.Create(OpCodes.Call, module.ImportReference(type.BaseType.Resolve().Methods.FirstOrDefault(m => m.Name.Equals("Load", StringComparison.CurrentCulture) && m.Parameters.Count == 1))));
+						il.Append(il.Create(OpCodes.Call, load));
 						il.Append(il.Create(OpCodes.Ret));
 						type.Methods.Add(rustLoadMethod);
 					}
 
-					var lastInstr = rustLoadMethod.Body.Instructions.LastOrDefault() ?? il.Create(OpCodes.Nop);
-					il.InsertBefore(lastInstr, il.Create(OpCodes.Ldarg_0));
-					il.InsertBefore(lastInstr, il.Create(OpCodes.Ldarg_0));
-					il.InsertBefore(lastInstr, il.Create(OpCodes.Ldflda, carbonDataField));
-					il.InsertBefore(lastInstr, il.Create(OpCodes.Ldarg_1));
+					var instr = rustLoadMethod.Body.Instructions.IndexOf(rustLoadMethod.Body.Instructions.FirstOrDefault(x => x.OpCode == OpCodes.Call && x.Operand == load)) + 1;
+					il.Body.Instructions.Insert(instr, il.Create(OpCodes.Ldarg_0));
+					il.Body.Instructions.Insert(instr + 1, il.Create(OpCodes.Ldarg_0));
+					il.Body.Instructions.Insert(instr + 2, il.Create(OpCodes.Ldflda, carbonDataField));
+					il.Body.Instructions.Insert(instr + 3, il.Create(OpCodes.Ldarg_1));
 					var carbonDataLoad = new GenericInstanceMethod(storeModifiers.Methods.FirstOrDefault(m => m.Name.Equals("TryGetData", StringComparison.CurrentCulture)).Resolve());
 					carbonDataLoad.GenericArguments.Add(dataType);
-					il.InsertBefore(lastInstr, il.Create(OpCodes.Call, module.ImportReference(carbonDataLoad)));
+					il.Body.Instructions.Insert(instr + 4, il.Create(OpCodes.Call, module.ImportReference(carbonDataLoad)));
 				}
 			}
 			ApplyModifiersImpl(assembly, modifier, dataType, ref modifiers, ref members);
