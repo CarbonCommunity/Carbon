@@ -88,7 +88,7 @@ public sealed class StoredModifiers
 
 		using (var file = File.OpenRead(savePath))
 		{
-			using (TimeMeasure.New("StoredModifiers.Load", warn: $"loaded {Entities.Count:n0} entities"))
+			using (TimeMeasure.New("StoredModifiers.Load", warn: $"Carbon modifier entity data"))
 			{
 				Entities = Serializer.Deserialize<Dictionary<ulong, Dictionary<uint, Data>>>(file);
 				Logger.Log($"Processed {Entities.Count:n0} {Entities.Count.Plural("entity", "entities")} with Carbon modifier data");
@@ -118,7 +118,7 @@ public sealed class StoredModifiers
 			using (var file = File.OpenWrite(savePath))
 			{
 				Serializer.Serialize(file, Entities);
-				Logger.Log($"Saved {Entities.Count:n0} {Entities.Count.Plural("ent", "ents")}, {deadIds.Count:n0} ded with Carbon modifier data");
+				Logger.Log($"Saved {Entities.Count:n0} {Entities.Count.Plural("ent", "ents")} with Carbon modifier data");
 			}
 		}
 	}
