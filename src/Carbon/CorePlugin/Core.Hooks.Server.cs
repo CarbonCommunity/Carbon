@@ -44,10 +44,10 @@ public partial class CorePlugin
 		StoredModifiers.Load();
 	}
 
-	[AutoPatch, HarmonyPatch(typeof(SaveRestore), "Save", typeof(bool))]
+	[AutoPatch, HarmonyPatch(typeof(SaveRestore), "ShiftSaveBackups", typeof(string))]
 	public class Save
 	{
-		public static void Postfix(bool AndWait)
+		public static void Prefix(string fileName)
 		{
 			StoredModifiers.Save();
 		}
