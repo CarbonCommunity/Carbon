@@ -1,4 +1,6 @@
-﻿namespace Carbon.Core;
+﻿using HarmonyLib;
+
+namespace Carbon.Core;
 
 #pragma warning disable IDE0051
 
@@ -35,6 +37,19 @@ public partial class CorePlugin
 
 			// OnUserUnbanned
 			HookCaller.CallStaticHook(339730350, player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, playerId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
+		}
+	}
+	private void OnSaveLoad()
+	{
+		StoredModifiers.Load();
+	}
+
+	[AutoPatch, HarmonyPatch(typeof(SaveRestore), "ShiftSaveBackups", typeof(string))]
+	public class Save
+	{
+		public static void Prefix(string fileName)
+		{
+			StoredModifiers.Save();
 		}
 	}
 }
