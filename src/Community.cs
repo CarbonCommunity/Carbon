@@ -91,7 +91,7 @@ public partial class Community
 #if MINIMAL
 			$" Minimal" +
 #endif
-			$" v{version}, {ModLoader.Packages.Count:n0} mods, {ModLoader.Packages.Sum(x => x.Plugins.Count):n0} plgs, {ModuleProcessor.Modules.Count(x => x is BaseModule module && module.IsEnabled()):n0}/{ModuleProcessor.Modules.Count:n0} mdls, {AssemblyEx.Extensions.Loaded.Count:n0} exts";
+			$" v{version}, {ModLoader.Packages.Count:n0} mods, {ModLoader.Packages.Sum(x => x.Plugins.Count):n0} plgs, {ModuleProcessor.Modules.Count(x => x is BaseModule module && module.IsEnabled()):n0}/{ModuleProcessor.Modules.Count:n0} mdls, {AssemblyEx.Extensions.Loaded.Count:n0} exts, {StoredModifiers.Entities?.Count:n0} mdfs";
 #endif
 	}
 
