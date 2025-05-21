@@ -24,7 +24,7 @@ public partial class Community
 				Components.Analytics.on_server_startup();
 			});
 
-			var newlineSplit = new char[] { '\n' };
+			var newlineSplit = new[] { '\n' };
 
 			Application.logMessageReceived += (string condition, string stackTrace, LogType type) =>
 			{
@@ -91,12 +91,13 @@ public partial class Community
 #if MINIMAL
 			$" Minimal" +
 #endif
-			$" v{version}, {ModLoader.Packages.Count:n0} mods, {ModLoader.Packages.Sum(x => x.Plugins.Count):n0} plgs, {ModuleProcessor.Modules.Count(x => x is BaseModule module && module.IsEnabled()):n0}/{ModuleProcessor.Modules.Count:n0} mdls, {AssemblyEx.Extensions.Loaded.Count:n0} exts";
+			$" v{version}, {ModLoader.Packages.Count:n0} mods, {ModLoader.Packages.Sum(x => x.Plugins.Count):n0} plgs, {ModuleProcessor.Modules.Count(x => x is BaseModule module && module.IsEnabled()):n0}/{ModuleProcessor.Modules.Count:n0} mdls, {AssemblyEx.Extensions.Loaded.Count:n0} exts, {StoredModifiers.Entities?.Count:n0} mdfs";
 #endif
 	}
 
 	public virtual void Initialize()
 	{
+		StoredModifiers.Init();
 		UniTaskInjector.Inject(SynchronizationContext.Current, Thread.CurrentThread.ManagedThreadId, injectTimings: InjectPlayerLoopTimings.Minimum);
 	}
 	public virtual void Uninitialize()
