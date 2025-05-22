@@ -164,7 +164,7 @@ public class Modifier
 					continue;
 				}
 
-				var newField = new FieldDefinition(field.Name, saveType ? FieldAttributes.Public : FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(fieldType))
+				var newField = new FieldDefinition(field.Name, saveType ? Mono.Cecil.FieldAttributes.Public : Mono.Cecil.FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(fieldType))
 				{
 					IsStatic = !saveType && field.IsStatic,
 					Constant = field.DefaultValue
@@ -206,20 +206,20 @@ public class Modifier
 			var module = assembly.MainModule;
 			var storeModifiers = Patch.common.MainModule.GetType("Carbon.Components", "StoredModifiers");
 			var baseDataType = storeModifiers.NestedTypes[0];
-			var dataType = module.Types.FirstOrDefault(x => x.Name.Equals(type.Name + DataType, StringComparison.CurrentCulture)) ?? new TypeDefinition(type.Namespace, type.Name + DataType, TypeAttributes.NestedPublic | TypeAttributes.Class, module.ImportReference(baseDataType));
+			var dataType = module.Types.FirstOrDefault(x => x.Name.Equals(type.Name + DataType, StringComparison.CurrentCulture)) ?? new TypeDefinition(type.Namespace, type.Name + DataType, Mono.Cecil.TypeAttributes.NestedPublic | Mono.Cecil.TypeAttributes.Class, module.ImportReference(baseDataType));
 			var baseNetworkable = assembly.MainModule.GetType("BaseNetworkable");
 			var saveInfoType = baseNetworkable.NestedTypes.First(t => t.Name.Equals("SaveInfo", StringComparison.CurrentCulture));
 			var loadInfoType = baseNetworkable.NestedTypes.First(t => t.Name.Equals("LoadInfo", StringComparison.CurrentCulture));
 			if (!module.Types.Contains(dataType))
 			{
 				module.Types.Add(dataType);
-				var carbonDataField = new FieldDefinition(PascalToCamel(type.Name + DataType), FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(dataType));
+				var carbonDataField = new FieldDefinition(PascalToCamel(type.Name + DataType), Mono.Cecil.FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(dataType));
 				type.Fields.Add(carbonDataField);
 
 				// Protobuf attribute
 				var protoContractAttrCtor = module.ImportReference(typeof(ProtoBuf.ProtoContractAttribute).GetConstructor(Type.EmptyTypes));
 				var attr = new CustomAttribute(module.ImportReference(protoContractAttrCtor));
-				attr.Properties.Add(new CustomAttributeNamedArgument("ImplicitFields", new CustomAttributeArgument(module.ImportReference(typeof(ProtoBuf.ImplicitFields)), ProtoBuf.ImplicitFields.AllPublic)));
+				attr.Properties.Add(new Mono.Cecil.CustomAttributeNamedArgument("ImplicitFields", new Mono.Cecil.CustomAttributeArgument(module.ImportReference(typeof(ProtoBuf.ImplicitFields)), ProtoBuf.ImplicitFields.AllPublic)));
 				dataType.CustomAttributes.Add(attr);
 
 				HandleRustSave();
@@ -231,7 +231,7 @@ public class Modifier
 					var defaultProperty = module.ImportReference(typeof(ProtoBuf.Meta.RuntimeTypeModel).GetProperty("Default").GetMethod);
 					var itemMethod = module.ImportReference(typeof(ProtoBuf.Meta.RuntimeTypeModel).GetProperty("Item").GetMethod);
 					var addSubTypeMethod = module.ImportReference(typeof(ProtoBuf.Meta.MetaType).GetMethod("AddSubType", [typeof(int), typeof(Type)]));
-					var initialize = new MethodDefinition("Initialize", MethodAttributes.Private | MethodAttributes.Static, module.TypeSystem.Void);
+					var initialize = new MethodDefinition("Initialize", Mono.Cecil.MethodAttributes.Private | Mono.Cecil.MethodAttributes.Static, module.TypeSystem.Void);
 					{
 						initialize.IsPublic = false;
 						var il = initialize.Body.GetILProcessor();
@@ -260,7 +260,7 @@ public class Modifier
 						dataType.Methods.Add(initialize);
 					}
 
-					var mainConstructor = new MethodDefinition(".ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName, module.TypeSystem.Void);
+					var mainConstructor = new MethodDefinition(".ctor", Mono.Cecil.MethodAttributes.Public | Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.SpecialName | Mono.Cecil.MethodAttributes.RTSpecialName, module.TypeSystem.Void);
 					{
 						var mIl = mainConstructor.Body.GetILProcessor();
 						mIl.Append(mIl.Create(OpCodes.Ldarg_0)); // this
@@ -272,12 +272,12 @@ public class Modifier
 				}
 				void HandleRustSave()
 				{
-					var rustSaveMethod = type.Methods.FirstOrDefault(x => x.Name.Equals("Save", StringComparison.CurrentCulture)) ?? new MethodDefinition("Save", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.ReuseSlot, module.TypeSystem.Void);
+					var rustSaveMethod = type.Methods.FirstOrDefault(x => x.Name.Equals("Save", StringComparison.CurrentCulture)) ?? new MethodDefinition("Save", Mono.Cecil.MethodAttributes.Public | Mono.Cecil.MethodAttributes.Virtual | Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.ReuseSlot, module.TypeSystem.Void);
 					var il = rustSaveMethod.Body.GetILProcessor();
 					var save = module.ImportReference(type.BaseType.Resolve().Methods.FirstOrDefault(m => m.Name.Equals("Save", StringComparison.CurrentCulture) && m.Parameters.Count == 1));
 					if (!type.Methods.Contains(rustSaveMethod))
 					{
-						rustSaveMethod.Parameters.Add(new ParameterDefinition("info", ParameterAttributes.None, saveInfoType));
+						rustSaveMethod.Parameters.Add(new Mono.Cecil.ParameterDefinition("info", Mono.Cecil.ParameterAttributes.None, saveInfoType));
 						il.Append(il.Create(OpCodes.Ldarg_0));
 						il.Append(il.Create(OpCodes.Ldarg_1));
 						il.Append(il.Create(OpCodes.Call, save));
@@ -296,12 +296,12 @@ public class Modifier
 				}
 				void HandleRustLoad()
 				{
-					var rustLoadMethod = type.Methods.FirstOrDefault(x => x.Name.Equals("Load", StringComparison.CurrentCulture)) ?? new MethodDefinition("Load", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.ReuseSlot, module.TypeSystem.Void);
+					var rustLoadMethod = type.Methods.FirstOrDefault(x => x.Name.Equals("Load", StringComparison.CurrentCulture)) ?? new MethodDefinition("Load", Mono.Cecil.MethodAttributes.Public | Mono.Cecil.MethodAttributes.Virtual | Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.ReuseSlot, module.TypeSystem.Void);
 					var il = rustLoadMethod.Body.GetILProcessor();
 					var load = module.ImportReference(type.BaseType.Resolve().Methods.FirstOrDefault(m => m.Name.Equals("Load", StringComparison.CurrentCulture) && m.Parameters.Count == 1));
 					if (!type.Methods.Contains(rustLoadMethod))
 					{
-						rustLoadMethod.Parameters.Add(new ParameterDefinition("info", ParameterAttributes.None, loadInfoType));
+						rustLoadMethod.Parameters.Add(new ParameterDefinition("info", Mono.Cecil.ParameterAttributes.None, loadInfoType));
 						il.Append(il.Create(OpCodes.Ldarg_0));
 						il.Append(il.Create(OpCodes.Ldarg_1));
 						il.Append(il.Create(OpCodes.Call, load));
