@@ -15,7 +15,7 @@ public partial class Modifier
 
 	public string Assembly;
 	public string Name;
-	public List<Field> Fields;
+	public List<Field> Fields = [];
 
 	public Modifier WithAssembly(string value)
 	{
