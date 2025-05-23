@@ -48,7 +48,7 @@ public class Patch : IDisposable
 			new RustHarmony()
 		];
 
-		Core.Modifier.Collect(carbonModifierDir);
+		Components.Modifier.CollectAll(carbonModifierDir);
 	}
 	public static void Uninit()
 	{
@@ -146,7 +146,7 @@ public class Patch : IDisposable
 			return false;
 		}
 
-		Core.Modifier.ApplyModifiers(fileName, assembly, ref modifiers, ref members);
+		Components.Modifier.ApplyModifiers(fileName, assembly, ref modifiers, ref members);
 		Publicize();
 		Publicized.Add(this);
 		return true;
