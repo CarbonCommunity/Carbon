@@ -11,7 +11,7 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void HooksCall(ConsoleSystem.Arg args)
 	{
-		using var table = new StringTable("#", "hook", "id", "type", "status", "time", "fires", "memory", "lag", "exceptions", "subs");
+		using var table = new StringTable("#", "hook", "id", "type", "status", "time", "fires", "memory", "lag", "exceptions", "subs", "method");
 		var count = 1;
 		var success = 0;
 		var warning = 0;
@@ -82,7 +82,8 @@ public partial class CorePlugin
 							memory == 0 ? string.Empty : $"{ByteEx.Format(memory, shortName: true).ToLower()}",
 							lagSpikes == 0 ? string.Empty : $"{lagSpikes}",
 							exceptions == 0 ? string.Empty : $"{exceptions}",
-							iHook.IsStaticHook ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(iHook.Identifier),3}"
+							iHook.IsStaticHook ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(iHook.Identifier),3}",
+							$"{iHook.TargetType?.Name}.{iHook.TargetMethod}"
 						);
 					}
 
@@ -157,7 +158,8 @@ public partial class CorePlugin
 							memory == 0 ? string.Empty : $"{ByteEx.Format(memory, shortName: true).ToLower()}",
 							lagSpikes == 0 ? string.Empty : $"{lagSpikes:n0}",
 							exceptions == 0 ? string.Empty : $"{exceptions:n0}",
-							(iHook.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(iHook.Identifier),3}"
+							(iHook.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(iHook.Identifier),3}",
+							$"{iHook.TargetType?.Name}.{iHook.TargetMethod}"
 						);
 					}
 

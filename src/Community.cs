@@ -48,7 +48,6 @@ public partial class Community
 							}
 
 							Array.Clear(trace, 0, trace.Length);
-
 							resultTrace = resultTrace.TrimEnd();
 							Logger.Write(API.Logger.Severity.Error, $"Unhandled error occurred ({condition})\n{resultTrace}", nativeLog: false);
 							Console.WriteLine(resultTrace);
