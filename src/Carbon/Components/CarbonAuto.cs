@@ -176,11 +176,10 @@ public class CarbonAuto : API.Abstracts.CarbonAuto
 				{
 					try
 					{
-						using var value = TempArray<string>.New(line.Split(' '));
+						var split = line.Split(' ');
+						var convar = split.Length > 0 ? split[0] : default;
+						var conval = split.Skip(1).ToString(" ").Replace("\"", string.Empty);
 
-						var convar = value.Get(0);
-						var conval = value.array.Skip(1).ToString(" ").Replace("\"", string.Empty);
-						
 						if (AutoCache.TryGetValue(convar, out var auto))
 						{
 							auto.SetValue(conval);

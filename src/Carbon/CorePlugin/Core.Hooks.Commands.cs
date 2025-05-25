@@ -22,8 +22,8 @@ public partial class CorePlugin
 				return Cache.False;
 			}
 
-			using var split = TempArray<string>.New(fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries));
-			var command = split.Get(0).Trim();
+			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
+			var command = split.Length > 0 ? split[0].Trim() : string.Empty;
 			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString[(command.Length + 1)..]) : _emptyStringArray;
 
 			// OnUserCommand

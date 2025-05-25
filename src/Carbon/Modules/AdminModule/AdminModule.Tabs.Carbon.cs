@@ -184,9 +184,9 @@ public partial class AdminModule
 								}
 								else
 								{
-									using var commands = TempArray<string>.New(action.Command.Split('|'));
+									var commandsSplit = action.Command.Split('|');
 
-									foreach (var command in commands.array)
+									foreach (var command in commandsSplit)
 									{
 										if (action.User)
 										{

@@ -1101,11 +1101,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
 		}
 
-		using var split = TempArray<string>.New(color.Split(' '));
+		var colorSplit = color.Split(' ');
 		cui.CreateProtectedButton(container, parent,
 			color: color,
 			textColor: "1 1 1 1",
-			text: split.Length > 1 ? $"#{ColorUtility.ToHtmlStringRGB(new Color(split.Get(0).ToFloat(), split.Get(1).ToFloat(), split.Get(2).ToFloat(), 1))}" : string.Empty, 10,
+			text: colorSplit.Length > 1 ? $"#{ColorUtility.ToHtmlStringRGB(new Color(colorSplit[0].ToFloat(), colorSplit[1].ToFloat(), colorSplit[2].ToFloat(), 1))}" : string.Empty, 10,
 			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
 			command: command,
 			font: Handler.FontTypes.RobotoCondensedRegular);

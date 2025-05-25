@@ -1392,26 +1392,26 @@ public static class HookCaller
 		{
 			var processedDirective = directive.Replace(_ifDirective, string.Empty).Replace(_elifDirective, string.Empty).Trim();
 
-			using var subdirectives = TempArray<string>.New(processedDirective.Split(_operatorsStrings, StringSplitOptions.RemoveEmptyEntries));
+			var subdirectivesSplit = processedDirective.Split(_operatorsStrings, StringSplitOptions.RemoveEmptyEntries);
 
-			foreach (var subdirective in subdirectives.array)
+			foreach (var subdirective in subdirectivesSplit)
 			{
 				var processedSubdirective = subdirective.Trim();
 
-				using var split = TempArray<string>.New(processedSubdirective.Split(_underscoreChar));
+				var split = processedSubdirective.Split(_underscoreChar);
 
 				if (split.Length < 3)
 				{
 					continue;
 				}
 
-				var mode = split.Get(0);
-				var type = split.Get(1);
+				var mode = split.Length > 0 ? split[0] : null;
+				var type = split.Length > 1 ? split[1] : null;
 
-				var major = split.Get(2).ToInt();
-				var minor = split.Get(3).ToInt();
-				var patch = split.Get(4).ToInt();
-				var expected = new VersionNumber(major, minor, patch);
+				var major = split.Length > 2 ? split[2] : null;
+				var minor = split.Length > 3 ? split[3] : null;
+				var patch = split.Length > 4 ? split[4] : null;
+				var expected = new VersionNumber(major.ToInt(), minor.ToInt(), patch.ToInt());
 
 				switch (mode)
 				{
@@ -1431,9 +1431,9 @@ public static class HookCaller
 
 					case "CARBON":
 					{
-						using var protocol = TempArray<string>.New(Community.Runtime.Analytics.Protocol.Split(_dotChar));
+						var protocolSplit = Community.Runtime.Analytics.Protocol.Split(_dotChar);
 
-						var current = new VersionNumber(protocol.Get(0).ToInt(), protocol.Get(1).ToInt(), protocol.Get(2).ToInt());
+						var current = new VersionNumber(protocolSplit[0].ToInt(), protocolSplit[1].ToInt(), protocolSplit[2].ToInt());
 
 						if ((type.Equals("ABV") && current > expected) ||
 							(type.Equals("BLW") && current < expected) ||
