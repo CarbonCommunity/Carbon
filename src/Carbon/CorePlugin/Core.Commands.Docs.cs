@@ -24,6 +24,7 @@ public partial class CorePlugin
 
 		arg.ReplyWithObject(new
 		{
+			ActiveSlot = player.GetActiveItem()?.position ?? -1,
 			Main = main.Select(x => new
 			{
 				ItemId = x.info?.itemid,
