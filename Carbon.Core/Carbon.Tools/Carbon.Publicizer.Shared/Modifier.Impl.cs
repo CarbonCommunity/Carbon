@@ -12,7 +12,7 @@ namespace Carbon.Components;
 
 public partial class Modifier
 {
-	internal static ModifierBank All = [];
+	public static ModifierBank Active = [];
 
 	internal static void CollectAll(string directory)
 	{
@@ -21,25 +21,25 @@ public partial class Modifier
 			return;
 		}
 
-		All.Clear();
+		Active.Clear();
 
 		var files = Directory.GetFiles(directory);
 		for (int i = 0; i < files.Length; i++)
 		{
-			All.AddRange(Read(files[i]));
+			Active.AddRange(Read(files[i]));
 		}
 
-		if (All.Count > 0)
+		if (Active.Count > 0)
 		{
 			var invalidModifiers = 0;
 			var invalidMembers = 0;
-			for (int i = 0; i < All.Count; i++)
+			for (int i = 0; i < Active.Count; i++)
 			{
-				var modifier = All[i];
+				var modifier = Active[i];
 				if (!modifier.Validate())
 				{
 					invalidModifiers++;
-					All.RemoveAt(i);
+					Active.RemoveAt(i);
 					i--;
 					continue;
 				}
@@ -52,10 +52,10 @@ public partial class Modifier
 
 	internal static void ApplyModifiers(string assemblyFileName, AssemblyDefinition assembly, ref int modifiers, ref int members)
 	{
-		var name = Path.GetFileNameWithoutExtension(assemblyFileName);
-		for (int i = 0; i < All.Count; i++)
+		var name = System.IO.Path.GetFileNameWithoutExtension(assemblyFileName);
+		for (int i = 0; i < Active.Count; i++)
 		{
-			var modifier = All[i];
+			var modifier = Active[i];
 			if (!modifier.Assembly.Equals(name, StringComparison.CurrentCultureIgnoreCase))
 			{
 				continue;
