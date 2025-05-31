@@ -34,7 +34,7 @@ public partial class CorePlugin
 				MaxCondition = x.maxCondition,
 				Condition = x.condition,
 				ConditionNormalized = x.conditionNormalized,
-				HasCondition = x.hasCondition,
+				HasCondition = x.hasCondition
 			}),
 			Belt = belt.Select(x => new
 			{
