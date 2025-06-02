@@ -253,7 +253,9 @@ public partial class CorePlugin
 								return;
 							}
 
-							if (!Community.Runtime.Config.Watchers.ScriptWatchers || Community.Runtime.MonoProfilerConfig.IsWhitelisted(Profiler.MonoProfilerConfig.ProfileTypes.Plugin, plugin.Name) != Assemblies.Plugins.Get(plugin.Name).IsProfiledAssembly)
+							if (!Community.Runtime.Config.Watchers.ScriptWatchers ||
+							    (Assemblies.Plugins.Get(plugin.Name) is Assemblies.RuntimeAssembly pluginAssembly &&
+							     Community.Runtime.MonoProfilerConfig.IsWhitelisted(Profiler.MonoProfilerConfig.ProfileTypes.Plugin, plugin.Name) != pluginAssembly.IsProfiledAssembly))
 							{
 								plugin.ProcessorProcess.MarkDirty();
 								return;

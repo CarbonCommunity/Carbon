@@ -71,7 +71,7 @@ public partial class AdminModule
 	{
 		var player = args.Player();
 
-		if (GetTab(player).Id == "configuration")
+		if (GetTab(player) is { Id: "configuration" })
 		{
 			SetTab(player, "carbon");
 		}

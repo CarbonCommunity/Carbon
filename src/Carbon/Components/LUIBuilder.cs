@@ -242,19 +242,33 @@ public static class LUIBuilder
 		    inst.Flush();
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this ref LuiBuilderInstance inst, string text)
-    {
-        int length = text.Length;
-        Span<char> buffer = inst._charBuffer.AsSpan();
-        int charIndex = inst._charIndex;
-        for (int i = 0; i < length; i++)
-            buffer[charIndex + i] = text[i];
-        inst._charIndex += length;
-        if (inst._charIndex >= segmentCheck)
-	        inst.Flush();
-    }
+    private static int stringLengthCheck = Mathf.CeilToInt(segmentCheck * 1.9f);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void Write(this ref LuiBuilderInstance inst, string text, int startPos = 0)
+    {
+	    int length = text.Length;
+	    Span<char> buffer = inst._charBuffer.AsSpan();
+	    int charIndex = inst._charIndex;
+	    int index = 0;
+	    bool shouldCheckForSize = length > segmentCheck;
+	    for (int i = startPos; i < length; i++)
+	    {
+		    int lengthSum = charIndex + index;
+		    buffer[lengthSum] = text[i];
+		    index++;
+		    if (shouldCheckForSize && lengthSum > stringLengthCheck)
+		    {
+			    inst._charIndex += index;
+			    inst.Flush();
+			    inst.Write(text, index);
+			    return;
+		    }
+	    }
+	    inst._charIndex += length - startPos;
+	    if (inst._charIndex > segmentCheck)
+		    inst.Flush();
+    }
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static int WriteFloatDigits(float value, Span<char> buffer, int startIndex = 0, int precision = 3)
