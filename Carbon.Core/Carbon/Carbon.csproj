@@ -17,6 +17,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Startup\Carbon.Startup.csproj" Private="false" />
 	</ItemGroup>
 
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
