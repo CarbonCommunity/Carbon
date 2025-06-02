@@ -26,7 +26,15 @@ public partial class Modifier
 		var files = Directory.GetFiles(directory);
 		for (int i = 0; i < files.Length; i++)
 		{
-			Active.AddRange(Read(files[i]));
+			var file = files[i];
+			try
+			{
+				Active.AddRange(Read(file));
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed reading modifier file {System.IO.Path.GetFileName(file)} ({ex.Message})\n{ex.StackTrace}");
+			}
 		}
 
 		if (Active.Count > 0)
@@ -92,23 +100,17 @@ public partial class Modifier
 
 				if (fieldType == null)
 				{
-					Console.WriteLine(
-						$" Couldn't find field type for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}]");
+					Console.WriteLine($" Couldn't find field type for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}]");
 					continue;
 				}
 
-				if (type.Fields.FirstOrDefault(x => x.Name.Equals(field.Name)) != null ||
-				    type.Properties.FirstOrDefault(x => x.Name.Equals(field.Name)) != null)
+				if (type.Fields.FirstOrDefault(x => x.Name.Equals(field.Name)) != null || type.Properties.FirstOrDefault(x => x.Name.Equals(field.Name)) != null)
 				{
-					Console.WriteLine(
-						$" Couldn't create field for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}] as a member with the same name already exists");
+					Console.WriteLine($" Couldn't create field for modifier: {field.Name} in {modifier.Name} [{modifier.Assembly}] as a member with the same name already exists");
 					continue;
 				}
 
-				var newField =
-					new FieldDefinition(field.Name,
-						saveType ? Mono.Cecil.FieldAttributes.Public : Mono.Cecil.FieldAttributes.NotSerialized,
-						assembly.MainModule.ImportReference(fieldType))
+				var newField = new FieldDefinition(field.Name, saveType ? Mono.Cecil.FieldAttributes.Public : Mono.Cecil.FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(fieldType))
 					{
 						IsStatic = !saveType && field.IsStatic, Constant = field.DefaultValue
 					};
@@ -118,8 +120,7 @@ public partial class Modifier
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine(
-				$" Failed applying modifier: {modifier.Name} [{modifier.Assembly}] ({ex.Message})\n{ex.StackTrace}");
+			Console.WriteLine($" Failed applying modifier: {modifier.Name} [{modifier.Assembly}] ({ex.Message})\n{ex.StackTrace}");
 		}
 	}
 
@@ -155,8 +156,7 @@ public partial class Modifier
 			var module = assembly.MainModule;
 			var storeModifiers = Patch.common.MainModule.GetType("Carbon.Components", "StoredModifiers");
 			var baseDataType = storeModifiers.NestedTypes[0];
-			var dataType =
-				module.Types.FirstOrDefault(x =>
+			var dataType = module.Types.FirstOrDefault(x =>
 					x.Name.Equals(type.Name + DataType, StringComparison.CurrentCulture)) ?? new TypeDefinition(
 					type.Namespace, type.Name + DataType,
 					Mono.Cecil.TypeAttributes.NestedPublic | Mono.Cecil.TypeAttributes.Class,
@@ -169,17 +169,13 @@ public partial class Modifier
 			if (!module.Types.Contains(dataType))
 			{
 				module.Types.Add(dataType);
-				var carbonDataField = new FieldDefinition(PascalToCamel(type.Name + DataType),
-					Mono.Cecil.FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(dataType));
+				var carbonDataField = new FieldDefinition(PascalToCamel(type.Name + DataType), Mono.Cecil.FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(dataType));
 				type.Fields.Add(carbonDataField);
 
 				// Protobuf attribute
-				var protoContractAttrCtor =
-					module.ImportReference(typeof(ProtoBuf.ProtoContractAttribute).GetConstructor(Type.EmptyTypes));
+				var protoContractAttrCtor = module.ImportReference(typeof(ProtoBuf.ProtoContractAttribute).GetConstructor(Type.EmptyTypes));
 				var attr = new CustomAttribute(module.ImportReference(protoContractAttrCtor));
-				attr.Properties.Add(new Mono.Cecil.CustomAttributeNamedArgument("ImplicitFields",
-					new Mono.Cecil.CustomAttributeArgument(module.ImportReference(typeof(ProtoBuf.ImplicitFields)),
-						ProtoBuf.ImplicitFields.AllPublic)));
+				attr.Properties.Add(new Mono.Cecil.CustomAttributeNamedArgument("ImplicitFields", new Mono.Cecil.CustomAttributeArgument(module.ImportReference(typeof(ProtoBuf.ImplicitFields)), ProtoBuf.ImplicitFields.AllPublic)));
 				dataType.CustomAttributes.Add(attr);
 
 				HandleRustSave();
@@ -188,16 +184,10 @@ public partial class Modifier
 
 				void HandleInitializer()
 				{
-					var defaultProperty =
-						module.ImportReference(typeof(ProtoBuf.Meta.RuntimeTypeModel).GetProperty("Default").GetMethod);
-					var itemMethod =
-						module.ImportReference(typeof(ProtoBuf.Meta.RuntimeTypeModel).GetProperty("Item").GetMethod);
-					var addSubTypeMethod =
-						module.ImportReference(
-							typeof(ProtoBuf.Meta.MetaType).GetMethod("AddSubType", [typeof(int), typeof(Type)]));
-					var initialize = new MethodDefinition("Initialize",
-						Mono.Cecil.MethodAttributes.Private | Mono.Cecil.MethodAttributes.Static,
-						module.TypeSystem.Void);
+					var defaultProperty = module.ImportReference(typeof(ProtoBuf.Meta.RuntimeTypeModel).GetProperty("Default").GetMethod);
+					var itemMethod = module.ImportReference(typeof(ProtoBuf.Meta.RuntimeTypeModel).GetProperty("Item").GetMethod);
+					var addSubTypeMethod = module.ImportReference(typeof(ProtoBuf.Meta.MetaType).GetMethod("AddSubType", [typeof(int), typeof(Type)]));
+					var initialize = new MethodDefinition("Initialize", Mono.Cecil.MethodAttributes.Private | Mono.Cecil.MethodAttributes.Static, module.TypeSystem.Void);
 					{
 						initialize.IsPublic = false;
 						var il = initialize.Body.GetILProcessor();
@@ -282,10 +272,7 @@ public partial class Modifier
 				{
 					var rustLoadMethod =
 						type.Methods.FirstOrDefault(x => x.Name.Equals("Load", StringComparison.CurrentCulture)) ??
-						new MethodDefinition("Load",
-							Mono.Cecil.MethodAttributes.Public | Mono.Cecil.MethodAttributes.Virtual |
-							Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.ReuseSlot,
-							module.TypeSystem.Void);
+						new MethodDefinition("Load", Mono.Cecil.MethodAttributes.Public | Mono.Cecil.MethodAttributes.Virtual | Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.ReuseSlot, module.TypeSystem.Void);
 					var il = rustLoadMethod.Body.GetILProcessor();
 					var load = module.ImportReference(type.BaseType.Resolve().Methods.FirstOrDefault(m =>
 						m.Name.Equals("Load", StringComparison.CurrentCulture) && m.Parameters.Count == 1));
@@ -300,9 +287,7 @@ public partial class Modifier
 						type.Methods.Add(rustLoadMethod);
 					}
 
-					var instr = rustLoadMethod.Body.Instructions.IndexOf(
-						rustLoadMethod.Body.Instructions.FirstOrDefault(x =>
-							x.OpCode == OpCodes.Call && x.Operand == load)) + 1;
+					var instr = rustLoadMethod.Body.Instructions.IndexOf(rustLoadMethod.Body.Instructions.FirstOrDefault(x => x.OpCode == OpCodes.Call && x.Operand == load)) + 1;
 					il.Body.Instructions.Insert(instr, il.Create(OpCodes.Ldarg_0));
 					il.Body.Instructions.Insert(instr + 1, il.Create(OpCodes.Ldarg_0));
 					il.Body.Instructions.Insert(instr + 2, il.Create(OpCodes.Ldflda, carbonDataField));
@@ -319,8 +304,7 @@ public partial class Modifier
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine(
-				$" Failed applying saved modifier: {modifier.Name} [{modifier.Assembly}] ({ex.Message})\n{ex.StackTrace}");
+			Console.WriteLine($" Failed applying saved modifier: {modifier.Name} [{modifier.Assembly}] ({ex.Message})\n{ex.StackTrace}");
 		}
 	}
 
