@@ -5,9 +5,9 @@ public sealed class Switches
 	[Switch(Name = "-carbon.rootdir", Help = "Overrides the root directory of Carbon, aka the \"carbon\" folder. Upon changing this, you must also apply another command line variable which links to the custom Carbon root, Carbon.Preloader.dll;\n--doorstop-target-assembly \"customrootdir/managed/Carbon.Preloader.dll\"")]
 	public static string GetRootDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.rootdir", defaultValue);
 
-	[Switch(Name = "-carbon.settingdir", Help = "Overrides the settings root directory where Carbon stores its configuration files")]
-	public static string GetSettingDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.settingdir", defaultValue);
-	
+	[Switch(Name = "-carbon.carbonconfigdir", Help = "Overrides the settings root directory where Carbon stores its configuration files")]
+	public static string GetCarbonConfigDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.carbonconfigdir", defaultValue);
+
 	[Switch(Name = "-carbon.scriptdir", Help = "Overrides the scripts directory of Carbon, aka the \"carbon/plugins\" folder.")]
 	public static string GetScriptDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.scriptdir", defaultValue);
 
