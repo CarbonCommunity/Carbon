@@ -5,7 +5,7 @@ public static partial class WebRCon
 	private static object[] args = [1];
 	private static Dictionary<uint, DocsRpcAttribute> rpcs = [];
 
-	internal static void Initialize()
+	internal static void Init()
 	{
 		rpcs.Clear();
 		var methods = typeof(WebRCon).GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
