@@ -28,6 +28,7 @@ Files.Copy(Path(Home, "Tools", "Helpers", "Carbon.targets"), Path(Home, "Release
 var tos = isUnix ? "Linux" : "Windows";
 var finalTarget = target.Replace("Unix", string.Empty);
 
+Files.DeleteContains(Path(Home, "Release", ".tmp", target, "carbon", "managed", "lib"), "carbon");
 Directories.Delete(Path(Home, "Release", ".tmp", target, "profiler"));
 
 if (isUnix)

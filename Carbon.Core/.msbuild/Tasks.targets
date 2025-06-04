@@ -88,8 +88,8 @@
 			<FilesToClean Include="$(c_lib)\*.pdb" />
 		</ItemGroup>
 
-		<Message Text="[$(AssemblyName)] Cleanup carbon stuff from lib folder" Importance="high" />
-		<Delete Files="@(FilesToClean)" />
+		<!-- <Message Text="[$(AssemblyName)] Cleanup carbon stuff from lib folder" Importance="high" />
+		<Delete Files="@(FilesToClean)" /> -->
 	</Target>
 
 	<!--
