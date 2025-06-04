@@ -4,8 +4,9 @@ namespace Carbon.Documentation;
 
 public static partial class WebRCon
 {
-	private static object[] args = [1];
-	private static Dictionary<uint, DocsRpcAttribute> rpcs = [];
+	public static Dictionary<uint, DocsRpcAttribute> rpcs = [];
+
+	internal static object[] args = [1];
 
 	internal static void Init()
 	{
@@ -64,7 +65,6 @@ public static partial class WebRCon
 		}
 		public void LeavePool()
 		{
-			throw new NotImplementedException();
 		}
 	}
 
