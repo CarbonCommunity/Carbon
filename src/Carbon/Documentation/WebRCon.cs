@@ -1,4 +1,6 @@
-﻿namespace Carbon.Documentation;
+﻿using Facepunch;
+
+namespace Carbon.Documentation;
 
 public static partial class WebRCon
 {
@@ -31,11 +33,38 @@ public static partial class WebRCon
 		try
 		{
 			args[0] = arg;
-			rpc.Method.Invoke(null, args);
+
+			var response = rpc.Method.Invoke(null, args) as DocsRpcResponse;
+			response.RpcId = rpcId;
+			arg.ReplyWithObject(response);
+			Pool.Free(ref response);
 		}
 		catch(Exception ex)
 		{
 			Logger.Error($"Failed WebRCon.Run", ex);
+		}
+	}
+
+	public static DocsRpcResponse Response(object value = null)
+	{
+		var response = Pool.Get<DocsRpcResponse>();
+		response.Value = value;
+		return response;
+	}
+
+	public class DocsRpcResponse : Pool.IPooled
+	{
+		public uint RpcId;
+		public object Value;
+
+		public void EnterPool()
+		{
+			RpcId = 0;
+			Value = null;
+		}
+		public void LeavePool()
+		{
+			throw new NotImplementedException();
 		}
 	}
 

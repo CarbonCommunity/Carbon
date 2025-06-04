@@ -3,16 +3,16 @@
 public static partial class WebRCon
 {
 	[DocsRpc]
-	private static void SendPlayerInventory(ConsoleSystem.Arg arg)
+	private static DocsRpcResponse SendPlayerInventory(ConsoleSystem.Arg arg)
 	{
 		var player = BasePlayer.FindAwakeOrSleepingByID(arg.GetULong(1));
 
 		if (player == null)
 		{
-			return;
+			return default;
 		}
 
-		arg.ReplyWithObject(new
+		return Response(new
 		{
 			ActiveSlot = player.GetActiveItem()?.position ?? -1,
 			Main = player.inventory.containerMain.itemList.Select(x => new
@@ -52,13 +52,13 @@ public static partial class WebRCon
 	}
 
 	[DocsRpc]
-	private static void MoveInventoryItem(ConsoleSystem.Arg arg)
+	private static DocsRpcResponse MoveInventoryItem(ConsoleSystem.Arg arg)
 	{
 		var player = BasePlayer.FindAwakeOrSleepingByID(arg.GetULong(1));
 
 		if (player == null)
 		{
-			return;
+			return default;
 		}
 
 		var fromContainer = FindContainer(arg.GetInt(2), player);
@@ -78,20 +78,7 @@ public static partial class WebRCon
 				fromItem.MoveToContainer(FindContainer(toContainerId, player), arg.GetInt(5));
 				break;
 		}
-	}
 
-	private static ItemContainer FindContainer(int id, BasePlayer player)
-	{
-		switch (id)
-		{
-			case 0:
-				return player.inventory.containerMain;
-			case 1:
-				return player.inventory.containerBelt;
-			case 2:
-				return player.inventory.containerWear;
-		}
-
-		return null;
+		return Response(arg);
 	}
 }
