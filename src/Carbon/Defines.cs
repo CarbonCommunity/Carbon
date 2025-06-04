@@ -6,6 +6,7 @@ public class Defines
 	public static void Initialize()
 	{
 		GetRootFolder();
+		GetCarbonConfigFolder();
 		GetConfigsFolder();
 		GetModulesFolder();
 		GetDataFolder();
@@ -27,6 +28,7 @@ public class Defines
 	}
 
 	internal static string _customRootFolder;
+	internal static string _customCarbonConfigFolder;
 	internal static string _customScriptFolder;
 	internal static string _customConfigFolder;
 	internal static string _customDataFolder;
@@ -44,6 +46,7 @@ public class Defines
 		_commandLineInitialized = true;
 
 		_customRootFolder = Switches.GetRootDir();
+		_customCarbonConfigFolder = Switches.GetCarbonConfigDir();
 		_customScriptFolder = Switches.GetScriptDir();
 		_customConfigFolder = Switches.GetConfigDir();
 		_customDataFolder = Switches.GetDataDir();
@@ -79,6 +82,14 @@ public class Defines
 	{
 		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customRootFolder) ? Path.Combine($"{Application.dataPath}/..", "carbon") : _customRootFolder);
+		Directory.CreateDirectory(folder);
+
+		return folder;
+	}
+	public static string GetCarbonConfigFolder()
+	{
+		_initializeCommandLine();
+		var folder = string.IsNullOrEmpty(_customCarbonConfigFolder) ? GetRootFolder() : _customRootFolder;
 		Directory.CreateDirectory(folder);
 
 		return folder;

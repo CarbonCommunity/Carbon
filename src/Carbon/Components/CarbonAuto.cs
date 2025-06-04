@@ -112,8 +112,6 @@ public class CarbonAuto : API.Abstracts.CarbonAuto
 	{
 		using (TimeMeasure.New("CarbonAuto.IsChanged"))
 		{
-			var core = Community.Runtime.Core;
-
 			foreach (var cache in AutoCache)
 			{
 				if (!cache.Value.Variable.ForceModded)
