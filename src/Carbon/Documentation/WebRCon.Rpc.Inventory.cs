@@ -12,42 +12,19 @@ public static partial class WebRCon
 			return default;
 		}
 
+		var lootedEntity = player.inventory.loot.entitySource as StorageContainer;
+
 		return Response(new
 		{
 			ActiveSlot = player.GetActiveItem()?.position ?? -1,
-			Main = player.inventory.containerMain.itemList.Select(x => new
+			Main = player.inventory.containerMain.itemList.Select(x => ParseItem(x)),
+			Belt = player.inventory.containerBelt.itemList.Select(x => ParseItem(x)),
+			Wear = player.inventory.containerWear.itemList.Select(x => ParseItem(x)),
+			Loot = lootedEntity == null ? null : new
 			{
-				ItemId = x.info?.itemid,
-				ShortName = x.info?.shortname,
-				Position = x.position,
-				Amount = x.amount,
-				MaxCondition = x.maxCondition,
-				Condition = x.condition,
-				ConditionNormalized = x.conditionNormalized,
-				HasCondition = x.hasCondition
-			}),
-			Belt = player.inventory.containerBelt.itemList.Select(x => new
-			{
-				ItemId = x.info?.itemid,
-				ShortName = x.info?.shortname,
-				Position = x.position,
-				Amount = x.amount,
-				MaxCondition = x.maxCondition,
-				Condition = x.condition,
-				ConditionNormalized = x.conditionNormalized,
-				HasCondition = x.hasCondition
-			}),
-			Wear = player.inventory.containerWear.itemList.Select(x => new
-			{
-				ItemId = x.info?.itemid,
-				ShortName = x.info?.shortname,
-				Position = x.position,
-				Amount = x.amount,
-				MaxCondition = x.maxCondition,
-				Condition = x.condition,
-				ConditionNormalized = x.conditionNormalized,
-				HasCondition = x.hasCondition
-			})
+				Panel = lootedEntity.panelName,
+				Items = lootedEntity.inventory.itemList.Select(x => ParseItem(x))
+			}
 		});
 	}
 

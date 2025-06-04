@@ -16,4 +16,29 @@ public static partial class WebRCon
 
 		return null;
 	}
+
+	private static object ParseEntity(BaseEntity entity)
+	{
+		return new
+		{
+			NetId = entity.net.ID.Value,
+			Name = entity.name,
+			Flags = entity.flags
+		};
+	}
+
+	private static object ParseItem(Item item)
+	{
+		return new
+		{
+			ItemId = item.info?.itemid,
+			ShortName = item.info?.shortname,
+			Position = item.position,
+			Amount = item.amount,
+			MaxCondition = item.maxCondition,
+			Condition = item.condition,
+			ConditionNormalized = item.conditionNormalized,
+			HasCondition = item.hasCondition
+		};
+	}
 }
