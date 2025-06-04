@@ -10,9 +10,18 @@ public partial class Modifier
 
 	public static ModifierBank Read(string path)
 	{
-		return !File.Exists(path) ? null : JsonConvert.DeserializeObject<ModifierBank>(File.ReadAllText(path));
+		var result = !File.Exists(path) ? null : JsonConvert.DeserializeObject<ModifierBank>(File.ReadAllText(path));
+		if (result != null)
+		{
+			for (int i = 0; i < result.Count; i++)
+			{
+				result[i].Path = path;
+			}
+		}
+		return result;
 	}
 
+	[JsonIgnore] public string Path;
 	public string Assembly;
 	public string Name;
 	public List<Field> Fields = [];
@@ -29,9 +38,15 @@ public partial class Modifier
 		return this;
 	}
 
-	public Modifier WithField(Field field)
+	public Modifier WithField(Field value)
 	{
-		Fields.Add(field);
+		Fields.Add(value);
+		return this;
+	}
+
+	public Modifier WithPath(string value)
+	{
+		Path = value;
 		return this;
 	}
 
