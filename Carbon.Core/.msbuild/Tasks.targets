@@ -88,8 +88,14 @@
 			<FilesToClean Include="$(c_lib)\*.pdb" />
 		</ItemGroup>
 
-		<!-- <Message Text="[$(AssemblyName)] Cleanup carbon stuff from lib folder" Importance="high" />
-		<Delete Files="@(FilesToClean)" /> -->
+		<ItemGroup>
+			<FilesToCopy Include="@(ReferenceCopyLocalPaths)" />
+		</ItemGroup>
+		<Copy SourceFiles="@(FilesToCopy)"
+					DestinationFolder="$(c_lib)\%(RecursiveDir)"
+					SkipUnchangedFiles="true"
+					OverwriteReadOnlyFiles="true" />
+
 	</Target>
 
 	<!--
