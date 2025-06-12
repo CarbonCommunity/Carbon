@@ -4,9 +4,6 @@ concurrency: build-aux02
 on:
   workflow_dispatch:
 
-  schedule:
-    - cron: "00 19 * * *"
-
 jobs:
   build:
     name: Rust (Aux02) Build

@@ -23,6 +23,9 @@
         <Reference Include="$(CarbonManagedPath)/Carbon.Test.dll">
             <Private>false</Private>
         </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.Startup.dll">
+            <Private>false</Private>
+        </Reference>
         <Reference Include="$(CarbonManagedPath)/Carbon.UniTask.dll">
             <Private>false</Private>
         </Reference>
