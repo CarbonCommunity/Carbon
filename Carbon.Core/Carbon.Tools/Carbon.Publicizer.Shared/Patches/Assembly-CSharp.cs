@@ -65,10 +65,9 @@ public class AssemblyCSharp() : Patch(RustManagedDirectory, "Assembly-CSharp.dll
 
 		try
 		{
-			var common = AssemblyDefinition.ReadAssembly( new MemoryStream(File.ReadAllBytes(Path.Combine(CarbonManagedDirectory, "Carbon.Common.dll"))));
 			var iPlayerType = common.MainModule.GetType("Oxide.Core.Libraries.Covalence", "IPlayer") ?? throw new Exception("Unable to get a type for 'API.Contracts.IPlayer'");
 			var basePlayerType = assembly.MainModule.GetType("BasePlayer") ?? throw new Exception("Unable to get a type for 'BasePlayer'");
-			basePlayerType.Fields.Add(item: new FieldDefinition("IPlayer", FieldAttributes.Public | FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(iPlayerType)));
+			basePlayerType.Fields.Add(item: new FieldDefinition("IPlayer", Mono.Cecil.FieldAttributes.Public | Mono.Cecil.FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(iPlayerType)));
 		}
 		catch { }
 	}
