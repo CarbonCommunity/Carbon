@@ -1,63 +1,72 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Carbon.Core;
+namespace Carbon.Components;
 
-public class Modifier
+public partial class Modifier
 {
-	public static List<Modifier> All = [];
+	public static readonly string DataType = "CarbonData";
 
-	public static void Collect(string directory)
+	public static ModifierBank Read(string path)
 	{
-		if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
+		var result = !File.Exists(path) ? null : JsonConvert.DeserializeObject<ModifierBank>(File.ReadAllText(path));
+		if (result != null)
 		{
-			return;
-		}
-
-		All.Clear();
-
-		var files = Directory.GetFiles(directory);
-		for (int i = 0; i < files.Length; i++)
-		{
-			All.AddRange(Read(files[i]));
-		}
-
-		if (All.Count > 0)
-		{
-			var invalidModifiers = 0;
-			var invalidMembers = 0;
-			for (int i = 0; i < All.Count; i++)
+			for (int i = 0; i < result.Count; i++)
 			{
-				var modifier = All[i];
-				if (!modifier.Validate())
-				{
-					invalidModifiers++;
-					All.RemoveAt(i);
-					i--;
-					continue;
-				}
-
-				invalidMembers += modifier.GetInvalidMembers();
-				modifier.ClearInvalidMembers();
+				result[i].Path = path;
 			}
 		}
+		return result;
 	}
 
-	public static Modifier[] Read(string path)
-	{
-		return !File.Exists(path) ? null : JsonConvert.DeserializeObject<Modifier[]>(File.ReadAllText(path));
-	}
-
+	[JsonIgnore] public string Path;
 	public string Assembly;
 	public string Name;
-	public List<Field> Fields;
+	public List<Field> Fields = [];
+
+	public Modifier WithAssembly(string value)
+	{
+		Assembly = value;
+		return this;
+	}
+
+	public Modifier WithName(string value)
+	{
+		Name = value;
+		return this;
+	}
+
+	public Modifier WithField(Field value)
+	{
+		Fields.Add(value);
+		return this;
+	}
+
+	public Modifier WithPath(string value)
+	{
+		Path = value;
+		return this;
+	}
+
+	#region Helpers
 
 	public bool Validate()
 	{
 		return !string.IsNullOrEmpty(Assembly) && !string.IsNullOrEmpty(Name);
+	}
+
+	public bool HasSavedFields()
+	{
+		for (int i = 0; i < Fields.Count; i++)
+		{
+			if (Fields[i].ShouldSave)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public int GetInvalidMembers()
@@ -87,12 +96,45 @@ public class Modifier
 		}
 	}
 
+	#endregion
+
 	public class Field
 	{
 		public string Name;
 		public string Type;
 		public object DefaultValue;
 		public bool IsStatic;
+		public bool ShouldSave;
+
+		public Field WithName(string value)
+		{
+			Name = value;
+			return this;
+		}
+
+		public Field WithType(string value)
+		{
+			Type = value;
+			return this;
+		}
+
+		public Field WithDefaultValue(object value)
+		{
+			DefaultValue = value;
+			return this;
+		}
+
+		public Field WithStatic(bool wants)
+		{
+			IsStatic = wants;
+			return this;
+		}
+
+		public Field WithSave(bool wants)
+		{
+			ShouldSave = wants;
+			return this;
+		}
 
 		public bool Validate()
 		{

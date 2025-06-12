@@ -47,6 +47,25 @@ public class Files : Executor
 		Warn($"Deleted file: '{target}'");
 	}
 
+	[Expose("Deletes all files in a folder that contain a string in their name")]
+	public void DeleteContains(string folder, string contains)
+	{
+		if (!Directory.Exists(folder))
+		{
+			Log($"Folder '{folder}' not found. Skipping..");
+			return;
+		}
+
+		var files = Get(folder);
+		foreach (var file in files)
+		{
+			if (Path.GetFileNameWithoutExtension(file).Contains(contains, StringComparison.CurrentCultureIgnoreCase))
+			{
+				Delete(file);
+			}
+		}
+	}
+
 	[Expose("Gets the hash of a file")]
 	public uint Hash(string fileName)
 	{

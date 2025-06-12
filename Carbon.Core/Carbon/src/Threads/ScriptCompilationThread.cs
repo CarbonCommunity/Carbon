@@ -475,6 +475,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("QA");
 #endif
 
+			if (Carbon.Components.Modifier.Active.HasPlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath)))
+			{
+				conditionals.Add("MODIFIERS_PATCHED");
+			}
+
 			string pdbFilename =
 #if DEBUG
 				Debugger.IsAttached
