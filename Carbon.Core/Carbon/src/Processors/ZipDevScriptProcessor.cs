@@ -81,7 +81,7 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 	public string GetZipScriptName(string source)
 	{
 		var split = source.Replace(Defines.GetZipDevFolder(), string.Empty).Split(Path.PathSeparator);
-		return Path.GetFileNameWithoutExtension(split[0]);
+		return split[0];
 	}
 
 	public override void OnCreated(object sender, FileSystemEventArgs e)
