@@ -78,12 +78,17 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 		StopCoroutine(coroutine);
 	}
 
+	public string GetZipScriptName(string source)
+	{
+		var split = source.Replace(Defines.GetZipDevFolder(), string.Empty).Split(Path.PathSeparator);
+		return Path.GetFileNameWithoutExtension(split[0]);
+	}
+
 	public override void OnCreated(object sender, FileSystemEventArgs e)
 	{
 		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		var directory = Path.GetDirectoryName(e.FullPath);
-		var id = Path.GetFileNameWithoutExtension(directory);
+		var directory = GetZipScriptName(e.FullPath);
 
 		if (InstanceBuffer.TryGetValue(directory, out var instance1))
 		{
@@ -91,39 +96,36 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 			return;
 		}
 
-		if (InstanceBuffer.TryGetValue(id, out var instance2))
-		{
-			instance2?.MarkDirty();
-			return;
-		}
-
 		InstanceBuffer.Add(directory, null);
 	}
 	public override void OnChanged(object sender, FileSystemEventArgs e)
 	{
-		var path = e.FullPath;
-		var directory = Path.GetDirectoryName(path);
-
 		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.MarkDirty();
+		var directory = GetZipScriptName(e.FullPath);
+
+		if (InstanceBuffer.TryGetValue(directory, out var mod))
+		{
+			mod.MarkDirty();
+		}
 	}
 	public override void OnRenamed(object sender, RenamedEventArgs e)
 	{
-		var path = e.FullPath;
-		var directory = Path.GetDirectoryName(path);
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		if (!EnableWatcher || IsBlacklisted(path)) return;
+		var directory = GetZipScriptName(e.FullPath);
 
-		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.MarkDeleted();
+		if (InstanceBuffer.TryGetValue(directory, out var mod))
+		{
+			mod.MarkDeleted();
+		}
 		InstanceBuffer.Add(directory, null);
 	}
 	public override void OnRemoved(object sender, FileSystemEventArgs e)
 	{
-		var path = e.FullPath;
-		var directory = Path.GetDirectoryName(path);
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		if (!EnableWatcher || IsBlacklisted(path)) return;
+		var directory = GetZipScriptName(e.FullPath);
 
 		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.MarkDeleted();
 	}
