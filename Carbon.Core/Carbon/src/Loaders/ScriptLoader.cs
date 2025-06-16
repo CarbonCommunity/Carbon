@@ -73,7 +73,7 @@ public class ScriptLoader : IScriptLoader
 		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, except, ref count, zipPlugins);
 
 #if DEBUG
-		var zipDevPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetZipDevFolder(), "cs", option: SearchOption.AllDirectories);
+		var zipDevPlugins = Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly);
 		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, except, ref count, zipDevPlugins);
 #endif
 
@@ -96,7 +96,7 @@ public class ScriptLoader : IScriptLoader
 						continue;
 					}
 
-					var folder = Path.GetDirectoryName(file);
+					var folder = folderMode ? file : Path.GetDirectoryName(file);
 
 					var id = folderMode ? folder : Path.GetFileNameWithoutExtension(file);
 
