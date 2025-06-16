@@ -105,7 +105,7 @@ public class ScriptLoader : IScriptLoader
 						continue;
 					}
 
-					var plugin = new ScriptProcessor.Script { File = folderMode ? folder : file };
+					var plugin = new ScriptProcessor.Script { File = file };
 					processor.InstanceBuffer.Add(id, plugin);
 					count++;
 				}

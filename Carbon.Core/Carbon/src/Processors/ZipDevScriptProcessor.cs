@@ -19,6 +19,8 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 	public override float Rate => Community.Runtime.Config.Processors.ZipScriptProcessingRate;
 	public override Type IndexedType => typeof(ZipDevScript);
 
+	private static char[] DirectorySeparators = [Path.DirectorySeparatorChar];
+
 	public override void Start()
 	{
 		BlacklistPattern = new[]
@@ -80,8 +82,8 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 	public string GetZipScriptName(string source)
 	{
-		var split = source.Replace(Defines.GetZipDevFolder(), string.Empty).Split(Path.PathSeparator);
-		return split[0];
+		var cszipDevDir = Defines.GetZipDevFolder();
+		return Path.Combine(cszipDevDir, source.Replace(cszipDevDir, string.Empty).Split(DirectorySeparators, StringSplitOptions.RemoveEmptyEntries)[0]);
 	}
 
 	public override void OnCreated(object sender, FileSystemEventArgs e)
@@ -127,7 +129,10 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 		var directory = GetZipScriptName(e.FullPath);
 
-		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.MarkDeleted();
+		if (InstanceBuffer.TryGetValue(directory, out var mod))
+		{
+			mod.MarkDeleted();
+		}
 	}
 
 	public class ZipDevScript : Process, IScriptProcessor.IScript
