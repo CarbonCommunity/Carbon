@@ -9,11 +9,25 @@ namespace Carbon.Core;
 
 public partial class CorePlugin : CarbonPlugin
 {
-	public static Dictionary<string, string> OrderedFiles { get; } = [];
-
-	public static void RefreshOrderedFiles()
+	public struct ProcessableFile
 	{
-		OrderedFiles.Clear();
+		public string Id;
+		public string Path;
+		public Types Type;
+
+		public enum Types
+		{
+			Script,
+			CSZIP,
+			CSZIP_Dev
+		}
+	}
+
+	public static List<ProcessableFile> ProcessableFiles { get; } = [];
+
+	public static void ProcessableFilesLookup()
+	{
+		ProcessableFiles.Clear();
 
 		var config = Community.Runtime.Config;
 		var processor = Community.Runtime.ScriptProcessor;
@@ -25,12 +39,11 @@ public partial class CorePlugin : CarbonPlugin
 				continue;
 			}
 
-			var id = Path.GetFileNameWithoutExtension(file);
-
-			if (!OrderedFiles.ContainsKey(id))
-			{
-				OrderedFiles.Add(id, file);
-			}
+			ProcessableFile processableFile = default;
+			processableFile.Id = Path.GetFileNameWithoutExtension(file);
+			processableFile.Path = file;
+			processableFile.Type = ProcessableFile.Types.Script;
+			ProcessableFiles.Add(processableFile);
 		}
 		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cszip", config.Watchers.ScriptWatcherOption))
 		{
@@ -39,12 +52,11 @@ public partial class CorePlugin : CarbonPlugin
 				continue;
 			}
 
-			var id = Path.GetFileNameWithoutExtension(file);
-
-			if (!OrderedFiles.ContainsKey(id))
-			{
-				OrderedFiles.Add(id, file);
-			}
+			ProcessableFile processableFile = default;
+			processableFile.Id = Path.GetFileNameWithoutExtension(file);
+			processableFile.Path = file;
+			processableFile.Type = ProcessableFile.Types.CSZIP;
+			ProcessableFiles.Add(processableFile);
 		}
 #if DEBUG
 		foreach (var file in Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly))
@@ -54,27 +66,26 @@ public partial class CorePlugin : CarbonPlugin
 				continue;
 			}
 
-			var id = Path.GetFileNameWithoutExtension(file);
-
-			if (!OrderedFiles.ContainsKey(id))
-			{
-				OrderedFiles.Add(id, file);
-			}
+			ProcessableFile processableFile = default;
+			processableFile.Id = Path.GetFileNameWithoutExtension(file);
+			processableFile.Path = file;
+			processableFile.Type = ProcessableFile.Types.CSZIP_Dev;
+			ProcessableFiles.Add(processableFile);
 		}
 #endif
 	}
 
-	public static KeyValuePair<string, string> GetPluginPath(string shortName)
+	public static ProcessableFile GetPluginPath(string shortName)
 	{
-		RefreshOrderedFiles();
+		ProcessableFilesLookup();
 
-		foreach (var file in OrderedFiles)
+		foreach (var file in ProcessableFiles)
 		{
-			if (!file.Key.Equals(shortName, StringComparison.InvariantCultureIgnoreCase))
+			if (!file.Id.Equals(shortName, StringComparison.InvariantCultureIgnoreCase))
 			{
 				continue;
 			}
-			return new KeyValuePair<string, string>(file.Key, file.Value);
+			return file;
 		}
 
 		return default;
