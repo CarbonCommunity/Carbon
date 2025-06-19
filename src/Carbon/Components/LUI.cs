@@ -216,16 +216,16 @@ public class LUI : IDisposable
 		}
 		else
 		{
-			Logger.Warn($"[LUI] You're trying to image from ImageDatabase '{dbName}' which doesn't exist. Ignoring.");
+			Logger.Warn($"[LUI] You're trying to load an image from ImageDatabase '{dbName}' which doesn't exist. Ignoring.");
 			return null;
 		}
 		elements.Add(cont);
 		return cont;
 	}
 
-	public LuiContainer CreateRawImageFromDb(LuiContainer container, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateImageFromDb(container.name, position, offset, dbName, color, name);
-	public LuiContainer CreateRawImageFromDb(LuiContainer container, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateImageFromDb(container.name, LuiPosition.None, offset, dbName, color, name);
-	public LuiContainer CreateRawImageFromDb(string parent, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateImageFromDb(parent, LuiPosition.None, offset, dbName, color, name);
+	public LuiContainer CreateRawImageFromDb(LuiContainer container, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateRawImageFromDb(container.name, position, offset, dbName, color, name);
+	public LuiContainer CreateRawImageFromDb(LuiContainer container, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateRawImageFromDb(container.name, LuiPosition.None, offset, dbName, color, name);
+	public LuiContainer CreateRawImageFromDb(string parent, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateRawImageFromDb(parent, LuiPosition.None, offset, dbName, color, name);
 
 	public LuiContainer CreateRawImageFromDb(string parent, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "")
 	{
@@ -237,7 +237,7 @@ public class LUI : IDisposable
 		}
 		else
 		{
-			Logger.Warn($"[LUI] You're trying to image from ImageDatabase '{dbName}' which doesn't exist. Ignoring.");
+			Logger.Warn($"[LUI] You're trying to load an image from ImageDatabase '{dbName}' which doesn't exist. Ignoring.");
 			return null;
 		}
 		elements.Add(cont);

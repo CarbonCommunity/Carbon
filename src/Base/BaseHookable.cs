@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Carbon.Test;
 using Newtonsoft.Json;
 
 namespace Carbon.Base;
 
-public class BaseHookable
+public class BaseHookable : Integrations.ITestable
 {
 	public List<uint> Hooks;
 	public List<HookMethodAttribute> HookMethods;
@@ -146,6 +147,7 @@ public class BaseHookable
 	public bool HasInitialized { get; internal set; }
 	public Type HookableType { get; internal set; }
 	public bool InternalCallHookOverriden { get; internal set; } = true;
+	public int TestCount { get; internal set; }
 
 	#region Tracking
 
@@ -346,6 +348,33 @@ public class BaseHookable
 		catch (Exception ex)
 		{
 			Logger.Error($"[{Name}] Failed auto unpatching {GetHarmonyId(order)} [{order}]", ex);
+		}
+	}
+
+	#endregion
+
+	#region Tests
+
+	public virtual void CollectTests(int channel = Integrations.DEFAULT_CHANNEL)
+	{
+		TestCount = 0;
+		var parentTests = Integrations.Get(HookableType.Name, HookableType, this, channel);
+		if (parentTests != null)
+		{
+			TestCount++;
+			Integrations.EnqueueBed(parentTests);
+		}
+
+		foreach(var type in HookableType.GetNestedTypes(BindingFlags.Public))
+		{
+			var bed = Integrations.Get(type.Name, type, channel: channel);
+			if (bed == null)
+			{
+				continue;
+			}
+
+			TestCount++;
+			Integrations.EnqueueBed(bed);
 		}
 	}
 
