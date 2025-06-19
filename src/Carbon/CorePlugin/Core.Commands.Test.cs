@@ -55,11 +55,11 @@ public partial class CorePlugin
 		}
 
 		var channel = arg.GetInt(0, -1);
-		var delay = arg.GetFloat(0, 0.1f);
+		var delay = arg.GetFloat(1, 0.1f);
 
 		if (delay < 0)
 		{
-			arg.ReplyWith("Delay must be above zero.");
+			arg.ReplyWith("Delay must be above or equal to zero.");
 			return;
 		}
 
