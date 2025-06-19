@@ -82,7 +82,6 @@ public class Plugin : BaseHookable, IDisposable
 				return false;
 			}
 		}
-		Carbon.Logger.Debug(Name, "Assigned plugin references");
 
 		if (Hooks != null && !ManualSubscriptions)
 		{
@@ -93,9 +92,7 @@ public class Plugin : BaseHookable, IDisposable
 				{
 					Community.Runtime.HookManager.Subscribe(HookStringPool.GetOrAdd(hook), requester);
 				}
-
 			}
-			Carbon.Logger.Debug(Name, "Processed hooks");
 		}
 
 		CallHook("Init");
@@ -159,7 +156,6 @@ public class Plugin : BaseHookable, IDisposable
 					{
 						Community.Runtime.HookManager.Unsubscribe(HookStringPool.GetOrAdd(hook), FileName);
 					}
-					Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 				}
 
 				foreach (var method in HookableType.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic))
@@ -295,27 +291,6 @@ public class Plugin : BaseHookable, IDisposable
 		{
 			Logger.Error($"Failed calling Plugin.IUnload.UnloadRequirees on {ToPrettyString()}", ex);
 		}
-	}
-	internal bool IClearMemory()
-	{
-		try
-		{
-			foreach (var member in HookableType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
-			{
-				if (member.IsLiteral)
-				{
-					continue;
-				}
-
-				member.SetValue(null, null);
-			}
-		}
-		catch (Exception ex)
-		{
-			Logger.Error($"Plugin '{ToPrettyString()}' failed clearing memory.", ex);
-		}
-
-		return true;
 	}
 
 	public static void InternalApplyAllPluginReferences()
