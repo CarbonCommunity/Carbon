@@ -68,8 +68,12 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		RefreshOrderedFiles();
 
-		foreach (var file in OrderedFiles.Where(file => file.Key.Equals(shortName, StringComparison.InvariantCultureIgnoreCase)))
+		foreach (var file in OrderedFiles)
 		{
+			if (!file.Key.Equals(shortName, StringComparison.InvariantCultureIgnoreCase))
+			{
+				continue;
+			}
 			return new KeyValuePair<string, string>(file.Key, file.Value);
 		}
 
