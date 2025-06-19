@@ -246,7 +246,7 @@ public partial class CorePlugin
 							Community.Runtime.ScriptProcessor.Prepare(path.Key, path.Value);
 							return;
 						}
-						else if (plugin != null && !plugin.IsPrecompiled)
+						if (plugin != null && !plugin.IsPrecompiled)
 						{
 							if (!plugin.HasInitialized)
 							{

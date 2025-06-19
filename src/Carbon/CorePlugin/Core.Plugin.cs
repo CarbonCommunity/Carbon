@@ -9,7 +9,7 @@ namespace Carbon.Core;
 
 public partial class CorePlugin : CarbonPlugin
 {
-	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
+	public static Dictionary<string, string> OrderedFiles { get; } = [];
 
 	public static void RefreshOrderedFiles()
 	{
@@ -32,6 +32,36 @@ public partial class CorePlugin : CarbonPlugin
 				OrderedFiles.Add(id, file);
 			}
 		}
+		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cszip", config.Watchers.ScriptWatcherOption))
+		{
+			if (processor.IsBlacklisted(file))
+			{
+				continue;
+			}
+
+			var id = Path.GetFileNameWithoutExtension(file);
+
+			if (!OrderedFiles.ContainsKey(id))
+			{
+				OrderedFiles.Add(id, file);
+			}
+		}
+#if DEBUG
+		foreach (var file in Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly))
+		{
+			if (processor.IsBlacklisted(file))
+			{
+				continue;
+			}
+
+			var id = Path.GetFileNameWithoutExtension(file);
+
+			if (!OrderedFiles.ContainsKey(id))
+			{
+				OrderedFiles.Add(id, file);
+			}
+		}
+#endif
 	}
 
 	public static KeyValuePair<string, string> GetPluginPath(string shortName)
