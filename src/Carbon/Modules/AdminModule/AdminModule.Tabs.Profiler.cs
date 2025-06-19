@@ -1048,15 +1048,15 @@ public partial class AdminModule
 		File.Open(player, "Profiles", Defines.GetProfilesFolder(), Defines.GetProfilesFolder(), MonoProfiler.ProfileExtension,
 			onConfirm: (player, file) =>
 			{
-				using var buffer = TempArray<byte>.New(OsEx.File.ReadBytes(file.SelectedFile));
+				var buffer = OsEx.File.ReadBytes(file.SelectedFile);
 
 				if (ProfilerTab.sample.IsCleared)
 				{
-					ProfilerTab.sample = MonoProfiler.Sample.Load(buffer.array);
+					ProfilerTab.sample = MonoProfiler.Sample.Load(buffer);
 				}
 				else
 				{
-					var comparingSample = MonoProfiler.Sample.Load(buffer.array);
+					var comparingSample = MonoProfiler.Sample.Load(buffer);
 					ProfilerTab.sample = ProfilerTab.sample.Compare(comparingSample);
 				}
 

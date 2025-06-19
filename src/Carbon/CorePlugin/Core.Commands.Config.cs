@@ -5,6 +5,7 @@ public partial class CorePlugin
 #if !MINIMAL
 	[Conditional("!MINIMAL")]
 	[ConsoleCommand("editconfig", "When ran by an admin client, the Carbon Admin module will open up a config editor.")]
+	[AuthLevel(2)]
 	private void EditConfig(ConsoleSystem.Arg arg)
 	{
 		if (arg.Player() is not BasePlayer player)
@@ -22,12 +23,12 @@ public partial class CorePlugin
 
 		AdminModule.Singleton.SetTab(player, AdminModule.ConfigEditor.Make(OsEx.File.ReadText(file), (_, _) =>
 		{
-			AdminModule.Singleton.SetTab(player, 0);
+			AdminModule.Singleton.SetTab(player, "carbon");
 			AdminModule.Singleton.Close(player);
 		}, (_, jobj) =>
 		{
 			OsEx.File.Create(file, jobj.ToString(Newtonsoft.Json.Formatting.Indented));
-			AdminModule.Singleton.SetTab(player, 0);
+			AdminModule.Singleton.SetTab(player, "carbon");
 			AdminModule.Singleton.Close(player);
 		}, null, true));
 	}

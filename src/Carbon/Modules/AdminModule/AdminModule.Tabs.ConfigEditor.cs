@@ -67,14 +67,32 @@ public partial class AdminModule
 
 						if (baseToken != null)
 						{
-							LegendOptions[token.Key] = [.. legendObj.Properties().Select(p => p.Name)];
+							var legendProperties = Facepunch.Pool.Get<List<JProperty>>();
+							legendProperties.AddRange(legendObj.Properties());
 
-							var baseTokenValue = baseToken.ToString();
-							var defaultValue = legendObj.Properties()
-								.FirstOrDefault(p => p.Name == baseTokenValue)
-								?? legendObj.Properties().First();
+							LegendOptions[token.Key] = [.. legendProperties.Select(p => p.Name)];
 
-							LegendIndex[token.Key] = legendObj.Properties().IndexOf(defaultValue);
+							int defaultSelectedIndex = 0;
+							if (baseToken.Type != JTokenType.Null)
+							{
+								var baseTokenValue = baseToken.ToString();
+								foreach (var prop in legendProperties)
+								{
+									if (prop.Value.ToString() == baseTokenValue)
+										break;
+
+									defaultSelectedIndex++;
+								}
+							}
+
+							if (defaultSelectedIndex >= legendProperties.Count)
+							{
+								defaultSelectedIndex = 0;
+							}
+
+							LegendIndex[token.Key] = defaultSelectedIndex;
+
+							Facepunch.Pool.FreeUnmanaged(ref legendProperties);
 
 							continue;
 						}

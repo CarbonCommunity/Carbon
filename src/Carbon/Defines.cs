@@ -6,6 +6,7 @@ public class Defines
 	public static void Initialize()
 	{
 		GetRootFolder();
+		GetCarbonConfigFolder();
 		GetConfigsFolder();
 		GetModulesFolder();
 		GetDataFolder();
@@ -27,9 +28,11 @@ public class Defines
 	}
 
 	internal static string _customRootFolder;
+	internal static string _customCarbonConfigFolder;
 	internal static string _customScriptFolder;
 	internal static string _customConfigFolder;
 	internal static string _customDataFolder;
+	internal static string _customModifierFolder;
 	internal static string _customLangFolder;
 	internal static string _customModuleFolder;
 	internal static string _customExtensionsFolder;
@@ -42,15 +45,17 @@ public class Defines
 		if (_commandLineInitialized) return;
 		_commandLineInitialized = true;
 
-		_customRootFolder = CommandLineEx.GetArgumentResult("-carbon.rootdir");
-		_customScriptFolder = CommandLineEx.GetArgumentResult("-carbon.scriptdir");
-		_customConfigFolder = CommandLineEx.GetArgumentResult("-carbon.configdir");
-		_customDataFolder = CommandLineEx.GetArgumentResult("-carbon.datadir");
-		_customLangFolder = CommandLineEx.GetArgumentResult("-carbon.langdir");
-		_customModuleFolder = CommandLineEx.GetArgumentResult("-carbon.moduledir");
-		_customExtensionsFolder = CommandLineEx.GetArgumentResult("-carbon.extdir");
-		_customLogsFolder = CommandLineEx.GetArgumentResult("-carbon.logdir");
-		_customProfilesFolder = CommandLineEx.GetArgumentResult("-carbon.profiledir");
+		_customRootFolder = Switches.GetRootDir();
+		_customCarbonConfigFolder = Switches.GetCarbonConfigDir();
+		_customScriptFolder = Switches.GetScriptDir();
+		_customConfigFolder = Switches.GetConfigDir();
+		_customDataFolder = Switches.GetDataDir();
+		_customModifierFolder = Switches.GetModifierDir();
+		_customLangFolder = Switches.GetLangDir();
+		_customModuleFolder = Switches.GetModuleDir();
+		_customExtensionsFolder = Switches.GetExtDir();
+		_customLogsFolder = Switches.GetLogDir();
+		_customProfilesFolder = Switches.GetProfileDir();
 	}
 
 	public static string GetConfigFile()
@@ -68,11 +73,23 @@ public class Defines
 		_initializeCommandLine();
 		return Path.Combine(GetRootFolder(), "config.auto.json");
 	}
+	public static string GetVaultFile()
+	{
+		return Path.Combine(GetRustIdentityFolder(), "carbon.vault");
+	}
 
 	public static string GetRootFolder()
 	{
 		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customRootFolder) ? Path.Combine($"{Application.dataPath}/..", "carbon") : _customRootFolder);
+		Directory.CreateDirectory(folder);
+
+		return folder;
+	}
+	public static string GetCarbonConfigFolder()
+	{
+		_initializeCommandLine();
+		var folder = string.IsNullOrEmpty(_customCarbonConfigFolder) ? GetRootFolder() : _customRootFolder;
 		Directory.CreateDirectory(folder);
 
 		return folder;
@@ -120,6 +137,14 @@ public class Defines
 	{
 		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customDataFolder) ? Path.Combine(GetRootFolder(), "data") : _customDataFolder);
+		Directory.CreateDirectory(folder);
+
+		return folder;
+	}
+	public static string GetModifierFolder()
+	{
+		_initializeCommandLine();
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customModifierFolder) ? Path.Combine(GetRootFolder(), "modifiers") : _customModifierFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;
@@ -232,5 +257,9 @@ public class Defines
 		var folder = Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath, "Managed")));
 
 		return folder;
+	}
+	public static string GetRustIdentityFolder()
+	{
+		return Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath, "..", "server", ConVar.Server.identity)));
 	}
 }

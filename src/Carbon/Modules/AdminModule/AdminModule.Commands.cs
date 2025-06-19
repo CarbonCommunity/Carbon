@@ -10,24 +10,12 @@ public partial class AdminModule
 		var player = args.Player();
 		var ap = GetPlayerSession(player);
 		var previous = ap.SelectedTab;
+		var value = args.GetString(0);
 
 		ap.Clear();
 
-		if (int.TryParse(args.Args[0], out int index))
-		{
-			SetTab(player, index);
-			ap.SelectedTab = Tabs[index];
-		}
-		else
-		{
-			var indexOf = Tabs.IndexOf(previous);
-			indexOf = args.Args[0] == "up" ? indexOf + 1 : indexOf - 1;
-
-			if (indexOf > Tabs.Count - 1) indexOf = 0;
-			else if (indexOf < 0) indexOf = Tabs.Count - 1;
-
-			SetTab(player, indexOf);
-		}
+		var availableTabs = Tabs.Where(x => !DataInstance.IsTabHidden(x.Id));
+		SetTab(player, availableTabs.FirstOrDefault(x => x.Id.Equals(value)));
 	}
 
 	[Conditional("!MINIMAL")]
@@ -36,7 +24,7 @@ public partial class AdminModule
 	{
 		var player = args.Player();
 
-		if (CallColumnRow(player, args.Args[0].ToInt(), args.Args[1].ToInt(), args.Args.Skip(2).Count() > 0 ? args.Args.Skip(2) : Array.Empty<string>()))
+		if (CallColumnRow(player, args.GetInt(0), args.GetInt(1), args.Args.Skip(2).Any() ? args.Args.Skip(2) : Array.Empty<string>()))
 			Draw(player);
 	}
 
@@ -83,9 +71,9 @@ public partial class AdminModule
 	{
 		var player = args.Player();
 
-		if (GetTab(player).Id == "configuration")
+		if (GetTab(player) is { Id: "configuration" })
 		{
-			SetTab(player, 0);
+			SetTab(player, "carbon");
 		}
 		else
 		{
@@ -101,7 +89,7 @@ public partial class AdminModule
 
 		if (GetTab(player).Id == "profiler")
 		{
-			SetTab(player, 0);
+			SetTab(player, "carbon");
 		}
 		else
 		{

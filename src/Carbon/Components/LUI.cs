@@ -217,10 +217,33 @@ public class LUI : IDisposable
 		else
 		{
 			Logger.Warn($"[LUI] You're trying to image from ImageDatabase '{dbName}' which doesn't exist. Ignoring.");
+			return null;
 		}
 		elements.Add(cont);
 		return cont;
 	}
+
+	public LuiContainer CreateRawImageFromDb(LuiContainer container, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateImageFromDb(container.name, position, offset, dbName, color, name);
+	public LuiContainer CreateRawImageFromDb(LuiContainer container, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateImageFromDb(container.name, LuiPosition.None, offset, dbName, color, name);
+	public LuiContainer CreateRawImageFromDb(string parent, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateImageFromDb(parent, LuiPosition.None, offset, dbName, color, name);
+
+	public LuiContainer CreateRawImageFromDb(string parent, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		if (imgDb.HasImage(dbName))
+		{
+			cont.SetAnchorAndOffset(position, offset);
+			cont.SetRawImage(imgDb.GetImageString(dbName), color);
+		}
+		else
+		{
+			Logger.Warn($"[LUI] You're trying to image from ImageDatabase '{dbName}' which doesn't exist. Ignoring.");
+			return null;
+		}
+		elements.Add(cont);
+		return cont;
+	}
+
 
 	public LuiContainer CreateUrlImage(LuiContainer container, LuiPosition position, LuiOffset offset, string url, string color = LuiColors.White, string name = "") => CreateUrlImage(container.name, position, offset, url, color, name);
 	public LuiContainer CreateUrlImage(LuiContainer container, LuiOffset offset, string url, string color = LuiColors.White, string name = "") => CreateUrlImage(container.name, LuiPosition.None, offset, url, color, name);
@@ -346,17 +369,31 @@ public class LUI : IDisposable
 	#endregion
 
 	/// <summary>
+	/// Gets the built UI in bytes. Useful when redrawing whole UI, and we want to minimalize delay between destroy and draw.
+	/// </summary>
+	public byte[] GetUiBytes()
+	{
+		using LuiBuilderInstance cbi = new LuiBuilderInstance(this);
+		return cbi.GetMergedBytes();
+	}
+
+	/// <summary>
 	/// Builds and sends UI to player.
 	/// </summary>
 	public void SendUi(BasePlayer player) => Send(new SendInfo(player.Connection));
 
 	/// <summary>
-	/// Builds and sends UI to player. Preffered SendUi(BasePlayer) over this method.
+	/// Builds and sends UI to player. Preferred SendUi(BasePlayer) over this method.
 	/// </summary>
 	public void SendUiJson(BasePlayer player) => SendJson(new SendInfo(player.Connection));
 
 	/// <summary>
-	/// Returns string JSON of currently builded UI.
+	/// Sends already buit UI to player. Need to run GetUiBytes() in order to get the bytes before.
+	/// </summary>
+	public void SendUiBytes(BasePlayer player, byte[] bytes) => SendBytes(new SendInfo(player.Connection), bytes);
+
+	/// <summary>
+	/// Returns string JSON of currently built UI.
 	/// </summary>
 	public string ToJson()
 	{
@@ -372,6 +409,16 @@ public class LUI : IDisposable
 		write.EntityID(CommunityEntity.ServerInstance.net.ID);
 		write.UInt32(StringPool.Get("AddUI"));
 		write.BytesWithSize(cbi.GetMergedBytes());
+		write.Send(send);
+	}
+
+	private void SendBytes(SendInfo send, byte[] bytes)
+	{
+		NetWrite write = Net.sv.StartWrite();
+		write.PacketID(Message.Type.RPCMessage);
+		write.EntityID(CommunityEntity.ServerInstance.net.ID);
+		write.UInt32(StringPool.Get("AddUI"));
+		write.BytesWithSize(bytes);
 		write.Send(send);
 	}
 
@@ -795,6 +842,27 @@ public class LUI : IDisposable
 				img = LuiPool.GetRawImage();
 				if (url != null)
 					img.url = url;
+				if (color != null)
+					img.color = color;
+				luiComponents.Add(img.type, img);
+			}
+			return this;
+		}
+
+		public LuiContainer SetRawImage(string png = null, string color = null)
+		{
+			if (luiComponents.TryGetValue<LuiRawImageComp>(LuiCompType.RawImage, out var img))
+			{
+				if (png != null)
+					img.png = png;
+				if (color != null)
+					img.color = color;
+			}
+			else
+			{
+				img = LuiPool.GetRawImage();
+				if (png != null)
+					img.png = png;
 				if (color != null)
 					img.color = color;
 				luiComponents.Add(img.type, img);
@@ -1645,6 +1713,7 @@ public class LuiRawImageComp : LuiCompBase
 	public string color;
 	public string material;
 	public string url;
+	public string png;
 	public string steamid;
 
 	public LuiRawImageComp()

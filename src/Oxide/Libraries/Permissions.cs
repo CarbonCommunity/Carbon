@@ -374,12 +374,29 @@ public class Permission : Library
 
 	public virtual KeyValuePair<string, UserData> FindUser(string id)
 	{
-		if (id.IsSteamId()) GetUserData(id, true);
+		if (id.IsSteamId())
+			return new KeyValuePair<string, UserData>(id, GetUserData(id, true));
 
+		using var validUsers = Pool.Get<PooledList<KeyValuePair<string, UserData>>>();
+		validUsers.Clear();
 		foreach (var user in userdata)
 		{
-			if (user.Value != null && user.Key == id || (!string.IsNullOrEmpty(user.Value.LastSeenNickname) && user.Value.LastSeenNickname.Equals(id, StringComparison.InvariantCultureIgnoreCase)))
+			if (user.Value == null) continue;
+			if (user.Key == id)
 				return new KeyValuePair<string, UserData>(user.Key, user.Value);
+			if (!string.IsNullOrEmpty(user.Value.LastSeenNickname) && user.Value.LastSeenNickname.IndexOf(id, StringComparison.InvariantCultureIgnoreCase) >= 0)
+				validUsers.Add(user);
+		}
+		if (validUsers.Count >= 1)
+		{
+			if (validUsers.Count > 1)
+			{
+				Logger.Warn($"Found {validUsers.Count} users with '{id}' in nickname:");
+				foreach (var validUser in validUsers)
+					Logger.Warn($"  - {validUser.Key} ({validUser.Value.LastSeenNickname})");
+				Logger.Warn($"Using first ({validUsers[0].Key}) as an result...");
+			}
+			return new KeyValuePair<string, UserData>(validUsers[0].Key, validUsers[0].Value);
 		}
 
 		return default;

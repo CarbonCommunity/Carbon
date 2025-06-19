@@ -1,5 +1,6 @@
 ﻿namespace Carbon.Components;
 
+[Obsolete("TempArray is obsolete and is going to be removed entirely from Carbon on July 3rd, 2025.")]
 public class TempArray<T> : IDisposable
 {
 	public T[] array;

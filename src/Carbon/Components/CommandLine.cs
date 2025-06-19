@@ -13,14 +13,14 @@ public static class CommandLine
 	public static void ExecuteCommands(string @switch, string context, string[] lines = null)
 	{
 		var arg = CommandLineEx.GetArgumentResult(lines ?? Environment.GetCommandLineArgs(), @switch, string.Empty);
-		using var commands = TempArray<string>.New(arg.Split(_delimiter, StringSplitOptions.RemoveEmptyEntries));
+		var split = arg.Split(_delimiter, StringSplitOptions.RemoveEmptyEntries);
 
-		if (commands.Length > 0)
+		if (split.Length > 0)
 		{
-			Logger.Log($" Executing {commands.Length:n0} {commands.Length.Plural("command", "commands")} for the '{@switch}' switch ({context}):");
+			Logger.Log($" Executing {split.Length:n0} {split.Length.Plural("command", "commands")} for the '{@switch}' switch ({context}):");
 		}
 
-		ExecuteCommands(commands.array);
+		ExecuteCommands(split);
 	}
 
 	public static void ExecuteCommands(string[] commands)
@@ -32,8 +32,8 @@ public static class CommandLine
 				continue;
 			}
 
-			using var split = TempArray<string>.New(command.Split(' '));
-			var name = split.Get(0);
+			var split = command.Split(' ');
+			var name = split.Length > 0 ? split[0] : string.Empty;
 
 			if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.RCon, name, out var cmd))
 			{
@@ -41,7 +41,7 @@ public static class CommandLine
 				{
 					var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
 					commandArgs.Type = cmd.Type;
-					commandArgs.Arguments = split.array.Skip(1)?.ToArray() ?? _emptyArgs;
+					commandArgs.Arguments = split.Skip(1).ToArray();
 					commandArgs.PrintOutput = true;
 					commandArgs.IsServer = true;
 					commandArgs.IsRCon = true;
