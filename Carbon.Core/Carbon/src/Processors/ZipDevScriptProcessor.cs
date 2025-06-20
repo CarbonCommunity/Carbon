@@ -19,15 +19,15 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 	public override float Rate => Community.Runtime.Config.Processors.ZipScriptProcessingRate;
 	public override Type IndexedType => typeof(ZipDevScript);
 
-	private static char[] DirectorySeparators = [Path.DirectorySeparatorChar];
+	private static readonly char[] DirectorySeparators = [Path.DirectorySeparatorChar];
 
 	public override void Start()
 	{
-		BlacklistPattern = new[]
-		{
+		BlacklistPattern =
+		[
 			"backups",
 			"debug"
-		};
+		];
 
 		base.Start();
 
