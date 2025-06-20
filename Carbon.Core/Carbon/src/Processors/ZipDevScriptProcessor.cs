@@ -156,7 +156,7 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 		{
 			try
 			{
-				Loader?.Dispose();
+				Loader?.Clear();
 			}
 			catch (Exception ex)
 			{
