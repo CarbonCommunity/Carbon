@@ -6,14 +6,14 @@ public class PluginLoader
 
 	public virtual IEnumerable<string> ScanDirectory(string directory)
 	{
-		foreach (var plugin in CorePlugin.OrderedFiles)
+		foreach (var plugin in CorePlugin.ProcessableFiles)
 		{
-			if (!plugin.Value.Contains(directory, CompareOptions.OrdinalIgnoreCase))
+			if (!plugin.Path.Contains(directory, CompareOptions.OrdinalIgnoreCase))
 			{
 				continue;
 			}
 
-			yield return plugin.Value;
+			yield return plugin.Path;
 		}
 	}
 }
