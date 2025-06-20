@@ -128,7 +128,11 @@ public class ScriptLoader : IScriptLoader
 			for (int i = 0; i < Scripts.Count; i++)
 			{
 				var plugin = Scripts[i];
-				if (plugin.IsCore || plugin.Instance == null) continue;
+
+				if (plugin.IsCore || plugin.Instance == null)
+				{
+					continue;
+				}
 
 				plugin.Instance.Package.Plugins?.RemoveAll(x => x == plugin.Instance);
 
@@ -141,7 +145,10 @@ public class ScriptLoader : IScriptLoader
 				{
 					ModLoader.UninitializePlugin(plugin.Instance);
 				}
-				catch (Exception ex) { Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed unloading '{plugin.Instance}'", ex);
+				}
 			}
 
 			if (Scripts.Count > 0)
