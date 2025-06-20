@@ -45,11 +45,28 @@ public static partial class ModLoader
 	}
 	public static Package GetPackage(string name)
 	{
-		return Packages.FirstOrDefault(mod => mod.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase));
+		foreach (var package in Packages)
+		{
+			if (package.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase))
+			{
+				return package;
+			}
+		}
+		return default;
 	}
 	public static RustPlugin FindPlugin(string name)
 	{
-		return Packages.SelectMany(package => package.Plugins).FirstOrDefault(plugin => plugin.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+		foreach (var package in Packages)
+		{
+			foreach (var plugin in package.Plugins)
+			{
+				if (plugin.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+				{
+					return plugin;
+				}
+			}
+		}
+		return null;
 	}
 
 	static ModLoader()

@@ -2274,7 +2274,7 @@ public partial class AdminModule
 			case "11":
 			{
 				var fileName = Path.GetFileNameWithoutExtension(tabPlugin.File);
-				var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginPath(fileName).Value);
+				var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginFile(fileName).Path);
 				if (tabPlugin.IsInstalled())
 				{
 					Run(Option.Server, $"c.unload \"{fileName}\"");
@@ -2534,7 +2534,7 @@ public partial class AdminModule
 			update.Add(cui.UpdateImage("selectedplugin_b1_icn", "clouddl", "#d9f7a3"));
 			update.Add(cui.UpdateImage("selectedplugin_b1_fade", "fade", Cache.CUI.BlankColor));
 
-			var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginPath(Path.GetFileNameWithoutExtension(plugin.File)).Value);
+			var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginFile(Path.GetFileNameWithoutExtension(plugin.File)).Path);
 
 			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", !isLoadable ? CUI.HexToRustColor("#8db842", 0.4f) : "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 \"{Path.GetFileNameWithoutExtension(plugin.File)}\""));
 			update.Add(cui.UpdateText("selectedplugin_b2_txt", "#d9f7a3", text: "LOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));

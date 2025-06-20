@@ -14,12 +14,16 @@ public static partial class ModLoader
 			return this.Select(package => package.FindPlugin(name)).FirstOrDefault(plugin => plugin != null);
 		}
 
-		public void GetAllHookables(List<RustPlugin> plugins)
+		public void GetAllHookables(List<RustPlugin> plugins, bool ignoreCore = false)
 		{
 			foreach (var hookable in this)
 			{
 				foreach (var plugin in hookable.Plugins)
 				{
+					if (plugin.IsCorePlugin && ignoreCore)
+					{
+						continue;
+					}
 					plugins.Add(plugin);
 				}
 			}

@@ -89,16 +89,16 @@ public class OxideMod
 
 	public bool LoadPlugin(string name)
 	{
-		CorePlugin.RefreshOrderedFiles();
+		CorePlugin.ProcessableFilesLookup();
 
-		var path = CorePlugin.GetPluginPath(name);
+		var path = CorePlugin.GetPluginFile(name);
 
-		if (string.IsNullOrEmpty(path.Key))
+		if (string.IsNullOrEmpty(path.Id))
 		{
 			return false;
 		}
 
-		Community.Runtime.ScriptProcessor.Prepare(path.Key, path.Value);
+		Community.Runtime.ScriptProcessor.Prepare(path.Id, path.Path);
 		return true;
 	}
 
