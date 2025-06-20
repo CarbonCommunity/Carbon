@@ -11,7 +11,7 @@ public partial class CorePlugin
 	{
 		var channel = arg.GetInt(0, Integrations.DEFAULT_CHANNEL);
 		using var plugins = Pool.Get<PooledList<RustPlugin>>();
-		ModLoader.Packages.GetAllHookables(plugins);
+		ModLoader.Packages.GetAllHookables(plugins, true);
 
 		var moduleTests = 0;
 		var pluginTests = 0;

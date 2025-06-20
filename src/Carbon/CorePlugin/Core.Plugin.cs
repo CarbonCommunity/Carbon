@@ -15,6 +15,22 @@ public partial class CorePlugin : CarbonPlugin
 		public string Path;
 		public Types Type;
 
+		public IBaseProcessor GetProcessor()
+		{
+			switch (Type)
+			{
+				case Types.Script:
+					return Community.Runtime.ScriptProcessor;
+				case Types.CSZIP:
+					return Community.Runtime.ZipScriptProcessor;
+#if DEBUG
+				case Types.CSZIP_Dev:
+					return Community.Runtime.ZipDevScriptProcessor;
+#endif
+			}
+			return null;
+		}
+
 		public enum Types
 		{
 			Script,
@@ -29,12 +45,21 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		ProcessableFiles.Clear();
 
+		static bool IsBlacklisted(string path)
+		{
+			return Community.Runtime.ScriptProcessor.IsBlacklisted(path)
+			       || Community.Runtime.ZipScriptProcessor.IsBlacklisted(path)
+#if DEBUG
+			       || Community.Runtime.ZipDevScriptProcessor.IsBlacklisted(path)
+#endif
+				;
+		}
+
 		var config = Community.Runtime.Config;
-		var processor = Community.Runtime.ScriptProcessor;
 
 		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cs", config.Watchers.ScriptWatcherOption))
 		{
-			if (processor.IsBlacklisted(file))
+			if (IsBlacklisted(file))
 			{
 				continue;
 			}
@@ -47,7 +72,7 @@ public partial class CorePlugin : CarbonPlugin
 		}
 		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cszip", config.Watchers.ScriptWatcherOption))
 		{
-			if (processor.IsBlacklisted(file))
+			if (IsBlacklisted(file))
 			{
 				continue;
 			}
@@ -59,13 +84,9 @@ public partial class CorePlugin : CarbonPlugin
 			ProcessableFiles.Add(processableFile);
 		}
 #if DEBUG
-		foreach (var file in Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly))
+		var zipDevPlugins = Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly);
+		foreach (var file in zipDevPlugins)
 		{
-			if (processor.IsBlacklisted(file))
-			{
-				continue;
-			}
-
 			ProcessableFile processableFile = default;
 			processableFile.Id = Path.GetFileNameWithoutExtension(file);
 			processableFile.Path = file;
@@ -75,7 +96,7 @@ public partial class CorePlugin : CarbonPlugin
 #endif
 	}
 
-	public static ProcessableFile GetPluginPath(string shortName)
+	public static ProcessableFile GetPluginFile(string shortName)
 	{
 		ProcessableFilesLookup();
 
