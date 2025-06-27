@@ -5,6 +5,33 @@ namespace Carbon.Core;
 
 public partial class CorePlugin
 {
+	[ConsoleCommand("test_plugin", "Executes a collection of tests found inside of the plugin, designed to ensure plugin logic integrity. Eg. c.test_plugin <plugin_name> [<channel|1>] [<delay|0.1>]")]
+	[AuthLevel(2)]
+	private void test_plugin(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs())
+		{
+			arg.ReplyWith($"Syntax: c.test_plugin <plugin_name> [<channel|1>] [<delay|0.1>]");
+			return;
+		}
+
+		var pluginName = arg.GetString(0);
+		var channel = arg.GetInt(1, Integrations.DEFAULT_CHANNEL);
+		var delay = arg.GetFloat(2, 0.1f);
+
+		Integrations.Clear(channel);
+		var plugin = ModLoader.Packages.FindPlugin(pluginName);
+		if (plugin == null)
+		{
+			arg.ReplyWith($"Couldn't find that plugin");
+			return;
+		}
+
+		plugin.CollectTests();
+		plugin.NextFrame(() => Integrations.Run(delay, channel));
+		arg.ReplyWith($"Collected {plugin.TestCount:n0} {plugin.TestCount.Plural("test", "tests")} for '{plugin}' and now running..");
+	}
+
 	[ConsoleCommand("test_collect", "Collects all available tests from all plugins and enabled modules currently loaded. Eg. c.test_collect [<channel|1>]")]
 	[AuthLevel(2)]
 	private void test_collect(ConsoleSystem.Arg arg)
