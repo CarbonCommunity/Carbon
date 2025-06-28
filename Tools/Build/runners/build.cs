@@ -2,7 +2,7 @@ var target = GetArg(1, "Debug");
 var defines = GetArg(2);
 var tag = GetArg(3, "edge_build");
 var version = GetVariable("VERSION");
-var cargoTarget = "release";
+var cargoTarget = target.Equals("Debug") || target.Equals("DebugUnix") || target.Equals("Minimal") || target.Equals("MinimalUnix") ? "release" : "prod";
 var isUnix = target.Contains("Unix");
 var noArchive = HasArg("-noarchive");
 
