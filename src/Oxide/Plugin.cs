@@ -125,6 +125,10 @@ public class Plugin : BaseHookable, IDisposable
 				{
 					Logger.Warn($" [{Name}] Loading '{Path.GetFileNameWithoutExtension(requiree)}' to parent's request: '{ToPrettyString()}'");
 					Community.Runtime.ScriptProcessor.Prepare(requiree);
+					Community.Runtime.ZipScriptProcessor.Prepare(requiree);
+#if DEBUG
+					Community.Runtime.ZipDevScriptProcessor.Prepare(requiree);
+#endif
 				}
 
 				ModLoader.ClearPendingRequirees(this);
