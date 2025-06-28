@@ -217,6 +217,8 @@ public static partial class WebRCon
 			PlayerEntity = entity is BasePlayer playerEntity
 				? new
 				{
+					DisplayName = playerEntity.displayName,
+					UserId = playerEntity.userID.Get(),
 					Thirst = Math.Round(playerEntity.metabolism.hydration.value, 2),
 					MaxThirst = Math.Round(playerEntity.metabolism.hydration.max, 2),
 					Hunger = Math.Round(playerEntity.metabolism.calories.value, 2),
