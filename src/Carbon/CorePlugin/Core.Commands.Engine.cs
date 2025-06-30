@@ -33,6 +33,20 @@ public partial class CorePlugin
 		arg.ReplyWith(table.ToStringMinimal());
 	}
 
+	private void SayAs(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs(4))
+		{
+			arg.ReplyWith("Syntax: sayas \"<username>\" \"<steamid>\" \"<color>\" \"<message>\"");
+			return;
+		}
+		var username = arg.GetString(0, "SERVER");
+		var steamId = arg.GetULong(1);
+		var color = arg.GetString(2, "#eee");
+		var message = arg.GetString(3);
+		ConVar.Chat.Broadcast(message, username, color, steamId);
+	}
+
 	[ConsoleCommand("version", "Version information of the Carbon build and Rust.")]
 	private void VersionCall(ConsoleSystem.Arg arg)
 	{
