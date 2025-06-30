@@ -55,6 +55,7 @@ public class Config
 	{
 		public bool Enabled { get; set; } = true;
 		public bool HookUpdates { get; set; } = true;
+		public string RedirectUri { get; set; }
 	}
 
 	public class CompilerConfig
