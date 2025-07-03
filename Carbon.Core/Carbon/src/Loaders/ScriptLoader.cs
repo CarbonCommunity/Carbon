@@ -73,7 +73,7 @@ public class ScriptLoader : IScriptLoader
 		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, except, ref count, zipPlugins);
 
 #if DEBUG
-		var zipDevPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetZipDevFolder(), "cs", option: SearchOption.AllDirectories);
+		var zipDevPlugins = Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly);
 		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, except, ref count, zipDevPlugins);
 #endif
 
@@ -96,7 +96,7 @@ public class ScriptLoader : IScriptLoader
 						continue;
 					}
 
-					var folder = Path.GetDirectoryName(file);
+					var folder = folderMode ? file : Path.GetDirectoryName(file);
 
 					var id = folderMode ? folder : Path.GetFileNameWithoutExtension(file);
 
@@ -105,7 +105,7 @@ public class ScriptLoader : IScriptLoader
 						continue;
 					}
 
-					var plugin = new ScriptProcessor.Script { File = folderMode ? folder : file };
+					var plugin = new ScriptProcessor.Script { File = file };
 					processor.InstanceBuffer.Add(id, plugin);
 					count++;
 				}
@@ -128,7 +128,11 @@ public class ScriptLoader : IScriptLoader
 			for (int i = 0; i < Scripts.Count; i++)
 			{
 				var plugin = Scripts[i];
-				if (plugin.IsCore || plugin.Instance == null) continue;
+
+				if (plugin.IsCore || plugin.Instance == null)
+				{
+					continue;
+				}
 
 				plugin.Instance.Package.Plugins?.RemoveAll(x => x == plugin.Instance);
 
@@ -141,7 +145,10 @@ public class ScriptLoader : IScriptLoader
 				{
 					ModLoader.UninitializePlugin(plugin.Instance);
 				}
-				catch (Exception ex) { Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed unloading '{plugin.Instance}'", ex);
+				}
 			}
 
 			if (Scripts.Count > 0)
