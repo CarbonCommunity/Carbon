@@ -158,6 +158,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		cmd.AddConsoleCommand("help", this, nameof(Help), authLevel: 2, help: "HELP!");
 		cmd.AddConsoleCommand("harmony.mods", this, nameof(HarmonyMods), authLevel: 2, help: "Prints a full list of all active HarmonyMods processed by Rust.");
+		cmd.AddConsoleCommand("sayas", this, nameof(SayAs), authLevel: 2, help: "Sends a message in chat. It's basically `global.say` but customizable.");
 
 		return true;
 	}
