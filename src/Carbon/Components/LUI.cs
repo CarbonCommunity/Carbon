@@ -2003,6 +2003,7 @@ public static class LuiPool
 		comp.color = null;
 		comp.material = null;
 		comp.url = null;
+		comp.png = null;
 		comp.steamid = null;
 		comp.fadeIn = 0;
 		return comp;
