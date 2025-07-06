@@ -473,17 +473,15 @@ public class WebRequests : Library
 
 			protected override System.Net.WebRequest GetWebRequest(Uri address)
 			{
-				if (!Community.IsConfigReady || string.IsNullOrEmpty(Community.Runtime.Config.WebRequestIp))
-				{
-					return base.GetWebRequest(address);
-				}
-
 				var request = base.GetWebRequest(address) as HttpWebRequest;
 
 				request.UserAgent = Community.Runtime.Analytics.UserAgent;
-
 				request.AutomaticDecompression = AutomaticDecompression;
-				request.ServicePoint.BindIPEndPointDelegate = (_, _, _) => new IPEndPoint(IPAddress.Parse(Community.Runtime.Config.WebRequestIp), 0);
+
+				if (Community.IsConfigReady && !string.IsNullOrEmpty(Community.Runtime.Config.WebRequestIp))
+				{
+					request.ServicePoint.BindIPEndPointDelegate = (_, _, _) => new IPEndPoint(IPAddress.Parse(Community.Runtime.Config.WebRequestIp), 0);
+				}
 
 				return request;
 			}
