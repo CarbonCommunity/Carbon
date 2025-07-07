@@ -68,7 +68,7 @@ public class HookEx : IDisposable, IHook
 			HookFullName = metadata.FullName;
 			HookName = metadata.Name;
 			TargetMethod = metadata.Method;
-			TargetMethodArgs = metadata.MethodArgs == null ? [] : [.. metadata.MethodArgs.Select(x => AccessToolsEx.TypeByName(x))];
+			TargetMethodArgs = metadata.MethodArgs == null ? [] : [.. metadata.MethodArgs.Select(AccessToolsEx.TypeByName)];
 			TargetMethods = [];
 			TargetType = string.IsNullOrEmpty(metadata.Target) ? null : AccessToolsEx.TypeByName(metadata.Target);
 			MethodType = metadata.MethodType;
