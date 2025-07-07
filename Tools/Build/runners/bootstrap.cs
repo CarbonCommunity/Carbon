@@ -1,10 +1,5 @@
 Log(Home);
 
-Warn("Git Hooks");
-{
-	Copy.Folder(".githooks", ".git/hooks", optional: true);
-}
-
 Git.Run("config", "--global", "--add", "safe.directory", "'*'");
 Git.Run("config", "--local", "--add", "safe.directory", "'*'");
 
