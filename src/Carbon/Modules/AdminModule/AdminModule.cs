@@ -2275,7 +2275,29 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#endregion
 
-	internal static void StartSpectating(BasePlayer player, BaseEntity target)
+	public static void BlindPlayer(BasePlayer player)
+	{
+		using CUI cui = new CUI(Singleton.Handler);
+
+		var container = cui.v2.CreateParent(ClientPanels.Overlay, LuiPosition.Full, "blindingpanel").AddCursor()
+			.AddKeyboard().SetDestroy("blindingpanel");
+		cui.v2.CreateImageFromDb(container, LuiPosition.Full, LuiOffset.None, "bsod","0 0 0 1");
+
+		PlayersTab.BlindedPlayers.Add(player);
+		cui.v2.SendUi(player);
+	}
+
+	public static void UnblindPlayer(BasePlayer player)
+	{
+		if (PlayersTab.BlindedPlayers.Remove(player))
+		{
+			using CUI cui = new CUI(Singleton.Handler);
+			cui.Destroy("blindingpanel", player);
+		}
+	}
+
+
+	public static void StartSpectating(BasePlayer player, BaseEntity target)
 	{
 		if (!string.IsNullOrEmpty(player.spectateFilter))
 		{
@@ -2338,7 +2360,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Community.Runtime.Core.NextTick(() => Singleton.Close(player));
 	}
-	internal static void StopSpectating(BasePlayer player, bool clearUi = true)
+	public static void StopSpectating(BasePlayer player, bool clearUi = true)
 	{
 		if (clearUi)
 		{
@@ -2379,7 +2401,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 	}
 
-	internal static void OpenPlayerContainer(PlayerSession ap, BasePlayer player, Tab tab)
+	public static void OpenPlayerContainer(PlayerSession ap, BasePlayer player, Tab tab)
 	{
 		Singleton.Subscribe("OnEntityVisibilityCheck");
 		Singleton.Subscribe("OnEntityDistanceCheck");
@@ -2407,7 +2429,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			ap.Player.ClientRPC(RpcTarget.Player("RPC_OpenLootPanel", ap.Player), "player_corpse");
 		});
 	}
-	internal static void OpenContainer(PlayerSession ap, ItemContainer container, Tab tab)
+	public static void OpenContainer(PlayerSession ap, ItemContainer container, Tab tab)
 	{
 		EntitiesTab.LastContainerLooter = null;
 		ap.ClearStorage(tab, "lootedent");
