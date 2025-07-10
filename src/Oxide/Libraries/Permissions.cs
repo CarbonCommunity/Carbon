@@ -33,9 +33,9 @@ public class Permission : Library
 		CleanUp();
 	}
 
-	internal readonly static char[] Star = ['*'];
-	internal readonly static string StarStr = "*";
-	internal readonly static string[] EmptyStringArray = [];
+	internal static readonly char[] Star = ['*'];
+	internal static readonly string StarStr = "*";
+	internal static readonly string[] EmptyStringArray = [];
 
 	public Dictionary<string, UserData> userdata = [];
 	public Dictionary<string, GroupData> groupdata = [];
