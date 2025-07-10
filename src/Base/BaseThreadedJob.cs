@@ -30,7 +30,7 @@ public class BaseThreadedJob : IDisposable
 
 	public virtual void Start()
 	{
-		if (Community.IsServerInitialized || ConVar.Global.skipAssetWarmup_crashes)
+		if (Community.IsServerInitialized)
 		{
 			cancellationToken = new CancellationTokenSource();
 			_task = Task.Factory.StartNew(Run, cancellationToken.Token);
