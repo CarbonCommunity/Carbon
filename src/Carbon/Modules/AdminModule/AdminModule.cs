@@ -2285,15 +2285,17 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		PlayersTab.BlindedPlayers.Add(player);
 		cui.v2.SendUi(player);
+		// OnCarbonBlinded
+		HookCaller.CallStaticHook(3658185574, player);
 	}
 
 	public static void UnblindPlayer(BasePlayer player)
 	{
-		if (PlayersTab.BlindedPlayers.Remove(player))
-		{
-			using CUI cui = new CUI(Singleton.Handler);
-			cui.Destroy("blindingpanel", player);
-		}
+		if (!PlayersTab.BlindedPlayers.Remove(player)) return;
+		using CUI cui = new CUI(Singleton.Handler);
+		cui.Destroy("blindingpanel", player);
+		// OnCarbonUnblinded
+		HookCaller.CallStaticHook(3911772319, player);
 	}
 
 
@@ -2323,6 +2325,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.eyes.NetworkUpdate(target.transform.rotation);
 		player.SendNetworkUpdate();
 		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
+
+		// OnCarbonSpectateStart
+		HookCaller.CallStaticHook(597991647, player, targetPlayer);
 
 		using var cui = new CUI(Singleton.Handler);
 		var container = cui.CreateContainer(SpectatePanelId, color: Cache.CUI.BlankColor, needsCursor: targetPlayer != null && targetPlayer.IsSleeping(), parent: ClientPanels.Overlay, destroyUi: SpectatePanelId);
@@ -2390,6 +2395,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			player.Teleport(player.transform.position + (Vector3.up * -3f));
 		}
+
+		// OnCarbonSpectateEnd
+		HookCaller.CallStaticHook(2609635685, player, spectated);
 
 		if (clearUi)
 		{
