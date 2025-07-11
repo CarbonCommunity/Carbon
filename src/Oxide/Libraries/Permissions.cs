@@ -5,8 +5,6 @@ namespace Oxide.Core.Libraries;
 
 public class Permission : Library
 {
-	public static Permission Singleton;
-
 	public enum SerializationMode
 	{
 		Storeless = -1,
@@ -20,8 +18,6 @@ public class Permission : Library
 
 	public Permission()
 	{
-		Singleton = this;
-
 		permset = new Dictionary<BaseHookable, HashSet<string>>();
 
 		RegisterValidate(delegate (string value)
