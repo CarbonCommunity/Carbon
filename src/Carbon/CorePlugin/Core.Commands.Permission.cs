@@ -682,7 +682,10 @@ public partial class CorePlugin
 			return;
 		}
 
-		new PermissionSql().Migrate(Community.Runtime.Core.permission);
+		var sql = new PermissionSql();
+		sql.Migrate(Community.Runtime.Core.permission);
+		sql.Dispose();
+
 		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.SQL;
 		Community.Runtime.SaveConfig();
 	}
