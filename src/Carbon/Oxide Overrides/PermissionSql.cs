@@ -40,11 +40,12 @@ public class PermissionSql : Permission
 		Logger.Log($"Migrating database..");
 		foreach (var group in database.groupdata)
 		{
-			CreateGroup(group.Key, group.Value.Title, group.Value.Rank);
-			SetGroupParent(group.Key, group.Value.ParentGroup);
+			var groupName = group.Key.ToLowerInvariant();
+			CreateGroup(groupName, group.Value.Title, group.Value.Rank);
+			SetGroupParent(groupName, group.Value.ParentGroup);
 			foreach (var perm in group.Value.Perms)
 			{
-				db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", group.Key, perm);
+				db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", groupName, perm);
 			}
 			Logger.Log($" Group {group.Key} with {group.Value.Perms.Count} perms");
 		}
