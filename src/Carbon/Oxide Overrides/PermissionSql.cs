@@ -40,7 +40,7 @@ public class PermissionSql : Permission
 			SetGroupParent(group.Key, group.Value.ParentGroup);
 			foreach (var perm in group.Value.Perms)
 			{
-				GrantGroupPermission(group.Key, perm, null);
+				db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", group.Key, perm);
 			}
 			Logger.Log($" Group {group.Key} with {group.Value.Perms.Count} perms");
 		}
@@ -50,11 +50,11 @@ public class PermissionSql : Permission
 			CommitUser(user.Key, user.Value);
 			foreach (var group in user.Value.Groups)
 			{
-				AddUserGroup(user.Key, group);
+				db?.Execute("INSERT OR IGNORE INTO userGroups ( userId, groupName ) VALUES ( ?, ? )", user.Key, group);
 			}
 			foreach (var perm in user.Value.Perms)
 			{
-				GrantUserPermission(user.Key, perm, null);
+				db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", user.Key, perm);
 			}
 		}
 		Logger.Log($"Successfully migrated database!");
