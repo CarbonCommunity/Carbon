@@ -18,7 +18,7 @@ public class RustPlayer : IPlayer
 		Name = Oxide.Plugins.ExtensionMethods.Sanitize(player.displayName);
 		LastCommand = 0;
 		IsServer = false;
-		perms = Permission.Singleton;
+		perms = Community.Runtime.Core.permission;
 	}
 	public RustPlayer(string id, UserData data)
 	{
@@ -26,7 +26,7 @@ public class RustPlayer : IPlayer
 		Name = Oxide.Plugins.ExtensionMethods.Sanitize(data.LastSeenNickname);
 		LastCommand = 0;
 		IsServer = false;
-		perms = Permission.Singleton;
+		perms = Community.Runtime.Core.permission;
 	}
 
 	private static Permission perms;
