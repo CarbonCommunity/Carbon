@@ -13,16 +13,18 @@ public class PermissionSql : Permission
 		var path = Path.Combine(ConVar.Server.filesStorageFolder, "carbon.perms.db");
 		db = new PermissionDatabase();
 		db.Open(path);
+		db.Execute("PRAGMA foreign_keys = ON");
 		if (db.TableExists("users"))
 		{
 			return;
 		}
-		this.db.Execute("CREATE TABLE users ( userId INTEGER PRIMARY KEY, lastSeenNickname TEXT, language TEXT )");
-		this.db.Execute("CREATE INDEX IF NOT EXISTS userindex ON users ( userId )");
 
-		this.db.Execute("CREATE TABLE groups ( groupName TEXT PRIMARY KEY, title TEXT, rank INTEGER, parentGroup TEXT )");
-		this.db.Execute("CREATE INDEX IF NOT EXISTS groupindex ON groups ( groupName )");
-		this.db.Execute("CREATE TABLE groupsPerms ( groupName TEXT, permission TEXT, PRIMARY KEY (groupName, permission), FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE )");
+		db.Execute("CREATE TABLE users ( userId INTEGER PRIMARY KEY, lastSeenNickname TEXT, language TEXT )");
+		db.Execute("CREATE INDEX IF NOT EXISTS userId ON users ( userId )");
+
+		db.Execute("CREATE TABLE groups ( groupName TEXT PRIMARY KEY, title TEXT, rank INTEGER, parentGroup TEXT )");
+		db.Execute("CREATE INDEX IF NOT EXISTS groupName ON groups ( groupName )");
+		db.Execute("CREATE TABLE IF NOT EXISTS groupsPerms (groupName TEXT, permission TEXT, PRIMARY KEY (groupName, permission), FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
 	}
 
 	#region Group
@@ -92,7 +94,22 @@ public class PermissionSql : Permission
 			{
 				name = name.ToLower();
 			}
-			db?.Execute("INSERT OR REPLACE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ?, ? )", name, perm);
+			db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", name, perm);
+			return true;
+		}
+		return false;
+	}
+
+
+	public override bool RevokeGroupPermission(string name, string perm)
+	{
+		if (base.RevokeGroupPermission(name, perm))
+		{
+			if (!name.IsLower())
+			{
+				name = name.ToLower();
+			}
+			db?.Execute("DELETE FROM groupsPerms WHERE groupName = ? AND permission = ?", name, perm);
 			return true;
 		}
 		return false;
@@ -127,18 +144,34 @@ public class PermissionSql : Permission
 	{
 		public IEnumerable<(string groupName, GroupData data)> QueryAllGroups()
 		{
-			var stmHandle = this.Prepare("SELECT groupName, title, rank, parentGroup FROM groups");
-			return this.ExecuteAndReadQueryResults(stmHandle, ReadGroupRow);
+			return this.ExecuteAndReadQueryResults(Prepare("SELECT groupName, title, rank, parentGroup FROM groups"), ReadGroupRow);
 		}
 
-		public static (string groupName, GroupData data) ReadGroupRow(IntPtr stmHandle)
+		public (string groupName, GroupData data) ReadGroupRow(IntPtr stmHandle)
 		{
 			var group = new GroupData();
 			var groupName = GetColumnValue<string>(stmHandle, 0);
 			group.Title = GetColumnValue<string>(stmHandle, 1);
 			group.Rank = GetColumnValue<int>(stmHandle, 2);
 			group.ParentGroup = GetColumnValue<string>(stmHandle, 3);
+			var perms = QueryGroupPermissions(groupName);
+			foreach (var perm in perms)
+			{
+				group.Perms.Add(perm);
+			}
 			return (groupName, group);
+		}
+
+		public IEnumerable<string> QueryGroupPermissions(string groupName)
+		{
+			var stmHandle = Prepare("SELECT groupName, permission FROM groupsPerms WHERE groupName = ?");
+			Bind(stmHandle, 1, groupName);
+			return this.ExecuteAndReadQueryResults(stmHandle, ReadPermissionRow);
+		}
+
+		public string ReadPermissionRow(IntPtr stmHandle)
+		{
+			return GetColumnValue<string>(stmHandle, 1);
 		}
 	}
 }
