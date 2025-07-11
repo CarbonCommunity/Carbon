@@ -347,6 +347,15 @@ public class PermissionSql : Permission
 		}
 	}
 
+	public override void UpdateNickname(string id, string nickname)
+	{
+		if (UserExists(id))
+		{
+			db?.Execute("UPDATE users SET lastSeenNickname = ? WHERE userId = ?", nickname, id);
+			base.UpdateNickname(id, nickname);
+		}
+	}
+
 	#endregion
 
 	public override void Dispose()
