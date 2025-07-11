@@ -31,6 +31,10 @@ public class PermissionSql : Permission
 		db.Execute("CREATE TABLE IF NOT EXISTS groupsPerms (groupName TEXT, permission TEXT, PRIMARY KEY (groupName, permission), FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
 	}
 
+	public override void SaveUsers() { }
+
+	public override void SaveGroups() { }
+
 	public void Migrate(Permission database)
 	{
 		Logger.Log($"Migrating database..");
