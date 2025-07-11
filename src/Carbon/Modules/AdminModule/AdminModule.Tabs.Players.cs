@@ -14,7 +14,7 @@ public partial class AdminModule
 
 	public class PlayersTab
 	{
-		internal static List<BasePlayer> BlindedPlayers = new();
+		public static readonly List<BasePlayer> BlindedPlayers = [];
 
 		public static Tab Get()
 		{
@@ -257,21 +257,21 @@ public partial class AdminModule
 				tab.AddButtonArray(column,
 					new Tab.OptionButton("Main", _ =>
 						{
-							player.inventory.containerMain.SetLocked(!player.inventory.containerMain.IsLocked());
+							LockPlayerContainer(player, player.inventory.containerMain, !player.inventory.containerMain.IsLocked());
 						},
 						_ => player.inventory.containerMain.IsLocked()
 							? Tab.OptionButton.Types.Important
 							: Tab.OptionButton.Types.None),
 					new Tab.OptionButton("Belt", _ =>
 						{
-							player.inventory.containerBelt.SetLocked(!player.inventory.containerBelt.IsLocked());
+							LockPlayerContainer(player, player.inventory.containerBelt, !player.inventory.containerBelt.IsLocked());
 						},
 						_ => player.inventory.containerBelt.IsLocked()
 							? Tab.OptionButton.Types.Important
 							: Tab.OptionButton.Types.None),
 					new Tab.OptionButton("Wear", _ =>
 						{
-							player.inventory.containerWear.SetLocked(!player.inventory.containerWear.IsLocked());
+							LockPlayerContainer(player, player.inventory.containerWear, !player.inventory.containerWear.IsLocked());
 						},
 						_ => player.inventory.containerWear.IsLocked()
 							? Tab.OptionButton.Types.Important
@@ -290,7 +290,10 @@ public partial class AdminModule
 				});
 			}
 
-			tab.AddInput(column, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
+			tab.AddInput(column, "PM", null, (ap, args) =>
+			{
+				PrivateMessagePlayer(ap.Player, player, args.ToString(" "));
+			});
 			if (aap.Player != player && aap.Player.spectateFilter != player.UserIDString)
 			{
 				tab.AddButton(column, "Spectate", ap =>
@@ -350,12 +353,7 @@ public partial class AdminModule
 			tab.AddRange(column, "Wetness", 0, player.metabolism.wetness.max * 10f, ap => player.metabolism.wetness.value * 10f, (_, value) => player.metabolism.wetness.SetValue(value * 0.1f), _ => $"{player.metabolism.wetness.value * 100f:0}%");
 			tab.AddButton(column, "Empower Stats", _ =>
 			{
-				player.SetHealth(player.MaxHealth());
-				player.metabolism.hydration.SetValue(player.metabolism.hydration.max);
-				player.metabolism.calories.SetValue(player.metabolism.calories.max);
-				player.metabolism.radiation_poison.SetValue(0);
-				player.metabolism.bleeding.SetValue(0);
-				player.metabolism.wetness.SetValue(0);
+				EmpowerPlayerStats(player);
 			});
 
 			if (Singleton.HasAccess(aap.Player, "players.craft_queue"))

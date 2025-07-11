@@ -672,12 +672,7 @@ public partial class AdminModule
 							tab.AddRange(column, "Wetness", 0, player.metabolism.wetness.max * 10f, ap => player.metabolism.wetness.value * 10f, (_, value) => player.metabolism.wetness.SetValue(value * 0.1f), _ => $"{player.metabolism.wetness.value * 100f:0}%");
 							tab.AddButton(column, "Empower Stats", _ =>
 							{
-								player.SetHealth(player.MaxHealth());
-								player.metabolism.hydration.SetValue(player.metabolism.hydration.max);
-								player.metabolism.calories.SetValue(player.metabolism.calories.max);
-								player.metabolism.radiation_poison.SetValue(0);
-								player.metabolism.bleeding.SetValue(0);
-								player.metabolism.wetness.SetValue(0);
+								EmpowerPlayerStats(player);
 							});
 						}
 					}
