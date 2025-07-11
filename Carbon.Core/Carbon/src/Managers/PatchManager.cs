@@ -139,14 +139,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		{
 			InitialOnEnable = true;
 
-			if (ConVar.Global.skipAssetWarmup_crashes)
-			{
-				Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty);
-			}
-			else
-			{
-				Invoke(() => Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty), 1f);
-			}
+			Invoke(() => Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty), 1f);
 		}
 	}
 
