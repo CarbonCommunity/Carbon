@@ -35,7 +35,7 @@ public class PermissionSql : Permission
 
 	public override void SaveGroups() { }
 
-	public void Migrate(Permission database)
+	public void MigrateFromProto(Permission database)
 	{
 		Logger.Log($"Migrating database..");
 		foreach (var group in database.groupdata)
@@ -67,6 +67,25 @@ public class PermissionSql : Permission
 		}
 		Logger.Log($"Successfully migrated database!");
 	}
+
+	public void MigrateToProto(Permission database)
+	{
+		Logger.Log($"Migrating database..");
+		var groupdata = db.QueryAllGroups();
+		foreach (var group in groupdata)
+		{
+			database.groupdata[group.groupName] = group.data;
+			Logger.Log($" Group {group.groupName} with {group.data.Perms.Count} perms");
+		}
+		var userdata = db.QueryUsers();
+		Logger.Log($" Migrating {userdata.Count():n0} users..");
+		foreach (var user in userdata)
+		{
+			database.userdata[user.userId] = user.data;
+		}
+		Logger.Log($"Successfully migrated database!");
+	}
+
 
 	#region Group
 
@@ -441,6 +460,10 @@ public class PermissionSql : Permission
 			return GetColumnValue<string>(stmHandle, 1);
 		}
 
+		public IEnumerable<(string userId, UserData data)> QueryUsers()
+		{
+			return this.ExecuteAndReadQueryResults(Prepare("SELECT * FROM users"), ReadUserRow);
+		}
 		public (string userId, UserData data) QueryUser(string id)
 		{
 			var stmHandle = Prepare("SELECT * FROM users WHERE userId = ?");
