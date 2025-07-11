@@ -671,4 +671,19 @@ public partial class CorePlugin
 				break;
 		}
 	}
+
+	[ConsoleCommand("migrate_sql", "This will migrate all groups and users to a locally stored SQLite database from your Protobuf/Storeless database. A server reboot will be necessary after the process is done.")]
+	[AuthLevel(2)]
+	private void MigrateToSql(ConsoleSystem.Arg arg)
+	{
+		if (Community.Runtime.Config.Permissions.PermissionSerialization == Permission.SerializationMode.SQL)
+		{
+			arg.ReplyWith("Permission serialization must be anything but SQL");
+			return;
+		}
+
+		new PermissionSql().Migrate(Community.Runtime.Core.permission);
+		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.SQL;
+		Community.Runtime.SaveConfig();
+	}
 }

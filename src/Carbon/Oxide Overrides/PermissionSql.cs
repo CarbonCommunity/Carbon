@@ -31,6 +31,35 @@ public class PermissionSql : Permission
 		db.Execute("CREATE TABLE IF NOT EXISTS groupsPerms (groupName TEXT, permission TEXT, PRIMARY KEY (groupName, permission), FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
 	}
 
+	public void Migrate(Permission database)
+	{
+		Logger.Log($"Migrating database..");
+		foreach (var group in database.groupdata)
+		{
+			CreateGroup(group.Key, group.Value.Title, group.Value.Rank);
+			SetGroupParent(group.Key, group.Value.ParentGroup);
+			foreach (var perm in group.Value.Perms)
+			{
+				GrantGroupPermission(group.Key, perm, null);
+			}
+			Logger.Log($" Group {group.Key} with {group.Value.Perms.Count} perms");
+		}
+		Logger.Log($" Migrating {database.userdata.Count:n0} users..");
+		foreach (var user in database.userdata)
+		{
+			CommitUser(user.Key, user.Value);
+			foreach (var group in user.Value.Groups)
+			{
+				AddUserGroup(user.Key, group);
+			}
+			foreach (var perm in user.Value.Perms)
+			{
+				GrantUserPermission(user.Key, perm, null);
+			}
+		}
+		Logger.Log($"Successfully migrated database!");
+	}
+
 	#region Group
 
 	public override bool CreateGroup(string group, string title, int rank)
@@ -344,15 +373,6 @@ public class PermissionSql : Permission
 
 			// OnUserGroupRemoved
 			HookCaller.CallStaticHook(1018697706, id, name);
-		}
-	}
-
-	public override void UpdateNickname(string id, string nickname)
-	{
-		if (UserExists(id))
-		{
-			db?.Execute("UPDATE users SET lastSeenNickname = ? WHERE userId = ?", nickname, id);
-			base.UpdateNickname(id, nickname);
 		}
 	}
 

@@ -468,6 +468,7 @@ public class Permission : Library
 			var userData = GetUserData(id);
 			var lastSeenNickname = userData.LastSeenNickname;
 			userData.LastSeenNickname = nickname.Sanitize();
+			CommitUser(id, userData);
 
 			// OnUserNameUpdated
 			HookCaller.CallStaticHook(4255507790, id, lastSeenNickname, userData.LastSeenNickname);
