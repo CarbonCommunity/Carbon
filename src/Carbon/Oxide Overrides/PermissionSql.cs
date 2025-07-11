@@ -26,7 +26,7 @@ public class PermissionSql : Permission
 		db.Execute("CREATE TABLE IF NOT EXISTS userPerms (userId TEXT, permission TEXT, PRIMARY KEY (userId, permission), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE)");
 		db.Execute("CREATE TABLE IF NOT EXISTS userGroups (userId TEXT, groupName TEXT, PRIMARY KEY (userId, groupName), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE, FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
 
-		db.Execute("CREATE TABLE groups ( groupName TEXT PRIMARY KEY, title TEXT, rank INTEGER, parentGroup TEXT )");
+		db.Execute("CREATE TABLE groups ( groupName TEXT collate NOCASE PRIMARY KEY, title TEXT, rank INTEGER, parentGroup TEXT )");
 		db.Execute("CREATE INDEX IF NOT EXISTS groupName ON groups ( groupName )");
 		db.Execute("CREATE TABLE IF NOT EXISTS groupsPerms (groupName TEXT, permission TEXT, PRIMARY KEY (groupName, permission), FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
 	}
@@ -40,12 +40,11 @@ public class PermissionSql : Permission
 		Logger.Log($"Migrating database..");
 		foreach (var group in database.groupdata)
 		{
-			var groupName = group.Key.ToLowerInvariant();
-			CreateGroup(groupName, group.Value.Title, group.Value.Rank);
-			SetGroupParent(groupName, group.Value.ParentGroup);
+			CreateGroup(group.Key, group.Value.Title, group.Value.Rank);
+			SetGroupParent(group.Key, group.Value.ParentGroup);
 			foreach (var perm in group.Value.Perms)
 			{
-				db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", groupName, perm);
+				db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", group.Key, perm);
 			}
 			Logger.Log($" Group {group.Key} with {group.Value.Perms.Count} perms");
 		}
