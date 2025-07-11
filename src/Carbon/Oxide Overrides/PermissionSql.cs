@@ -21,10 +21,10 @@ public class PermissionSql : Permission
 			return;
 		}
 
-		db.Execute("CREATE TABLE users ( userId INTEGER PRIMARY KEY, lastSeenNickname TEXT, language TEXT )");
+		db.Execute("CREATE TABLE users ( userId TEXT PRIMARY KEY, lastSeenNickname TEXT, language TEXT )");
 		db.Execute("CREATE INDEX IF NOT EXISTS userId ON users ( userId )");
-		db.Execute("CREATE TABLE IF NOT EXISTS userPerms (userId INTEGER, permission TEXT, PRIMARY KEY (userId, permission), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE)");
-		db.Execute("CREATE TABLE IF NOT EXISTS userGroups (userId INTEGER, groupName TEXT, PRIMARY KEY (userId, groupName), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE, FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
+		db.Execute("CREATE TABLE IF NOT EXISTS userPerms (userId TEXT, permission TEXT, PRIMARY KEY (userId, permission), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE)");
+		db.Execute("CREATE TABLE IF NOT EXISTS userGroups (userId TEXT, groupName TEXT, PRIMARY KEY (userId, groupName), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE, FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
 
 		db.Execute("CREATE TABLE groups ( groupName TEXT PRIMARY KEY, title TEXT, rank INTEGER, parentGroup TEXT )");
 		db.Execute("CREATE INDEX IF NOT EXISTS groupName ON groups ( groupName )");
