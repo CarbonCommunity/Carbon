@@ -672,7 +672,7 @@ public partial class CorePlugin
 		}
 	}
 
-	[ConsoleCommand("migrate_sql", "This will migrate all groups and users to a locally stored SQLite database from your Protobuf/Storeless database. A server reboot will be necessary after the process is done.")]
+	[ConsoleCommand("migrate_sql", "This will migrate all groups and users to a locally stored SQLite database from your Protobuf/Storeless database.")]
 	[AuthLevel(2)]
 	private void MigrateToSql(ConsoleSystem.Arg arg)
 	{
@@ -684,8 +684,17 @@ public partial class CorePlugin
 
 		var sql = new PermissionSql();
 		sql.Migrate(Community.Runtime.Core.permission);
-		sql.Dispose();
 
+		Community.Runtime.Core.permission.Dispose();
+		foreach (var package in ModLoader.Packages)
+		{
+			foreach (var plugin in package.Plugins)
+			{
+				plugin.permission = sql;
+			}
+		}
+
+		Community.Runtime.Core.permission = sql;
 		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.SQL;
 		Community.Runtime.SaveConfig();
 	}
