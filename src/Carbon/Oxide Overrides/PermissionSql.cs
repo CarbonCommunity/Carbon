@@ -450,10 +450,9 @@ public class PermissionSql : Permission
 		public (string userId, UserData data) ReadUserRow(IntPtr stmHandle)
 		{
 			var user = new UserData();
-			var id = GetColumnValue<ulong>(stmHandle, 0);
+			var userId = GetColumnValue<string>(stmHandle, 0);
 			user.LastSeenNickname = GetColumnValue<string>(stmHandle, 1);
 			user.Language = GetColumnValue<string>(stmHandle, 2);
-			var userId = id.ToString();
 			var perms = QueryUserPermissions(userId);
 			foreach (var perm in perms)
 			{
