@@ -526,12 +526,7 @@ public partial class AdminModule
 								{
 									tab.CreateDialog("Are you sure you want to blind the player?", ap =>
 									{
-										using var cui = new CUI(Singleton.Handler);
-										var container = cui.CreateContainer("blindingpanel", "0 0 0 1",
-											needsCursor: true, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
-										cui.CreateImage(container, "blindingpanel", "bsod", "1 1 1 1");
-										cui.Send(container, player);
-										PlayersTab.BlindedPlayers.Add(player);
+										BlindPlayer(player);
 										SelectEntity(tab, ap, entity);
 										DrawEntitySettings(tab, column, ap3);
 
@@ -543,9 +538,7 @@ public partial class AdminModule
 							{
 								tab.AddButton(1, "Unblind Player", ap =>
 								{
-									using var cui = new CUI(Singleton.Handler);
-									cui.Destroy("blindingpanel", player);
-									PlayersTab.BlindedPlayers.Remove(player);
+									UnblindPlayer(player);
 									EntitiesTab.SelectEntity(tab, ap, entity);
 									DrawEntitySettings(tab, column, ap3);
 								}, ap => Tab.OptionButton.Types.Selected);

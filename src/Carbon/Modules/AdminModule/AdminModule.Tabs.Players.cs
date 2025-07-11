@@ -322,12 +322,7 @@ public partial class AdminModule
 					{
 						tab.CreateDialog("Are you sure you want to blind the player?", ap =>
 						{
-							using var cui = new CUI(Singleton.Handler);
-							var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true,
-								needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
-							cui.CreateImage(container, "blindingpanel", "bsod", "1 1 1 1");
-							cui.Send(container, player);
-							BlindedPlayers.Add(player);
+							BlindPlayer(player);
 							ShowInfo(column, tab, ap, player);
 
 							if (ap.Player == player) Core.timer.In(1, () => { Singleton.Close(player); });
@@ -338,9 +333,7 @@ public partial class AdminModule
 				{
 					tab.AddButton(column, "Unblind Player", ap =>
 					{
-						using var cui = new CUI(Singleton.Handler);
-						cui.Destroy("blindingpanel", player);
-						BlindedPlayers.Remove(player);
+						UnblindPlayer(player);
 						ShowInfo(column, tab, ap, player);
 					}, _ => Tab.OptionButton.Types.Selected);
 				}
