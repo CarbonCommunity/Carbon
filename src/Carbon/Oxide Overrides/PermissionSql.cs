@@ -50,7 +50,11 @@ public class PermissionSql : Permission
 			CommitUser(user.Key, user.Value);
 			foreach (var group in user.Value.Groups)
 			{
-				db?.Execute("INSERT OR IGNORE INTO userGroups ( userId, groupName ) VALUES ( ?, ? )", user.Key, group);
+				var exists = db.Query<int, string>("SELECT COUNT(*) FROM groups WHERE groupName = ?", group);
+				if (exists > 0)
+				{
+					db?.Execute("INSERT OR IGNORE INTO userGroups ( userId, groupName ) VALUES ( ?, ? )", user.Key, group);
+				}
 			}
 			foreach (var perm in user.Value.Perms)
 			{
