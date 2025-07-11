@@ -18,8 +18,6 @@ public class ProtoStorage
 		{
 			yield return Utility.GetFileNameWithoutExtension(value);
 		}
-
-		yield break;
 	}
 
 	public static T Load<T>(params string[] subPaths)
