@@ -38,6 +38,13 @@ public class PermissionSql : Permission
 	public void MigrateFromProto(Permission database)
 	{
 		Logger.Log($"Migrating database..");
+		var totalPerms = 0;
+		foreach (var perm in database.permset)
+		{
+			permset[perm.Key] = perm.Value;
+			totalPerms += perm.Value.Count;
+		}
+		Logger.Log($" Migrating {database.permset.Count:n0} plugins with {totalPerms:n0} perms..");
 		foreach (var group in database.groupdata)
 		{
 			CreateGroup(group.Key, group.Value.Title, group.Value.Rank);
@@ -71,6 +78,14 @@ public class PermissionSql : Permission
 	public void MigrateToProto(Permission database)
 	{
 		Logger.Log($"Migrating database..");
+		var totalPerms = 0;
+		foreach (var perm in permset)
+		{
+			database.permset[perm.Key] = perm.Value;
+			totalPerms += perm.Value.Count;
+		}
+		Logger.Log($" Migrating {database.permset.Count:n0} plugins with {totalPerms:n0} perms..");
+
 		var groupdata = db.QueryAllGroups();
 		foreach (var group in groupdata)
 		{
