@@ -2323,7 +2323,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (Singleton.ConfigInstance.PlayPMSound)
 		{
-			Effect.server.Run(Singleton.ConfigInstance.PMSound, target,0, target.transform.position);
+			Effect.server.Run(Singleton.ConfigInstance.PMSound, target,2, Vector3.zero, new Vector3(0,2,0));
 		}
 
 		// OnCarbonPrivateMessage
