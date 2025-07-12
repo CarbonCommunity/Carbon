@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ConVar;
+using Newtonsoft.Json;
 using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
 using static Carbon.Components.CUI;
@@ -2298,6 +2299,37 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		HookCaller.CallStaticHook(3911772319, player);
 	}
 
+	public static void EmpowerPlayerStats(BasePlayer player)
+	{
+		Debugging.RefillPlayerVitals(player, true);
+
+		// OnCarbonEmpowerPlayerStats
+		HookCaller.CallStaticHook(837777771, player);
+	}
+
+	public static void LockPlayerContainer(BasePlayer player, ItemContainer container, bool wants)
+	{
+		container.SetLocked(wants);
+
+		// OnCarbonLockPlayerContainer
+		HookCaller.CallStaticHook(298795244, player, container, wants);
+	}
+
+	public static void PrivateMessagePlayer(BasePlayer player, BasePlayer target, string message)
+	{
+		if (string.IsNullOrEmpty(message)) return;
+
+		target.ChatMessage($"[{player.displayName}]: {message}");
+
+		if (Singleton.ConfigInstance.PlayPMSound)
+		{
+			Effect.server.Run(Singleton.ConfigInstance.PMSound, target,2, Vector3.zero, new Vector3(0,2,0));
+		}
+
+		// OnCarbonPrivateMessage
+		HookCaller.CallStaticHook(468227819, player, target, message);
+	}
+
 
 	public static void StartSpectating(BasePlayer player, BaseEntity target)
 	{
@@ -2472,6 +2504,8 @@ public class AdminConfig
 	public bool SpectatingEndTeleportBack = false;
 	public List<ActionButton> QuickActions = new();
 	public bool HideConsole = false;
+	public bool PlayPMSound = true;
+	public string PMSound = "assets/prefabs/locks/keypad/effects/lock.code.unlock.prefab";
 
 	public class ActionButton
 	{
