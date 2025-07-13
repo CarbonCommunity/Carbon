@@ -13,7 +13,7 @@ public class Plugin : BaseHookable, IDisposable
 	public Command cmd;
 	public Permission permission;
 
-	public class Persistence : FacepunchBehaviour { }
+	public class Persistence : FacepunchBehaviour;
 
 	public bool IsCorePlugin { get; set; }
 
