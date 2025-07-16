@@ -11,7 +11,7 @@
 				<DebugType>embedded</DebugType>
 				<DebugSymbols>true</DebugSymbols>
 				<DefineConstants>$(DefineConstants)</DefineConstants>
-				<Optimize>true</Optimize>
+				<Optimize>false</Optimize>
 				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
 				<!-- We want to override corelib to have the new lang features -->
@@ -27,7 +27,7 @@
 				<DebugType>embedded</DebugType>
 				<DebugSymbols>true</DebugSymbols>
 				<DefineConstants>MINIMAL;$(DefineConstants)</DefineConstants>
-				<Optimize>true</Optimize>
+				<Optimize>false</Optimize>
 				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
 				<!-- We want to override corelib to have the new lang features -->
