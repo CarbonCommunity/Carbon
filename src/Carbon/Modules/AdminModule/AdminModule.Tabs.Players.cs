@@ -257,21 +257,21 @@ public partial class AdminModule
 				tab.AddButtonArray(column,
 					new Tab.OptionButton("Main", _ =>
 						{
-							LockPlayerContainer(player, player.inventory.containerMain, !player.inventory.containerMain.IsLocked());
+							LockPlayerContainer(aap.Player, player, player.inventory.containerMain, !player.inventory.containerMain.IsLocked());
 						},
 						_ => player.inventory.containerMain.IsLocked()
 							? Tab.OptionButton.Types.Important
 							: Tab.OptionButton.Types.None),
 					new Tab.OptionButton("Belt", _ =>
 						{
-							LockPlayerContainer(player, player.inventory.containerBelt, !player.inventory.containerBelt.IsLocked());
+							LockPlayerContainer(aap.Player, player, player.inventory.containerBelt, !player.inventory.containerBelt.IsLocked());
 						},
 						_ => player.inventory.containerBelt.IsLocked()
 							? Tab.OptionButton.Types.Important
 							: Tab.OptionButton.Types.None),
 					new Tab.OptionButton("Wear", _ =>
 						{
-							LockPlayerContainer(player, player.inventory.containerWear, !player.inventory.containerWear.IsLocked());
+							LockPlayerContainer(aap.Player, player, player.inventory.containerWear, !player.inventory.containerWear.IsLocked());
 						},
 						_ => player.inventory.containerWear.IsLocked()
 							? Tab.OptionButton.Types.Important
@@ -325,7 +325,7 @@ public partial class AdminModule
 					{
 						tab.CreateDialog("Are you sure you want to blind the player?", ap =>
 						{
-							BlindPlayer(player);
+							BlindPlayer(aap.Player, player);
 							ShowInfo(column, tab, ap, player);
 
 							if (ap.Player == player) Core.timer.In(1, () => { Singleton.Close(player); });
@@ -336,7 +336,7 @@ public partial class AdminModule
 				{
 					tab.AddButton(column, "Unblind Player", ap =>
 					{
-						UnblindPlayer(player);
+						UnblindPlayer(aap.Player, player);
 						ShowInfo(column, tab, ap, player);
 					}, _ => Tab.OptionButton.Types.Selected);
 				}
@@ -353,7 +353,7 @@ public partial class AdminModule
 			tab.AddRange(column, "Wetness", 0, player.metabolism.wetness.max * 10f, ap => player.metabolism.wetness.value * 10f, (_, value) => player.metabolism.wetness.SetValue(value * 0.1f), _ => $"{player.metabolism.wetness.value * 100f:0}%");
 			tab.AddButton(column, "Empower Stats", _ =>
 			{
-				EmpowerPlayerStats(player);
+				EmpowerPlayerStats(aap.Player, player);
 			});
 
 			if (Singleton.HasAccess(aap.Player, "players.craft_queue"))
