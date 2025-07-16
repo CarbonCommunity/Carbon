@@ -117,7 +117,14 @@ public class RustPlayer : IPlayer
 			return;
 		}
 
-		ServerUsers.Set(id, ServerUsers.UserGroup.Banned, ((BasePlayer != null) ? BasePlayer.displayName : null) ?? "Unknown", reason, -1L);
+		var expiryUnixTime = -1L;
+		if (duration != TimeSpan.Zero)
+		{
+			DateTime expiryTime = DateTime.UtcNow.Add(duration);
+			expiryUnixTime = new DateTimeOffset(expiryTime).ToUnixTimeSeconds();
+		}
+
+		ServerUsers.Set(id, ServerUsers.UserGroup.Banned, ((BasePlayer != null) ? BasePlayer.displayName : null) ?? "Unknown", reason, expiryUnixTime);
 		ServerUsers.Save();
 
 		if (IsConnected)
