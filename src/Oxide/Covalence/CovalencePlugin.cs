@@ -219,13 +219,17 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			}
 		}
 
-		public void Ban(string id, string reason, System.TimeSpan duration = default(System.TimeSpan))
+		public void Ban(string id, string reason, TimeSpan duration = default)
 		{
-			if (!IsBanned(id))
+			if (IsBanned(id)) return;
+			long expiryUnixTime = -1L;
+			if (duration != TimeSpan.Zero)
 			{
-				ServerUsers.Set(ulong.Parse(id), ServerUsers.UserGroup.Banned, Name, reason, -1L);
-				ServerUsers.Save();
+				DateTime expiryTime = DateTime.UtcNow.Add(duration);
+				expiryUnixTime = new DateTimeOffset(expiryTime).ToUnixTimeSeconds();
 			}
+			ServerUsers.Set(ulong.Parse(id), ServerUsers.UserGroup.Banned, Name, reason, expiryUnixTime);
+			ServerUsers.Save();
 		}
 
 		public SaveInfo SaveInfo { get; } = SaveInfo.Create(World.SaveFileName);
