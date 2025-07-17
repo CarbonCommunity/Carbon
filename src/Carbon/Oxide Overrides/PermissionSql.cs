@@ -420,6 +420,12 @@ public class PermissionSql : Permission
 		}
 	}
 
+	public override KeyValuePair<string, UserData> FindUser(string id)
+	{
+		GetUserData(id);
+		return base.FindUser(id);
+	}
+
 	#endregion
 
 	public override void Dispose()
@@ -483,8 +489,9 @@ public class PermissionSql : Permission
 		}
 		public (string userId, UserData data) QueryUser(string id)
 		{
-			var stmHandle = Prepare("SELECT * FROM users WHERE userId = ?");
+			var stmHandle = Prepare("SELECT * FROM users WHERE userId = ? OR LOWER(lastSeenNickname) = LOWER(?)");
 			Bind(stmHandle, 1, id);
+			Bind(stmHandle, 2, id);
 			return this.ExecuteAndReadQueryResults(stmHandle, ReadUserRow).FirstOrDefault();
 		}
 		public (string userId, UserData data) ReadUserRow(IntPtr stmHandle)
