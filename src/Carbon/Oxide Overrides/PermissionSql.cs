@@ -58,6 +58,7 @@ public class PermissionSql : Permission
 		Logger.Log($" Migrating {database.userdata.Count:n0} users..");
 		foreach (var user in database.userdata)
 		{
+			userdata[user.Key] = user.Value;
 			CommitUser(user.Key, user.Value);
 			foreach (var group in user.Value.Groups)
 			{
@@ -100,7 +101,6 @@ public class PermissionSql : Permission
 		}
 		Logger.Log($"Successfully migrated database!");
 	}
-
 
 	#region Group
 
@@ -412,6 +412,8 @@ public class PermissionSql : Permission
 			{
 				return;
 			}
+
+			db?.Execute("DELETE FROM userGroups WHERE userId = ? AND groupName = ?", id, name);
 
 			// OnUserGroupRemoved
 			HookCaller.CallStaticHook(1018697706, id, name);
