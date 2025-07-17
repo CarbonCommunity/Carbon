@@ -215,10 +215,10 @@ public class PermissionSql : Permission
 			{
 				userdata.Add(userId, data);
 			}
-			else if (addIfNotExisting)
+			else if (addIfNotExisting && id.IsSteamId())
 			{
 				data = new UserData();
-				userdata.Add(id, data);
+				userdata[id] = data;
 				CommitUser(id, data);
 			}
 		}
