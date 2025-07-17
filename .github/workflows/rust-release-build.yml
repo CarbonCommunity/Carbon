@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     name: Rust (Release) Build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     container: rust:bullseye
     continue-on-error: false
 
