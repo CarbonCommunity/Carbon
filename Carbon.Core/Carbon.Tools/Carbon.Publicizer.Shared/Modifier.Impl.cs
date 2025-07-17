@@ -162,10 +162,8 @@ public partial class Modifier
 					Mono.Cecil.TypeAttributes.NestedPublic | Mono.Cecil.TypeAttributes.Class,
 					module.ImportReference(baseDataType));
 			var baseNetworkable = assembly.MainModule.GetType("BaseNetworkable");
-			var saveInfoType =
-				baseNetworkable.NestedTypes.First(t => t.Name.Equals("SaveInfo", StringComparison.CurrentCulture));
-			var loadInfoType =
-				baseNetworkable.NestedTypes.First(t => t.Name.Equals("LoadInfo", StringComparison.CurrentCulture));
+			var saveInfoType = baseNetworkable.NestedTypes.First(t => t.Name.Equals("SaveInfo", StringComparison.CurrentCulture));
+			var loadInfoType = baseNetworkable.NestedTypes.First(t => t.Name.Equals("LoadInfo", StringComparison.CurrentCulture));
 			if (!module.Types.Contains(dataType))
 			{
 				module.Types.Add(dataType);
@@ -239,8 +237,23 @@ public partial class Modifier
 							Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.ReuseSlot,
 							module.TypeSystem.Void);
 					var il = rustSaveMethod.Body.GetILProcessor();
-					var save = module.ImportReference(type.BaseType.Resolve().Methods.FirstOrDefault(m =>
-						m.Name.Equals("Save", StringComparison.CurrentCulture) && m.Parameters.Count == 1));
+
+					var foundBaseType = type.BaseType.Resolve();
+					var saveBaseMethod = (MethodDefinition)null;
+					while (saveBaseMethod == null)
+					{
+						saveBaseMethod = foundBaseType.Methods.FirstOrDefault(m =>
+							m.Name.Equals("Save", StringComparison.CurrentCulture) && m.Parameters.Count == 1);
+
+						if (saveBaseMethod != null || foundBaseType.BaseType is null)
+						{
+							break;
+						}
+
+						foundBaseType = foundBaseType.BaseType.Resolve();
+					}
+
+					var save = module.ImportReference(saveBaseMethod);
 					if (!type.Methods.Contains(rustSaveMethod))
 					{
 						rustSaveMethod.Parameters.Add(new Mono.Cecil.ParameterDefinition("info",
@@ -274,20 +287,32 @@ public partial class Modifier
 						type.Methods.FirstOrDefault(x => x.Name.Equals("Load", StringComparison.CurrentCulture)) ??
 						new MethodDefinition("Load", Mono.Cecil.MethodAttributes.Public | Mono.Cecil.MethodAttributes.Virtual | Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.ReuseSlot, module.TypeSystem.Void);
 					var il = rustLoadMethod.Body.GetILProcessor();
-					var load = module.ImportReference(type.BaseType.Resolve().Methods.FirstOrDefault(m =>
-						m.Name.Equals("Load", StringComparison.CurrentCulture) && m.Parameters.Count == 1));
+					var foundBaseType = type.BaseType.Resolve();
+					var loadBaseMethod = (MethodDefinition)null;
+					while (loadBaseMethod == null)
+					{
+						loadBaseMethod = foundBaseType.Methods.FirstOrDefault(m =>
+							m.Name.Equals("Load", StringComparison.CurrentCulture) && m.Parameters.Count == 1);
+
+						if (loadBaseMethod != null || foundBaseType.BaseType is null)
+						{
+							break;
+						}
+
+						foundBaseType = foundBaseType.BaseType.Resolve();
+					}
 					if (!type.Methods.Contains(rustLoadMethod))
 					{
 						rustLoadMethod.Parameters.Add(new ParameterDefinition("info",
 							Mono.Cecil.ParameterAttributes.None, loadInfoType));
 						il.Append(il.Create(OpCodes.Ldarg_0));
 						il.Append(il.Create(OpCodes.Ldarg_1));
-						il.Append(il.Create(OpCodes.Call, load));
+						il.Append(il.Create(OpCodes.Call, loadBaseMethod));
 						il.Append(il.Create(OpCodes.Ret));
 						type.Methods.Add(rustLoadMethod);
 					}
 
-					var instr = rustLoadMethod.Body.Instructions.IndexOf(rustLoadMethod.Body.Instructions.FirstOrDefault(x => x.OpCode == OpCodes.Call && x.Operand == load)) + 1;
+					var instr = rustLoadMethod.Body.Instructions.IndexOf(rustLoadMethod.Body.Instructions.FirstOrDefault(x => x.OpCode == OpCodes.Call && x.Operand == loadBaseMethod)) + 1;
 					il.Body.Instructions.Insert(instr, il.Create(OpCodes.Ldarg_0));
 					il.Body.Instructions.Insert(instr + 1, il.Create(OpCodes.Ldarg_0));
 					il.Body.Instructions.Insert(instr + 2, il.Create(OpCodes.Ldflda, carbonDataField));
