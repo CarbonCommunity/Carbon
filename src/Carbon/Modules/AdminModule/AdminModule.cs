@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ConVar;
+using Newtonsoft.Json;
 using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
 using static Carbon.Components.CUI;
@@ -2275,7 +2276,62 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#endregion
 
-	internal static void StartSpectating(BasePlayer player, BaseEntity target)
+	public static void BlindPlayer(BasePlayer player)
+	{
+		using CUI cui = new CUI(Singleton.Handler);
+
+		var container = cui.v2.CreateParent(ClientPanels.Overlay, LuiPosition.Full, "blindingpanel").AddCursor()
+			.AddKeyboard().SetDestroy("blindingpanel");
+		cui.v2.CreateImageFromDb(container, LuiPosition.Full, LuiOffset.None, "bsod","0 0 0 1");
+
+		PlayersTab.BlindedPlayers.Add(player);
+		cui.v2.SendUi(player);
+		// OnCarbonBlinded
+		HookCaller.CallStaticHook(3658185574, player);
+	}
+
+	public static void UnblindPlayer(BasePlayer player)
+	{
+		if (!PlayersTab.BlindedPlayers.Remove(player)) return;
+		using CUI cui = new CUI(Singleton.Handler);
+		cui.Destroy("blindingpanel", player);
+		// OnCarbonUnblinded
+		HookCaller.CallStaticHook(3911772319, player);
+	}
+
+	public static void EmpowerPlayerStats(BasePlayer player)
+	{
+		Debugging.RefillPlayerVitals(player, true);
+
+		// OnCarbonEmpowerPlayerStats
+		HookCaller.CallStaticHook(837777771, player);
+	}
+
+	public static void LockPlayerContainer(BasePlayer player, ItemContainer container, bool wants)
+	{
+		container.SetLocked(wants);
+
+		// OnCarbonLockPlayerContainer
+		HookCaller.CallStaticHook(298795244, player, container, wants);
+	}
+
+	public static void PrivateMessagePlayer(BasePlayer player, BasePlayer target, string message)
+	{
+		if (string.IsNullOrEmpty(message)) return;
+
+		target.ChatMessage($"[{player.displayName}]: {message}");
+
+		if (Singleton.ConfigInstance.PlayPMSound)
+		{
+			Effect.server.Run(Singleton.ConfigInstance.PMSound, target,2, Vector3.zero, new Vector3(0,2,0));
+		}
+
+		// OnCarbonPrivateMessage
+		HookCaller.CallStaticHook(468227819, player, target, message);
+	}
+
+
+	public static void StartSpectating(BasePlayer player, BaseEntity target)
 	{
 		if (!string.IsNullOrEmpty(player.spectateFilter))
 		{
@@ -2301,6 +2357,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.eyes.NetworkUpdate(target.transform.rotation);
 		player.SendNetworkUpdate();
 		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
+
+		// OnCarbonSpectateStart
+		HookCaller.CallStaticHook(597991647, player, targetPlayer);
 
 		using var cui = new CUI(Singleton.Handler);
 		var container = cui.CreateContainer(SpectatePanelId, color: Cache.CUI.BlankColor, needsCursor: targetPlayer != null && targetPlayer.IsSleeping(), parent: ClientPanels.Overlay, destroyUi: SpectatePanelId);
@@ -2338,7 +2397,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Community.Runtime.Core.NextTick(() => Singleton.Close(player));
 	}
-	internal static void StopSpectating(BasePlayer player, bool clearUi = true)
+	public static void StopSpectating(BasePlayer player, bool clearUi = true)
 	{
 		if (clearUi)
 		{
@@ -2369,6 +2428,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			player.Teleport(player.transform.position + (Vector3.up * -3f));
 		}
 
+		// OnCarbonSpectateEnd
+		HookCaller.CallStaticHook(2609635685, player, spectated);
+
 		if (clearUi)
 		{
 			var tab = Singleton.GetTab(player);
@@ -2379,7 +2441,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 	}
 
-	internal static void OpenPlayerContainer(PlayerSession ap, BasePlayer player, Tab tab)
+	public static void OpenPlayerContainer(PlayerSession ap, BasePlayer player, Tab tab)
 	{
 		Singleton.Subscribe("OnEntityVisibilityCheck");
 		Singleton.Subscribe("OnEntityDistanceCheck");
@@ -2407,7 +2469,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			ap.Player.ClientRPC(RpcTarget.Player("RPC_OpenLootPanel", ap.Player), "player_corpse");
 		});
 	}
-	internal static void OpenContainer(PlayerSession ap, ItemContainer container, Tab tab)
+	public static void OpenContainer(PlayerSession ap, ItemContainer container, Tab tab)
 	{
 		EntitiesTab.LastContainerLooter = null;
 		ap.ClearStorage(tab, "lootedent");
@@ -2442,6 +2504,8 @@ public class AdminConfig
 	public bool SpectatingEndTeleportBack = false;
 	public List<ActionButton> QuickActions = new();
 	public bool HideConsole = false;
+	public bool PlayPMSound = true;
+	public string PMSound = "assets/prefabs/locks/keypad/effects/lock.code.unlock.prefab";
 
 	public class ActionButton
 	{

@@ -15,6 +15,11 @@ public partial class CorePlugin
 
 		var mode = arg.GetString(0);
 		var flip = arg.GetString(0).Equals("-asc") || arg.GetString(1).Equals("-asc");
+		var ignoredPlugins = Community.Runtime.ScriptProcessor.IgnoreList.Concat(Community.Runtime.ZipScriptProcessor.IgnoreList)
+#if DEBUG
+			.Concat(Community.Runtime.ZipDevScriptProcessor.IgnoreList)
+#endif
+		;
 
 		switch (mode)
 		{
@@ -25,7 +30,7 @@ public partial class CorePlugin
 				arg.ReplyWith(new
 				{
 					Plugins = ModLoader.Packages,
-					Unloaded = Community.Runtime.ScriptProcessor.IgnoreList,
+					Unloaded = ignoredPlugins,
 					Failed = ModLoader.FailedCompilations.Values.Where(x => x.HasFailed())
 				});
 				break;
@@ -77,9 +82,9 @@ public partial class CorePlugin
 						count++;
 					}
 
-					using var unloaded = new StringTable("*", $"unloaded plugins ({Community.Runtime.ScriptProcessor.IgnoreList.Count:n0})");
+					using var unloaded = new StringTable("*", $"unloaded plugins ({ignoredPlugins.Count():n0})");
 
-					foreach (var unloadedPlugin in Community.Runtime.ScriptProcessor.IgnoreList)
+					foreach (var unloadedPlugin in ignoredPlugins)
 					{
 						unloaded.AddRow(string.Empty, Path.GetFileName(unloadedPlugin));
 					}
@@ -127,16 +132,16 @@ public partial class CorePlugin
 		}
 	}
 
-	[ConsoleCommand("reload", "Reloads all or specific mods / plugins. E.g 'c.reload * <except[]>' to reload everything, 'c.reload PluginA [PluginB..]' to reload multiple..")]
+	[ConsoleCommand("reload", "Reloads all or specific plugins. E.g 'c.reload * <except[]>' to reload everything, 'c.reload PluginA [PluginB..]' to reload multiple..")]
 	[AuthLevel(2)]
 	private void Reload(ConsoleSystem.Arg arg)
 	{
-		if (!arg.HasArgs(1))
+		if (!arg.HasArgs())
 		{
 			return;
 		}
 
-		RefreshOrderedFiles();
+		ProcessableFilesLookup();
 
 		var name = arg.FullString;
 		switch (name)
@@ -144,109 +149,61 @@ public partial class CorePlugin
 			case "*":
 			{
 				using var plugins = Pool.Get<PooledList<RustPlugin>>();
-				plugins.AddRange(Community.Runtime.Plugins.Plugins);
+				ModLoader.Packages.GetAllHookables(plugins, true);
 
 				foreach (var plugin in plugins)
 				{
-					if (!plugin.HasInitialized)
-					{
-						continue;
-					}
-
-					if (!Community.Runtime.Config.Watchers.ScriptWatchers || Community.Runtime.MonoProfilerConfig.IsWhitelisted(Profiler.MonoProfilerConfig.ProfileTypes.Plugin, plugin.Name) != Assemblies.Plugins.Get(plugin.Name).IsProfiledAssembly)
-					{
-						plugin.ProcessorProcess.MarkDirty();
-						continue;
-					}
-
-					if (plugin.Requires is { Length: > 0 })
-					{
-						continue;
-					}
-
-					using var hooks = Pool.Get<PooledList<uint>>();
-					using var hookMethods = Pool.Get<PooledList<HookMethodAttribute>>();
-					using var pluginReferences = Pool.Get<PooledList<PluginReferenceAttribute>>();
-					using var requires = Pool.Get<PooledList<Plugin>>();
-					var process = plugin.ProcessorProcess;
-					hooks.AddRange(plugin.Hooks);
-					hookMethods.AddRange(plugin.HookMethods);
-					pluginReferences.AddRange(plugin.PluginReferences);
-					requires.AddRange(plugin.Requires);
-
-					ModLoader.UninitializePlugin(plugin);
-					ModLoader.InitializePlugin(plugin.GetType(), out var newPlugin, plugin.Package, p =>
-					{
-						p.IsCorePlugin = plugin.IsCorePlugin;
-						p.HasConditionals = plugin.HasConditionals;
-						p.IsExtension = plugin.IsExtension;
-
-						p.Hooks = [.. hooks];
-						p.HookMethods = [.. hookMethods];
-						p.PluginReferences = [.. pluginReferences];
-						p.Requires = [.. requires];
-
-						p.SetProcessor(Community.Runtime.ScriptProcessor, process);
-						p.CompileTime = plugin.CompileTime;
-						p.InternalCallHookGenTime = plugin.InternalCallHookGenTime;
-						p.InternalCallHookSource = plugin.InternalCallHookSource;
-						p.FilePath = plugin.FilePath;
-						p.FileName = plugin.FileName;
-					});
-
-					var eventArg = Pool.Get<CarbonEventArgs>();
-					eventArg.Init(newPlugin);
-					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, eventArg);
-					Pool.Free(ref eventArg);
-
-					InternalApplyAllPluginReferences();
-
-					if (Community.AllProcessorsFinalized)
-					{
-						ModLoader.OnPluginProcessFinished();
-					}
-
-					// OnPluginLoaded
-					HookCaller.CallStaticHook(3051933177, newPlugin);
+					Puts($"Processing {plugin}");
+					ProcessInput(plugin.Name, arg);
 				}
 
 				ModLoader.OnPluginProcessFinished();
 				break;
 			}
-
 			default:
 				if (name.Contains(' '))
 				{
 					foreach (var argValue in arg.Args)
 					{
-						Do(argValue, arg);
+						ProcessInput(argValue, arg);
 					}
 				}
 				else
 				{
-					Do(name, arg);
+					ProcessInput(name, arg);
 				}
 
-				static void Do(string name, ConsoleSystem.Arg arg)
+				static bool ProcessProcessor(ProcessableFile file, IBaseProcessor processor)
 				{
-					var path = GetPluginPath(name);
-					var plugin = ModLoader.FindPlugin(name);
-
-					if (!string.IsNullOrEmpty(path.Value))
+					if (processor.IgnoreList.Contains(file.Path) || ModLoader.GetCompilationResult(file.Path).HasFailed())
 					{
-						if (Community.Runtime.ScriptProcessor.IgnoreList.Contains(path.Value) || ModLoader.GetCompilationResult(path.Value).HasFailed())
+						processor.ClearIgnore(file.Path);
+
+						if (processor.InstanceBuffer.TryGetValue(file.Id, out var instance))
 						{
-							Community.Runtime.ScriptProcessor.ClearIgnore(path.Value);
+							instance.Clear();
+						}
 
-							if (Community.Runtime.ScriptProcessor.InstanceBuffer.TryGetValue(path.Key, out var instance))
-							{
-								instance.Clear();
-							}
+						processor.Prepare(file.Id, file.Path);
+						return true;
+					}
+					return false;
+				}
 
-							Community.Runtime.ScriptProcessor.Prepare(path.Key, path.Value);
+				static void ProcessInput(string name, ConsoleSystem.Arg arg)
+				{
+					var file = GetPluginFile(name);
+					var plugin = ModLoader.FindPlugin(name);
+					var processor = file.GetProcessor();
+
+					if (!string.IsNullOrEmpty(file.Path))
+					{
+						if (ProcessProcessor(file, processor))
+						{
 							return;
 						}
-						else if (plugin != null && !plugin.IsPrecompiled)
+
+						if (plugin != null && !plugin.IsPrecompiled)
 						{
 							if (!plugin.HasInitialized)
 							{
@@ -283,7 +240,7 @@ public partial class CorePlugin
 								p.PluginReferences = [.. pluginReferences];
 								p.Requires = [.. requires];
 
-								p.SetProcessor(Community.Runtime.ScriptProcessor, process);
+								p.SetProcessor(plugin.Processor, process);
 								p.CompileTime = plugin.CompileTime;
 								p.InternalCallHookGenTime = plugin.InternalCallHookGenTime;
 								p.InternalCallHookSource = plugin.InternalCallHookSource;
@@ -338,7 +295,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		RefreshOrderedFiles();
+		ProcessableFilesLookup();
 
 		var name = arg.FullString;
 		switch (name)
@@ -347,42 +304,46 @@ public partial class CorePlugin
 				var except = arg.Args.Skip(1);
 
 				Community.Runtime.ScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(x.Contains));
+				Community.Runtime.ZipScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(x.Contains));
+#if DEBUG
+				Community.Runtime.ZipDevScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(x.Contains));
+#endif
 
-				foreach (var plugin in OrderedFiles)
+				foreach (var plugin in ProcessableFiles)
 				{
-					if (except.Any(plugin.Value.Contains) || Community.Runtime.ScriptProcessor.InstanceBuffer.ContainsKey(plugin.Key))
+					var processor = plugin.GetProcessor();
+					if (except.Any(plugin.Path.Contains) || processor.InstanceBuffer.ContainsKey(plugin.Id))
 					{
 						continue;
 					}
-
-					if (!Community.Runtime.ScriptProcessor.Exists(plugin.Value))
+					if (!processor.Exists(plugin.Path))
 					{
-						Community.Runtime.ScriptProcessor.Prepare(plugin.Key, plugin.Value);
+						processor.Prepare(plugin.Id, plugin.Path);
 					}
 				}
 				break;
-
 			default:
 				if (name.Contains(' '))
 				{
 					foreach (var argValue in arg.Args)
 					{
-						Do(argValue);
+						ProcessInput(argValue);
 					}
 				}
 				else
 				{
-					Do(name);
+					ProcessInput(name);
 				}
 
-				static void Do(string name)
+				static void ProcessInput(string name)
 				{
-					var path = GetPluginPath(name);
-					if (!string.IsNullOrEmpty(path.Value))
+					var path = GetPluginFile(name);
+					if (!string.IsNullOrEmpty(path.Path))
 					{
-						Community.Runtime.ScriptProcessor.ClearIgnore(path.Value);
-						Community.Runtime.ScriptProcessor.Prepare(path.Key, path.Value);
-						Logger.Warn($"Requested '{path.Key}' for compilation");
+						var processor = path.GetProcessor();
+						processor.ClearIgnore(path.Path);
+						processor.Prepare(path.Id, path.Path);
+						Logger.Warn($"Requested '{path.Id}' for compilation");
 						return;
 					}
 
@@ -403,7 +364,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		RefreshOrderedFiles();
+		ProcessableFilesLookup();
 
 		var name = arg.FullString;
 		switch (name)
@@ -413,9 +374,13 @@ public partial class CorePlugin
 				var except = arg.Args.Skip(1);
 				{
 					Community.Runtime.ScriptProcessor.Clear(except);
+					Community.Runtime.ZipScriptProcessor.Clear(except);
+#if DEBUG
+					Community.Runtime.ZipDevScriptProcessor.Clear(except);
+#endif
 
 					using var plugins = Pool.Get<PooledList<RustPlugin>>();
-					plugins.AddRange(Community.Runtime.Plugins.Plugins);
+					ModLoader.Packages.GetAllHookables(plugins, true);
 
 					foreach (var plugin in plugins)
 					{
@@ -423,14 +388,12 @@ public partial class CorePlugin
 						{
 							continue;
 						}
-
 						if (plugin.Requires is { Length: > 0 })
 						{
 							continue;
 						}
-
 						ModLoader.UninitializePlugin(plugin);
-						Community.Runtime.ScriptProcessor.Ignore(plugin.Name);
+						plugin.Processor.Ignore(plugin.Name);
 					}
 				}
 				break;
@@ -440,21 +403,21 @@ public partial class CorePlugin
 				{
 					foreach (var argValue in arg.Args)
 					{
-						Do(arg, argValue);
+						ProcessInput(argValue, arg);
 					}
 				}
 				else
 				{
-					Do(arg, name);
+					ProcessInput(name, arg);
 				}
 
-				static void Do(ConsoleSystem.Arg arg, string name)
+				static void ProcessInput(string name, ConsoleSystem.Arg arg)
 				{
-					var path = GetPluginPath(name);
+					var path = GetPluginFile(name);
 
-					if (!string.IsNullOrEmpty(path.Value))
+					if (!string.IsNullOrEmpty(path.Path))
 					{
-						Community.Runtime.ScriptProcessor.Ignore(path.Value);
+						path.GetProcessor().Ignore(path.Path);
 					}
 
 					var plugin = ModLoader.FindPlugin(name);
@@ -649,7 +612,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		RefreshOrderedFiles();
+		ProcessableFilesLookup();
 
 		var name = arg.GetString(0);
 		switch (name)
@@ -738,21 +701,20 @@ public partial class CorePlugin
 			return;
 		}
 
-		RefreshOrderedFiles();
+		ProcessableFilesLookup();
 
 		var name = arg.GetString(0);
 		switch (name)
 		{
 			default:
 				{
-					var path = GetPluginPath(name);
-
+					var path = GetPluginFile(name);
 					var pluginFound = false;
 					var pluginPrecompiled = false;
 
 					foreach (var mod in ModLoader.Packages)
 					{
-						var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+						using var plugins = Pool.Get<PooledList<RustPlugin>>();
 						plugins.AddRange(mod.Plugins);
 
 						foreach (var plugin in plugins.Where(plugin => plugin.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)))
@@ -764,25 +726,28 @@ public partial class CorePlugin
 								pluginPrecompiled = true;
 							}
 						}
-
-						Facepunch.Pool.FreeUnmanaged(ref plugins);
 					}
 
 					if (!pluginFound)
 					{
-						if (string.IsNullOrEmpty(path.Value)) Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
-						else Logger.Warn($"Plugin {name} was not loaded but was marked as ignored.");
-
+						if (string.IsNullOrEmpty(path.Path))
+						{
+							Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						}
+						else
+						{
+							Logger.Warn($"Plugin {name} was not loaded but was marked as ignored.");
+						}
 						return;
 					}
 
 					if (pluginPrecompiled)
 					{
-						Logger.Warn($"Plugin {path.Key} is a precompiled plugin which can only be unloaded/uninstalled programmatically.");
+						Logger.Warn($"Plugin {path.Id} is a precompiled plugin which can only be unloaded/uninstalled programmatically.");
 						return;
 					}
 
-					OsEx.File.Move(path.Value, Path.Combine(Defines.GetScriptBackupFolder(), Path.GetFileName(path.Value)));
+					OsEx.File.Move(path.Path, Path.Combine(Defines.GetScriptBackupFolder(), Path.GetFileName(path.Path)));
 					break;
 				}
 		}
@@ -798,7 +763,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		RefreshOrderedFiles();
+		ProcessableFilesLookup();
 
 		var name = arg.GetString(0);
 		switch (name)

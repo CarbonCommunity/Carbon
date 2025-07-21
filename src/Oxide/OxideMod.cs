@@ -89,17 +89,33 @@ public class OxideMod
 
 	public bool LoadPlugin(string name)
 	{
-		CorePlugin.RefreshOrderedFiles();
+		CorePlugin.ProcessableFilesLookup();
 
-		var path = CorePlugin.GetPluginPath(name);
+		var path = CorePlugin.GetPluginFile(name);
 
-		if (string.IsNullOrEmpty(path.Key))
+		if (string.IsNullOrEmpty(path.Id))
 		{
 			return false;
 		}
 
-		Community.Runtime.ScriptProcessor.Prepare(path.Key, path.Value);
-		return true;
+		switch (path.Type)
+		{
+			case CorePlugin.ProcessableFile.Types.Script:
+				Community.Runtime.ScriptProcessor.Prepare(path.Id, path.Path);
+				return true;
+
+			case CorePlugin.ProcessableFile.Types.CSZIP:
+				Community.Runtime.ZipScriptProcessor.Prepare(path.Id, path.Path);
+				return true;
+
+#if DEBUG
+			case CorePlugin.ProcessableFile.Types.CSZIP_Dev:
+				Community.Runtime.ZipDevScriptProcessor.Prepare(path.Id, path.Path);
+				return true;
+#endif
+		}
+
+		return false;
 	}
 
 	public bool ReloadPlugin(string name)
@@ -109,15 +125,33 @@ public class OxideMod
 
 	public bool UnloadPlugin(string name)
 	{
-		if (!Community.Runtime.ScriptProcessor.InstanceBuffer.TryGetValue(name, out var instance))
+		var process = (IBaseProcessor.IProcess)null;
+
+		if (Community.Runtime.ScriptProcessor.InstanceBuffer.TryGetValue(name, out process))
 		{
-			return true;
+			Community.Runtime.ScriptProcessor.Remove(name);
 		}
 
-		instance.Clear();
-		instance.Dispose();
-		Community.Runtime.ScriptProcessor.Remove(name);
+		if (Community.Runtime.ZipScriptProcessor.InstanceBuffer.TryGetValue(name, out process))
+		{
+			Community.Runtime.ZipScriptProcessor.Remove(name);
+		}
+
+#if DEBUG
+		if (Community.Runtime.ZipDevScriptProcessor.InstanceBuffer.TryGetValue(name, out process))
+		{
+			Community.Runtime.ZipDevScriptProcessor.Remove(name);
+		}
+#endif
+
+		if (process == null)
+		{
+			return false;
+		}
+		process.Clear();
+		process.Dispose();
 		return true;
+
 	}
 
 	public void ReloadAllPlugins(IList<string> skip = null)
@@ -131,12 +165,35 @@ public class OxideMod
 
 			plugin.Value.MarkDirty();
 		}
+		foreach (var plugin in Community.Runtime.ZipScriptProcessor.InstanceBuffer)
+		{
+			if (skip != null && skip.Any(x => plugin.Key.Contains(x)))
+			{
+				continue;
+			}
+
+			plugin.Value.MarkDirty();
+		}
+#if DEBUG
+		foreach (var plugin in Community.Runtime.ZipDevScriptProcessor.InstanceBuffer)
+		{
+			if (skip != null && skip.Any(x => plugin.Key.Contains(x)))
+			{
+				continue;
+			}
+
+			plugin.Value.MarkDirty();
+		}
+#endif
 	}
 
 	public void UnloadAllPlugins(IList<string> skip = null)
 	{
 		Community.Runtime.ScriptProcessor.Clear(skip);
 		Community.Runtime.ZipScriptProcessor.Clear(skip);
+#if DEBUG
+		Community.Runtime.ZipScriptProcessor.Clear(skip);
+#endif
 	}
 
 	public void OnSave()

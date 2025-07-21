@@ -1,29 +1,75 @@
 ﻿using System.Reflection.Emit;
+using Facepunch;
 using HarmonyLib;
 
 namespace Carbon.Extensions;
 
 public static class AccessToolsEx
 {
+	private static Dictionary<string, Type> searchCache = [];
+
 	public static Type TypeByName(string name)
 	{
-		Type type = Type.GetType(name, throwOnError: false);
-		if ((object)type == null)
+		if (searchCache.TryGetValue(name, out Type type))
 		{
-			type = AllTypes().FirstOrDefault((Type t) => t.FullName == name);
+			return type;
+		}
+		return searchCache[name] = AccessTools.TypeByName(name) ?? SearchTypeByName(name);
+	}
+
+	private static Type SearchTypeByName(string name)
+	{
+		var type = Type.GetType(name, throwOnError: false);
+		if (type != null)
+			return type;
+
+		if (name.Contains('`'))
+		{
+			var bracketIndex = name.IndexOf('<');
+			var genericTypeDefName = name[..bracketIndex];
+			var genericArgPart = name[bracketIndex..];
+
+			using var genericArgs = Pool.Get<PooledList<string>>();
+			genericArgs.AddRange(genericArgPart.Replace("<", string.Empty).Replace(">", string.Empty).Split(','));
+
+			var argTypes = genericArgs
+				.Select(arg => AccessTools.TypeByName(arg))
+				.ToArray();
+
+			if (argTypes.Length != genericArgs.Count)
+			{
+				Logger.Warn("AccessTools.TypeByName: Failed to resolve one or more generic arguments for " + name);
+				return null;
+			}
+
+			var genericDef = AccessTools.TypeByName(genericTypeDefName);
+			if (genericDef == null)
+			{
+				Logger.Warn("AccessTools.TypeByName: Could not find generic type definition " + genericTypeDefName);
+				return null;
+			}
+
+			if (!genericDef.IsGenericTypeDefinition)
+			{
+				genericDef = genericDef.GetGenericTypeDefinition();
+			}
+
+			try
+			{
+				return genericDef.MakeGenericType(argTypes);
+			}
+			catch (Exception ex)
+			{
+				Logger.Error("AccessTools.TypeByName: Failed to MakeGenericType for " + name + " - " + ex.Message);
+			}
 		}
 
-		if ((object)type == null)
-		{
-			type = AllTypes().FirstOrDefault((Type t) => t.Name == name);
-		}
+		var types = AccessTools.AllTypes();
+		type = types.FirstOrDefault(t => t.FullName == name);
+		if (type != null)
+			return type;
 
-		if ((object)type == null)
-		{
-			Logger.Debug("AccessTools.TypeByName: Could not find type named " + name);
-		}
-
-		return type;
+		return types.FirstOrDefault(t => t.Name == name);
 	}
 
 	public static IEnumerable<Type> AllTypes()

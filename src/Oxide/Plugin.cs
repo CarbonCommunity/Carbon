@@ -13,7 +13,7 @@ public class Plugin : BaseHookable, IDisposable
 	public Command cmd;
 	public Permission permission;
 
-	public class Persistence : FacepunchBehaviour { }
+	public class Persistence : FacepunchBehaviour;
 
 	public bool IsCorePlugin { get; set; }
 
@@ -125,6 +125,10 @@ public class Plugin : BaseHookable, IDisposable
 				{
 					Logger.Warn($" [{Name}] Loading '{Path.GetFileNameWithoutExtension(requiree)}' to parent's request: '{ToPrettyString()}'");
 					Community.Runtime.ScriptProcessor.Prepare(requiree);
+					Community.Runtime.ZipScriptProcessor.Prepare(requiree);
+#if DEBUG
+					Community.Runtime.ZipDevScriptProcessor.Prepare(requiree);
+#endif
 				}
 
 				ModLoader.ClearPendingRequirees(this);
