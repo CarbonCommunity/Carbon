@@ -107,7 +107,6 @@ public class OxideMod
 			case CorePlugin.ProcessableFile.Types.CSZIP:
 				Community.Runtime.ZipScriptProcessor.Prepare(path.Id, path.Path);
 				return true;
-
 #if DEBUG
 			case CorePlugin.ProcessableFile.Types.CSZIP_Dev:
 				Community.Runtime.ZipDevScriptProcessor.Prepare(path.Id, path.Path);
@@ -125,33 +124,28 @@ public class OxideMod
 
 	public bool UnloadPlugin(string name)
 	{
-		var process = (IBaseProcessor.IProcess)null;
+		var plugin = CorePlugin.GetPluginFile(name);
 
-		if (Community.Runtime.ScriptProcessor.InstanceBuffer.TryGetValue(name, out process))
-		{
-			Community.Runtime.ScriptProcessor.Remove(name);
-		}
-
-		if (Community.Runtime.ZipScriptProcessor.InstanceBuffer.TryGetValue(name, out process))
-		{
-			Community.Runtime.ZipScriptProcessor.Remove(name);
-		}
-
-#if DEBUG
-		if (Community.Runtime.ZipDevScriptProcessor.InstanceBuffer.TryGetValue(name, out process))
-		{
-			Community.Runtime.ZipDevScriptProcessor.Remove(name);
-		}
-#endif
-
-		if (process == null)
+		if (string.IsNullOrEmpty(plugin.Id))
 		{
 			return false;
 		}
-		process.Clear();
-		process.Dispose();
-		return true;
 
+		switch (plugin.Type)
+		{
+			case CorePlugin.ProcessableFile.Types.Script:
+				Community.Runtime.ScriptProcessor.Remove(plugin.Id);
+				return true;
+			case CorePlugin.ProcessableFile.Types.CSZIP:
+				Community.Runtime.ZipScriptProcessor.Remove(plugin.Id);
+				return true;
+#if DEBUG
+			case CorePlugin.ProcessableFile.Types.CSZIP_Dev:
+				Community.Runtime.ZipDevScriptProcessor.Remove(plugin.Id);
+				return true;
+#endif
+		}
+		return false;
 	}
 
 	public void ReloadAllPlugins(IList<string> skip = null)
