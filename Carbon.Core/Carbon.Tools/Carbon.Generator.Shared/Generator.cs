@@ -251,9 +251,14 @@ public class InternalCallHook
 
 					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) && parameter.Type is not NullableTypeSyntax && !(parameter.Type is ITypeSymbol symbol && symbol.IsValueType))
 					{
-						var type = parameter.Type.ToString().Replace("global::", string.Empty);
+						var typeString = parameter.Type.ToString().Replace("global::", string.Empty);
 
-						varText += $"var narg{parameterIndex}_{i} = narg{parameterIndex} is {type} or null;\nvar arg{parameterIndex}_{i} = narg{parameterIndex}_{i} ? ({type})(narg{parameterIndex} ?? ({type})default) : ({type})default;\n";
+						if (parameter.Type is TupleTypeSyntax tuple)
+						{
+							typeString = $"({string.Join(", ", tuple.Elements.Select(x => x.Type.ToString()))})";
+						}
+
+						varText += $"var narg{parameterIndex}_{i} = narg{parameterIndex} is {typeString} or null;\nvar arg{parameterIndex}_{i} = narg{parameterIndex}_{i} ? ({typeString})(narg{parameterIndex} ?? ({typeString})default) : ({typeString})default;\n";
 						parameterText += !IsUnmanagedType(parameter.Type) ? $"narg{parameterIndex}_{i} && " : $"(narg{parameterIndex}_{i} || narg{parameterIndex} == null) && ";
 					}
 				}
