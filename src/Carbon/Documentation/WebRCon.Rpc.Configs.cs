@@ -35,7 +35,7 @@ public static partial class WebRCon
 		var fileName = arg.GetString(1);
 
 		if (string.IsNullOrWhiteSpace(fileName))
-			return Response(new RConError(RConErrorEnum.InvalidArgs, "Invalid args"));
+			return Response(new ResponseError(ResponseErrorCodes.InvalidArgs, "Invalid args"));
 
 		var configsFolder = Defines.GetConfigsFolder();
 
@@ -43,7 +43,7 @@ public static partial class WebRCon
 		var filePath = Path.Combine(configsFolder, fileName);
 
 		if (!File.Exists(filePath))
-			return Response(new RConError(RConErrorEnum.NoSuchFile, "No such file found"));
+			return Response(new ResponseError(ResponseErrorCodes.NoSuchFile, "No such file found"));
 
 		var fileInfo = new FileInfo(filePath);
 
@@ -57,7 +57,7 @@ public static partial class WebRCon
 		var fileName = arg.GetString(1);
 
 		if (string.IsNullOrWhiteSpace(fileName))
-			return Response(new RConError(RConErrorEnum.InvalidArgs, "Invalid args"));
+			return Response(new ResponseError(ResponseErrorCodes.InvalidArgs, "Invalid args"));
 
 		var configsFolder = Defines.GetConfigsFolder();
 
@@ -65,7 +65,7 @@ public static partial class WebRCon
 		var filePath = Path.Combine(configsFolder, fileName);
 
 		if (!File.Exists(filePath))
-			return Response(new RConError(RConErrorEnum.NoSuchFile, "No such file found"));
+			return Response(new ResponseError(ResponseErrorCodes.NoSuchFile, "No such file found"));
 
 		// todo handle error
 		var content = File.ReadAllText(filePath);
@@ -87,7 +87,7 @@ public static partial class WebRCon
 		var fileName = arg.GetString(1);
 
 		if (string.IsNullOrWhiteSpace(fileName))
-			return Response(new RConError(RConErrorEnum.InvalidArgs, "Invalid args"));
+			return Response(new ResponseError(ResponseErrorCodes.InvalidArgs, "Invalid args"));
 
 		var configsFolder = Defines.GetConfigsFolder();
 

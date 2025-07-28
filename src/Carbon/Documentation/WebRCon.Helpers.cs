@@ -10,23 +10,16 @@ public static partial class WebRCon
 
 	private static ItemContainer FindContainer(int id, BasePlayer player)
 	{
-		switch (id)
+		return id switch
 		{
-			case 0:
-				return player.inventory.containerMain;
-			case 1:
-				return player.inventory.containerBelt;
-			case 2:
-				return player.inventory.containerWear;
-		}
-
-		return null;
+			0 => player.inventory.containerMain,
+			1 => player.inventory.containerBelt,
+			2 => player.inventory.containerWear,
+			_ => null,
+		};
 	}
 
-	private static object ParseEntity(BaseEntity entity)
-	{
-		return new { NetId = entity.net.ID.Value, Name = entity.name, Flags = entity.flags };
-	}
+	private static object ParseEntity(BaseEntity entity) => new { NetId = entity.net.ID.Value, Name = entity.name, Flags = entity.flags };
 
 	private static object ParseItem(Item item)
 	{
@@ -103,13 +96,13 @@ public static partial class WebRCon
 	}
 	 */
 
-	private struct RConError(RConErrorEnum code, string error)
+	private struct ResponseError(ResponseErrorCodes code, string error)
 	{
-		[JsonProperty] public RConErrorEnum Code = code;
+		[JsonProperty] public ResponseErrorCodes Code = code;
 		[JsonProperty] public string Error = error;
 	}
 
-	private enum RConErrorEnum
+	private enum ResponseErrorCodes
 	{
 		InvalidArgs = 1,
 		NoSuchFile,
