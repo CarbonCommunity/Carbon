@@ -39,7 +39,9 @@ public static partial class WebRCon
 
 		var configsFolder = Defines.GetConfigsFolder();
 
-		// todo prevent path traversal
+		if (!IsPathSafe(configsFolder, fileName))
+			return Response(new ResponseError(ResponseErrorCodes.InvalidArgs, "Invalid path arg"));
+
 		var filePath = Path.Combine(configsFolder, fileName);
 
 		if (!File.Exists(filePath))
@@ -61,7 +63,9 @@ public static partial class WebRCon
 
 		var configsFolder = Defines.GetConfigsFolder();
 
-		// todo prevent path traversal
+		if (!IsPathSafe(configsFolder, fileName))
+			return Response(new ResponseError(ResponseErrorCodes.InvalidArgs, "Invalid path arg"));
+
 		var filePath = Path.Combine(configsFolder, fileName);
 
 		if (!File.Exists(filePath))
@@ -79,7 +83,6 @@ public static partial class WebRCon
 		return Response(data);
 	}
 
-
 	[DocsRpc]
 	[UsedImplicitly]
 	private static DocsRpcResponse SetConfigContent(ConsoleSystem.Arg arg)
@@ -87,9 +90,12 @@ public static partial class WebRCon
 		var fileName = arg.GetString(1);
 
 		if (string.IsNullOrWhiteSpace(fileName))
-			return Response(new ResponseError(ResponseErrorCodes.InvalidArgs, "Invalid args"));
+			return Response(new ResponseError(ResponseErrorCodes.InvalidArgs, "Invalid path arg"));
 
 		var configsFolder = Defines.GetConfigsFolder();
+
+		if (!IsPathSafe(configsFolder, fileName))
+			return Response(new ResponseError(ResponseErrorCodes.InvalidArgs, "Invalid path arg"));
 
 		var filePath = Path.Combine(configsFolder, fileName);
 
@@ -108,17 +114,35 @@ public static partial class WebRCon
 		return Response(Ok);
 	}
 
-	private struct RConFileInfo
+	private static bool IsPathSafe(string basePath, string secondPath)
 	{
-		[JsonProperty] public string Name;
-		[JsonProperty] public int ModEpoch;
-		[JsonProperty] public long Size;
-
-		public RConFileInfo(FileInfo fileInfo)
+		try
 		{
-			Name = fileInfo.Name;
-			ModEpoch = Epoch.FromDateTime(fileInfo.LastWriteTimeUtc);
-			Size = fileInfo.Length;
+			var normalizedBasePath = Path.GetFullPath(basePath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+			var combinedPath = Path.Combine(normalizedBasePath, secondPath);
+			var resolvedPath = Path.GetFullPath(combinedPath);
+
+			if (string.IsNullOrEmpty(resolvedPath))
+				return false;
+
+			if (resolvedPath.StartsWith(normalizedBasePath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+				return true;
+
+			if (resolvedPath.StartsWith(normalizedBasePath + Path.AltDirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+				return true;
 		}
+		catch (ArgumentException)
+		{
+			return false;
+		}
+
+		return false;
+	}
+
+	private struct RConFileInfo(FileInfo fileInfo)
+	{
+		[JsonProperty] public string Name = fileInfo.Name;
+		[JsonProperty] public int ModEpoch = Epoch.FromDateTime(fileInfo.LastWriteTimeUtc);
+		[JsonProperty] public long Size = fileInfo.Length;
 	}
 }
