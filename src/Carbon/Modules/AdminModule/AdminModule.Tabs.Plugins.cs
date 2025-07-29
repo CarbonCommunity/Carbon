@@ -701,9 +701,12 @@ public partial class AdminModule
 
 		public static void InstallUModTab()
 		{
-			if (Singleton.DataInstance.DisableUMod && uModInstance is uMod umod)
+			if (Singleton.DataInstance.DisableUMod)
 			{
-				umod.Dispose();
+				if (uModInstance is uMod umod)
+				{
+					umod.Dispose();
+				}
 				uModInstance = null;
 				return;
 			}
