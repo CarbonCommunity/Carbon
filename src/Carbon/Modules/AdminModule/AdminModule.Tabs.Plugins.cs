@@ -325,7 +325,7 @@ public partial class AdminModule
 							{
 								plugin = plugin.PreferredVendorPlugin;
 							}
-							var displayVendor = plugin.HasNoImage() || plugin.HasInvalidImage();
+							var displayVendor = Singleton.DataInstance.HidePluginIcons || plugin.HasNoImage() || plugin.HasInvalidImage();
 							var card = cui.CreateProtectedButton(container, contentPanel, "0.1 0.1 0.1 0.7",
 								Cache.CUI.BlankColor, null, 0, command: $"pluginbrowser.selectplugin \"{Path.GetFileNameWithoutExtension(plugin.File)}\"", xMin: 0,
 								xMax: 0, yMin: 1, yMax: 1,
@@ -914,7 +914,7 @@ public partial class AdminModule
 
 			foreach (var element in plugins)
 			{
-				if (element.HasNoImage()) continue;
+				if (Singleton.DataInstance.HidePluginIcons || element.HasNoImage()) continue;
 
 				if (element.HasInvalidImage())
 				{
