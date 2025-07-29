@@ -140,7 +140,7 @@ public partial class AdminModule
 							cui.CreateImage(container, btn, "fade", Cache.CUI.WhiteColor);
 							cui.CreateText(container, btn, !isSelected ? "1 1 1 0.4" : "1 0.8 0.8 1",
 								text.ToUpper(), 12, font: CUI.Handler.FontTypes.RobotoCondensedBold,
-								yMin: isSelected ? 0.3f : 0f);
+								yMin: isSelected || disabled ? 0.3f : 0f);
 
 							if (isSelected)
 							{
