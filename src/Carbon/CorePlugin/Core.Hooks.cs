@@ -19,10 +19,7 @@ public partial class CorePlugin
 			Analytics.on_server_initialized();
 		}
 
-		if (!ConVar.Server.autoUploadMap)
-		{
-			Community.Runtime.MarkServerInitialized(true);
-		}
+		Community.Runtime.MarkServerInitialized(true);
 
 		Community.Runtime.Events.Trigger(CarbonEvent.OnServerInitialized, EventArgs.Empty);
 		return null;
