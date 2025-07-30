@@ -671,4 +671,60 @@ public partial class CorePlugin
 				break;
 		}
 	}
+
+	[ConsoleCommand("migrate_perms_sql", "This will migrate all groups and users to a locally stored SQLite database from your Protobuf/Storeless database.")]
+	[AuthLevel(2)]
+	private void MigrateToSql(ConsoleSystem.Arg arg)
+	{
+		if (Community.Runtime.Config.Permissions.PermissionSerialization == Permission.SerializationMode.SQL)
+		{
+			arg.ReplyWith("Permission serialization must be anything but SQL");
+			return;
+		}
+
+		var sql = new PermissionSql();
+		sql.MigrateFromProto(Community.Runtime.Core.permission);
+
+		Community.Runtime.Core.permission.Dispose();
+		foreach (var package in ModLoader.Packages)
+		{
+			foreach (var plugin in package.Plugins)
+			{
+				plugin.permission = sql;
+			}
+		}
+
+		Community.Runtime.Core.permission = sql;
+		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.SQL;
+		Community.Runtime.SaveConfig();
+	}
+
+	[ConsoleCommand("migrate_perms_proto", "This will migrate all groups and users to a locally stored Protobuf database from your SQL database.")]
+	[AuthLevel(2)]
+	private void MigrateToProto(ConsoleSystem.Arg arg)
+	{
+		if (Community.Runtime.Config.Permissions.PermissionSerialization == Permission.SerializationMode.Protobuf || Community.Runtime.Core.permission is not PermissionSql sql)
+		{
+			arg.ReplyWith("Permission serialization must be anything but Protobuf");
+			return;
+		}
+
+		var protobuf = new Permission();
+		sql.MigrateToProto(protobuf);
+		sql.Dispose();
+
+		foreach (var package in ModLoader.Packages)
+		{
+			foreach (var plugin in package.Plugins)
+			{
+				plugin.permission = protobuf;
+			}
+		}
+
+		Community.Runtime.Core.permission = protobuf;
+		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.Protobuf;
+		Community.Runtime.SaveConfig();
+
+		protobuf.SaveData();
+	}
 }

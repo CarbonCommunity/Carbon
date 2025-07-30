@@ -99,7 +99,7 @@ public class Player : Library
 		return IsSleeping(player.userID);
 	}
 
-	public void Ban(ulong id, string reason = "")
+	public void Ban(ulong id, string reason = "", long expiry = -1L)
 	{
 		if (IsBanned(id))
 		{
@@ -108,7 +108,7 @@ public class Player : Library
 
 		var basePlayer = FindById(id);
 
-		ServerUsers.Set(id, ServerUsers.UserGroup.Banned, ((basePlayer != null) ? basePlayer.displayName : null) ?? "Unknown", reason, -1L);
+		ServerUsers.Set(id, ServerUsers.UserGroup.Banned, ((basePlayer != null) ? basePlayer.displayName : null) ?? "Unknown", reason, expiry);
 		ServerUsers.Save();
 
 		if (basePlayer != null && IsConnected(basePlayer))
@@ -116,13 +116,13 @@ public class Player : Library
 			Kick(basePlayer, reason);
 		}
 	}
-	public void Ban(string id, string reason = "")
+	public void Ban(string id, string reason = "", long expiry = -1L)
 	{
-		Ban(Convert.ToUInt64(id), reason);
+		Ban(Convert.ToUInt64(id), reason, expiry);
 	}
-	public void Ban(BasePlayer player, string reason = "")
+	public void Ban(BasePlayer player, string reason = "", long expiry = -1L)
 	{
-		Ban(player.UserIDString, reason);
+		Ban(player.UserIDString, reason, expiry);
 	}
 	public void Heal(BasePlayer player, float amount)
 	{
