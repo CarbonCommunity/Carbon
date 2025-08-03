@@ -1,11 +1,14 @@
-﻿using ConVar;
+﻿using API.Abstracts;
+using ConVar;
 using Newtonsoft.Json;
 using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
 using static Carbon.Components.CUI;
 using static ConsoleSystem;
 using Color = UnityEngine.Color;
+using Player = Oxide.Game.Rust.Libraries.Player;
 using StringEx = Carbon.Extensions.StringEx;
+using Oxide.Game.Rust.Libraries;
 
 namespace Carbon.Modules;
 
@@ -2276,7 +2279,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#endregion
 
-	public static void BlindPlayer(BasePlayer player)
+	public static void BlindPlayer(BasePlayer player, BasePlayer target)
 	{
 		using CUI cui = new CUI(Singleton.Handler);
 
@@ -2284,35 +2287,35 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			.AddKeyboard().SetDestroy("blindingpanel");
 		cui.v2.CreateImageFromDb(container, LuiPosition.Full, LuiOffset.None, "bsod","0 0 0 1");
 
-		PlayersTab.BlindedPlayers.Add(player);
-		cui.v2.SendUi(player);
+		PlayersTab.BlindedPlayers.Add(target);
+		cui.v2.SendUi(target);
 		// OnCarbonBlinded
-		HookCaller.CallStaticHook(3658185574, player);
+		HookCaller.CallStaticHook(3658185574, player, target);
 	}
 
-	public static void UnblindPlayer(BasePlayer player)
+	public static void UnblindPlayer(BasePlayer player, BasePlayer target)
 	{
-		if (!PlayersTab.BlindedPlayers.Remove(player)) return;
+		if (!PlayersTab.BlindedPlayers.Remove(target)) return;
 		using CUI cui = new CUI(Singleton.Handler);
-		cui.Destroy("blindingpanel", player);
+		cui.Destroy("blindingpanel", target);
 		// OnCarbonUnblinded
-		HookCaller.CallStaticHook(3911772319, player);
+		HookCaller.CallStaticHook(3911772319, player, target);
 	}
 
-	public static void EmpowerPlayerStats(BasePlayer player)
+	public static void EmpowerPlayerStats(BasePlayer player, BasePlayer target)
 	{
-		Debugging.RefillPlayerVitals(player, true);
+		Debugging.RefillPlayerVitals(target, true);
 
 		// OnCarbonEmpowerPlayerStats
-		HookCaller.CallStaticHook(837777771, player);
+		HookCaller.CallStaticHook(837777771,player , target);
 	}
 
-	public static void LockPlayerContainer(BasePlayer player, ItemContainer container, bool wants)
+	public static void LockPlayerContainer(BasePlayer player, BasePlayer target, ItemContainer container, bool wants)
 	{
 		container.SetLocked(wants);
 
 		// OnCarbonLockPlayerContainer
-		HookCaller.CallStaticHook(298795244, player, container, wants);
+		HookCaller.CallStaticHook(298795244, target, container, wants);
 	}
 
 	public static void PrivateMessagePlayer(BasePlayer player, BasePlayer target, string message)
@@ -2439,6 +2442,87 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			EntitiesTab.DrawEntitySettings(tab, 1, ap);
 			Singleton.Draw(player);
 		}
+	}
+
+	public static void MutePlayer(BasePlayer player, BasePlayer target, bool wants, string reason = "No reason given")
+	{
+		target.State.chatMuted = wants;
+		target.SetPlayerFlag(BasePlayer.PlayerFlags.ChatMute, wants);
+		target.DirtyPlayerState();
+		target.ChatMessage($"You have been {(wants ? "muted" : "unmuted")} by an admin. Reason: {reason}");
+
+		// OnCarbonMutePlayer
+		HookCaller.CallStaticHook(1234567890, player,  target, wants, reason); // Replace with actual hook ID
+	}
+
+	public static void BanPlayer(BasePlayer player, BasePlayer target, string reason = "No reason given",string duration = "")
+	{
+		var expiry = -0L;
+		if (string.IsNullOrEmpty(duration))
+		{
+			expiry = 0;
+		}
+
+		expiry = BanStringToSeconds(duration);
+		if (expiry <= 0)
+		{
+			RustPlugin.Singleton<RustServer>().Ban(target.UserIDString, reason);
+			return;
+		}
+
+		if (expiry < 60) expiry = 60;
+		RustPlugin.Singleton<Player>().Ban(target,reason,expiry);
+		target.Kick(reason, false);
+
+		// OnCarbonBanPlayer
+		HookCaller.CallStaticHook(338697635, target, reason, expiry);
+	}
+
+	public static void UnbanPlayer(BasePlayer player, BasePlayer target)
+	{
+		RustPlugin.Singleton<RustServer>().Unban(target.UserIDString);
+
+		// OnCarbonUnbanPlayer
+		HookCaller.CallStaticHook(1355418005, player, target);
+	}
+
+	public static void KickPlayer(BasePlayer player, BasePlayer target, string reason = "No reason given")
+	{
+		target.Kick(reason, false);
+
+		// OnCarbonKickPlayer
+		HookCaller.CallStaticHook(3987303153, player, target, reason);
+	}
+
+	private static long BanStringToSeconds(string duration)
+	{
+		var banDuration = TimeSpan.Zero;
+		if (duration.EndsWith("Y") && int.TryParse(duration.TrimEnd('Y'), out var years))
+		{
+			banDuration = TimeSpan.FromDays(years * 365);
+		}
+		else if (duration.EndsWith("M") && int.TryParse(duration.TrimEnd('M'), out var months))
+		{
+			banDuration = TimeSpan.FromDays(months * 30);
+		}
+		else if (duration.EndsWith("d") && int.TryParse(duration.TrimEnd('d'), out var days))
+		{
+			banDuration = TimeSpan.FromDays(days);
+		}
+		else if (duration.EndsWith("h") && int.TryParse(duration.TrimEnd('h'), out var hours))
+		{
+			banDuration = TimeSpan.FromHours(hours);
+		}
+		else if (duration.EndsWith("m") && int.TryParse(duration.TrimEnd('m'), out var minutes))
+		{
+			banDuration = TimeSpan.FromMinutes(minutes);
+		}
+		else if (duration.EndsWith("s") && int.TryParse(duration.TrimEnd('s'), out var seconds))
+		{
+			banDuration = TimeSpan.FromSeconds(seconds);
+		}
+
+		return (long)banDuration.TotalSeconds + (long)UnityEngine.Time.time;
 	}
 
 	public static void OpenPlayerContainer(PlayerSession ap, BasePlayer player, Tab tab)

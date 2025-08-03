@@ -526,7 +526,7 @@ public partial class AdminModule
 								{
 									tab.CreateDialog("Are you sure you want to blind the player?", ap =>
 									{
-										BlindPlayer(player);
+										BlindPlayer(ap3.Player, player);
 										SelectEntity(tab, ap, entity);
 										DrawEntitySettings(tab, column, ap3);
 
@@ -538,7 +538,7 @@ public partial class AdminModule
 							{
 								tab.AddButton(1, "Unblind Player", ap =>
 								{
-									UnblindPlayer(player);
+									UnblindPlayer(ap3.Player, player);
 									EntitiesTab.SelectEntity(tab, ap, entity);
 									DrawEntitySettings(tab, column, ap3);
 								}, ap => Tab.OptionButton.Types.Selected);
@@ -672,7 +672,7 @@ public partial class AdminModule
 							tab.AddRange(column, "Wetness", 0, player.metabolism.wetness.max * 10f, ap => player.metabolism.wetness.value * 10f, (_, value) => player.metabolism.wetness.SetValue(value * 0.1f), _ => $"{player.metabolism.wetness.value * 100f:0}%");
 							tab.AddButton(column, "Empower Stats", _ =>
 							{
-								EmpowerPlayerStats(player);
+								EmpowerPlayerStats(ap3.Player, player);
 							});
 						}
 					}
