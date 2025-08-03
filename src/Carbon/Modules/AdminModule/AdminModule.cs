@@ -796,6 +796,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		cui.CreateText(container, button, "1 1 1 0.7", options[index], 10,
 			xMin: string.IsNullOrEmpty(icon) ? 0.035f : 0.09f, xMax: 1f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleLeft);
 
+		cui.CreateText(container, button, "1 1 1 0.4", "▼", 8,
+        	xMin: 0, xMax: 0.965f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleRight);
+
 		if (!string.IsNullOrEmpty(icon))
 		{
 			cui.CreateImage(container, button, icon, "1 1 1 0.7",
