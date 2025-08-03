@@ -5,7 +5,8 @@ namespace Oxide.Plugins;
 public class Timers : Library
 {
     public Plugin Plugin { get; }
-    internal List<Timer> _timers = Pool.Get<List<Timer>>();
+
+    private List<Timer> _timers = Pool.Get<List<Timer>>();
 
     public Timers() { }
     public Timers(Plugin plugin)
