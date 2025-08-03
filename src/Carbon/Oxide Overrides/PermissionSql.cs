@@ -58,6 +58,7 @@ public class PermissionSql : Permission
 		Logger.Log($" Migrating {database.userdata.Count:n0} users..");
 		foreach (var user in database.userdata)
 		{
+			userdata[user.Key] = user.Value;
 			CommitUser(user.Key, user.Value);
 			foreach (var group in user.Value.Groups)
 			{
@@ -100,7 +101,6 @@ public class PermissionSql : Permission
 		}
 		Logger.Log($"Successfully migrated database!");
 	}
-
 
 	#region Group
 
@@ -215,10 +215,10 @@ public class PermissionSql : Permission
 			{
 				userdata.Add(userId, data);
 			}
-			else if (addIfNotExisting)
+			else if (addIfNotExisting && id.IsSteamId())
 			{
 				data = new UserData();
-				userdata.Add(id, data);
+				userdata[id] = data;
 				CommitUser(id, data);
 			}
 		}
@@ -413,9 +413,17 @@ public class PermissionSql : Permission
 				return;
 			}
 
+			db?.Execute("DELETE FROM userGroups WHERE userId = ? AND groupName = ?", id, name);
+
 			// OnUserGroupRemoved
 			HookCaller.CallStaticHook(1018697706, id, name);
 		}
+	}
+
+	public override KeyValuePair<string, UserData> FindUser(string id)
+	{
+		GetUserData(id);
+		return base.FindUser(id);
 	}
 
 	#endregion
@@ -431,6 +439,18 @@ public class PermissionSql : Permission
 	{
 		InitializeDb();
 		LoadGroups();
+
+		var playerDefaultGroup = Community.Runtime.Config.Permissions.PlayerDefaultGroup;
+		var adminDefaultGroup = Community.Runtime.Config.Permissions.AdminDefaultGroup;
+		var moderatorDefaultGroup = Community.Runtime.Config.Permissions.ModeratorDefaultGroup;
+
+		if (!string.IsNullOrEmpty(playerDefaultGroup) && !GroupExists(playerDefaultGroup))
+			CreateGroup(playerDefaultGroup, playerDefaultGroup.ToCamelCase(), 0);
+		if (!string.IsNullOrEmpty(adminDefaultGroup) && !GroupExists(adminDefaultGroup))
+			CreateGroup(adminDefaultGroup, adminDefaultGroup.ToCamelCase(), 1);
+		if (!string.IsNullOrEmpty(moderatorDefaultGroup) && !GroupExists(moderatorDefaultGroup))
+			CreateGroup(moderatorDefaultGroup, moderatorDefaultGroup.ToCamelCase(), 1);
+
 		IsLoaded = true;
 	}
 
@@ -481,8 +501,9 @@ public class PermissionSql : Permission
 		}
 		public (string userId, UserData data) QueryUser(string id)
 		{
-			var stmHandle = Prepare("SELECT * FROM users WHERE userId = ?");
+			var stmHandle = Prepare("SELECT * FROM users WHERE userId = ? OR LOWER(lastSeenNickname) = LOWER(?)");
 			Bind(stmHandle, 1, id);
+			Bind(stmHandle, 2, id);
 			return this.ExecuteAndReadQueryResults(stmHandle, ReadUserRow).FirstOrDefault();
 		}
 		public (string userId, UserData data) ReadUserRow(IntPtr stmHandle)

@@ -335,7 +335,20 @@ public class Permission : Library
 	}
 	public virtual bool UserExists(string id)
 	{
-		return userdata.ContainsKey(id);
+		if (userdata.ContainsKey(id))
+		{
+			return true;
+		}
+
+		foreach (var user in userdata)
+		{
+			if (user.Value.LastSeenNickname.Equals(id, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 	public virtual bool UserExists(string id, out UserData data)
 	{

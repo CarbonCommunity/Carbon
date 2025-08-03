@@ -799,6 +799,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		cui.CreateText(container, button, "1 1 1 0.7", options[index], 10,
 			xMin: string.IsNullOrEmpty(icon) ? 0.035f : 0.09f, xMax: 1f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleLeft);
 
+		cui.CreateText(container, button, "1 1 1 0.4", "▼", 8,
+        	xMin: 0, xMax: 0.965f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleRight);
+
 		if (!string.IsNullOrEmpty(icon))
 		{
 			cui.CreateImage(container, button, icon, "1 1 1 0.7",
@@ -1316,21 +1319,18 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				color: $"0 0 0 {DataInstance.BackgroundOpacity}",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 				needsCursor: true, destroyUi: PanelId, parent: ClientPanels.HudMenu);
-
+			cui.CreatePanel(container, PanelId, color: "0 0 0 0.6");
+			cui.CreatePanel(container, PanelId, color: "0 0 0 0.5", blur: DataInstance.BackgroundBlur);
 			cui.CreateImage(container, PanelId, "fade", Cache.CUI.WhiteColor);
 
 			var isMaximized = DataInstance.Maximize;
-
-			var shade = cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
+			var main = cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
 				color: "0 0 0 0.6",
 				xMin: 0.5f, xMax: 0.5f, yMin: 0.5f, yMax: 0.5f,
 				OxMin: -475 * (isMaximized ? MaximizedScale_XMin : 1),
 				OxMax: 475 * (isMaximized ? MaximizedScale_XMax : 1),
 				OyMin: -300 * (isMaximized ? MaximizedScale_YMin : 1),
 				OyMax: 300 * (isMaximized ? MaximizedScale_YMax : 1));
-			var main = cui.CreatePanel(container, shade,
-				color: "0 0 0 0.5",
-				blur: DataInstance.BackgroundBlur);
 
 			cui.CreateImage(container, main, DataInstance.BackgroundImage, "1 1 1 " + DataInstance.BackgroundImageOpacity, yMin: DataInstance.BackgroundImageYAnchor.x, yMax: DataInstance.BackgroundImageYAnchor.y);
 
@@ -2604,6 +2604,7 @@ public class AdminData
 {
 	public bool GreetDisplayed = false;
 	public bool HidePluginIcons = false;
+	public bool DisableUMod = true;
 	public bool Maximize = false;
 	public bool BackgroundBlur = true;
 	public float BackgroundOpacity = 0.75f;

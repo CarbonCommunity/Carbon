@@ -216,9 +216,7 @@ public partial class AdminModule
 								Singleton.Save();
 							}
 						},
-						ap => _applyChangesTimeSince > _applyChangesCooldown
-							? OptionButton.Types.Selected
-							: OptionButton.Types.None);
+						ap => _applyChangesTimeSince > _applyChangesCooldown ? OptionButton.Types.Selected : OptionButton.Types.None);
 					tab.AddToggle(0, "Spectating Info Overlay",
 						ap => Singleton.ConfigInstance.SpectatingInfoOverlay =
 							!Singleton.ConfigInstance.SpectatingInfoOverlay,
@@ -227,6 +225,9 @@ public partial class AdminModule
 						ap => Singleton.ConfigInstance.SpectatingEndTeleportBack =
 							!Singleton.ConfigInstance.SpectatingEndTeleportBack,
 						ap => Singleton.ConfigInstance.SpectatingEndTeleportBack);
+					tab.AddToggle(0, "Disable uMod (Plugins tab)",
+						ap => Singleton.DataInstance.DisableUMod = !Singleton.DataInstance.DisableUMod,
+						ap => Singleton.DataInstance.DisableUMod);
 					tab.AddToggle(0, "Hide Plugin Icons (Plugins tab)",
 						ap => Singleton.DataInstance.HidePluginIcons = !Singleton.DataInstance.HidePluginIcons,
 						ap => Singleton.DataInstance.HidePluginIcons);
