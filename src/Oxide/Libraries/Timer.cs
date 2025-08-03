@@ -47,11 +47,10 @@ public class Timers : Library
     public Timer Every(float time, Action action)
     {
         if (!IsValid()) return null;
-        Timer? timer = Pool.Get<Timer>();
 
+        var timer = Pool.Get<Timer>();
         timer.Init(Persistence, action, Plugin);
         timer.SetupRepeat(time);
-
         _timers.Add(timer);
         return timer;
     }
@@ -59,11 +58,10 @@ public class Timers : Library
     public Timer Repeat(float time, int times, Action action)
     {
         if (!IsValid()) return null;
-        Timer? timer = Pool.Get<Timer>();
 
+        var timer = Pool.Get<Timer>();
         timer.Init(Persistence, action, Plugin);
         timer.SetupRepeatCount(time, times);
-
         _timers.Add(timer);
         return timer;
     }
@@ -173,9 +171,82 @@ public class Timer : IDisposable, Pool.IPooled
         Persistence?.InvokeRepeating(Callback, Delay, Delay);
     }
 
-    public bool Destroy()
+    public void Reset(float delay = -1f, int repetitions = 1)
     {
-        if (Destroyed) return false;
+	    TimesTriggered = 0;
+	    Repetitions = repetitions;
+
+	    if (delay < 0)
+	    {
+		    delay = Delay;
+	    }
+	    else
+	    {
+		    Delay = delay;
+	    }
+
+	    if (Destroyed)
+	    {
+		    Carbon.Logger.Warn($"You cannot restart a timer that has been destroyed.");
+		    return;
+	    }
+
+	    if (Persistence != null)
+	    {
+		    Persistence.CancelInvoke(Callback);
+		    Persistence.CancelInvokeFixedTime(Callback);
+	    }
+
+	    if (Repetitions == 1)
+	    {
+		    Callback = () =>
+		    {
+			    try
+			    {
+				    Activity?.Invoke();
+				    TimesTriggered++;
+			    }
+			    catch (Exception ex)
+			    {
+				    Carbon.Logger.Error($"Timer of {delay}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+			    }
+
+			    Destroy();
+		    };
+
+		    Persistence.Invoke(Callback, delay);
+	    }
+	    else
+	    {
+		    Callback = () =>
+		    {
+			    try
+			    {
+				    Activity?.Invoke();
+				    TimesTriggered++;
+
+				    if (TimesTriggered >= Repetitions)
+				    {
+					    Dispose();
+				    }
+			    }
+			    catch (Exception ex)
+			    {
+				    Carbon.Logger.Error($"Timer of {delay}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+				    Destroy();
+			    }
+		    };
+
+		    Persistence.InvokeRepeating(Callback, delay, delay);
+	    }
+    }
+
+    public void Destroy()
+    {
+	    if (Destroyed)
+	    {
+		    return;
+	    }
         Destroyed = true;
 
         Persistence?.CancelInvoke(Callback);
@@ -188,8 +259,9 @@ public class Timer : IDisposable, Pool.IPooled
 
         Timer self = this;
         Pool.Free(ref self);
-        return true;
     }
+
+    public void DestroyToPool() => Destroy();
 
     public void Dispose() => Destroy();
 
