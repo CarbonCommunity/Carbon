@@ -195,7 +195,7 @@ public partial class AdminModule
 						PlayersTab.RefreshPlayers(tab, ap);
 						PlayersTab.ShowInfo(1, tab, ap, existentPlayer);
 					}, ap => Tab.OptionButton.Types.Warned),
-					new Tab.OptionButton(!groupEdit ? $"{(hookableType == HookableTypes.Plugin ? "Modules" : "Groups")}" : "Plugins", (ap2) =>
+					new Tab.OptionButton(!groupEdit ? $"{(hookableType == HookableTypes.Plugin ? "▼ Modules" : "▼ Groups")}" : "▼ Plugins", (ap2) =>
 					{
 						if (groupEdit)
 						{
