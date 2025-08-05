@@ -1,14 +1,11 @@
-﻿using API.Abstracts;
-using ConVar;
+﻿using ConVar;
 using Newtonsoft.Json;
 using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
 using static Carbon.Components.CUI;
 using static ConsoleSystem;
 using Color = UnityEngine.Color;
-using Player = Oxide.Game.Rust.Libraries.Player;
 using StringEx = Carbon.Extensions.StringEx;
-using Oxide.Game.Rust.Libraries;
 
 namespace Carbon.Modules;
 
@@ -2307,7 +2304,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Debugging.RefillPlayerVitals(target, true);
 
 		// OnCarbonEmpowerPlayerStats
-		HookCaller.CallStaticHook(837777771,player , target);
+		HookCaller.CallStaticHook(837777771, player, target);
 	}
 
 	public static void LockPlayerContainer(BasePlayer player, BasePlayer target, ItemContainer container, bool wants)
@@ -2315,7 +2312,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		container.SetLocked(wants);
 
 		// OnCarbonLockPlayerContainer
-		HookCaller.CallStaticHook(298795244, target, container, wants);
+		HookCaller.CallStaticHook(298795244, player, target, container, wants);
 	}
 
 	public static void PrivateMessagePlayer(BasePlayer player, BasePlayer target, string message)
@@ -2452,35 +2449,35 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		target.ChatMessage($"You have been {(wants ? "muted" : "unmuted")} by an admin. Reason: {reason}");
 
 		// OnCarbonMutePlayer
-		HookCaller.CallStaticHook(1234567890, player,  target, wants, reason); // Replace with actual hook ID
+		HookCaller.CallStaticHook(2716457321, player, target, wants, reason);
 	}
 
-	public static void BanPlayer(BasePlayer player, BasePlayer target, string reason = "No reason given",string duration = "")
+	public static void BanPlayer(BasePlayer player, BasePlayer target, string reason = "No reason given", string duration = "")
 	{
-		var expiry = -0L;
-		if (string.IsNullOrEmpty(duration))
+		var expiry = TimeSpan.Zero;
+		if (!string.IsNullOrEmpty(duration))
 		{
-			expiry = 0;
+			expiry = BanStringToSeconds(duration);
 		}
 
-		expiry = BanStringToSeconds(duration);
-		if (expiry <= 0)
+		long expiryUnixTime = -1L;
+		if (expiry != TimeSpan.Zero)
 		{
-			RustPlugin.Singleton<RustServer>().Ban(target.UserIDString, reason);
-			return;
+			expiryUnixTime = new DateTimeOffset(DateTime.UtcNow.Add(expiry)).ToUnixTimeSeconds();
 		}
-
-		if (expiry < 60) expiry = 60;
-		RustPlugin.Singleton<Player>().Ban(target,reason,expiry);
-		target.Kick(reason, false);
+		ServerUsers.Set(target.userID, ServerUsers.UserGroup.Banned, target.displayName, reason, expiryUnixTime);
+		ServerUsers.Save();
 
 		// OnCarbonBanPlayer
-		HookCaller.CallStaticHook(338697635, target, reason, expiry);
+		HookCaller.CallStaticHook(338697635, player, target, reason, expiry);
+
+		KickPlayer(player, target, reason);
 	}
 
 	public static void UnbanPlayer(BasePlayer player, BasePlayer target)
 	{
-		RustPlugin.Singleton<RustServer>().Unban(target.UserIDString);
+		ServerUsers.Remove(target.userID);
+		ServerUsers.Save();
 
 		// OnCarbonUnbanPlayer
 		HookCaller.CallStaticHook(1355418005, player, target);
@@ -2494,7 +2491,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		HookCaller.CallStaticHook(3987303153, player, target, reason);
 	}
 
-	private static long BanStringToSeconds(string duration)
+	private static TimeSpan BanStringToSeconds(string duration)
 	{
 		var banDuration = TimeSpan.Zero;
 		if (duration.EndsWith("Y") && int.TryParse(duration.TrimEnd('Y'), out var years))
@@ -2521,8 +2518,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			banDuration = TimeSpan.FromSeconds(seconds);
 		}
-
-		return (long)banDuration.TotalSeconds + (long)UnityEngine.Time.time;
+		return banDuration;
 	}
 
 	public static void OpenPlayerContainer(PlayerSession ap, BasePlayer player, Tab tab)
