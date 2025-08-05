@@ -565,11 +565,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
 		}
 
-		var button = cui.CreateProtectedButton(container, parent,
+		var button = cui.CreateProtectedButton(container, panel,
 			color: DataInstance.Colors.OptionColor,
 			textColor: "1 1 1 0.5",
 			text: string.Empty, 11,
-			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
+			xMin: 0.985f, xMax: 0.985f, OxMin: -25, OyMin: -12.5f, OyMax: 12.5f, yMin: 0.5f, yMax: 0.5f,
 			command: command,
 			font: Handler.FontTypes.RobotoCondensedRegular);
 
