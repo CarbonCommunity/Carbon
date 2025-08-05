@@ -317,7 +317,7 @@ public partial class AdminModule
 							Singleton.NextFrame(() => Singleton.Draw(ap.Player));
 						});
 					}, ap => Tab.OptionButton.Types.None),
-					new Tab.OptionButton(!pluginEdit ? hookableType == HookableTypes.Module ? "Players" : "Modules" : "Plugins", ap =>
+					new Tab.OptionButton(!groupEdit ? $"{(hookableType == HookableTypes.Plugin ? "▼ Modules" : "▼ Groups")}" : "▼ Plugins", (ap2) =>
 					{
 						if (pluginEdit)
 						{
