@@ -77,10 +77,11 @@ public class ScriptLoader : IScriptLoader
 		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, except, ref count, zipDevPlugins);
 #endif
 
-		if(count == 0)
+		if (count == 0)
 		{
 			ModLoader.IsBatchComplete = true;
 			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
+			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsInitialized, EventArgs.Empty);
 		}
 
 		static void ExecuteProcess(IScriptProcessor processor, bool folderMode, IEnumerable<string> except, ref int count, params string[][] folders)
