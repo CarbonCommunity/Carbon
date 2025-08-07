@@ -59,7 +59,7 @@ public class PermissionSql : Permission
 		Logger.Log($" Migrating {database.userdata.Count:n0} users..");
 		foreach (var user in database.userdata)
 		{
-			var data = userdata[user.Key] = user.Value;
+			userdata[user.Key] = user.Value;
 			CommitUser(user.Key, user.Value);
 			foreach (var group in user.Value.Groups)
 			{
