@@ -91,7 +91,6 @@ public partial class AdminModule
 
 		public static void GeneratePlayers(Tab tab, Permission perms, PlayerSession ap)
 		{
-			var localPlayers = ap.GetStorage(tab, "localplayers", true);
 			var filter = ap.GetStorage(tab, "playerfilter", string.Empty)?.Trim().ToLower();
 
 			tab.ClearColumn(1);
@@ -102,12 +101,7 @@ public partial class AdminModule
 					ap.SetStorage(tab, "playerfilter", args.ToString(" "));
 					GeneratePlayers(tab, perms, ap);
 				});
-				tab.AddButtonArray(1, new Tab.OptionButton("Data Users", ap =>
-				{
-					localPlayers = ap.SetStorage(tab, "localplayers", !localPlayers);
-					GeneratePlayers(tab, perms, ap);
-				}, ap => !localPlayers ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
-				new Tab.OptionButton("Add User", ap =>
+				tab.AddButtonArray(1, new Tab.OptionButton("Add User", ap =>
 				{
 					Singleton.Modal.Open(ap.Player, "Create New User", new()
 					{
@@ -124,52 +118,30 @@ public partial class AdminModule
 					});
 				}, ap => Tab.OptionButton.Types.None));
 
-				if (localPlayers)
+				var players = BasePlayer.allPlayerList.Where(x =>
 				{
-					var players = BasePlayer.allPlayerList.Where(x =>
+					if (!x.userID.IsSteamId()) return false;
+
+					if (!string.IsNullOrEmpty(filter))
 					{
-						if (!x.userID.IsSteamId()) return false;
-
-						if (!string.IsNullOrEmpty(filter))
-						{
-							return x.displayName.ToLower().Contains(filter) || x.UserIDString.Contains(filter);
-						}
-
-						return true;
-					});
-
-					foreach (var player in players)
-					{
-						tab.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
-						{
-							ap.SetStorage(tab, "player", player.UserIDString);
-
-							ap.ClearStorage(tab, "plugin");
-
-							tab.ClearColumn(3);
-
-							GenerateHookables(tab, ap, perms, permission.FindUser(player.UserIDString), null, HookableTypes.Plugin);
-						}, type: (_instance) => ap.GetStorage<string>(tab, "player", null) == player.UserIDString ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+						return x.displayName.ToLower().Contains(filter) || x.UserIDString.Contains(filter);
 					}
-				}
-				else
+
+					return true;
+				});
+
+				foreach (var player in players)
 				{
-					foreach (var player in permission.userdata)
+					tab.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
 					{
-						if (player.Key.Contains(filter) || (!string.IsNullOrEmpty(player.Value.LastSeenNickname) && player.Value.LastSeenNickname.ToLower().Contains(filter)))
-						{
-							tab.AddRow(1, new Tab.OptionButton($"{(string.IsNullOrEmpty(player.Value.LastSeenNickname) ? "Unknown" : player.Value.LastSeenNickname)} ({player.Key})", instance2 =>
-							{
-								ap.SetStorage(tab, "player", player.Key);
+						ap.SetStorage(tab, "player", player.UserIDString);
 
-								ap.ClearStorage(tab, "plugin");
+						ap.ClearStorage(tab, "plugin");
 
-								tab.ClearColumn(3);
+						tab.ClearColumn(3);
 
-								GenerateHookables(tab, ap, perms, player, null, HookableTypes.Plugin);
-							}, type: (_instance) => ap.GetStorage<string>(tab, "player", null) == player.Key ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
-						}
-					}
+						GenerateHookables(tab, ap, perms, permission.FindUser(player.UserIDString), null, HookableTypes.Plugin);
+					}, type: (_instance) => ap.GetStorage<string>(tab, "player", null) == player.UserIDString ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 				}
 			}
 		}
@@ -317,7 +289,7 @@ public partial class AdminModule
 							Singleton.NextFrame(() => Singleton.Draw(ap.Player));
 						});
 					}, ap => Tab.OptionButton.Types.None),
-					new Tab.OptionButton(!pluginEdit ? hookableType == HookableTypes.Module ? "Players" : "Modules" : "Plugins", ap =>
+					new Tab.OptionButton(!groupEdit ? $"{(hookableType == HookableTypes.Plugin ? "▼ Modules" : "▼ Groups")}" : "▼ Plugins", (ap2) =>
 					{
 						if (pluginEdit)
 						{

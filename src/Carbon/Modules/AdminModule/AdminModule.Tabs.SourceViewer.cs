@@ -163,11 +163,13 @@ public partial class AdminModule
 			public string Process(SyntaxTree syntaxTree)
 			{
 				var root = syntaxTree.GetRoot();
-				var builder = new StringBuilder();
+				var builder = Pool.Get<StringBuilder>();
 
 				WriteNode(root, builder);
 
-				return builder.ToString();
+				var result = builder.ToString();
+				Pool.FreeUnmanaged(ref builder);
+				return result;
 			}
 
 			private void WriteNode(SyntaxNode node, StringBuilder builder)

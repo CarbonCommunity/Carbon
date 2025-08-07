@@ -74,8 +74,6 @@ public class Config
 		public bool ScriptWatchers { get; set; } = true;
 		public bool ZipScriptWatchers { get; set; } = true;
 		public SearchOption ScriptWatcherOption { get; set; } = SearchOption.TopDirectoryOnly;
-		public bool ModuleWatchers { get; set; } = true;
-		public bool ExtensionWatchers { get; set; } = true;
 	}
 
 	public class PermissionsConfig

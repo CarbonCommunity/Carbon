@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Text;
+using Facepunch;
 
 namespace Oxide.Core.Database;
 
@@ -43,11 +44,12 @@ public class Sql
 	{
 		if (_sqlFinal != null) return;
 
-		var stringBuilder = new StringBuilder();
+		var builder = Pool.Get<StringBuilder>();
 		var list = new List<object>();
-		Build(stringBuilder, list, null);
+		Build(builder, list, null);
 
-		var text = stringBuilder.ToString();
+		var text = builder.ToString();
+		Pool.FreeUnmanaged(ref builder);
 
 		if (Filter.IsMatch(text))
 		{
@@ -173,15 +175,17 @@ public class Sql
 			}
 			if (obj is IEnumerable && !(obj is string) && !(obj is byte[]))
 			{
-				var stringBuilder = new StringBuilder();
+				var builder = Pool.Get<StringBuilder>();
 
 				foreach (object item in (obj as IEnumerable))
 				{
-					stringBuilder.Append(((stringBuilder.Length == 0) ? "@" : ",@") + argsDest.Count.ToString());
+					builder.Append(((builder.Length == 0) ? "@" : ",@") + argsDest.Count.ToString());
 					argsDest.Add(item);
 				}
 
-				return stringBuilder.ToString();
+				var result = builder.ToString();
+				Pool.FreeUnmanaged(ref builder);
+				return result;
 			}
 
 			argsDest.Add(obj);

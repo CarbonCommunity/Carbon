@@ -508,7 +508,7 @@ public partial class CorePlugin
 				count++;
 			}
 
-			var builder = new StringBuilder();
+			var builder = Pool.Get<StringBuilder>();
 
 			builder.AppendLine($"{plugin.Name} v{plugin.Version} by {plugin.Author}{(plugin.IsCorePlugin ? $" [core]" : string.Empty)}");
 			builder.AppendLine($"  Path:                   {plugin.FilePath}");
@@ -538,6 +538,7 @@ public partial class CorePlugin
 			}
 
 			arg.ReplyWith(builder.ToString());
+			Pool.FreeUnmanaged(ref builder);
 		}
 	}
 

@@ -1,10 +1,98 @@
 ﻿using System.Text;
 using Carbon.Base.Interfaces;
+using Facepunch;
 
 namespace Carbon.Core;
 
 public partial class CorePlugin
 {
+	[ConsoleCommand("moduleinfo", "Prints advanced information about a currently loaded module. From hooks, hook times, hook memory usage and other things.")]
+	[AuthLevel(2)]
+	private void ModuleInfo(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs(1))
+		{
+			Logger.Warn("You must provide the name of a module to print module advanced information.");
+			return;
+		}
+
+		var name = arg.GetString(0);
+		var mode = arg.GetString(1);
+		var flip = arg.GetString(2).Equals("-asc");
+		var module = BaseModule.FindModule(name);
+
+		if (module == null)
+		{
+			arg.ReplyWith("Couldn't find that module.");
+			return;
+		}
+
+		using (var table = new StringTable(string.Empty, "id", "hook", "time", "fires", "memory", "lag", "exceptions", "subscribed", "async / hooks"))
+		{
+			IEnumerable<List<CachedHook>> array = mode switch
+			{
+				"-t" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.HookTime.TotalMilliseconds)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.HookTime.TotalMilliseconds))).Select(x => x.Value.Hooks),
+				"-m" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.MemoryUsage)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.MemoryUsage))).Select(x => x.Value.Hooks),
+				"-f" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.TimesFired)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.TimesFired))).Select(x => x.Value.Hooks),
+				"-ls" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.LagSpikes)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.LagSpikes))).Select(x => x.Value.Hooks),
+				"-ex" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.Exceptions)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.Exceptions))).Select(x => x.Value.Hooks),
+				_ => module.HookPool.Select(x => x.Value.Hooks)
+			};
+
+			foreach (var hook in array)
+			{
+				if (hook.Count == 0)
+				{
+					continue;
+				}
+
+				var current = hook[0];
+				var hookName = current.Method.Name;
+
+				var hookId = HookStringPool.GetOrAdd(hookName);
+
+				if (!module.Hooks.Contains(hookId))
+				{
+					continue;
+				}
+
+				var hookTime = hook.Sum(x => x.HookTime.TotalMilliseconds);
+				var hookMemoryUsage = hook.Sum(x => x.MemoryUsage);
+				var hookCount = hook.Count;
+				var hookAsyncCount = hook.Count(x => x.IsAsync);
+				var hookTimesFired = hook.Sum(x => x.TimesFired);
+				var hookLagSpikes = hook.Sum(x => x.LagSpikes);
+				var hookException = hook.Sum(x => x.Exceptions);
+
+				table.AddRow(string.Empty,
+					hookId,
+					$"{hookName}",
+					hookTime == 0 ? string.Empty : $"{hookTime:0}ms",
+					hookTimesFired == 0 ? string.Empty : $"{hookTimesFired:n0}",
+					hookMemoryUsage == 0 ? string.Empty : $"{ByteEx.Format(hookMemoryUsage, shortName: true).ToLower()}",
+					hookLagSpikes == 0 ? string.Empty : $"{hookLagSpikes:n0}",
+					hookException == 0 ? string.Empty : $"{hookException:n0}",
+					!module.IgnoredHooks.Contains(hookId) ? "*" : string.Empty,
+					$"{hookAsyncCount:n0} / {hookCount:n0}");
+			}
+
+			var builder = Pool.Get<StringBuilder>();
+			builder.AppendLine($"Additional information for {module.Name} v{module.Version}{(module.ForceEnabled ? $" [force enabled]" : string.Empty)}");
+			builder.AppendLine($"  Enabled:                {module.IsEnabled()}");
+			builder.AppendLine($"  Enabled (default):      {module.EnabledByDefault}");
+			builder.AppendLine($"  Context:                {module.Context}");
+			builder.AppendLine($"  Uptime:                 {TimeEx.Format(module.Uptime, true).ToLower()}");
+			builder.AppendLine($"  Total Hook Time:        {module.TotalHookTime.TotalMilliseconds:0}ms");
+			builder.AppendLine($"  Total Memory Used:      {ByteEx.Format(module.TotalMemoryUsed, shortName: true).ToLower()}");
+			builder.AppendLine($"  Internal Hook Override: {module.InternalCallHookOverriden}");
+			builder.AppendLine($"Hooks:");
+			builder.AppendLine(table.ToStringMinimal());
+
+			arg.ReplyWith(builder.ToString());
+			Pool.FreeUnmanaged(ref builder);
+		}
+	}
+
 	[ConsoleCommand("setmodule", "Enables or disables Carbon modules. Visit root/carbon/modules and use the config file names as IDs.")]
 	[AuthLevel(2)]
 	private void SetModule(ConsoleSystem.Arg arg)
@@ -48,18 +136,6 @@ public partial class CorePlugin
 		}
 	}
 
-	[ConsoleCommand("savemodules", "Saves the configs and data files of all available modules.")]
-	[AuthLevel(2)]
-	private void SaveModules(ConsoleSystem.Arg arg)
-	{
-		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
-		{
-			hookable.To<IModule>().Save();
-		}
-
-		arg.ReplyWith($"Saved {Community.Runtime.ModuleProcessor.Modules.Count:n0} module configs and data files.");
-	}
-
 	[ConsoleCommand("savemodule", "Saves Carbon module config & data file.")]
 	[AuthLevel(2)]
 	private void SaveModule(ConsoleSystem.Arg arg)
@@ -78,18 +154,6 @@ public partial class CorePlugin
 		module.Save();
 
 		arg.ReplyWith($"Saved '{module.Name}' module config & data file.");
-	}
-
-	[ConsoleCommand("loadmodules", "Loads the configs and data files of all available modules.")]
-	[AuthLevel(2)]
-	private void LoadModules(ConsoleSystem.Arg arg)
-	{
-		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
-		{
-			hookable.To<IModule>().Load();
-		}
-
-		arg.ReplyWith($"Loaded {Community.Runtime.ModuleProcessor.Modules.Count:n0} module configs and data files.");
 	}
 
 	[ConsoleCommand("loadmodule", "Loads Carbon module config & data file.")]
@@ -200,113 +264,6 @@ public partial class CorePlugin
 		}
 
 		arg.ReplyWith(print.Write(StringTable.FormatTypes.None));
-	}
-
-	[ConsoleCommand("moduleinfo", "Prints advanced information about a currently loaded module. From hooks, hook times, hook memory usage and other things.")]
-	[AuthLevel(2)]
-	private void ModuleInfo(ConsoleSystem.Arg arg)
-	{
-		if (!arg.HasArgs(1))
-		{
-			Logger.Warn("You must provide the name of a module to print module advanced information.");
-			return;
-		}
-
-		var name = arg.GetString(0);
-		var mode = arg.GetString(1);
-		var flip = arg.GetString(2).Equals("-asc");
-		var module = BaseModule.FindModule(name);
-
-		if (module == null)
-		{
-			arg.ReplyWith("Couldn't find that module.");
-			return;
-		}
-
-		using (var table = new StringTable(string.Empty, "id", "hook", "time", "fires", "memory", "lag", "exceptions", "subscribed", "async / hooks"))
-		{
-			IEnumerable<List<CachedHook>> array = mode switch
-			{
-				"-t" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.HookTime.TotalMilliseconds)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.HookTime.TotalMilliseconds))).Select(x => x.Value.Hooks),
-				"-m" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.MemoryUsage)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.MemoryUsage))).Select(x => x.Value.Hooks),
-				"-f" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.TimesFired)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.TimesFired))).Select(x => x.Value.Hooks),
-				"-ls" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.LagSpikes)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.LagSpikes))).Select(x => x.Value.Hooks),
-				"-ex" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.Exceptions)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.Exceptions))).Select(x => x.Value.Hooks),
-				_ => module.HookPool.Select(x => x.Value.Hooks)
-			};
-
-			foreach (var hook in array)
-			{
-				if (hook.Count == 0)
-				{
-					continue;
-				}
-
-				var current = hook[0];
-				var hookName = current.Method.Name;
-
-				var hookId = HookStringPool.GetOrAdd(hookName);
-
-				if (!module.Hooks.Contains(hookId))
-				{
-					continue;
-				}
-
-				var hookTime = hook.Sum(x => x.HookTime.TotalMilliseconds);
-				var hookMemoryUsage = hook.Sum(x => x.MemoryUsage);
-				var hookCount = hook.Count;
-				var hookAsyncCount = hook.Count(x => x.IsAsync);
-				var hookTimesFired = hook.Sum(x => x.TimesFired);
-				var hookLagSpikes = hook.Sum(x => x.LagSpikes);
-				var hookException = hook.Sum(x => x.Exceptions);
-
-				table.AddRow(string.Empty,
-					hookId,
-					$"{hookName}",
-					hookTime == 0 ? string.Empty : $"{hookTime:0}ms",
-					hookTimesFired == 0 ? string.Empty : $"{hookTimesFired:n0}",
-					hookMemoryUsage == 0 ? string.Empty : $"{ByteEx.Format(hookMemoryUsage, shortName: true).ToLower()}",
-					hookLagSpikes == 0 ? string.Empty : $"{hookLagSpikes:n0}",
-					hookException == 0 ? string.Empty : $"{hookException:n0}",
-					!module.IgnoredHooks.Contains(hookId) ? "*" : string.Empty,
-					$"{hookAsyncCount:n0} / {hookCount:n0}");
-			}
-
-			var builder = new StringBuilder();
-
-			builder.AppendLine($"Additional information for {module.Name} v{module.Version}{(module.ForceEnabled ? $" [force enabled]" : string.Empty)}");
-			builder.AppendLine($"  Enabled:                {module.IsEnabled()}");
-			builder.AppendLine($"  Enabled (default):      {module.EnabledByDefault}");
-			builder.AppendLine($"  Context:                {module.Context}");
-			builder.AppendLine($"  Uptime:                 {TimeEx.Format(module.Uptime, true).ToLower()}");
-			builder.AppendLine($"  Total Hook Time:        {module.TotalHookTime.TotalMilliseconds:0}ms");
-			builder.AppendLine($"  Total Memory Used:      {ByteEx.Format(module.TotalMemoryUsed, shortName: true).ToLower()}");
-			builder.AppendLine($"  Internal Hook Override: {module.InternalCallHookOverriden}");
-			builder.AppendLine($"Hooks:");
-			builder.AppendLine(table.ToStringMinimal());
-
-			arg.ReplyWith(builder.ToString());
-		}
-	}
-
-	[ConsoleCommand("reloadmodules", "Fully reloads all modules.")]
-	[AuthLevel(2)]
-	private void ReloadModules(ConsoleSystem.Arg arg)
-	{
-		var entrypointName = arg.GetString(0);
-
-		var entry = Community.Runtime.AssemblyEx.Modules.Loaded.FirstOrDefault(x =>
-			Path.GetFileNameWithoutExtension(x.Value.Key)
-				.Equals(entrypointName, StringComparison.InvariantCultureIgnoreCase));
-
-		if (entry.Key == null)
-		{
-			Logger.Warn($"Couldn't find entrypoint with that name: '{entrypointName}'");
-			return;
-		}
-
-		Community.Runtime.AssemblyEx.Modules.Unload(entry.Value.Key, "Core.ReloadModules");
-		Community.Runtime.AssemblyEx.Modules.Load(entry.Value.Key, "Core.ReloadModules");
 	}
 
 	[ConsoleCommand("reloadmodule", "Reloads a currently loaded module assembly entirely.")]

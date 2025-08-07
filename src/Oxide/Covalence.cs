@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Facepunch;
 
 namespace Oxide.Core.Libraries.Covalence
 {
@@ -76,22 +77,24 @@ namespace Oxide.Core.Libraries.Covalence
 
 		private static string ToTreeFormat(List<Element> tree, Dictionary<ElementType, Func<object, Tag>> translations)
 		{
-			var stringBuilder = new StringBuilder();
+			var builder = Pool.Get<StringBuilder>();
 			foreach (var element in tree)
 			{
 				if (element.Type == ElementType.String)
 				{
-					stringBuilder.Append(element.Val);
+					builder.Append(element.Val);
 				}
 				else
 				{
 					var tag = Translation(element, translations);
-					stringBuilder.Append(tag.Open);
-					stringBuilder.Append(ToTreeFormat(element.Body, translations));
-					stringBuilder.Append(tag.Close);
+					builder.Append(tag.Open);
+					builder.Append(ToTreeFormat(element.Body, translations));
+					builder.Append(tag.Close);
 				}
 			}
-			return stringBuilder.ToString();
+			var result = builder.ToString();
+			Pool.FreeUnmanaged(ref builder);
+			return result;
 		}
 
 		private static string ToTreeFormat(string text, Dictionary<ElementType, Func<object, Tag>> translations)

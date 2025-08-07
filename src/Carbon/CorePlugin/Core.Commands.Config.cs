@@ -84,14 +84,6 @@ public partial class CorePlugin
 		}
 	}
 
-	[CommandVar("modulewatchers", "When disabled, modules only get loaded when the server boots.")]
-	[AuthLevel(2)]
-	private bool ModuleWatchers { get { return Community.Runtime.Config.Watchers.ModuleWatchers; } set { Community.Runtime.Config.Watchers.ModuleWatchers = value; Community.Runtime.SaveConfig(); } }
-
-	[CommandVar("extensionwatchers", "When disabled, extensions only get loaded when the server boots.")]
-	[AuthLevel(2)]
-	private bool ExtensionWatchers { get { return Community.Runtime.Config.Watchers.ExtensionWatchers; } set { Community.Runtime.Config.Watchers.ExtensionWatchers = value; Community.Runtime.SaveConfig(); } }
-
 	[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)")]
 	[AuthLevel(2)]
 	private int CarbonDebug { get { return Community.Runtime.Config.Logging.LogVerbosity; } set { Community.Runtime.Config.Logging.LogVerbosity = value; Community.Runtime.SaveConfig(); } }

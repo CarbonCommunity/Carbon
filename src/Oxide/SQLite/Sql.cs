@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Text;
+using Facepunch;
 
 namespace Oxide.Ext.SQLite;
 
@@ -42,13 +43,14 @@ public class Sql
 	{
 		if (_sqlFinal != null) return;
 
-		var stringBuilder = new StringBuilder();
+		var builder = Pool.Get<StringBuilder>();
 		var list = new List<object>();
 
-		Build(stringBuilder, list, null);
+		Build(builder, list, null);
 
-		_sqlFinal = stringBuilder.ToString();
+		_sqlFinal = builder.ToString();
 		_argsFinal = list.ToArray();
+		Pool.FreeUnmanaged(ref builder);
 	}
 	public Sql Append(Sql sql)
 	{
@@ -166,15 +168,17 @@ public class Sql
 			}
 			if (obj is IEnumerable && !(obj is string) && !(obj is byte[]))
 			{
-				var stringBuilder = new StringBuilder();
+				var builder = Pool.Get<StringBuilder>();
 
 				foreach (object item in (obj as IEnumerable))
 				{
-					stringBuilder.Append(((stringBuilder.Length == 0) ? "@" : ",@") + argsDest.Count.ToString());
+					builder.Append(((builder.Length == 0) ? "@" : ",@") + argsDest.Count.ToString());
 					argsDest.Add(item);
 				}
 
-				return stringBuilder.ToString();
+				var result = builder.ToString();
+				Pool.FreeUnmanaged(ref builder);
+				return result;
 			}
 
 			argsDest.Add(obj);
