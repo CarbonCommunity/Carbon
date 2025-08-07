@@ -51,6 +51,7 @@ public class PermissionSql : Permission
 			SetGroupParent(group.Key, group.Value.ParentGroup);
 			foreach (var perm in group.Value.Perms)
 			{
+				GrantGroupPermission(group.Key, perm, null);
 				db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", group.Key, perm);
 			}
 			Logger.Log($" Group {group.Key} with {group.Value.Perms.Count} perms");
@@ -58,18 +59,21 @@ public class PermissionSql : Permission
 		Logger.Log($" Migrating {database.userdata.Count:n0} users..");
 		foreach (var user in database.userdata)
 		{
-			userdata[user.Key] = user.Value;
+			var data = userdata[user.Key] = user.Value;
 			CommitUser(user.Key, user.Value);
 			foreach (var group in user.Value.Groups)
 			{
-				var exists = db.Query<int, string>("SELECT COUNT(*) FROM groups WHERE groupName = ?", group);
-				if (exists > 0)
+				var selfGroup = group;
+				if (!group.IsLower())
 				{
-					db?.Execute("INSERT OR IGNORE INTO userGroups ( userId, groupName ) VALUES ( ?, ? )", user.Key, group);
+					selfGroup = group.ToLowerInvariant();
 				}
+				AddUserGroup(user.Key, selfGroup);
+				db?.Execute("INSERT OR IGNORE INTO userGroups ( userId, groupName ) VALUES ( ?, ? )", user.Key, selfGroup);
 			}
 			foreach (var perm in user.Value.Perms)
 			{
+				GrantUserPermission(user.Key, perm, null);
 				db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", user.Key, perm);
 			}
 		}
