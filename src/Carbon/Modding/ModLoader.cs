@@ -669,6 +669,8 @@ public static partial class ModLoader
 		temp.Clear();
 		Facepunch.Pool.FreeUnmanaged(ref temp);
 
+		Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
+
 		if (!Community.IsServerInitialized)
 		{
 			return;
@@ -714,6 +716,6 @@ public static partial class ModLoader
 			Logger.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
 		}
 
-		Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
+		Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsInitialized, EventArgs.Empty);
 	}
 }
