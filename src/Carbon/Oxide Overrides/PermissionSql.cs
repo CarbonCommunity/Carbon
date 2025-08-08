@@ -12,7 +12,7 @@ public class PermissionSql : Permission
 		{
 			return;
 		}
-		var path = Path.Combine(ConVar.Server.filesStorageFolder, "carbon.perms.db");
+		var path = Switches.GetSQLPermissionsDatabase(Path.Combine(ConVar.Server.filesStorageFolder, "carbon.perms.db"));
 		db = new PermissionDatabase();
 		db.Open(path);
 		db.Execute("PRAGMA foreign_keys = ON");
