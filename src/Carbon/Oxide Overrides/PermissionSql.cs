@@ -32,7 +32,7 @@ public class PermissionSql : Permission
 
 	public override void SaveData()
 	{
-		base.SaveData();
+		db?.Execute("PRAGMA wal_checkpoint(FULL)");
 	}
 
 	public override void SaveUsers() { }
