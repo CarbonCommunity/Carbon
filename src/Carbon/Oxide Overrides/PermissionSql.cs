@@ -16,12 +16,10 @@ public class PermissionSql : Permission
 		db = new PermissionDatabase();
 		db.Open(path);
 		db.Execute("PRAGMA foreign_keys = ON");
-		db.Execute("PRAGMA journal_mode = DELETE");
 		if (db.TableExists("users"))
 		{
 			return;
 		}
-
 		db.Execute("CREATE TABLE users ( userId TEXT PRIMARY KEY, lastSeenNickname TEXT, language TEXT )");
 		db.Execute("CREATE INDEX IF NOT EXISTS userId ON users ( userId )");
 		db.Execute("CREATE TABLE IF NOT EXISTS userPerms (userId TEXT, permission TEXT, PRIMARY KEY (userId, permission), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE)");
@@ -55,6 +53,7 @@ public class PermissionSql : Permission
 				GrantGroupPermission(group.Key, perm, null);
 				db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", group.Key, perm);
 			}
+			db.Commit();
 			Logger.Log($" Group {group.Key} with {group.Value.Perms.Count} perms");
 		}
 		Logger.Log($" Migrating {database.userdata.Count:n0} users..");
@@ -78,6 +77,7 @@ public class PermissionSql : Permission
 				db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", user.Key, perm);
 			}
 		}
+		db.Commit();
 		Logger.Log($"Successfully migrated database!");
 	}
 
@@ -118,6 +118,7 @@ public class PermissionSql : Permission
 				group = group.ToLower();
 			}
 			db?.Execute("INSERT OR REPLACE INTO groups ( groupName, title, rank ) VALUES ( ?, ?, ? )", group, title, rank);
+			db.Commit();
 			return true;
 		}
 
@@ -133,6 +134,7 @@ public class PermissionSql : Permission
 				group = group.ToLower();
 			}
 			db?.Execute("DELETE FROM groups WHERE groupName = ?", group);
+			db.Commit();
 			return true;
 		}
 		return false;
@@ -147,6 +149,7 @@ public class PermissionSql : Permission
 				group = group.ToLower();
 			}
 			db?.Execute("UPDATE groups SET title = ? WHERE groupName = ?", title, group);
+			db.Commit();
 			return true;
 		}
 		return false;
@@ -161,6 +164,7 @@ public class PermissionSql : Permission
 				group = group.ToLower();
 			}
 			db?.Execute("UPDATE groups SET rank = ? WHERE groupName = ?", rank, group);
+			db.Commit();
 			return true;
 		}
 		return false;
@@ -175,6 +179,7 @@ public class PermissionSql : Permission
 				group = group.ToLower();
 			}
 			db?.Execute("UPDATE groups SET parentGroup = ? WHERE groupName = ?", parent, group);
+			db.Commit();
 			return true;
 		}
 		return false;
@@ -189,6 +194,7 @@ public class PermissionSql : Permission
 				name = name.ToLower();
 			}
 			db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", name, perm);
+			db.Commit();
 			return true;
 		}
 		return false;
@@ -203,6 +209,7 @@ public class PermissionSql : Permission
 				name = name.ToLower();
 			}
 			db?.Execute("DELETE FROM groupsPerms WHERE groupName = ? AND permission = ?", name, perm);
+			db.Commit();
 			return true;
 		}
 		return false;
@@ -233,6 +240,7 @@ public class PermissionSql : Permission
 	public override void CommitUser(string userId, UserData data)
 	{
 		db?.Execute("INSERT OR REPLACE INTO users ( userId, lastSeenNickname, language ) VALUES ( ?, ?, ? )", userId, data.LastSeenNickname, data.Language);
+		db.Commit();
 	}
 
 	public override bool GrantUserPermission(string id, string perm, BaseHookable owner)
@@ -271,6 +279,7 @@ public class PermissionSql : Permission
 					}
 
 					db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", id, s);
+					db.Commit();
 
 					// OnUserPermissionGranted
 					HookCaller.CallStaticHook(4054877424, id, s);
@@ -290,6 +299,7 @@ public class PermissionSql : Permission
 				}
 
 				db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", id, s);
+				db.Commit();
 
 				// OnUserPermissionGranted
 				HookCaller.CallStaticHook(4054877424, id, s);
@@ -305,6 +315,7 @@ public class PermissionSql : Permission
 			}
 
 			db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", id, perm);
+			db.Commit();
 
 			// OnUserPermissionGranted
 			HookCaller.CallStaticHook(4054877424, id, perm);
@@ -340,6 +351,7 @@ public class PermissionSql : Permission
 					}
 
 					db?.Execute("DELETE FROM userPerms WHERE userId = ? AND permission = ?", id, s);
+					db.Commit();
 
 					// OnUserPermissionRevoked
 					HookCaller.CallStaticHook(1879829838, id, s);
@@ -363,6 +375,7 @@ public class PermissionSql : Permission
 			}
 
 			db?.Execute("DELETE FROM userPerms WHERE userId = ? AND permission = ?", id, perm);
+			db.Commit();
 
 			// OnUserPermissionRevoked
 			HookCaller.CallStaticHook(1879829838, id, perm);
@@ -382,6 +395,7 @@ public class PermissionSql : Permission
 		}
 
 		db?.Execute("INSERT OR IGNORE INTO userGroups ( userId, groupName ) VALUES ( ?, ? )", id, name);
+		db.Commit();
 
 		// OnUserGroupAdded
 		HookCaller.CallStaticHook(3116013984, id, name);
@@ -419,6 +433,7 @@ public class PermissionSql : Permission
 			}
 
 			db?.Execute("DELETE FROM userGroups WHERE userId = ? AND groupName = ?", id, name);
+			db.Commit();
 
 			// OnUserGroupRemoved
 			HookCaller.CallStaticHook(1018697706, id, name);
