@@ -199,6 +199,8 @@ public class OxideMod
 	{
 		if (!IsShuttingDown)
 		{
+			Permission?.SaveData();
+			Permission?.Dispose();
 			IsShuttingDown = true;
 		}
 	}
