@@ -16,6 +16,7 @@ public class PermissionSql : Permission
 		db = new PermissionDatabase();
 		db.Open(path);
 		db.Execute("PRAGMA foreign_keys = ON");
+		db.Execute("PRAGMA journal_mode = DELETE");
 		if (db.TableExists("users"))
 		{
 			return;
