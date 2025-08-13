@@ -58,3 +58,6 @@
 [submodule "Carbon.Core/Carbon.UniTask"]
 	path = Carbon.Core/Carbon.UniTask
 	url = https://github.com/CarbonCommunity/Carbon.UniTask.git
+[submodule "Carbon.Core/Carbon.Components/Carbon.Oxide"]
+	path = Carbon.Core/Carbon.Components/Carbon.Oxide
+	url = https://github.com/CarbonCommunity/Carbon.Oxide.git
