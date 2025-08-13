@@ -170,18 +170,30 @@ public readonly struct CUI : IDisposable
 	}
 	public Pair<string, CuiElement> CreateQRCodeImage(CuiElementContainer container, string parent, string text, string brandUrl, string brandColor, string brandBgColor, int pixels, bool transparent, bool quietZones, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false, string id = null, string destroyUi = null, bool update = false)
 	{
-		var qr = CreateImage(container, parent, ImageDatabase.GetQRCode(text, pixels, transparent, quietZones, true), color, null, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, outlineColor, outlineDistance, outlineUseGraphicAlpha, id, destroyUi, update);
-
-		if (!string.IsNullOrEmpty(brandUrl))
+		try
 		{
-			var panel = CreatePanel(container, qr, brandBgColor,
-				xMin: 0.4f, xMax: 0.6f, yMin: 0.4f, yMax: 0.6f);
+			var codeImage = ImageDatabase.GetQRCode(text, pixels, transparent, quietZones, true);
+			var qr = CreateImage(container, parent, codeImage, color, null, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin,
+				OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, outlineColor, outlineDistance,
+				outlineUseGraphicAlpha, id, destroyUi, update);
+			if (!string.IsNullOrEmpty(brandUrl))
+			{
+				var panel = CreatePanel(container, qr, brandBgColor,
+					xMin: 0.4f, xMax: 0.6f, yMin: 0.4f, yMax: 0.6f);
 
-			CreateImage(container, panel, url: brandUrl, color: brandColor,
-				material: null, xMin: 0.15f, 0.85f, yMin: 0.15f, yMax: 0.85f);
+				CreateImage(container, panel, url: brandUrl, color: brandColor,
+					material: null, xMin: 0.15f, 0.85f, yMin: 0.15f, yMax: 0.85f);
+			}
+			return qr;
 		}
-
-		return qr;
+		catch (Exception)
+		{
+			var qr = CreatePanel(container, parent, Cache.CUI.WhiteColor, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin,
+				OyMax, false, fadeIn, fadeOut, needsCursor, needsKeyboard, outlineColor, outlineDistance,
+				outlineUseGraphicAlpha, id, destroyUi, update);
+			CreateText(container, qr, "0 0 0 0.5", "GDI+ is not installed!", 10);
+			return qr;
+		}
 	}
 	public Pair<string, CuiElement> CreateClientImage(CuiElementContainer container, string parent, string url, string color, string material = null, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false, string id = null, string destroyUi = null, bool update = false)
 	{
