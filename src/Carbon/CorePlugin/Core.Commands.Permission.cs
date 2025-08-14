@@ -694,9 +694,19 @@ public partial class CorePlugin
 			}
 		}
 
+		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		{
+			if (module is BaseModule baseModule)
+			{
+				baseModule.SetPermissions(sql);
+			}
+		}
+
 		Community.Runtime.Core.permission = sql;
 		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.SQL;
 		Community.Runtime.SaveConfig();
+
+		Analytics.perms_migration(Community.Runtime.Config.Permissions.PermissionSerialization, sql.groupdata.Count, sql.userdata.Count);
 	}
 
 	[ConsoleCommand("migrate_perms_proto", "This will migrate all groups and users to a locally stored Protobuf database from your SQL database.")]
@@ -721,9 +731,19 @@ public partial class CorePlugin
 			}
 		}
 
+		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		{
+			if (module is BaseModule baseModule)
+			{
+				baseModule.SetPermissions(protobuf);
+			}
+		}
+
 		Community.Runtime.Core.permission = protobuf;
 		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.Protobuf;
 		Community.Runtime.SaveConfig();
+
+		Analytics.perms_migration(Community.Runtime.Config.Permissions.PermissionSerialization, protobuf.groupdata.Count, protobuf.userdata.Count);
 
 		protobuf.SaveData();
 	}
