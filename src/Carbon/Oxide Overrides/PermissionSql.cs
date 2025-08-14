@@ -459,10 +459,13 @@ public class PermissionSql : Permission
 		if (!string.IsNullOrEmpty(moderatorDefaultGroup) && !GroupExists(moderatorDefaultGroup))
 			CreateGroup(moderatorDefaultGroup, moderatorDefaultGroup.ToCamelCase(), 1);
 
-		var userdata = db.QueryUsers();
-		foreach (var user in userdata)
+		if (Community.Runtime.Config.Permissions.SqlPermissionUserPreload)
 		{
-			this.userdata[user.userId] = user.data;
+			var userdata = db.QueryUsers();
+			foreach (var user in userdata)
+			{
+				this.userdata[user.userId] = user.data;
+			}
 		}
 
 		IsLoaded = true;
