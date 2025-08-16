@@ -149,7 +149,7 @@ public class Player : Library
 		player.net.connection.username = name;
 		player.displayName = name;
 		player._name = name;
-		player.SendNetworkUpdateImmediate(false);
+		player.SendNetworkUpdateImmediate();
 		permission.UpdateNickname(player.UserIDString, name);
 		Teleport(player, player.transform.position);
 	}
