@@ -35,6 +35,9 @@ public sealed class Switches
 	[Switch(Name = "-carbon.profiledir", Help = "Overrides the mono profiler results directory of Carbon, aka the \"carbon/profiles\" folder.")]
 	public static string GetProfileDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.profiledir", defaultValue);
 
+	[Switch(Name = "-carbon.sqlpermsdb", Help = "Overrides the SQLite Permissions database path, aka the \"server/identity/carbon.perms.db\" file.")]
+	public static string GetSQLPermissionsDatabase(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.sqlpermsdb", defaultValue);
+
 	[Switch(Name = "-harmonydir", Help = "Overrides the directory of Rust's HarmonyMods folder.")]
 	public static string GetHarmonyDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-harmonydir", defaultValue);
 

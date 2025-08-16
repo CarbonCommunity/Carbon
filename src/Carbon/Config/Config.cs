@@ -86,6 +86,7 @@ public class Config
 		public bool AutoGrantModeratorGroup { get; set; } = true;
 		public bool BypassAdminCooldowns { get; set; } = false;
 		public Permission.SerializationMode PermissionSerialization { get; set; } = Permission.SerializationMode.Protobuf;
+		public bool SqlPermissionUserPreload { get; set; } = true;
 	}
 
 	public class ProcessorsConfig

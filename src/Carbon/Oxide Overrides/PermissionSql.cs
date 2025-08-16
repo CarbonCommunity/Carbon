@@ -12,15 +12,14 @@ public class PermissionSql : Permission
 		{
 			return;
 		}
-		var path = Path.Combine(ConVar.Server.filesStorageFolder, "carbon.perms.db");
+		var path = Switches.GetSQLPermissionsDatabase(Path.Combine(ConVar.Server.filesStorageFolder, "carbon.perms.db"));
 		db = new PermissionDatabase();
-		db.Open(path);
+		db.Open(path, false);
 		db.Execute("PRAGMA foreign_keys = ON");
 		if (db.TableExists("users"))
 		{
 			return;
 		}
-
 		db.Execute("CREATE TABLE users ( userId TEXT PRIMARY KEY, lastSeenNickname TEXT, language TEXT )");
 		db.Execute("CREATE INDEX IF NOT EXISTS userId ON users ( userId )");
 		db.Execute("CREATE TABLE IF NOT EXISTS userPerms (userId TEXT, permission TEXT, PRIMARY KEY (userId, permission), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE)");
@@ -29,6 +28,11 @@ public class PermissionSql : Permission
 		db.Execute("CREATE TABLE groups ( groupName TEXT collate NOCASE PRIMARY KEY, title TEXT, rank INTEGER, parentGroup TEXT )");
 		db.Execute("CREATE INDEX IF NOT EXISTS groupName ON groups ( groupName )");
 		db.Execute("CREATE TABLE IF NOT EXISTS groupsPerms (groupName TEXT, permission TEXT, PRIMARY KEY (groupName, permission), FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
+	}
+
+	public override void SaveData()
+	{
+		db?.Execute("PRAGMA wal_checkpoint(FULL)");
 	}
 
 	public override void SaveUsers() { }
@@ -51,6 +55,7 @@ public class PermissionSql : Permission
 			SetGroupParent(group.Key, group.Value.ParentGroup);
 			foreach (var perm in group.Value.Perms)
 			{
+				GrantGroupPermission(group.Key, perm, null);
 				db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", group.Key, perm);
 			}
 			Logger.Log($" Group {group.Key} with {group.Value.Perms.Count} perms");
@@ -62,14 +67,17 @@ public class PermissionSql : Permission
 			CommitUser(user.Key, user.Value);
 			foreach (var group in user.Value.Groups)
 			{
-				var exists = db.Query<int, string>("SELECT COUNT(*) FROM groups WHERE groupName = ?", group);
-				if (exists > 0)
+				var selfGroup = group;
+				if (!group.IsLower())
 				{
-					db?.Execute("INSERT OR IGNORE INTO userGroups ( userId, groupName ) VALUES ( ?, ? )", user.Key, group);
+					selfGroup = group.ToLowerInvariant();
 				}
+				AddUserGroup(user.Key, selfGroup);
+				db?.Execute("INSERT OR IGNORE INTO userGroups ( userId, groupName ) VALUES ( ?, ? )", user.Key, selfGroup);
 			}
 			foreach (var perm in user.Value.Perms)
 			{
+				GrantUserPermission(user.Key, perm, null);
 				db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", user.Key, perm);
 			}
 		}
@@ -450,6 +458,15 @@ public class PermissionSql : Permission
 			CreateGroup(adminDefaultGroup, adminDefaultGroup.ToCamelCase(), 1);
 		if (!string.IsNullOrEmpty(moderatorDefaultGroup) && !GroupExists(moderatorDefaultGroup))
 			CreateGroup(moderatorDefaultGroup, moderatorDefaultGroup.ToCamelCase(), 1);
+
+		if (Community.Runtime.Config.Permissions.SqlPermissionUserPreload)
+		{
+			var userdata = db.QueryUsers();
+			foreach (var user in userdata)
+			{
+				this.userdata[user.userId] = user.data;
+			}
+		}
 
 		IsLoaded = true;
 	}

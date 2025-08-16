@@ -25,6 +25,7 @@ public abstract class BaseModule : BaseHookable
 	public abstract bool IsEnabled();
 	public abstract void SetEnabled(bool enable);
 	public abstract void Shutdown();
+	public abstract void SetPermissions(Permission perms);
 
 	public static T GetModule<T>()
 	{
@@ -80,7 +81,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			return;
 		}
 
-		Permissions = Interface.Oxide.Permission;
+		SetPermissions(Interface.Oxide.Permission);
 
 		TrackInit();
 	}
@@ -396,6 +397,10 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		OnUnload();
 
 		Community.Runtime.ModuleProcessor.Uninstall(this);
+	}
+	public override void SetPermissions(Permission perms)
+	{
+		Permissions = perms;
 	}
 
 	#region Localisation
