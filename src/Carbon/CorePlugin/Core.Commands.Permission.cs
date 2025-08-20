@@ -702,6 +702,8 @@ public partial class CorePlugin
 			}
 		}
 
+		Interface.Oxide.Permission = sql;
+
 		Community.Runtime.Core.permission = sql;
 		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.SQL;
 		Community.Runtime.SaveConfig();
@@ -738,6 +740,8 @@ public partial class CorePlugin
 				baseModule.SetPermissions(protobuf);
 			}
 		}
+
+		Interface.Oxide.Permission = protobuf;
 
 		Community.Runtime.Core.permission = protobuf;
 		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.Protobuf;
