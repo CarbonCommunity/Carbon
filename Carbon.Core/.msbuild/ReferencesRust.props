@@ -48,7 +48,7 @@
 	<Choose>
 		<When Condition="$(Configuration.Contains('Unix'))">
 			<ItemGroup>
-				<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Steamworks.Posix.dll" Private="false" />
+				<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Steamworks.Linux.dll" Private="false" />
 			</ItemGroup>
 		</When>
 		<Otherwise>
