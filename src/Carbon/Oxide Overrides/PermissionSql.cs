@@ -16,18 +16,12 @@ public class PermissionSql : Permission
 		db = new PermissionDatabase();
 		db.Open(path, false);
 		db.Execute("PRAGMA foreign_keys = ON");
-		if (db.TableExists("users"))
-		{
-			return;
-		}
-		db.Execute("CREATE TABLE users ( userId TEXT PRIMARY KEY, lastSeenNickname TEXT, language TEXT )");
-		db.Execute("CREATE INDEX IF NOT EXISTS userId ON users ( userId )");
-		db.Execute("CREATE TABLE IF NOT EXISTS userPerms (userId TEXT, permission TEXT, PRIMARY KEY (userId, permission), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE)");
-		db.Execute("CREATE TABLE IF NOT EXISTS userGroups (userId TEXT, groupName TEXT, PRIMARY KEY (userId, groupName), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE, FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
+		db.Execute("CREATE TABLE IF NOT EXISTS users ( userId TEXT PRIMARY KEY, lastSeenNickname TEXT, language TEXT )");
+		db.Execute("CREATE TABLE IF NOT EXISTS groups ( groupName TEXT COLLATE NOCASE PRIMARY KEY, title TEXT, rank INTEGER, parentGroup TEXT )");
 
-		db.Execute("CREATE TABLE groups ( groupName TEXT collate NOCASE PRIMARY KEY, title TEXT, rank INTEGER, parentGroup TEXT )");
-		db.Execute("CREATE INDEX IF NOT EXISTS groupName ON groups ( groupName )");
-		db.Execute("CREATE TABLE IF NOT EXISTS groupsPerms (groupName TEXT, permission TEXT, PRIMARY KEY (groupName, permission), FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
+		db.Execute("CREATE TABLE IF NOT EXISTS userPerms (userId TEXT, permission TEXT, PRIMARY KEY (userId, permission), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE)");
+		db.Execute("CREATE TABLE IF NOT EXISTS userGroups (userId TEXT, groupName TEXT COLLATE NOCASE, PRIMARY KEY (userId, groupName), FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE, FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
+		db.Execute("CREATE TABLE IF NOT EXISTS groupsPerms (groupName TEXT COLLATE NOCASE, permission TEXT, PRIMARY KEY (groupName, permission), FOREIGN KEY (groupName) REFERENCES groups(groupName) ON DELETE CASCADE)");
 	}
 
 	public override void SaveData()
