@@ -550,6 +550,8 @@ public class ScriptLoader : IScriptLoader
 				HasFinished = true;
 				if (InitialSource != null)
 				{
+					// OnPluginCompileFailure
+					HookCaller.CallStaticHook(1298319061, !string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>", exception);
 					Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}': ", exception);
 				}
 			}
