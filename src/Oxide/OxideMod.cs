@@ -11,7 +11,7 @@ public class OxideMod
 	public DataFileSystem DataFileSystem { get; private set; } = new DataFileSystem(Defines.GetDataFolder());
 	public PluginManager RootPluginManager { get; private set; }
 
-	public Permission Permission { get; private set; }
+	public Permission Permission { get; set; }
 
 	public string RootDirectory { get; private set; }
 	public string InstanceDirectory { get; private set; }
