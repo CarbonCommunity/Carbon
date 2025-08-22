@@ -682,6 +682,11 @@ public partial class CorePlugin
 			return;
 		}
 
+		var path = Switches.GetSQLPermissionsDatabase(Path.Combine(ConVar.Server.filesStorageFolder, "carbon.perms.db"));
+		if (File.Exists(path))
+		{
+			File.Move(path, Switches.GetSQLPermissionsDatabase(Path.Combine(ConVar.Server.filesStorageFolder, "carbon.perms.db.old")));
+		}
 		var sql = new PermissionSql();
 		sql.MigrateFromProto(Community.Runtime.Core.permission);
 
