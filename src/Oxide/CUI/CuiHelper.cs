@@ -2,18 +2,51 @@
 using Newtonsoft.Json;
 using ProtoBuf;
 using Formatting = Newtonsoft.Json.Formatting;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Text;
 
 namespace Oxide.Game.Rust.Cui;
+
+public sealed class JsonArrayPool<T> : IArrayPool<T>
+{
+	public static readonly JsonArrayPool<T> Shared = new JsonArrayPool<T>();
+	public T[] Rent(int minimumLength) => System.Buffers.ArrayPool<T>.Shared.Rent(minimumLength);
+	public void Return(T[] array) => System.Buffers.ArrayPool<T>.Shared.Return(array);
+}
 
 public static class CuiHelper
 {
 	public static Dictionary<BasePlayer, HashSet<string>> ActivePanels { get; } = new();
 
-	private static JsonSerializerSettings _cuiSettings = new()
+	private static readonly StringBuilder sb = new StringBuilder(64 * 1024);
+
+	private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
 	{
-		DefaultValueHandling = DefaultValueHandling.Ignore
+		DefaultValueHandling = DefaultValueHandling.Ignore,
+		NullValueHandling = NullValueHandling.Ignore,
+		DateParseHandling = DateParseHandling.None,
+		FloatFormatHandling = FloatFormatHandling.Symbol,
+		StringEscapeHandling = StringEscapeHandling.Default
 	};
 
+	private static readonly JsonSerializer _serializer = JsonSerializer.Create(Settings);
+	private static readonly StringWriter sw = new StringWriter(sb, CultureInfo.InvariantCulture);
+	private static readonly JsonTextWriter jw = new JsonTextWriter(sw)
+	{
+		Formatting = Formatting.None,
+		ArrayPool = JsonArrayPool<char>.Shared,
+		CloseOutput = false
+	};
+	private static readonly JsonTextWriter jwFormated = new JsonTextWriter(sw)
+	{
+		Formatting = Formatting.Indented,
+		ArrayPool = JsonArrayPool<char>.Shared,
+		CloseOutput = false
+	};
+	
 	public static HashSet<string> GetActivePanelList(BasePlayer player)
 	{
 		if (!ActivePanels.TryGetValue(player, out var panels))
@@ -43,7 +76,11 @@ public static class CuiHelper
 
 	public static string ToJson(List<CuiElement> elements, bool format = false)
 	{
-		return JsonConvert.SerializeObject(elements, format ? Formatting.Indented : Formatting.None, _cuiSettings).Replace("\\n", "\n");
+		sb.Clear();
+		var writer = format ? jwFormated : jw;
+		_serializer.Serialize(writer, elements);
+		var json = sb.ToString().Replace("\\n", "\n");
+		return json;
 	}
 
 	public static string ToJson(CuiElement element, bool format = false)
@@ -110,7 +147,12 @@ public static class CuiHelper
 
 	public static void SetColor(this ICuiColor elem, Color color)
 	{
-		elem.Color = $"{color.r} {color.g} {color.b} {color.a}";
+		sb.Clear();
+		sb.Append(color.r).Append(' ')
+			.Append(color.g).Append(' ')
+			.Append(color.b).Append(' ')
+			.Append(color.a);
+		elem.Color = sb.ToString();
 	}
 
 	public static Color GetColor(this ICuiColor elem) => ColorEx.Parse(elem.Color);
