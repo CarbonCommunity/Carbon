@@ -14,14 +14,11 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommandLineParser" Version="2.9.1" />
+		<PackageReference Include="Lib.Harmony" Version="2.4.1" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
 		<PackageReference Include="Mono.Cecil" Version="0.11.6" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="protobuf-net" Version="3.2.52" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Carbon.Harmony\Lib.Harmony\Lib.Harmony.csproj" />
 	</ItemGroup>
 
 	<Import Project="..\Carbon.Generator.Shared\Carbon.Generator.Shared.projitems" Label="Shared" />
