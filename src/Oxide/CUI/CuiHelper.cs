@@ -12,7 +12,7 @@ namespace Oxide.Game.Rust.Cui;
 
 public sealed class JsonArrayPool<T> : IArrayPool<T>
 {
-	public static readonly JsonArrayPool<T> Shared = new JsonArrayPool<T>();
+	public static readonly JsonArrayPool<T> Shared = new();
 	public T[] Rent(int minimumLength) => System.Buffers.ArrayPool<T>.Shared.Rent(minimumLength);
 	public void Return(T[] array) => System.Buffers.ArrayPool<T>.Shared.Return(array);
 }
@@ -21,9 +21,9 @@ public static class CuiHelper
 {
 	public static Dictionary<BasePlayer, HashSet<string>> ActivePanels { get; } = new();
 
-	private static readonly StringBuilder sb = new StringBuilder(64 * 1024);
+	private static readonly StringBuilder sb = new(64 * 1024);
 
-	private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
+	private static readonly JsonSerializerSettings Settings = new()
 	{
 		DefaultValueHandling = DefaultValueHandling.Ignore,
 		NullValueHandling = NullValueHandling.Ignore,
@@ -33,20 +33,20 @@ public static class CuiHelper
 	};
 
 	private static readonly JsonSerializer _serializer = JsonSerializer.Create(Settings);
-	private static readonly StringWriter sw = new StringWriter(sb, CultureInfo.InvariantCulture);
-	private static readonly JsonTextWriter jw = new JsonTextWriter(sw)
+	private static readonly StringWriter sw = new(sb, CultureInfo.InvariantCulture);
+	private static readonly JsonTextWriter jw = new(sw)
 	{
 		Formatting = Formatting.None,
 		ArrayPool = JsonArrayPool<char>.Shared,
 		CloseOutput = false
 	};
-	private static readonly JsonTextWriter jwFormated = new JsonTextWriter(sw)
+	private static readonly JsonTextWriter jwFormated = new(sw)
 	{
 		Formatting = Formatting.Indented,
 		ArrayPool = JsonArrayPool<char>.Shared,
 		CloseOutput = false
 	};
-	
+
 	public static HashSet<string> GetActivePanelList(BasePlayer player)
 	{
 		if (!ActivePanels.TryGetValue(player, out var panels))
@@ -85,7 +85,7 @@ public static class CuiHelper
 
 	public static string ToJson(CuiElement element, bool format = false)
 	{
-		return JsonConvert.SerializeObject(element, format ? Formatting.Indented : Formatting.None, _cuiSettings).Replace("\\n", "\n");
+		return JsonConvert.SerializeObject(element, format ? Formatting.Indented : Formatting.None, Settings).Replace("\\n", "\n");
 	}
 
 	public static List<CuiElement> FromJson(string json) => JsonConvert.DeserializeObject<List<CuiElement>>(json);
