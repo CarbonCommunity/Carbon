@@ -58,9 +58,3 @@
 [submodule "Carbon.Core/Carbon.UniTask"]
 	path = Carbon.Core/Carbon.UniTask
 	url = https://github.com/CarbonCommunity/Carbon.UniTask.git
-[submodule "Carbon.Core/Carbon.Tools/Carbon.Harmony"]
-	path = Carbon.Core/Carbon.Tools/Carbon.Harmony
-	url = https://github.com/CarbonCommunity/Carbon.Harmony.git
-[submodule "Carbon.Core/Carbon.Tools/Carbon.MonoMod"]
-	path = Carbon.Core/Carbon.Tools/Carbon.MonoMod
-	url = https://github.com/CarbonCommunity/Carbon.MonoMod.git
