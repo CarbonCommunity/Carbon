@@ -108,7 +108,8 @@
 			<GitCommitHashShort>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitchs').Trim())</GitCommitHashShort>
 			<GitCommitUrl>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.giturl').Trim().Replace('.git', ''))/commit/$(GitCommitHashLong.Trim())</GitCommitUrl>
 			<GitCommitAuthor>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitauthor').Trim())</GitCommitAuthor>
-			<GitCommitComment>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitcomment').Replace('"', '""').Trim())</GitCommitComment>
+			<GitCommitComment>$([System.String]::Join(' ', $([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitcomment').Replace('"', '""').Trim().Split('
+'))))</GitCommitComment>
 			<GitCommitTag>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gittag').Trim())</GitCommitTag>
 			<GitCommitDate>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitdate').Trim())</GitCommitDate>
 			<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)-$(GitCommitBranch)-$(GitCommitHashShort)</InformationalVersion>
