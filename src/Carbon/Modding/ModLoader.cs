@@ -314,6 +314,17 @@ public static partial class ModLoader
 		           $"{(precompiled ? string.Empty : $" [{plugin.CompileTime.TotalMilliseconds:0}ms]")}" +
 		           $"{(isProfiled ? " [PROFILING]" : string.Empty)}");
 
+		if (Community.IsServerInitialized)
+		{
+			plugin.HasInitialized = true;
+			plugin.CallHook("OnServerInitialized", FirstLoadSinceStartup);
+
+			if (!plugin.ApplyOrderedPatches(AutoPatchAttribute.Orders.AfterOnServerInitialized))
+			{
+				return UninitializePlugin(plugin);
+			}
+		}
+
 		return true;
 	}
 	public static bool UninitializePlugin(RustPlugin plugin, bool premature = false, bool unloadDependantPlugins = true)
