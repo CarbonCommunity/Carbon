@@ -87,7 +87,7 @@ public static class CuiHelper
 		return count;
 	}
 
-	public static string ToJson(IReadOnlyList<CuiElement> elements, bool format = false)
+	public static string ToJson(List<CuiElement> elements, bool format = false)
 	{
 		var ctx = _jsonContext.Value;
 		ctx.sb.Clear();
@@ -162,7 +162,7 @@ public static class CuiHelper
 		return false;
 	}
 
-	public static void SetColor(ICuiColor elem, Color color)
+	public static void SetColor(this ICuiColor elem, Color color)
 	{
 		var sb = _colorSb.Value;
 		sb.Clear();
