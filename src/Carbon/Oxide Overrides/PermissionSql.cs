@@ -14,8 +14,11 @@ public class PermissionSql : Permission
 		}
 		var path = Switches.GetSQLPermissionsDatabase(Path.Combine(ConVar.Server.filesStorageFolder, "carbon.perms.db"));
 		db = new PermissionDatabase();
-		db.Open(path, false);
+		db.Open(path, true);
 		db.Execute("PRAGMA foreign_keys = ON");
+		db.Execute("PRAGMA synchronous = FULL");
+		db.Execute("PRAGMA wal_autocheckpoint = 1000");
+		db.Execute("PRAGMA busy_timeout = 5000");
 		db.Execute("CREATE TABLE IF NOT EXISTS users ( userId TEXT PRIMARY KEY, lastSeenNickname TEXT, language TEXT )");
 		db.Execute("CREATE TABLE IF NOT EXISTS groups ( groupName TEXT COLLATE NOCASE PRIMARY KEY, title TEXT, rank INTEGER, parentGroup TEXT )");
 
