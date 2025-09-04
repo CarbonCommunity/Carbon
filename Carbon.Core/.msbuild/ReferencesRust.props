@@ -42,13 +42,14 @@
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestModule.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.SteamNetworking.dll" Private="false" />
 	</ItemGroup>
 
 	<!-- Operating system specific game files -->
 	<Choose>
 		<When Condition="$(Configuration.Contains('Unix'))">
 			<ItemGroup>
-				<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Steamworks.Linux.dll" Private="false" />
+				<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Steamworks.Posix.dll" Private="false" />
 			</ItemGroup>
 		</When>
 		<Otherwise>
