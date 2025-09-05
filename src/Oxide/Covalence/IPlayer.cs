@@ -281,7 +281,7 @@ public class RustPlayer : IPlayer
 		BasePlayer.net.connection.username = name;
 		BasePlayer.displayName = name;
 		BasePlayer._name = name;
-		BasePlayer.SendNetworkUpdateImmediate(false);
+		BasePlayer.SendNetworkUpdateImmediate();
 		var iPlayer = BasePlayer.AsIPlayer();
 		iPlayer.Name = name;
 		perms.UpdateNickname(BasePlayer.UserIDString, name);
