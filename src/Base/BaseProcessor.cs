@@ -170,6 +170,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	public virtual void Remove(string id)
 	{
 		var existent = !InstanceBuffer.ContainsKey(id) ? null : InstanceBuffer[id];
+		existent?.Clear();
 		existent?.Dispose();
 
 		if (InstanceBuffer.ContainsKey(id)) InstanceBuffer.Remove(id);
