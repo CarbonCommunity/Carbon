@@ -111,13 +111,13 @@ public partial struct Analytics
 	/// </summary>
 	public static void plugin_native_compile_fail(ISource initialSource, Exception ex)
 	{
-		if (!Enabled)
+		if (!Enabled || initialSource == null)
 		{
 			return;
 		}
 
 		Singleton.
-			Include("file", $"{initialSource.ContextFilePath}").
+			Include("file", initialSource.ContextFilePath).
 			Include("stacktrace", $"({ex.Message}) {ex.StackTrace}").
 			Submit("plugin_native_compile_fail");
 	}
