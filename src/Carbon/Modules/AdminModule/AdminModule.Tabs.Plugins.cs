@@ -1122,9 +1122,7 @@ public partial class AdminModule
 							var list = JArray.Parse(data);
 							foreach (var token in list)
 							{
-								//var fileStatus = token["file_status"]?.ToString();
 								var price = token["prices"];
-
 								var plugin = new Plugin
 								{
 									Id = token["id"]?.ToString(),
