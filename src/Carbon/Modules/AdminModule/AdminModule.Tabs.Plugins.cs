@@ -1049,8 +1049,7 @@ public partial class AdminModule
 
 			public override string BarInfo => $"{FetchedPlugins.Count(x => !x.IsPaid()):n0} free, {FetchedPlugins.Count(x => x.IsPaid()):n0} paid";
 
-			public override string ListEndpoint => "https://codefling.com/db/?category=2";
-			public string List2Endpoint => "https://codefling.com/db/?category=21";
+			public override string ListEndpoint => "https://codefling.com/db/?category=2,21";
 			public override string DownloadEndpoint => "https://codefling.com/files/file/[ID]-a?do=download";
 
 			private Dictionary<string, string> _headers = new();
@@ -1114,22 +1113,7 @@ public partial class AdminModule
 					Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
 					ParseData(data, false, false, FetchedPlugins, callback, this, plugins);
 					Facepunch.Pool.FreeUnmanaged(ref plugins);
-
-					Community.Runtime.Core.webrequest.Enqueue(List2Endpoint, null, (error, data) =>
-					{
-						if (error != 200)
-						{
-							Logger.Error($"[{Type}] Failed parsing data for vendor. Error code {error}!");
-							return;
-						}
-
-						var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
-						Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
-						ParseData(data, true, true, FetchedPlugins, callback, this, plugins);
-						Facepunch.Pool.FreeUnmanaged(ref plugins);
-
-						VersionCheck();
-					}, Community.Runtime.Core);
+					VersionCheck();
 
 					static void ParseData(string data, bool doSave, bool insert, List<Plugin> fetchedPlugins, Action<Vendor> callback, Vendor vendor, List<RustPlugin> plugins)
 					{
