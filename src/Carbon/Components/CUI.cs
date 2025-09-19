@@ -356,42 +356,42 @@ public readonly struct CUI : IDisposable
 
 		#region Properties
 
-		internal int _currentId { get; set; }
+		private int _currentId { get; set; }
 
-		internal List<object> _queue = new();
-		internal List<CuiElementContainer> _containerPool = new();
+		private List<object> _queue = new();
+		private List<CuiElementContainer> _containerPool = new();
 
-		internal List<CuiElement> _elements = new();
-		internal List<ICuiComponent> _images = new();
-		internal List<ICuiComponent> _rawImages = new();
-		internal List<ICuiComponent> _texts = new();
-		internal List<ICuiComponent> _buttons = new();
-		internal List<ICuiComponent> _inputFields = new();
-		internal List<ICuiComponent> _rects = new();
-		internal List<ICuiComponent> _needsCursors = new();
-		internal List<ICuiComponent> _needsKeyboards = new();
-		internal List<ICuiComponent> _countdowns = new();
-		internal List<ICuiComponent> _outlines = new();
-		internal List<ICuiComponent> _scrollViews = new();
-		internal List<ICuiComponent> _scrollbars = new();
+		private List<CuiElement> _elements = new();
+		private List<ICuiComponent> _images = new();
+		private List<ICuiComponent> _rawImages = new();
+		private List<ICuiComponent> _texts = new();
+		private List<ICuiComponent> _buttons = new();
+		private List<ICuiComponent> _inputFields = new();
+		private List<ICuiComponent> _rects = new();
+		private List<ICuiComponent> _needsCursors = new();
+		private List<ICuiComponent> _needsKeyboards = new();
+		private List<ICuiComponent> _countdowns = new();
+		private List<ICuiComponent> _outlines = new();
+		private List<ICuiComponent> _scrollViews = new();
+		private List<ICuiComponent> _scrollbars = new();
 
 		#endregion
 
 		#region Default Instances
 
-		internal CuiImageComponent _defaultImage = new();
-		internal CuiRawImageComponent _defaultRawImage = new();
-		internal CuiRectTransformComponent DefaultRectTransformComponent = new()
+		private CuiImageComponent _defaultImage = new();
+		private CuiRawImageComponent _defaultRawImage = new();
+		private CuiRectTransformComponent DefaultRectTransformComponent = new()
 		{
 			OffsetMax = "0 0"
 		};
-		internal CuiTextComponent _defaultText = new();
-		internal CuiButtonComponent _defaultButton = new();
-		internal CuiInputFieldComponent _defaultInputField = new();
-		internal CuiCountdownComponent _defaultCountdown = new();
-		internal CuiOutlineComponent _defaultOutline = new();
-		internal CuiScrollViewComponent _defaultScrollView = new();
-		internal CuiScrollbar _defaultScrollBar = new();
+		private CuiTextComponent _defaultText = new();
+		private CuiButtonComponent _defaultButton = new();
+		private CuiInputFieldComponent _defaultInputField = new();
+		private CuiCountdownComponent _defaultCountdown = new();
+		private CuiOutlineComponent _defaultOutline = new();
+		private CuiScrollViewComponent _defaultScrollView = new();
+		private CuiScrollbar _defaultScrollBar = new();
 
 		#endregion
 
