@@ -521,6 +521,9 @@ public class CuiElement
 
 	[JsonProperty("update")]
 	public bool Update { get; set; }
+
+	[JsonProperty("activeSelf")]
+	public bool ActiveSelf { get; set; } = true;
 }
 public class CuiLabel
 {
