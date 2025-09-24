@@ -77,6 +77,11 @@ public class Defines
 	{
 		return Path.Combine(GetRustIdentityFolder(), "carbon.vault");
 	}
+	public static string GetWebRconConfigFile()
+	{
+		_initializeCommandLine();
+		return Path.Combine(GetRootFolder(), "config.webrcon.json");
+	}
 
 	public static string GetRootFolder()
 	{

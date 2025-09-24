@@ -10,6 +10,7 @@ public static partial class WebRCon
 
 	internal static void Init()
 	{
+		LoadConfig();
 		rpcs.Clear();
 		var methods = typeof(WebRCon).GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
 		for (int i = 0; i < methods.Length; i++)
@@ -22,6 +23,7 @@ public static partial class WebRCon
 			rpc.Setup(method);
 			rpcs[rpc.MethodId] = rpc;
 		}
+		StartServer();
 	}
 
 	internal static void Run(ConsoleSystem.Arg arg)
