@@ -106,7 +106,7 @@ public sealed class BridgeServer
 			return;
 		}
 
-		Messages = messages ?? new DefaultBridgeMessages();
+		SetMessages(messages);
 
 		Listener = new Listener();
 		if (!string.IsNullOrEmpty(ip))
@@ -177,6 +177,15 @@ public sealed class BridgeServer
 		OnNewConnection = null;
 		OnClosedConnection = null;
 		Messages = null;
+	}
+
+	public void SetMessages(BridgeMessages messages)
+	{
+		Messages = messages ?? new DefaultBridgeMessages();
+		foreach(var connection in Connections.Values)
+		{
+			connection.Messages = Messages;
+		}
 	}
 }
 
