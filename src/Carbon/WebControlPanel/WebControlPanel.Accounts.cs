@@ -21,4 +21,18 @@ public static partial class WebControlPanel
 		public bool entities_view = enabled;
 		public bool entities_edit = enabled;
 	}
+
+	public enum PermissionTypes
+	{
+		None,
+		ConsoleView,
+		ConsoleInput,
+		ChatView,
+		ChatInput,
+		ServerInfo,
+		PlayersView,
+		PlayersInventory,
+		EntitiesView,
+		EntitiesEdit,
+	}
 }

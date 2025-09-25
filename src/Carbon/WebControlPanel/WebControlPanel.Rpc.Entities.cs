@@ -31,7 +31,7 @@ public static partial class WebControlPanel
 		}
 	}
 
-	[Rpc]
+	[Rpc, Condition.Permission(PermissionTypes.EntitiesView)]
 	private static Response SearchEntities(ConsoleSystem.Arg arg)
 	{
 		var maxCount = arg.GetInt(1, 200);
@@ -96,7 +96,7 @@ public static partial class WebControlPanel
 		return GetResponse(entities.Select(x => ParseEntityMetadata(x)).ToArray());
 	}
 
-	[Rpc]
+	[Rpc, Condition.Permission(PermissionTypes.EntitiesView)]
 	private static Response EntityDetails(ConsoleSystem.Arg arg)
 	{
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(arg.GetULong(1))) as BaseEntity;
@@ -108,7 +108,7 @@ public static partial class WebControlPanel
 		return GetResponse(ParseEntityDetails(entity));
 	}
 
-	[Rpc]
+	[Rpc, Condition.Permission(PermissionTypes.EntitiesEdit)]
 	private static Response EntitySave(ConsoleSystem.Arg arg)
 	{
 		var details = JObject.Parse(arg.GetString(1));
@@ -147,7 +147,7 @@ public static partial class WebControlPanel
 		return GetResponse();
 	}
 
-	[Rpc]
+	[Rpc, Condition.Permission(PermissionTypes.EntitiesEdit)]
 	private static Response EntityKill(ConsoleSystem.Arg arg)
 	{
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(arg.GetULong(1))) as BaseEntity;
