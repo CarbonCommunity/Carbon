@@ -26,8 +26,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Carbon.Polyfills\Carbon.Polyfills.csproj" />
 		<ProjectReference Include="..\..\Carbon.UniTask\src\Carbon.UniTask.csproj" />
-		<ProjectReference Include="..\Carbon.Polyfills\Carbon.Polyfills.csproj" />
 		<ProjectReference Include="..\Carbon.Test\Carbon.Test.csproj" />
 		<ProjectReference Include="..\..\Carbon.Profiler\Carbon.Profiler.csproj" />
 	</ItemGroup>
