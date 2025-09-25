@@ -23,7 +23,6 @@ public static partial class WebRCon
 			rpc.Setup(method);
 			rpcs[rpc.MethodId] = rpc;
 		}
-		StartServer();
 	}
 
 	internal static void Run(ConsoleSystem.Arg arg)
