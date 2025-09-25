@@ -119,7 +119,7 @@ public partial class CorePlugin
 
 	internal static object IOnRconInitialize()
 	{
-		Bridge.Server.Start(
+		Bridge.WebRconServer.Start(
 			port: Switches.GetBridgePort($"{RCon.Port + 1}").ToInt(),
 			password: Switches.GetBridgePassword("unset"),
 			ip: Switches.GetBridgeIp());

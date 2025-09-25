@@ -15,6 +15,7 @@ public static partial class WebRCon
 			return;
 		}
 		config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configFile));
+		Bridge.WebRconServer.SetMessages(new WebRconMessages());
 	}
 
 	private static void SaveConfig()

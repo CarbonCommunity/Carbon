@@ -12,7 +12,7 @@ namespace Carbon.Components;
 /// </summary>
 public static class Bridge
 {
-	public static BridgeServer Server = new();
+	public static BridgeServer WebRconServer = new();
 
 	/// <summary>
 	/// Opens the connection to a local or external Bridge server. The other server must have a Bridge.Server initialized. Think of it RCon but not really.

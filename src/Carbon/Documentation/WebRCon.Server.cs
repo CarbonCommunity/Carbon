@@ -2,10 +2,26 @@
 
 public static partial class WebRCon
 {
-	public static BridgeServer server;
-
-	private static void StartServer()
+	public class WebRconMessages : BridgeMessages
 	{
-		server = new();
+		protected override void OnCommand(BridgeRead read)
+		{
+
+		}
+
+		protected override void OnCustom(BridgeRead read)
+		{
+
+		}
+
+		protected override void OnRpc(BridgeRead read)
+		{
+
+		}
+
+		protected override void OnUnhandled(BridgeRead read)
+		{
+
+		}
 	}
 }
