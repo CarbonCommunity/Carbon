@@ -12,8 +12,6 @@ namespace Carbon.Components;
 /// </summary>
 public static class Bridge
 {
-	public static BridgeServer WebRconServer = new();
-
 	/// <summary>
 	/// Opens the connection to a local or external Bridge server. The other server must have a Bridge.Server initialized. Think of it RCon but not really.
 	/// </summary>
@@ -91,7 +89,7 @@ public class DefaultBridgeMessages : BridgeMessages
 /// <summary>
 /// At its core, it uses Fleck (AKA Facepunch RCon's listener). It's entirely independent to Rust's RCon system, it just uses the core components at base (connection and memory management, etc.).
 /// </summary>
-public sealed class BridgeServer
+public abstract class BridgeServer
 {
 	public Listener Listener;
 	public Action<BridgeConnection> OnNewConnection;
@@ -121,7 +119,7 @@ public sealed class BridgeServer
 		{
 			lock (Listener.clients)
 			{
-				if (socket.ConnectionInfo.Path != $"/{Listener.Password}")
+				if (!OnSocketValidate(socket))
 				{
 					socket.Close();
 				}
@@ -134,6 +132,7 @@ public sealed class BridgeServer
 						Listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
 						Connections[connectionId] = bridgeConnection;
 						OnNewConnection?.Invoke(bridgeConnection);
+						OnBridgeConnection(bridgeConnection);
 					};
 					socket.OnClose = () =>
 					{
@@ -141,6 +140,7 @@ public sealed class BridgeServer
 						Listener.clients.Remove(connectionId);
 						if (Connections.TryGetValue(connectionId, out var bridgeConnection))
 						{
+							OnBridgeDisconnection(bridgeConnection);
 							Pool.Free(ref bridgeConnection);
 							Connections.Remove(connectionId);
 						}
@@ -178,6 +178,14 @@ public sealed class BridgeServer
 		OnClosedConnection = null;
 		Messages = null;
 	}
+
+	public virtual bool OnSocketValidate(IWebSocketConnection socket)
+	{
+		return socket.ConnectionInfo.Path == $"/{Listener.Password}";
+	}
+
+	public abstract void OnBridgeConnection(BridgeConnection connection);
+	public abstract void OnBridgeDisconnection(BridgeConnection connection);
 
 	public void SetMessages(BridgeMessages messages)
 	{

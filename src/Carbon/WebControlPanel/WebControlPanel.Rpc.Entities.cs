@@ -1,9 +1,9 @@
 ﻿using Facepunch;
 using Newtonsoft.Json.Linq;
 
-namespace Carbon.Documentation;
+namespace Carbon;
 
-public static partial class WebRCon
+public static partial class WebControlPanel
 {
 	public struct EntitySearchRange
 	{
@@ -31,15 +31,15 @@ public static partial class WebRCon
 		}
 	}
 
-	[DocsRpc]
-	private static DocsRpcResponse SearchEntities(ConsoleSystem.Arg arg)
+	[Rpc]
+	private static Response SearchEntities(ConsoleSystem.Arg arg)
 	{
 		var maxCount = arg.GetInt(1, 200);
 		var filter = arg.GetString(2);
 
 		if (string.IsNullOrEmpty(filter))
 		{
-			return Response();
+			return GetResponse();
 		}
 
 		var range = EntitySearchRange.Parse(filter);
@@ -93,29 +93,29 @@ public static partial class WebRCon
 			}
 		}
 
-		return Response(entities.Select(x => ParseEntityMetadata(x)).ToArray());
+		return GetResponse(entities.Select(x => ParseEntityMetadata(x)).ToArray());
 	}
 
-	[DocsRpc]
-	private static DocsRpcResponse EntityDetails(ConsoleSystem.Arg arg)
+	[Rpc]
+	private static Response EntityDetails(ConsoleSystem.Arg arg)
 	{
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(arg.GetULong(1))) as BaseEntity;
 		if (!entity.IsValid() || entity.IsDestroyed)
 		{
-			return Response();
+			return GetResponse();
 		}
 
-		return Response(ParseEntityDetails(entity));
+		return GetResponse(ParseEntityDetails(entity));
 	}
 
-	[DocsRpc]
-	private static DocsRpcResponse EntitySave(ConsoleSystem.Arg arg)
+	[Rpc]
+	private static Response EntitySave(ConsoleSystem.Arg arg)
 	{
 		var details = JObject.Parse(arg.GetString(1));
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(details["NetId"].ToObject<ulong>())) as BaseEntity;
 		if (!entity.IsValid() || entity.IsDestroyed)
 		{
-			return Response();
+			return GetResponse();
 		}
 
 		entity.OwnerID = details["Owner"].ToObject<ulong>();
@@ -144,16 +144,16 @@ public static partial class WebRCon
 		}
 
 		entity.SendNetworkUpdate();
-		return Response();
+		return GetResponse();
 	}
 
-	[DocsRpc]
-	private static DocsRpcResponse EntityKill(ConsoleSystem.Arg arg)
+	[Rpc]
+	private static Response EntityKill(ConsoleSystem.Arg arg)
 	{
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(arg.GetULong(1))) as BaseEntity;
 		if (!entity.IsValid() || entity.IsDestroyed)
 		{
-			return Response();
+			return GetResponse();
 		}
 
 		if (entity is BasePlayer playerEntity)
@@ -165,7 +165,7 @@ public static partial class WebRCon
 			entity.AdminKill();
 		}
 
-		return Response();
+		return GetResponse();
 	}
 
 	private static object ParseEntityMetadata(BaseEntity entity)

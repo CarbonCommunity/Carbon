@@ -2,9 +2,9 @@
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Carbon.Documentation;
+namespace Carbon;
 
-public static partial class WebRCon
+public static partial class WebControlPanel
 {
 	private const string Ok = "ok";
 
