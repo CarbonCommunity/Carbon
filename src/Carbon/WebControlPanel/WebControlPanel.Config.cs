@@ -5,10 +5,6 @@ namespace Carbon;
 
 public static partial class WebControlPanel
 {
-	public static Server server;
-	public static ServerMessages serverMessages = new();
-	public static Config config;
-
 	public static void Shutdown()
 	{
 		if (server == null)

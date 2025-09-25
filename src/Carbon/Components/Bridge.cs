@@ -296,6 +296,7 @@ public sealed class BridgeConnection : Pool.IPooled
 {
 	public IWebSocketConnection Socket;
 	public BridgeMessages Messages;
+	public object Reference;
 
 	public BridgeConnection Init(IWebSocketConnection connection, BridgeMessages messages)
 	{
