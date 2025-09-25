@@ -394,7 +394,10 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override void Shutdown()
 	{
-		OnUnload();
+		if (IsEnabled())
+		{
+			OnUnload();
+		}
 
 		Community.Runtime.ModuleProcessor.Uninstall(this);
 	}

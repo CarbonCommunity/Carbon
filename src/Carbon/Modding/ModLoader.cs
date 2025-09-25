@@ -668,6 +668,12 @@ public static partial class ModLoader
 			var file = Path.GetFileNameWithoutExtension(plugin);
 			Community.Runtime.ScriptProcessor.ClearIgnore(file);
 			Community.Runtime.ScriptProcessor.Prepare(file, plugin);
+			Community.Runtime.ZipScriptProcessor.ClearIgnore(file);
+			Community.Runtime.ZipScriptProcessor.Prepare(file, plugin);
+#if DEBUG
+			Community.Runtime.ZipDevScriptProcessor.ClearIgnore(file);
+			Community.Runtime.ZipDevScriptProcessor.Prepare(file, plugin);
+#endif
 		}
 
 		PostBatchFailedRequirees.Clear();
