@@ -1,6 +1,4 @@
-﻿using Carbon.Documentation;
-
-namespace Carbon.Core;
+﻿namespace Carbon.Core;
 
 public partial class CorePlugin
 {

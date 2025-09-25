@@ -399,7 +399,7 @@ public struct BridgeWriter : IDisposable
 
 	public void Dispose()
 	{
-		if(write != null)
+		if (write != null)
 		{
 			Pool.Free(ref write);
 		}

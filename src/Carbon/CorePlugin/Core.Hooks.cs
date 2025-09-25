@@ -61,8 +61,6 @@ public partial class CorePlugin
 		Logger.Log($"Shutting down Carbon..");
 		Interface.Oxide.OnShutdown();
 
-		Bridge.WebRconServer?.Shutdown();
-
 		using var plugins = Pool.Get<PooledList<RustPlugin>>();
 		ModLoader.Packages.GetAllHookables(plugins);
 		foreach (var plugin in plugins)

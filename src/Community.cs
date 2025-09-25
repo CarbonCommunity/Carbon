@@ -96,7 +96,7 @@ public partial class Community
 
 	public virtual void Initialize()
 	{
-		Documentation.WebControlPanel.Init();
+		WebControlPanel.Init();
 		StoredModifiers.Init();
 		UniTaskInjector.Inject(SynchronizationContext.Current, Thread.CurrentThread.ManagedThreadId, injectTimings: InjectPlayerLoopTimings.Minimum);
 	}

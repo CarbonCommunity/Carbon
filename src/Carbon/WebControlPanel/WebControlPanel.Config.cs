@@ -9,6 +9,16 @@ public static partial class WebControlPanel
 	public static ServerMessages serverMessages = new();
 	public static Config config;
 
+	public static void Shutdown()
+	{
+		if (server == null)
+		{
+			return;
+		}
+		server.Shutdown();
+		server = null;
+	}
+
 	private static void LoadConfig()
 	{
 		var configFile = Defines.GetWebRconConfigFile();
@@ -30,23 +40,10 @@ public static partial class WebControlPanel
 		File.WriteAllText(Defines.GetWebRconConfigFile(), JsonConvert.SerializeObject(config ??= new(), Formatting.Indented));
 	}
 
-	public class Server : BridgeServer
-	{
-		public override bool OnSocketValidate(IWebSocketConnection socket)
-		{
-			return base.OnSocketValidate(socket);
-		}
-
-		public override void OnBridgeConnection(BridgeConnection connection)
-		{
-			base.OnBridgeConnection(connection);
-		}
-	}
-
 	public class Config
 	{
-		public string ip;
-		public int port;
+		public string ip = "youriphere";
+		public int port = 0;
 		public Account[] accounts = [new Account
 		{
 			id = "owner",
