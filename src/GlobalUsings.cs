@@ -1,4 +1,15 @@
-﻿global using Carbon;
+﻿global using System;
+global using System.Collections;
+global using System.Collections.Generic;
+global using System.Globalization;
+global using System.IO;
+global using System.Linq;
+global using System.Reflection;
+global using System.Runtime.Serialization;
+global using System.Text.RegularExpressions;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using Carbon;
 global using Carbon.Base;
 global using Carbon.Components;
 global using Carbon.Contracts;
@@ -8,29 +19,20 @@ global using Carbon.Modules;
 global using Carbon.Oxide;
 global using Carbon.Plugins;
 global using Carbon.Pooling;
-
 global using Oxide.Core;
-global using Oxide.Plugins;
-global using Oxide.Core.Libraries;
-global using Oxide.Core.Libraries.Covalence;
 global using Oxide.Core.Configuration;
 global using Oxide.Core.Database;
+global using Oxide.Core.Libraries;
+global using Oxide.Core.Libraries.Covalence;
 global using Oxide.Core.Plugins;
 global using Oxide.Game.Rust.Libraries;
 global using Oxide.Game.Rust.Libraries.Covalence;
-
-global using System;
-global using System.IO;
-global using System.Collections.Generic;
-global using System.Linq;
-global using System.Reflection;
-global using System.Runtime.Serialization;
-global using System.Collections;
-global using System.Threading;
-global using System.Threading.Tasks;
-global using System.Globalization;
-global using System.Text.RegularExpressions;
-
+global using Oxide.Plugins;
 global using UnityEngine;
+using System.Runtime.CompilerServices;
+using static Carbon.Components.MonoProfiler;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Carbon.Hooks.Base")]
+
+[assembly: TypeForwardedTo(typeof(System.Range))]
+[assembly: TypeForwardedTo(typeof(System.Index))]
