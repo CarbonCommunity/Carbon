@@ -385,3 +385,23 @@ public sealed class BridgeWrite : NetWrite
 		Int32((int)message);
 	}
 }
+
+public struct BridgeWriter : IDisposable
+{
+	public BridgeWrite write;
+
+	public static BridgeWriter Begin()
+	{
+		BridgeWriter writer = default;
+		writer.write = Pool.Get<BridgeWrite>();
+		return writer;
+	}
+
+	public void Dispose()
+	{
+		if(write != null)
+		{
+			Pool.Free(ref write);
+		}
+	}
+}
