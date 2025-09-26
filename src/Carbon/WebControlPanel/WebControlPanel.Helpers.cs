@@ -96,6 +96,30 @@ public static partial class WebControlPanel
 	}
 	 */
 
+	public struct EntitySearchRange
+	{
+		public Vector3 position;
+		public float range;
+		public string filter;
+
+		public readonly bool isValid => position != Vector3.zero && range > 0;
+
+		public static EntitySearchRange Parse(string value)
+		{
+			if (!value.Contains(":"))
+			{
+				return default;
+			}
+			var split = value.Split(':');
+			var coordinates = split[0].Split(' ');
+			EntitySearchRange range = default;
+			range.position = new Vector3(float.Parse(coordinates[0]), float.Parse(coordinates[1]), float.Parse(coordinates[2]));
+			range.range = float.Parse(split[1]);
+			range.filter = split.Length >= 3 ? split[2] : null;
+			return range;
+		}
+	}
+
 	private struct ResponseError(ResponseErrorCodes code, string error)
 	{
 		[JsonProperty] public ResponseErrorCodes Code = code;
