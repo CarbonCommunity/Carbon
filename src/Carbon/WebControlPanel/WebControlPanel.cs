@@ -42,7 +42,7 @@ public static partial class WebControlPanel
 		}
 		catch(Exception ex)
 		{
-			Logger.Error($"Failed WebControlPanel.RunCommand", ex);
+			Logger.Error($"Failed WebControlPanel.RunCommand", ex.InnerException);
 		}
 	}
 
@@ -71,7 +71,7 @@ public static partial class WebControlPanel
 		}
 		catch(Exception ex)
 		{
-			Logger.Error($"Failed WebControlPanel.RunRpc", ex);
+			Logger.Error($"Failed WebControlPanel.RunRpc", ex.InnerException);
 		}
 	}
 
