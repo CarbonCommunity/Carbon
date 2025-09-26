@@ -1,45 +1,19 @@
 ﻿using Facepunch;
 using Newtonsoft.Json.Linq;
 
-namespace Carbon.Documentation;
+namespace Carbon;
 
-public static partial class WebRCon
+public static partial class WebControlPanel
 {
-	public struct EntitySearchRange
-	{
-		public Vector3 position;
-		public float range;
-		public string filter;
-
-		public readonly bool isValid => position != Vector3.zero && range > 0;
-
-		public static EntitySearchRange Parse(string value)
-		{
-			if (!value.Contains(":"))
-			{
-				return default;
-			}
-
-			var split = value.Split(':');
-			var coordinates = split[0].Split(' ');
-			EntitySearchRange range = default;
-			range.position = new Vector3(float.Parse(coordinates[0]), float.Parse(coordinates[1]),
-				float.Parse(coordinates[2]));
-			range.range = float.Parse(split[1]);
-			range.filter = split.Length >= 3 ? split[2] : null;
-			return range;
-		}
-	}
-
-	[DocsRpc]
-	private static DocsRpcResponse SearchEntities(ConsoleSystem.Arg arg)
+	[WebCall]
+	private static Response CMD_SearchEntities(ConsoleSystem.Arg arg)
 	{
 		var maxCount = arg.GetInt(1, 200);
 		var filter = arg.GetString(2);
 
 		if (string.IsNullOrEmpty(filter))
 		{
-			return Response();
+			return GetResponse();
 		}
 
 		var range = EntitySearchRange.Parse(filter);
@@ -93,29 +67,29 @@ public static partial class WebRCon
 			}
 		}
 
-		return Response(entities.Select(x => ParseEntityMetadata(x)).ToArray());
+		return GetResponse(entities.Select(x => ParseEntityMetadata(x)).ToArray());
 	}
 
-	[DocsRpc]
-	private static DocsRpcResponse EntityDetails(ConsoleSystem.Arg arg)
+	[WebCall]
+	private static Response CMD_EntityDetails(ConsoleSystem.Arg arg)
 	{
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(arg.GetULong(1))) as BaseEntity;
 		if (!entity.IsValid() || entity.IsDestroyed)
 		{
-			return Response();
+			return GetResponse();
 		}
 
-		return Response(ParseEntityDetails(entity));
+		return GetResponse(ParseEntityDetails(entity));
 	}
 
-	[DocsRpc]
-	private static DocsRpcResponse EntitySave(ConsoleSystem.Arg arg)
+	[WebCall]
+	private static Response CMD_EntitySave(ConsoleSystem.Arg arg)
 	{
 		var details = JObject.Parse(arg.GetString(1));
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(details["NetId"].ToObject<ulong>())) as BaseEntity;
 		if (!entity.IsValid() || entity.IsDestroyed)
 		{
-			return Response();
+			return GetResponse();
 		}
 
 		entity.OwnerID = details["Owner"].ToObject<ulong>();
@@ -144,16 +118,16 @@ public static partial class WebRCon
 		}
 
 		entity.SendNetworkUpdate();
-		return Response();
+		return GetResponse();
 	}
 
-	[DocsRpc]
-	private static DocsRpcResponse EntityKill(ConsoleSystem.Arg arg)
+	[WebCall]
+	private static Response CMD_EntityKill(ConsoleSystem.Arg arg)
 	{
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(arg.GetULong(1))) as BaseEntity;
 		if (!entity.IsValid() || entity.IsDestroyed)
 		{
-			return Response();
+			return GetResponse();
 		}
 
 		if (entity is BasePlayer playerEntity)
@@ -165,7 +139,7 @@ public static partial class WebRCon
 			entity.AdminKill();
 		}
 
-		return Response();
+		return GetResponse();
 	}
 
 	private static object ParseEntityMetadata(BaseEntity entity)

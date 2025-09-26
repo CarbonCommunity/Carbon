@@ -12,8 +12,6 @@ namespace Carbon.Components;
 /// </summary>
 public static class Bridge
 {
-	public static BridgeServer Server = new();
-
 	/// <summary>
 	/// Opens the connection to a local or external Bridge server. The other server must have a Bridge.Server initialized. Think of it RCon but not really.
 	/// </summary>
@@ -91,7 +89,7 @@ public class DefaultBridgeMessages : BridgeMessages
 /// <summary>
 /// At its core, it uses Fleck (AKA Facepunch RCon's listener). It's entirely independent to Rust's RCon system, it just uses the core components at base (connection and memory management, etc.).
 /// </summary>
-public sealed class BridgeServer
+public abstract class BridgeServer
 {
 	public Listener Listener;
 	public Action<BridgeConnection> OnNewConnection;
@@ -106,7 +104,7 @@ public sealed class BridgeServer
 			return;
 		}
 
-		Messages = messages ?? new DefaultBridgeMessages();
+		SetMessages(messages);
 
 		Listener = new Listener();
 		if (!string.IsNullOrEmpty(ip))
@@ -121,7 +119,7 @@ public sealed class BridgeServer
 		{
 			lock (Listener.clients)
 			{
-				if (socket.ConnectionInfo.Path != $"/{Listener.Password}")
+				if (!OnSocketValidate(socket))
 				{
 					socket.Close();
 				}
@@ -134,6 +132,7 @@ public sealed class BridgeServer
 						Listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
 						Connections[connectionId] = bridgeConnection;
 						OnNewConnection?.Invoke(bridgeConnection);
+						OnBridgeConnection(bridgeConnection);
 					};
 					socket.OnClose = () =>
 					{
@@ -141,6 +140,7 @@ public sealed class BridgeServer
 						Listener.clients.Remove(connectionId);
 						if (Connections.TryGetValue(connectionId, out var bridgeConnection))
 						{
+							OnBridgeDisconnection(bridgeConnection);
 							Pool.Free(ref bridgeConnection);
 							Connections.Remove(connectionId);
 						}
@@ -177,6 +177,23 @@ public sealed class BridgeServer
 		OnNewConnection = null;
 		OnClosedConnection = null;
 		Messages = null;
+	}
+
+	public virtual bool OnSocketValidate(IWebSocketConnection socket)
+	{
+		return socket.ConnectionInfo.Path == $"/{Listener.Password}";
+	}
+
+	public abstract void OnBridgeConnection(BridgeConnection connection);
+	public abstract void OnBridgeDisconnection(BridgeConnection connection);
+
+	public void SetMessages(BridgeMessages messages)
+	{
+		Messages = messages ?? new DefaultBridgeMessages();
+		foreach(var connection in Connections.Values)
+		{
+			connection.Messages = Messages;
+		}
 	}
 }
 
@@ -279,6 +296,7 @@ public sealed class BridgeConnection : Pool.IPooled
 {
 	public IWebSocketConnection Socket;
 	public BridgeMessages Messages;
+	public object Reference;
 
 	public BridgeConnection Init(IWebSocketConnection connection, BridgeMessages messages)
 	{
@@ -366,5 +384,25 @@ public sealed class BridgeWrite : NetWrite
 	public void BridgeMessage(BridgeMessages.Channels message)
 	{
 		Int32((int)message);
+	}
+}
+
+public struct BridgeWriter : IDisposable
+{
+	public BridgeWrite write;
+
+	public static BridgeWriter Begin()
+	{
+		BridgeWriter writer = default;
+		writer.write = BridgeWrite.Rent();
+		return writer;
+	}
+
+	public void Dispose()
+	{
+		if (write != null)
+		{
+			BridgeWrite.Return(ref write);
+		}
 	}
 }
