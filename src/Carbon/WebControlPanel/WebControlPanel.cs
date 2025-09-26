@@ -67,7 +67,7 @@ public static partial class WebControlPanel
 		try
 		{
 			args[0] = read;
-			((Response)rpc.Method.Invoke(null, args)).WithRpcId(currentRpcId);
+			rpc.Method.Invoke(null, args);
 		}
 		catch(Exception ex)
 		{
