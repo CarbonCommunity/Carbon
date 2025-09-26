@@ -8,7 +8,7 @@ namespace Carbon;
 
 public static partial class WebControlPanel
 {
-	[Rpc]
+	[WebCall]
 	[UsedImplicitly]
 	private static Response CMD_GetConfigsInfo(ConsoleSystem.Arg arg)
 	{
@@ -23,7 +23,7 @@ public static partial class WebControlPanel
 		return GetResponse(list.ToArray());
 	}
 
-	[Rpc]
+	[WebCall]
 	[UsedImplicitly]
 	private static Response CMD_GetConfigInfo(ConsoleSystem.Arg arg)
 	{
@@ -47,7 +47,7 @@ public static partial class WebControlPanel
 		return GetResponse(new RConFileInfo(fileInfo));
 	}
 
-	[Rpc]
+	[WebCall]
 	[UsedImplicitly]
 	private static Response CMD_GetConfigContent(ConsoleSystem.Arg arg)
 	{
@@ -78,7 +78,7 @@ public static partial class WebControlPanel
 		return GetResponse(data);
 	}
 
-	[Rpc]
+	[WebCall]
 	[UsedImplicitly]
 	private static Response CMD_SetConfigContent(ConsoleSystem.Arg arg)
 	{

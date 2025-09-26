@@ -4,7 +4,8 @@ namespace Carbon;
 
 public static partial class WebControlPanel
 {
-	[Rpc, Condition.Permission(PermissionTypes.ServerInfo)]
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.ServerInfo)]
 	private static void RPC_Test(BridgeRead read)
 	{
 		Logger.Log($"{read.Int32()} {read.String()}");
@@ -12,7 +13,8 @@ public static partial class WebControlPanel
 		RpcResponse(read, "this is a response", 124);
 	}
 
-	[Rpc, Condition.Permission(PermissionTypes.ServerInfo)]
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.ServerInfo)]
 	private static void RPC_ServerInfo(BridgeRead read)
 	{
 		var write = StartRpcResponse();
@@ -20,7 +22,8 @@ public static partial class WebControlPanel
 		SendRpcResponse(read.Connection, write);
 	}
 
-	[Rpc, Condition.Permission(PermissionTypes.ServerInfo)]
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.ServerInfo)]
 	private static void RPC_CarbonInfo(BridgeRead read)
 	{
 		var analytics = Community.Runtime.Analytics;
@@ -31,13 +34,15 @@ public static partial class WebControlPanel
 		    $" {analytics.Version}/{analytics.Platform}/{analytics.Protocol} [{Build.Git.Branch}] [{Build.Git.Tag}] on Rust {BuildInfo.Current.Build.Number}/{Rust.Protocol.printable} ({BuildInfo.Current.BuildDate})");
 	}
 
-	[Rpc, Condition.Permission(PermissionTypes.ServerInfo)]
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.ServerInfo)]
 	private static void RPC_ServerDescription(BridgeRead read)
 	{
 		RpcResponse(read, ConVar.Server.description);
 	}
 
-	[Rpc, Condition.Permission(PermissionTypes.ServerInfo)]
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.ServerInfo)]
 	private static void RPC_ServerHeaderImage(BridgeRead read)
 	{
 		RpcResponse(read, ConVar.Server.headerimage);

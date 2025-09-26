@@ -2,7 +2,7 @@
 
 public static partial class WebControlPanel
 {
-	public static Dictionary<uint, Rpc> rpcs = [];
+	public static Dictionary<uint, WebCall> rpcs = [];
 	public static Server server;
 	public static ServerMessages serverMessages = new();
 	public static Config config;
@@ -18,12 +18,12 @@ public static partial class WebControlPanel
 		for (int i = 0; i < methods.Length; i++)
 		{
 			var method = methods[i];
-			if (method.GetCustomAttribute<Rpc>() is not Rpc rpc)
+			if (method.GetCustomAttribute<WebCall>() is not WebCall rpc)
 			{
 				continue;
 			}
 			rpc.Setup(method);
-			rpc.Conditions = [.. method.GetCustomAttributes<Condition>()];
+			rpc.Conditions = [.. method.GetCustomAttributes<WebCall.Condition>()];
 			rpcs[rpc.MethodId] = rpc;
 		}
 	}
@@ -31,7 +31,7 @@ public static partial class WebControlPanel
 	internal static void RunCommand(ConsoleSystem.Arg arg)
 	{
 		currentRpcId = arg.GetUInt(0);
-		if(!rpcs.TryGetValue(currentRpcId, out Rpc rpc))
+		if(!rpcs.TryGetValue(currentRpcId, out WebCall rpc))
 		{
 			return;
 		}
@@ -49,7 +49,7 @@ public static partial class WebControlPanel
 	private static void RunRpc(BridgeRead read)
 	{
 		currentRpcId = read.UInt32();
-		if(!rpcs.TryGetValue(currentRpcId, out Rpc rpc))
+		if(!rpcs.TryGetValue(currentRpcId, out WebCall rpc))
 		{
 			return;
 		}
@@ -100,7 +100,7 @@ public static partial class WebControlPanel
 	}
 
 	[AttributeUsage(AttributeTargets.Method)]
-	public class Rpc : Attribute
+	public class WebCall : Attribute
 	{
 		public MethodInfo Method;
 		public uint MethodId;
@@ -111,40 +111,40 @@ public static partial class WebControlPanel
 			Method = method;
 			MethodId = Vault.Pool.Get(method.Name);
 		}
-	}
-
-	[AttributeUsage(AttributeTargets.Method)]
-	public class Condition : Attribute
-	{
-		public virtual bool Test(BridgeConnection connection)
-		{
-			return true;
-		}
 
 		[AttributeUsage(AttributeTargets.Method)]
-		public class Permission(PermissionTypes permission) : Condition
+		public class Condition : Attribute
 		{
-			public PermissionTypes PermissionType = permission;
-
-			public override bool Test(BridgeConnection connection)
+			public virtual bool Test(BridgeConnection connection)
 			{
-				if (connection.Reference is not Account account)
+				return true;
+			}
+
+			[AttributeUsage(AttributeTargets.Method)]
+			public class Permission(PermissionTypes permission) : Condition
+			{
+				public PermissionTypes PermissionType = permission;
+
+				public override bool Test(BridgeConnection connection)
 				{
-					return false;
+					if (connection.Reference is not Account account)
+					{
+						return false;
+					}
+					return PermissionType switch
+					{
+						PermissionTypes.ConsoleView => account.permissions.console_view,
+						PermissionTypes.ConsoleInput => account.permissions.console_input,
+						PermissionTypes.ChatView => account.permissions.chat_view,
+						PermissionTypes.ChatInput => account.permissions.chat_input,
+						PermissionTypes.ServerInfo => account.permissions.serverinfo,
+						PermissionTypes.PlayersView => account.permissions.players_view,
+						PermissionTypes.PlayersInventory => account.permissions.players_inventory,
+						PermissionTypes.EntitiesView => account.permissions.entities_view,
+						PermissionTypes.EntitiesEdit => account.permissions.entities_edit,
+						_ => base.Test(connection)
+					};
 				}
-				return PermissionType switch
-				{
-					PermissionTypes.ConsoleView => account.permissions.console_view,
-					PermissionTypes.ConsoleInput => account.permissions.console_input,
-					PermissionTypes.ChatView => account.permissions.chat_view,
-					PermissionTypes.ChatInput => account.permissions.chat_input,
-					PermissionTypes.ServerInfo => account.permissions.serverinfo,
-					PermissionTypes.PlayersView => account.permissions.players_view,
-					PermissionTypes.PlayersInventory => account.permissions.players_inventory,
-					PermissionTypes.EntitiesView => account.permissions.entities_view,
-					PermissionTypes.EntitiesEdit => account.permissions.entities_edit,
-					_ => base.Test(connection)
-				};
 			}
 		}
 	}

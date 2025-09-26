@@ -29,7 +29,7 @@ public static partial class WebControlPanel
 		}
 	}
 
-	[Rpc]
+	[WebCall]
 	private static Response CMD_SearchEntities(ConsoleSystem.Arg arg)
 	{
 		var maxCount = arg.GetInt(1, 200);
@@ -94,7 +94,7 @@ public static partial class WebControlPanel
 		return GetResponse(entities.Select(x => ParseEntityMetadata(x)).ToArray());
 	}
 
-	[Rpc]
+	[WebCall]
 	private static Response CMD_EntityDetails(ConsoleSystem.Arg arg)
 	{
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(arg.GetULong(1))) as BaseEntity;
@@ -106,7 +106,7 @@ public static partial class WebControlPanel
 		return GetResponse(ParseEntityDetails(entity));
 	}
 
-	[Rpc]
+	[WebCall]
 	private static Response CMD_EntitySave(ConsoleSystem.Arg arg)
 	{
 		var details = JObject.Parse(arg.GetString(1));
@@ -145,7 +145,7 @@ public static partial class WebControlPanel
 		return GetResponse();
 	}
 
-	[Rpc]
+	[WebCall]
 	private static Response CMD_EntityKill(ConsoleSystem.Arg arg)
 	{
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(arg.GetULong(1))) as BaseEntity;

@@ -4,7 +4,7 @@ namespace Carbon;
 
 public static partial class WebControlPanel
 {
-	[Rpc]
+	[WebCall]
 	private static Response CMD_GetPermissionsMetadata(ConsoleSystem.Arg _)
 	{
 		var permission = Community.Runtime.Core.permission;
@@ -68,7 +68,7 @@ public static partial class WebControlPanel
 		});
 	}
 
-	[Rpc]
+	[WebCall]
 	private static Response CMD_GetGroupPermissions(ConsoleSystem.Arg arg)
 	{
 		var group = arg.GetString(1);
@@ -78,7 +78,7 @@ public static partial class WebControlPanel
 		});
 	}
 
-	[Rpc]
+	[WebCall]
 	private static Response CMD_TogglePermission(ConsoleSystem.Arg arg)
 	{
 		var group = arg.GetString(1);
