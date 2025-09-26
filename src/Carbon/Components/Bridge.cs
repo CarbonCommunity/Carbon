@@ -394,7 +394,7 @@ public struct BridgeWriter : IDisposable
 	public static BridgeWriter Begin()
 	{
 		BridgeWriter writer = default;
-		writer.write = Pool.Get<BridgeWrite>();
+		writer.write = BridgeWrite.Rent();
 		return writer;
 	}
 
@@ -402,7 +402,7 @@ public struct BridgeWriter : IDisposable
 	{
 		if (write != null)
 		{
-			Pool.Free(ref write);
+			BridgeWrite.Return(ref write);
 		}
 	}
 }

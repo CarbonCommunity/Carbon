@@ -19,20 +19,18 @@ public static partial class WebControlPanel
 			{
 				return default;
 			}
-
 			var split = value.Split(':');
 			var coordinates = split[0].Split(' ');
 			EntitySearchRange range = default;
-			range.position = new Vector3(float.Parse(coordinates[0]), float.Parse(coordinates[1]),
-				float.Parse(coordinates[2]));
+			range.position = new Vector3(float.Parse(coordinates[0]), float.Parse(coordinates[1]), float.Parse(coordinates[2]));
 			range.range = float.Parse(split[1]);
 			range.filter = split.Length >= 3 ? split[2] : null;
 			return range;
 		}
 	}
 
-	[Rpc, Condition.Permission(PermissionTypes.EntitiesView)]
-	private static Response SearchEntities(ConsoleSystem.Arg arg)
+	[Rpc]
+	private static Response CMD_SearchEntities(ConsoleSystem.Arg arg)
 	{
 		var maxCount = arg.GetInt(1, 200);
 		var filter = arg.GetString(2);
@@ -96,8 +94,8 @@ public static partial class WebControlPanel
 		return GetResponse(entities.Select(x => ParseEntityMetadata(x)).ToArray());
 	}
 
-	[Rpc, Condition.Permission(PermissionTypes.EntitiesView)]
-	private static Response EntityDetails(ConsoleSystem.Arg arg)
+	[Rpc]
+	private static Response CMD_EntityDetails(ConsoleSystem.Arg arg)
 	{
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(arg.GetULong(1))) as BaseEntity;
 		if (!entity.IsValid() || entity.IsDestroyed)
@@ -108,8 +106,8 @@ public static partial class WebControlPanel
 		return GetResponse(ParseEntityDetails(entity));
 	}
 
-	[Rpc, Condition.Permission(PermissionTypes.EntitiesEdit)]
-	private static Response EntitySave(ConsoleSystem.Arg arg)
+	[Rpc]
+	private static Response CMD_EntitySave(ConsoleSystem.Arg arg)
 	{
 		var details = JObject.Parse(arg.GetString(1));
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(details["NetId"].ToObject<ulong>())) as BaseEntity;
@@ -147,8 +145,8 @@ public static partial class WebControlPanel
 		return GetResponse();
 	}
 
-	[Rpc, Condition.Permission(PermissionTypes.EntitiesEdit)]
-	private static Response EntityKill(ConsoleSystem.Arg arg)
+	[Rpc]
+	private static Response CMD_EntityKill(ConsoleSystem.Arg arg)
 	{
 		var entity = BaseNetworkable.serverEntities.Find(new NetworkableId(arg.GetULong(1))) as BaseEntity;
 		if (!entity.IsValid() || entity.IsDestroyed)

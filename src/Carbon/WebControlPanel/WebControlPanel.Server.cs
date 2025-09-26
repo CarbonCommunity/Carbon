@@ -4,22 +4,67 @@ namespace Carbon;
 
 public static partial class WebControlPanel
 {
-	public static bool TryFindAccount(string password, out Account account)
+	public static void RpcResponse(BridgeRead read)
 	{
-		return (account = FindAccount(password)) != null;
+		using var writer = BridgeWriter.Begin();
+		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		writer.write.WriteObject(currentRpcId);
+		read.Connection.Send(writer.write);
 	}
 
-	public static Account FindAccount(string password)
+	public static void RpcResponse<T1>(BridgeRead read, T1 arg1)
 	{
-		for (int i = 0; i < config.accounts.Length; i++)
-		{
-			var account = config.accounts[i];
-			if (account.password == password)
-			{
-				return account;
-			}
-		}
-		return null;
+		using var writer = BridgeWriter.Begin();
+		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		writer.write.WriteObject(currentRpcId);
+		writer.write.WriteObject(arg1);
+		read.Connection.Send(writer.write);
+	}
+
+	public static void RpcResponse<T1, T2>(BridgeRead read, T1 arg1, T2 arg2)
+	{
+		using var writer = BridgeWriter.Begin();
+		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		writer.write.WriteObject(currentRpcId);
+		writer.write.WriteObject(arg1);
+		writer.write.WriteObject(arg2);
+		read.Connection.Send(writer.write);
+	}
+
+	public static void RpcResponse<T1, T2, T3>(BridgeRead read, T1 arg1, T2 arg2, T3 arg3)
+	{
+		using var writer = BridgeWriter.Begin();
+		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		writer.write.WriteObject(currentRpcId);
+		writer.write.WriteObject(arg1);
+		writer.write.WriteObject(arg2);
+		writer.write.WriteObject(arg3);
+		read.Connection.Send(writer.write);
+	}
+
+	public static void RpcResponse<T1, T2, T3, T4>(BridgeRead read, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+	{
+		using var writer = BridgeWriter.Begin();
+		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		writer.write.WriteObject(currentRpcId);
+		writer.write.WriteObject(arg1);
+		writer.write.WriteObject(arg2);
+		writer.write.WriteObject(arg3);
+		writer.write.WriteObject(arg4);
+		read.Connection.Send(writer.write);
+	}
+
+	public static void RpcResponse<T1, T2, T3, T4, T5>(BridgeRead read, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+	{
+		using var writer = BridgeWriter.Begin();
+		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		writer.write.WriteObject(currentRpcId);
+		writer.write.WriteObject(arg1);
+		writer.write.WriteObject(arg2);
+		writer.write.WriteObject(arg3);
+		writer.write.WriteObject(arg4);
+		writer.write.WriteObject(arg5);
+		read.Connection.Send(writer.write);
 	}
 
 	public class Server : BridgeServer
@@ -56,7 +101,7 @@ public static partial class WebControlPanel
 
 		protected override void OnRpc(BridgeRead read)
 		{
-
+			RunRpc(read);
 		}
 
 		protected override void OnUnhandled(BridgeRead read)

@@ -7,7 +7,8 @@ public static partial class WebControlPanel
 	public static ServerMessages serverMessages = new();
 	public static Config config;
 
-	internal static object[] args = [1];
+	private static uint currentRpcId;
+	private static object[] args = [1];
 
 	internal static void Init()
 	{
@@ -27,21 +28,50 @@ public static partial class WebControlPanel
 		}
 	}
 
-	internal static void Run(ConsoleSystem.Arg arg)
+	internal static void RunCommand(ConsoleSystem.Arg arg)
 	{
-		var rpcId = arg.GetUInt(0);
-		if(!rpcs.TryGetValue(rpcId, out Rpc rpc))
+		currentRpcId = arg.GetUInt(0);
+		if(!rpcs.TryGetValue(currentRpcId, out Rpc rpc))
 		{
 			return;
 		}
 		try
 		{
 			args[0] = arg;
-			arg.ReplyWithObject(((Response)rpc.Method.Invoke(null, args)).WithRpcId(rpcId));
+			arg.ReplyWithObject(((Response)rpc.Method.Invoke(null, args)).WithRpcId(currentRpcId));
 		}
 		catch(Exception ex)
 		{
-			Logger.Error($"Failed WebRCon.Run", ex);
+			Logger.Error($"Failed WebControlPanel.RunCommand", ex);
+		}
+	}
+
+	private static void RunRpc(BridgeRead read)
+	{
+		currentRpcId = read.UInt32();
+		if(!rpcs.TryGetValue(currentRpcId, out Rpc rpc))
+		{
+			return;
+		}
+		if (rpc.Conditions != null)
+		{
+			for (int i = 0; i < rpc.Conditions.Length; i++)
+			{
+				var condition = rpc.Conditions[i];
+				if (!condition.Test(read.Connection))
+				{
+					return;
+				}
+			}
+		}
+		try
+		{
+			args[0] = read;
+			((Response)rpc.Method.Invoke(null, args)).WithRpcId(currentRpcId);
+		}
+		catch(Exception ex)
+		{
+			Logger.Error($"Failed WebControlPanel.RunRpc", ex);
 		}
 	}
 

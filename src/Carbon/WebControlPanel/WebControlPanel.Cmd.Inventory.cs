@@ -3,7 +3,7 @@
 public static partial class WebControlPanel
 {
 	[Rpc, Condition.Permission(PermissionTypes.PlayersInventory)]
-	private static Response SendPlayerInventory(ConsoleSystem.Arg arg)
+	private static Response CMD_SendPlayerInventory(ConsoleSystem.Arg arg)
 	{
 		var player = BasePlayer.FindAwakeOrSleepingByID(arg.GetULong(1));
 
@@ -29,7 +29,7 @@ public static partial class WebControlPanel
 	}
 
 	[Rpc, Condition.Permission(PermissionTypes.PlayersInventory)]
-	private static Response MoveInventoryItem(ConsoleSystem.Arg arg)
+	private static Response CMD_MoveInventoryItem(ConsoleSystem.Arg arg)
 	{
 		var player = BasePlayer.FindAwakeOrSleepingByID(arg.GetULong(1));
 

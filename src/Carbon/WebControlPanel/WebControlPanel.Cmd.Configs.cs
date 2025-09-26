@@ -10,27 +10,22 @@ public static partial class WebControlPanel
 {
 	[Rpc]
 	[UsedImplicitly]
-	private static Response GetConfigsInfo(ConsoleSystem.Arg arg)
+	private static Response CMD_GetConfigsInfo(ConsoleSystem.Arg arg)
 	{
 		var configsFolder = Defines.GetConfigsFolder();
-
 		var files = Directory.GetFiles(configsFolder);
 
 		using var list = Pool.Get<PooledList<RConFileInfo>>();
-
 		foreach (var file in files)
 		{
-			var fileInfo = new FileInfo(file);
-
-			list.Add(new RConFileInfo(fileInfo));
+			list.Add(new RConFileInfo(new FileInfo(file)));
 		}
-
 		return GetResponse(list.ToArray());
 	}
 
 	[Rpc]
 	[UsedImplicitly]
-	private static Response GetConfigInfo(ConsoleSystem.Arg arg)
+	private static Response CMD_GetConfigInfo(ConsoleSystem.Arg arg)
 	{
 		var fileName = arg.GetString(1);
 
@@ -54,7 +49,7 @@ public static partial class WebControlPanel
 
 	[Rpc]
 	[UsedImplicitly]
-	private static Response GetConfigContent(ConsoleSystem.Arg arg)
+	private static Response CMD_GetConfigContent(ConsoleSystem.Arg arg)
 	{
 		var fileName = arg.GetString(1);
 
@@ -85,7 +80,7 @@ public static partial class WebControlPanel
 
 	[Rpc]
 	[UsedImplicitly]
-	private static Response SetConfigContent(ConsoleSystem.Arg arg)
+	private static Response CMD_SetConfigContent(ConsoleSystem.Arg arg)
 	{
 		var fileName = arg.GetString(1);
 

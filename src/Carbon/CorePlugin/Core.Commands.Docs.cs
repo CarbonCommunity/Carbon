@@ -6,6 +6,6 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void OnWebRConRPC(ConsoleSystem.Arg arg)
 	{
-		WebControlPanel.Run(arg);
+		WebControlPanel.RunCommand(arg);
 	}
 }
