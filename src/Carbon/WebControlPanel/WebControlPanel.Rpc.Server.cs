@@ -9,6 +9,6 @@ public static partial class WebControlPanel
 	{
 		Logger.Log($"{read.Int32()} {read.String()}");
 
-		RpcResponse(read);
+		RpcResponse(read, "this is a response", 124);
 	}
 }
