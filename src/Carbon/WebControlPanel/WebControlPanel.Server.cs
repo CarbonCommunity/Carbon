@@ -4,67 +4,69 @@ namespace Carbon;
 
 public static partial class WebControlPanel
 {
+	public static BridgeWrite StartRpcResponse()
+	{
+		var write = BridgeWrite.Rent();
+		write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		write.WriteObject(currentRpcId);
+		return write;
+	}
+
+	public static void SendRpcResponse(BridgeConnection connection, BridgeWrite write)
+	{
+		connection.Send(write);
+		BridgeWrite.Return(ref write);
+	}
+
 	public static void RpcResponse(BridgeRead read)
 	{
-		using var writer = BridgeWriter.Begin();
-		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
-		writer.write.WriteObject(currentRpcId);
-		read.Connection.Send(writer.write);
+		var write = StartRpcResponse();
+		SendRpcResponse(read.Connection, write);
 	}
 
 	public static void RpcResponse<T1>(BridgeRead read, T1 arg1)
 	{
-		using var writer = BridgeWriter.Begin();
-		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
-		writer.write.WriteObject(currentRpcId);
-		writer.write.WriteObject(arg1);
-		read.Connection.Send(writer.write);
+		var write = StartRpcResponse();
+		write.WriteObject(arg1);
+		SendRpcResponse(read.Connection, write);
 	}
 
 	public static void RpcResponse<T1, T2>(BridgeRead read, T1 arg1, T2 arg2)
 	{
-		using var writer = BridgeWriter.Begin();
-		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
-		writer.write.WriteObject(currentRpcId);
-		writer.write.WriteObject(arg1);
-		writer.write.WriteObject(arg2);
-		read.Connection.Send(writer.write);
+		var write = StartRpcResponse();
+		write.WriteObject(arg1);
+		write.WriteObject(arg2);
+		SendRpcResponse(read.Connection, write);
 	}
 
 	public static void RpcResponse<T1, T2, T3>(BridgeRead read, T1 arg1, T2 arg2, T3 arg3)
 	{
-		using var writer = BridgeWriter.Begin();
-		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
-		writer.write.WriteObject(currentRpcId);
-		writer.write.WriteObject(arg1);
-		writer.write.WriteObject(arg2);
-		writer.write.WriteObject(arg3);
-		read.Connection.Send(writer.write);
+		var write = StartRpcResponse();
+		write.WriteObject(arg1);
+		write.WriteObject(arg2);
+		write.WriteObject(arg3);
+		SendRpcResponse(read.Connection, write);
 	}
 
 	public static void RpcResponse<T1, T2, T3, T4>(BridgeRead read, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
 	{
-		using var writer = BridgeWriter.Begin();
-		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
-		writer.write.WriteObject(currentRpcId);
-		writer.write.WriteObject(arg1);
-		writer.write.WriteObject(arg2);
-		writer.write.WriteObject(arg3);
-		writer.write.WriteObject(arg4);
-		read.Connection.Send(writer.write);
+		var write = StartRpcResponse();
+		write.WriteObject(arg1);
+		write.WriteObject(arg2);
+		write.WriteObject(arg3);
+		write.WriteObject(arg4);
+		SendRpcResponse(read.Connection, write);
 	}
 
 	public static void RpcResponse<T1, T2, T3, T4, T5>(BridgeRead read, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
 	{
-		using var writer = BridgeWriter.Begin();
-		writer.write.BridgeMessage(BridgeMessages.Channels.Rpc);
-		writer.write.WriteObject(currentRpcId);
-		writer.write.WriteObject(arg1);
-		writer.write.WriteObject(arg2);
-		writer.write.WriteObject(arg3);
-		writer.write.WriteObject(arg4);
-		writer.write.WriteObject(arg5);
-		read.Connection.Send(writer.write);
+		var write = StartRpcResponse();
+		write.WriteObject(arg1);
+		write.WriteObject(arg2);
+		write.WriteObject(arg3);
+		write.WriteObject(arg4);
+		write.WriteObject(arg5);
+		SendRpcResponse(read.Connection, write);
 	}
 
 	public class Server : BridgeServer
