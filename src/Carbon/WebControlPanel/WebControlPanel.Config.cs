@@ -1,4 +1,5 @@
-﻿using Fleck;
+﻿using Facepunch;
+using Fleck;
 using Newtonsoft.Json;
 
 namespace Carbon;
@@ -15,7 +16,7 @@ public static partial class WebControlPanel
 		server = null;
 	}
 
-	private static void LoadConfig()
+	public static void LoadConfig()
 	{
 		var configFile = Defines.GetWebRconConfigFile();
 		if (!File.Exists(configFile))
@@ -25,13 +26,23 @@ public static partial class WebControlPanel
 		}
 		config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configFile));
 
-		if (config.CanStartServer())
+		if (server != null)
+		{
+			using var connections = Pool.Get<PooledList<BridgeConnection>>();
+			connections.AddRange(server.Connections.Values);
+			for (int i = 0; i < connections.Count; i++)
+			{
+				connections[i].Socket.Close();
+			}
+		}
+
+		if (server == null && config.CanStartServer())
 		{
 			(server = new Server()).Start(config.port, RandomEx.GetRandomString(16), config.ip, serverMessages);
 		}
 	}
 
-	private static void SaveConfig()
+	public static void SaveConfig()
 	{
 		File.WriteAllText(Defines.GetWebRconConfigFile(), JsonConvert.SerializeObject(config ??= new(), Formatting.Indented));
 	}
