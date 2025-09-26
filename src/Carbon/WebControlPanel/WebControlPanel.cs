@@ -142,6 +142,8 @@ public static partial class WebControlPanel
 						PermissionTypes.PlayersInventory => account.permissions.players_inventory,
 						PermissionTypes.EntitiesView => account.permissions.entities_view,
 						PermissionTypes.EntitiesEdit => account.permissions.entities_edit,
+						PermissionTypes.PermissionsView => account.permissions.permissions_view,
+						PermissionTypes.PermissionsEdit => account.permissions.permissions_edit,
 						_ => base.Test(connection)
 					};
 				}

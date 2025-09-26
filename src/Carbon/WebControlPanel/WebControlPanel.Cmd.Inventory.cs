@@ -29,7 +29,6 @@ public static partial class WebControlPanel
 	}
 
 	[WebCall]
-	[WebCall.Condition.Permission(PermissionTypes.PlayersInventory)]
 	private static Response CMD_MoveInventoryItem(ConsoleSystem.Arg arg)
 	{
 		var player = BasePlayer.FindAwakeOrSleepingByID(arg.GetULong(1));

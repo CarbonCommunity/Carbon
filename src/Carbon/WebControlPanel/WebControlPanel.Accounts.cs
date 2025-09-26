@@ -38,6 +38,8 @@ public static partial class WebControlPanel
 		public bool players_inventory = enabled;
 		public bool entities_view = enabled;
 		public bool entities_edit = enabled;
+		public bool permissions_view = enabled;
+		public bool permissions_edit = enabled;
 	}
 
 	public enum PermissionTypes
@@ -52,5 +54,7 @@ public static partial class WebControlPanel
 		PlayersInventory,
 		EntitiesView,
 		EntitiesEdit,
+		PermissionsView,
+		PermissionsEdit,
 	}
 }
