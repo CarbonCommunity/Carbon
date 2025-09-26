@@ -73,6 +73,10 @@ public static partial class WebControlPanel
 
 		public static ServerInfoOutput Get()
 		{
+			if (!Community.IsServerInitialized)
+			{
+				return default;
+			}
 			return new ServerInfoOutput
 			{
 				Hostname = ConVar.Server.hostname,
