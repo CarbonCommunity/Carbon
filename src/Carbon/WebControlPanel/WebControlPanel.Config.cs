@@ -6,16 +6,6 @@ namespace Carbon;
 
 public static partial class WebControlPanel
 {
-	public static void Shutdown()
-	{
-		if (server == null)
-		{
-			return;
-		}
-		server.Shutdown();
-		server = null;
-	}
-
 	public static void LoadConfig()
 	{
 		var configFile = Defines.GetWebRconConfigFile();
@@ -32,7 +22,7 @@ public static partial class WebControlPanel
 			connections.AddRange(server.Connections.Values);
 			for (int i = 0; i < connections.Count; i++)
 			{
-				connections[i].Socket.Close();
+				connections[i]?.Socket?.Close();
 			}
 		}
 

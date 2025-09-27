@@ -6,11 +6,12 @@ public static partial class WebControlPanel
 	[WebCall.Condition.Permission(PermissionTypes.PlayersView)]
 	private static void RPC_Players(BridgeRead read)
 	{
+		var canSeeIps = Account.HasPermission(read.Connection, PermissionTypes.PlayersIp);
 		var write = StartRpcResponse();
 		write.WriteObject(BasePlayer.activePlayerList.Count);
 		for (int i = 0; i < BasePlayer.activePlayerList.Count; i++)
 		{
-			new PlayerInfo(BasePlayer.activePlayerList[i]).Serialize(write);
+			new PlayerInfo(BasePlayer.activePlayerList[i]).Serialize(write, !canSeeIps);
 		}
 		SendRpcResponse(read.Connection, write);
 	}
@@ -29,13 +30,13 @@ public static partial class WebControlPanel
 		private int unspentXp = 0;
 		private float health = player.health;
 
-		public void Serialize(BridgeWrite write)
+		public void Serialize(BridgeWrite write, bool excludeIps)
 		{
 			write.WriteObject(steamId);
 			write.WriteObject(ownerSteamId);
 			write.WriteObject(displayName);
 			write.WriteObject(ping);
-			write.WriteObject(address);
+			write.WriteObject(excludeIps ? "hidden" : address);
 			write.WriteObject(entityId);
 			write.WriteObject(connectedSeconds);
 			write.WriteObject(violationLevel);

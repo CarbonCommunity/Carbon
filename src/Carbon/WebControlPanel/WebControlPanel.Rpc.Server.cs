@@ -5,16 +5,6 @@ namespace Carbon;
 public static partial class WebControlPanel
 {
 	[WebCall]
-	[WebCall.Condition.Permission(PermissionTypes.ServerInfo)]
-	private static void RPC_Test(BridgeRead read)
-	{
-		Logger.Log($"{read.Int32()} {read.String()}");
-
-		RpcResponse(read, "this is a response", 124);
-	}
-
-	[WebCall]
-	[WebCall.Condition.Permission(PermissionTypes.ServerInfo)]
 	private static void RPC_ServerInfo(BridgeRead read)
 	{
 		var write = StartRpcResponse();
@@ -23,7 +13,6 @@ public static partial class WebControlPanel
 	}
 
 	[WebCall]
-	[WebCall.Condition.Permission(PermissionTypes.ServerInfo)]
 	private static void RPC_CarbonInfo(BridgeRead read)
 	{
 		var analytics = Community.Runtime.Analytics;
@@ -35,14 +24,12 @@ public static partial class WebControlPanel
 	}
 
 	[WebCall]
-	[WebCall.Condition.Permission(PermissionTypes.ServerInfo)]
 	private static void RPC_ServerDescription(BridgeRead read)
 	{
 		RpcResponse(read, ConVar.Server.description);
 	}
 
 	[WebCall]
-	[WebCall.Condition.Permission(PermissionTypes.ServerInfo)]
 	private static void RPC_ServerHeaderImage(BridgeRead read)
 	{
 		RpcResponse(read, ConVar.Server.headerimage);

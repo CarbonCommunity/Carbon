@@ -12,9 +12,34 @@ public static partial class WebControlPanel
 		return write;
 	}
 
+	public static BridgeWrite StartRpcResponse(string rpc)
+	{
+		var write = BridgeWrite.Rent();
+		write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		write.WriteObject(Vault.Pool.Get(rpc));
+		return write;
+	}
+
+	public static BridgeWrite StartRpcResponse(uint rpc)
+	{
+		var write = BridgeWrite.Rent();
+		write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		write.WriteObject(rpc);
+		return write;
+	}
+
 	public static void SendRpcResponse(BridgeConnection connection, BridgeWrite write)
 	{
 		connection.Send(write);
+		BridgeWrite.Return(ref write);
+	}
+
+	public static void SendRpcResponse(List<BridgeConnection> connections, BridgeWrite write)
+	{
+		for (int i = 0; i < connections.Count; i++)
+		{
+			connections[i].Send(write);
+		}
 		BridgeWrite.Return(ref write);
 	}
 

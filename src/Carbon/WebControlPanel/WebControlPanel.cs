@@ -1,4 +1,6 @@
-﻿namespace Carbon;
+﻿using Facepunch;
+
+namespace Carbon;
 
 public static partial class WebControlPanel
 {
@@ -10,7 +12,7 @@ public static partial class WebControlPanel
 	private static uint currentRpcId;
 	private static object[] args = [1];
 
-	internal static void Init()
+	public static void Init()
 	{
 		LoadConfig();
 		rpcs.Clear();
@@ -26,6 +28,18 @@ public static partial class WebControlPanel
 			rpc.Conditions = [.. method.GetCustomAttributes<WebCall.Condition>()];
 			rpcs[rpc.MethodId] = rpc;
 		}
+		Output.OnPostMessage += OnLog;
+	}
+
+	public static void Shutdown()
+	{
+		Output.OnPostMessage -= OnLog;
+		if (server == null)
+		{
+			return;
+		}
+		server.Shutdown();
+		server = null;
 	}
 
 	internal static void RunCommand(ConsoleSystem.Arg arg)
@@ -127,25 +141,7 @@ public static partial class WebControlPanel
 
 				public override bool Test(BridgeConnection connection)
 				{
-					if (connection.Reference is not Account account)
-					{
-						return false;
-					}
-					return PermissionType switch
-					{
-						PermissionTypes.ConsoleView => account.permissions.console_view,
-						PermissionTypes.ConsoleInput => account.permissions.console_input,
-						PermissionTypes.ChatView => account.permissions.chat_view,
-						PermissionTypes.ChatInput => account.permissions.chat_input,
-						PermissionTypes.ServerInfo => account.permissions.serverinfo,
-						PermissionTypes.PlayersView => account.permissions.players_view,
-						PermissionTypes.PlayersInventory => account.permissions.players_inventory,
-						PermissionTypes.EntitiesView => account.permissions.entities_view,
-						PermissionTypes.EntitiesEdit => account.permissions.entities_edit,
-						PermissionTypes.PermissionsView => account.permissions.permissions_view,
-						PermissionTypes.PermissionsEdit => account.permissions.permissions_edit,
-						_ => base.Test(connection)
-					};
+					return Account.HasPermission(connection, PermissionType);
 				}
 			}
 		}
