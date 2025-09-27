@@ -2,6 +2,18 @@
 
 public static partial class WebControlPanel
 {
+	[WebCall]
+	private static void RPC_AccountPermissions(BridgeRead read)
+	{
+		if (read.Connection.Reference is not Account { permissions: Permissions permissions })
+		{
+			return;
+		}
+		var write = StartRpcResponse();
+		permissions.Serialize(write);
+		SendRpcResponse(read.Connection, write);
+	}
+
 	public static bool TryFindAccount(string password, out Account account)
 	{
 		return (account = FindAccount(password)) != null;
