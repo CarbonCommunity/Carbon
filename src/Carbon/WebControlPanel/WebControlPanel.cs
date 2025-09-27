@@ -141,24 +141,7 @@ public static partial class WebControlPanel
 
 				public override bool Test(BridgeConnection connection)
 				{
-					if (connection.Reference is not Account account)
-					{
-						return false;
-					}
-					return PermissionType switch
-					{
-						PermissionTypes.ConsoleView => account.permissions.console_view,
-						PermissionTypes.ConsoleInput => account.permissions.console_input,
-						PermissionTypes.ChatView => account.permissions.chat_view,
-						PermissionTypes.ChatInput => account.permissions.chat_input,
-						PermissionTypes.PlayersView => account.permissions.players_view,
-						PermissionTypes.PlayersInventory => account.permissions.players_inventory,
-						PermissionTypes.EntitiesView => account.permissions.entities_view,
-						PermissionTypes.EntitiesEdit => account.permissions.entities_edit,
-						PermissionTypes.PermissionsView => account.permissions.permissions_view,
-						PermissionTypes.PermissionsEdit => account.permissions.permissions_edit,
-						_ => base.Test(connection)
-					};
+					return Account.HasPermission(connection, PermissionType);
 				}
 			}
 		}
