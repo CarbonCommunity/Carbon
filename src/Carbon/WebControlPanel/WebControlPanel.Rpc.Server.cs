@@ -5,14 +5,6 @@ namespace Carbon;
 public static partial class WebControlPanel
 {
 	[WebCall]
-	private static void RPC_Test(BridgeRead read)
-	{
-		Logger.Log($"{read.Int32()} {read.String()}");
-
-		RpcResponse(read, "this is a response", 124);
-	}
-
-	[WebCall]
 	private static void RPC_ServerInfo(BridgeRead read)
 	{
 		var write = StartRpcResponse();
