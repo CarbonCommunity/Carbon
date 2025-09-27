@@ -57,6 +57,7 @@ public static partial class WebControlPanel
 				PermissionTypes.EntitiesEdit => account.permissions.entities_edit,
 				PermissionTypes.PermissionsView => account.permissions.permissions_view,
 				PermissionTypes.PermissionsEdit => account.permissions.permissions_edit,
+				_ => false
 			};
 		}
 	}
