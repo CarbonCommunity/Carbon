@@ -40,6 +40,21 @@ public static partial class WebControlPanel
 		public bool entities_edit = enabled;
 		public bool permissions_view = enabled;
 		public bool permissions_edit = enabled;
+
+		public void Serialize(BridgeWrite write)
+		{
+			write.WriteObject(console_view);
+			write.WriteObject(console_input);
+			write.WriteObject(chat_view);
+			write.WriteObject(chat_input);
+			write.WriteObject(serverinfo);
+			write.WriteObject(players_view);
+			write.WriteObject(players_inventory);
+			write.WriteObject(entities_view);
+			write.WriteObject(entities_edit);
+			write.WriteObject(permissions_view);
+			write.WriteObject(permissions_edit);
+		}
 	}
 
 	public enum PermissionTypes
