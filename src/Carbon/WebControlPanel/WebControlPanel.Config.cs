@@ -6,16 +6,6 @@ namespace Carbon;
 
 public static partial class WebControlPanel
 {
-	public static void Shutdown()
-	{
-		if (server == null)
-		{
-			return;
-		}
-		server.Shutdown();
-		server = null;
-	}
-
 	public static void LoadConfig()
 	{
 		var configFile = Defines.GetWebRconConfigFile();

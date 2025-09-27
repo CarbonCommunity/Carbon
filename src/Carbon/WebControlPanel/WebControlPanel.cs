@@ -1,4 +1,6 @@
-﻿namespace Carbon;
+﻿using Facepunch;
+
+namespace Carbon;
 
 public static partial class WebControlPanel
 {
@@ -10,7 +12,7 @@ public static partial class WebControlPanel
 	private static uint currentRpcId;
 	private static object[] args = [1];
 
-	internal static void Init()
+	public static void Init()
 	{
 		LoadConfig();
 		rpcs.Clear();
@@ -26,6 +28,18 @@ public static partial class WebControlPanel
 			rpc.Conditions = [.. method.GetCustomAttributes<WebCall.Condition>()];
 			rpcs[rpc.MethodId] = rpc;
 		}
+		Output.OnPostMessage += OnLog;
+	}
+
+	public static void Shutdown()
+	{
+		Output.OnPostMessage -= OnLog;
+		if (server == null)
+		{
+			return;
+		}
+		server.Shutdown();
+		server = null;
 	}
 
 	internal static void RunCommand(ConsoleSystem.Arg arg)

@@ -4,11 +4,27 @@ namespace Carbon;
 
 public static partial class WebControlPanel
 {
-	public static BridgeWrite StartRpcResponse(string rpc = null)
+	public static BridgeWrite StartRpcResponse()
 	{
 		var write = BridgeWrite.Rent();
 		write.BridgeMessage(BridgeMessages.Channels.Rpc);
-		write.WriteObject(string.IsNullOrEmpty(rpc) ? currentRpcId : Vault.Pool.Get(rpc));
+		write.WriteObject(currentRpcId);
+		return write;
+	}
+
+	public static BridgeWrite StartRpcResponse(string rpc)
+	{
+		var write = BridgeWrite.Rent();
+		write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		write.WriteObject(Vault.Pool.Get(rpc));
+		return write;
+	}
+
+	public static BridgeWrite StartRpcResponse(uint rpc)
+	{
+		var write = BridgeWrite.Rent();
+		write.BridgeMessage(BridgeMessages.Channels.Rpc);
+		write.WriteObject(rpc);
 		return write;
 	}
 
