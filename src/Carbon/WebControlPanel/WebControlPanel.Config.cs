@@ -22,7 +22,7 @@ public static partial class WebControlPanel
 			connections.AddRange(server.Connections.Values);
 			for (int i = 0; i < connections.Count; i++)
 			{
-				connections[i].Socket.Close();
+				connections[i]?.Socket?.Close();
 			}
 		}
 
