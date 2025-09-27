@@ -18,6 +18,15 @@ public static partial class WebControlPanel
 		BridgeWrite.Return(ref write);
 	}
 
+	public static void SendRpcResponse(List<BridgeConnection> connections, BridgeWrite write)
+	{
+		for (int i = 0; i < connections.Count; i++)
+		{
+			connections[i].Send(write);
+		}
+		BridgeWrite.Return(ref write);
+	}
+
 	public static void RpcResponse(BridgeRead read)
 	{
 		var write = StartRpcResponse();
