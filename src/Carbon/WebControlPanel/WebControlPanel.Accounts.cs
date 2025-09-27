@@ -45,7 +45,6 @@ public static partial class WebControlPanel
 		public bool console_input = enabled;
 		public bool chat_view = enabled;
 		public bool chat_input = enabled;
-		public bool serverinfo = enabled;
 		public bool players_view = enabled;
 		public bool players_inventory = enabled;
 		public bool entities_view = enabled;
@@ -59,7 +58,6 @@ public static partial class WebControlPanel
 			write.WriteObject(console_input);
 			write.WriteObject(chat_view);
 			write.WriteObject(chat_input);
-			write.WriteObject(serverinfo);
 			write.WriteObject(players_view);
 			write.WriteObject(players_inventory);
 			write.WriteObject(entities_view);
@@ -76,7 +74,6 @@ public static partial class WebControlPanel
 		ConsoleInput,
 		ChatView,
 		ChatInput,
-		ServerInfo,
 		PlayersView,
 		PlayersInventory,
 		EntitiesView,

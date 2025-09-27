@@ -151,7 +151,6 @@ public static partial class WebControlPanel
 						PermissionTypes.ConsoleInput => account.permissions.console_input,
 						PermissionTypes.ChatView => account.permissions.chat_view,
 						PermissionTypes.ChatInput => account.permissions.chat_input,
-						PermissionTypes.ServerInfo => account.permissions.serverinfo,
 						PermissionTypes.PlayersView => account.permissions.players_view,
 						PermissionTypes.PlayersInventory => account.permissions.players_inventory,
 						PermissionTypes.EntitiesView => account.permissions.entities_view,
