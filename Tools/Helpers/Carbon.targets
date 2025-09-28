@@ -35,6 +35,9 @@
         <Reference Include="$(CarbonManagedPath)/Carbon.Common.dll">
             <Private>false</Private>
         </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.Polyfills.dll">
+            <Private>false</Private>
+        </Reference>
         <Reference Include="$(CarbonManagedPath)/Carbon.dll">
             <Private>false</Private>
         </Reference>
