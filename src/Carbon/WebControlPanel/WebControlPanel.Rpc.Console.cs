@@ -11,7 +11,8 @@ public static partial class WebControlPanel
 	[WebCall.Condition.Permission(PermissionTypes.ConsoleView)]
 	private static void RPC_ConsoleTail(BridgeRead read)
 	{
-		var logs = Output.HistoryOutput.Skip(read.Int32());
+		var count = Math.Min(0, Output.HistoryOutput.Count - read.Int32());
+		var logs = Output.HistoryOutput.Skip(count);
 		var write = StartRpcResponse();
 		write.WriteObject(logs.Count());
 		foreach (var log in logs)
