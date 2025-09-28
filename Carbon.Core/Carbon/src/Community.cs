@@ -201,6 +201,8 @@ public class CommunityInternal : Community
 
 		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
+
+		WebControlPanel.Init();
 	}
 	public override void Uninitialize()
 	{
