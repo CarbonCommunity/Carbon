@@ -114,20 +114,20 @@ public abstract class BridgeServer
 
 		SetMessages(messages);
 
-		Listener = new Listener();
+		var listener = Listener = new Listener();
 		if (!string.IsNullOrEmpty(ip))
 		{
-			Listener.Address = ip;
+			listener.Address = ip;
 		}
 
-		Listener.Password = Vault.ApplyReplacement(password) ?? password;
-		Listener.Port = port;
+		listener.Password = Vault.ApplyReplacement(password) ?? password;
+		listener.Port = port;
 		try
 		{
-			Listener.Start();
-			Listener.server._config = socket =>
+			listener.Start();
+			listener.server._config = socket =>
 			{
-				lock (Listener.clients)
+				lock (listener.clients)
 				{
 					if (!OnSocketValidate(socket))
 					{
@@ -135,19 +135,19 @@ public abstract class BridgeServer
 					}
 					else
 					{
-						var connectionId = Interlocked.Increment(ref Listener.nextClientId);
+						var connectionId = Interlocked.Increment(ref listener.nextClientId);
 						var bridgeConnection = Pool.Get<BridgeConnection>().Init(socket, Messages);
 						socket.OnOpen = () =>
 						{
-							Listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
+							listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
 							Connections[connectionId] = bridgeConnection;
 							OnNewConnection?.Invoke(bridgeConnection);
 							OnBridgeConnection(bridgeConnection);
 						};
 						socket.OnClose = () =>
 						{
-							Listener._subscribedRconClients.Remove(connectionId);
-							Listener.clients.Remove(connectionId);
+							listener._subscribedRconClients.Remove(connectionId);
+							listener.clients.Remove(connectionId);
 							if (Connections.TryGetValue(connectionId, out var bridgeConnection))
 							{
 								OnBridgeDisconnection(bridgeConnection);
@@ -156,7 +156,6 @@ public abstract class BridgeServer
 							}
 
 							OnClosedConnection?.Invoke(bridgeConnection);
-							Listener = null;
 						};
 						socket.OnBinary += data =>
 						{

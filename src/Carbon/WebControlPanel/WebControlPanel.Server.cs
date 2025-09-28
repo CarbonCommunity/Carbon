@@ -1,4 +1,6 @@
-﻿using Fleck;
+﻿using Facepunch;
+using Facepunch.Math;
+using Fleck;
 
 namespace Carbon;
 
@@ -92,6 +94,15 @@ public static partial class WebControlPanel
 		write.WriteObject(arg4);
 		write.WriteObject(arg5);
 		SendRpcResponse(read.Connection, write);
+	}
+
+	public static void Reply(this BridgeConnection connection, string message)
+	{
+		var write = StartRpcResponse(CONSOLE_LOG);
+		write.WriteObject(message);
+		write.WriteObject(Output.LogTypeToString.Get(LogType.Log));
+		write.WriteObject(Epoch.Current);
+		SendRpcResponse(connection, write);
 	}
 
 	public class ServerConfig
