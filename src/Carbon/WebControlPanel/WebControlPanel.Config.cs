@@ -36,7 +36,7 @@ public static partial class WebControlPanel
 
 	public class Config
 	{
-		public bool Enabled = true;
+		public bool Enabled = false;
 		public ServerConfig BridgeServer = new();
 		public Account[] WebAccounts = [new()
 		{
