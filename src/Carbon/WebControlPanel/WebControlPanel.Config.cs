@@ -1,5 +1,4 @@
 ﻿using Facepunch;
-using Fleck;
 using Newtonsoft.Json;
 
 namespace Carbon;
@@ -26,9 +25,14 @@ public static partial class WebControlPanel
 			}
 		}
 
-		if (server == null && config.CanStartServer())
+		server?.Shutdown();
+		if (config.CanStartServer())
 		{
-			(server = new Server()).Start(config.port, RandomEx.GetRandomString(16), config.ip, serverMessages);
+			(server ??= new Server()).Start(config.port, config.ip, serverMessages);
+			if (!server.IsConnected())
+			{
+				server = null;
+			}
 		}
 	}
 

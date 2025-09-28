@@ -96,6 +96,11 @@ public static partial class WebControlPanel
 
 	public class Server : BridgeServer
 	{
+		public override bool OnPasswordValidate(string password)
+		{
+			return true;
+		}
+
 		public override bool OnSocketValidate(IWebSocketConnection socket)
 		{
 			return TryFindAccount(socket.ConnectionInfo.Path.TrimStart('/'), out _);
