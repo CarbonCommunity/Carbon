@@ -20,12 +20,15 @@ namespace System.Runtime.Versioning
         global::System.AttributeTargets.Property |
         global::System.AttributeTargets.Field |
         AttributeTargets.Event, Inherited = false)]
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public sealed class RequiresPreviewFeaturesAttribute : global::System.Attribute
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="global::System.Runtime.Versioning.RequiresPreviewFeaturesAttribute"/> class.
         /// </summary>
-        public RequiresPreviewFeaturesAttribute() { }
+        public RequiresPreviewFeaturesAttribute()
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="global::System.Runtime.Versioning.RequiresPreviewFeaturesAttribute"/> class with the specified message.

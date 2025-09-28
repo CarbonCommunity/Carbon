@@ -8,10 +8,14 @@
 namespace System.Runtime.Versioning
 {
     /// <summary>
-    /// Marks APIs that were obsoleted in a given operating system version.
+    /// Records the operating system (and minimum version) that supports an API. Multiple attributes can be
+    /// applied to indicate support on multiple operating systems.
     /// </summary>
     /// <remarks>
-    /// Primarily used by OS bindings to indicate APIs that should not be used anymore.
+    /// Callers can apply a <see cref="global::System.Runtime.Versioning.SupportedOSPlatformAttribute " />
+    /// or use guards to prevent calls to APIs on unsupported operating systems.
+    ///
+    /// A given platform should only be specified once.
     /// </remarks>
     [global::System.AttributeUsage(
         global::System.AttributeTargets.Assembly |
@@ -26,22 +30,13 @@ namespace System.Runtime.Versioning
         global::System.AttributeTargets.Property |
         global::System.AttributeTargets.Struct,
         AllowMultiple = true, Inherited = false)]
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [global::System.Diagnostics.Conditional("MULTI_TARGETING_SUPPORT_ATTRIBUTES")]
-    public sealed class ObsoletedOSPlatformAttribute : global::System.Attribute // OSPlatformAttribute
+    public sealed class SupportedOSPlatformAttribute : global::System.Attribute // OSPlatformAttribute
     {
-        public ObsoletedOSPlatformAttribute(string platformName)
+        public SupportedOSPlatformAttribute(string platformName)
             // : base(platformName)
         {
         }
-
-        public ObsoletedOSPlatformAttribute(string platformName, string? message)
-            // : base(platformName)
-        {
-            Message = message;
-        }
-
-        public string? Message { get; }
-
-        public string? Url { get; set; }
     }
 }

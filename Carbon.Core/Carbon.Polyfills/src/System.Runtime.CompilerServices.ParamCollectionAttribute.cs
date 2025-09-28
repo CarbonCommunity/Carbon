@@ -8,14 +8,11 @@
 namespace System.Runtime.CompilerServices
 {
     /// <summary>
-    /// Indicates the attributed type is to be used as an interpolated string handler.
+    /// Indicates that a method will allow a variable number of arguments in its invocation.
     /// </summary>
-    [global::System.AttributeUsage(
-        global::System.AttributeTargets.Class |
-        global::System.AttributeTargets.Struct,
-        AllowMultiple = false, Inherited = false)]
+    [global::System.AttributeUsage(global::System.AttributeTargets.Parameter, Inherited = true, AllowMultiple = false)]
     [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public sealed class InterpolatedStringHandlerAttribute : global::System.Attribute
+    public sealed class ParamCollectionAttribute : global::System.Attribute
     {
     }
 }

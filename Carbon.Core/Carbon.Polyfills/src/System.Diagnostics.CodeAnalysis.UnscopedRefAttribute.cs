@@ -37,6 +37,7 @@ namespace System.Diagnostics.CodeAnalysis
         global::System.AttributeTargets.Parameter,
         AllowMultiple = false,
         Inherited = false)]
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public sealed class UnscopedRefAttribute : global::System.Attribute
     {
     }

@@ -16,6 +16,7 @@ namespace System
     /// int[] subArray2 = someArray[1..^0]; // { 2, 3, 4, 5 }
     /// </code>
     /// </remarks>
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public readonly struct Range : global::System.IEquatable<global::System.Range>
     {
         /// <summary>Represent the inclusive start index of the Range.</summary>
@@ -61,36 +62,6 @@ namespace System
 
         /// <summary>Create a Range object starting from first element in the collection to the end Index.</summary>
         public static global::System.Range EndAt(global::System.Index end) => new global::System.Range(global::System.Index.Start, end);
-
-        public static T[] GetSubArray<T>(T[] array, Range range)
-        {
-	        var (offset, length) = range.GetOffsetAndLength(array.Length);
-	        if (length == 0)
-		        return Array.Empty<T>();
-	        T[] dest;
-	        if (typeof(T).IsValueType || typeof(T[]) == array.GetType())
-	        {
-		        // We know the type of the array to be exactly T[] or an array variance
-		        // compatible value type substitution like int[] <-> uint[].
-
-		        if (length == 0)
-		        {
-			        return Array.Empty<T>();
-		        }
-
-		        dest = new T[length];
-	        }
-	        else
-	        {
-		        // The array is actually a U[] where U:T. We'll make sure to create
-		        // an array of the exact same backing type. The cast to T[] will
-		        // never fail.
-
-		        dest = (T[])(Array.CreateInstance(array.GetType().GetElementType()!, length));
-	        }
-	        Array.Copy(array, offset, dest, 0, length);
-	        return dest;
-        }
 
         /// <summary>Create a Range object starting from first element to the end.</summary>
         public static global::System.Range All => new global::System.Range(global::System.Index.Start, global::System.Index.End);
