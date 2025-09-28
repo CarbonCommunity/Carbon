@@ -94,6 +94,12 @@ public static partial class WebControlPanel
 		SendRpcResponse(read.Connection, write);
 	}
 
+	public class ServerConfig
+	{
+		public string Ip = "localhost";
+		public int Port;
+	}
+
 	public class Server : BridgeServer
 	{
 		public override bool OnPasswordValidate(string password)

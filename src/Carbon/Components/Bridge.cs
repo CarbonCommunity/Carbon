@@ -97,15 +97,17 @@ public abstract class BridgeServer
 	public BridgeMessages Messages;
 	public readonly Dictionary<int, BridgeConnection> Connections = [];
 
-	private bool isConnected;
+	private string _context;
+	private bool _isConnected;
 
-	public void Start(int port, string ip = null, BridgeMessages messages = null)
+	public void Start(int port, string ip = null, BridgeMessages messages = null, string context = "Generic")
 	{
-		Start(port, null, ip, messages);
+		Start(port, null, ip, messages, context);
 	}
-	public void Start(int port, string password, string ip = null, BridgeMessages messages = null)
+	public void Start(int port, string password, string ip = null, BridgeMessages messages = null, string context = "Generic")
 	{
-		if (OnPasswordValidate(password))
+		_context = context;
+		if (!OnPasswordValidate(password))
 		{
 			return;
 		}
@@ -177,31 +179,39 @@ public abstract class BridgeServer
 					}
 				}
 			};
-			Logger.Log($"Carbon.Bridge Started on {port}");
-			isConnected = true;
+			Logger.Log($"Started Carbon.Bridge on port {port} ({_context})");
+			_isConnected = true;
 		}
-		catch
+		catch(Exception ex)
 		{
+			Logger.Error($"Failed to start Carbon.Bridge on port {port} ({_context})", ex);
 			Shutdown();
 		}
 	}
 	public void Shutdown()
 	{
-		isConnected = false;
-		foreach (var connection in Connections.Values)
+		using var connections = Pool.Get<PooledList<BridgeConnection>>();
+		connections.AddRange(Connections.Values);
+		for (int i = 0; i < connections.Count; i++)
 		{
-			connection.Socket?.Close();
+			connections[i]?.Socket?.Close();
 		}
 		Connections.Clear();
+		if (Listener != null)
+		{
+			Logger.Log($"Stopped Carbon.Bridge on port {Listener.Port} ({_context})");
+		}
 		Listener?.Shutdown();
+		Listener = null;
 		OnNewConnection = null;
 		OnClosedConnection = null;
 		Messages = null;
+		_isConnected = false;
 	}
 
 	public bool IsConnected()
 	{
-		return Listener != null && isConnected;
+		return Listener != null && _isConnected;
 	}
 
 	public virtual bool OnPasswordValidate(string password)

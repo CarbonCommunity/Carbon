@@ -16,14 +16,19 @@ public static partial class WebControlPanel
 
 	public static bool TryFindAccount(string password, out Account account)
 	{
+		if (string.IsNullOrEmpty(password))
+		{
+			account = null;
+			return false;
+		}
 		return (account = FindAccount(password)) != null;
 	}
 
 	public static Account FindAccount(string password)
 	{
-		for (int i = 0; i < config.accounts.Length; i++)
+		for (int i = 0; i < config.WebAccounts.Length; i++)
 		{
-			var account = config.accounts[i];
+			var account = config.WebAccounts[i];
 			if (account.password == password)
 			{
 				return account;
