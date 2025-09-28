@@ -5,7 +5,7 @@ public static partial class WebControlPanel
 	[WebCall]
 	private static void RPC_AccountPermissions(BridgeRead read)
 	{
-		if (read.Connection.Reference is not Account { permissions: Permissions permissions })
+		if (read.Connection.Reference is not Account { Permissions: Permissions permissions })
 		{
 			return;
 		}
@@ -29,7 +29,7 @@ public static partial class WebControlPanel
 		for (int i = 0; i < config.WebAccounts.Length; i++)
 		{
 			var account = config.WebAccounts[i];
-			if (account.password == password)
+			if (account.Password == password)
 			{
 				return account;
 			}
@@ -39,9 +39,9 @@ public static partial class WebControlPanel
 
 	public class Account
 	{
-		public string id;
-		public string password;
-		public Permissions permissions = new(true);
+		public string Name;
+		public string Password;
+		public Permissions Permissions = new(true);
 
 		public static bool HasPermission(BridgeConnection connection, PermissionTypes permission)
 		{
@@ -51,17 +51,17 @@ public static partial class WebControlPanel
 			}
 			return permission switch
 			{
-				PermissionTypes.ConsoleView => account.permissions.console_view,
-				PermissionTypes.ConsoleInput => account.permissions.console_input,
-				PermissionTypes.ChatView => account.permissions.chat_view,
-				PermissionTypes.ChatInput => account.permissions.chat_input,
-				PermissionTypes.PlayersView => account.permissions.players_view,
-				PermissionTypes.PlayersIp => account.permissions.players_ip,
-				PermissionTypes.PlayersInventory => account.permissions.players_inventory,
-				PermissionTypes.EntitiesView => account.permissions.entities_view,
-				PermissionTypes.EntitiesEdit => account.permissions.entities_edit,
-				PermissionTypes.PermissionsView => account.permissions.permissions_view,
-				PermissionTypes.PermissionsEdit => account.permissions.permissions_edit,
+				PermissionTypes.ConsoleView => account.Permissions.console_view,
+				PermissionTypes.ConsoleInput => account.Permissions.console_input,
+				PermissionTypes.ChatView => account.Permissions.chat_view,
+				PermissionTypes.ChatInput => account.Permissions.chat_input,
+				PermissionTypes.PlayersView => account.Permissions.players_view,
+				PermissionTypes.PlayersIp => account.Permissions.players_ip,
+				PermissionTypes.PlayersInventory => account.Permissions.players_inventory,
+				PermissionTypes.EntitiesView => account.Permissions.entities_view,
+				PermissionTypes.EntitiesEdit => account.Permissions.entities_edit,
+				PermissionTypes.PermissionsView => account.Permissions.permissions_view,
+				PermissionTypes.PermissionsEdit => account.Permissions.permissions_edit,
 				_ => false
 			};
 		}

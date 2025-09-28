@@ -156,6 +156,7 @@ public abstract class BridgeServer
 							}
 
 							OnClosedConnection?.Invoke(bridgeConnection);
+							Listener = null;
 						};
 						socket.OnBinary += data =>
 						{
@@ -202,7 +203,6 @@ public abstract class BridgeServer
 			Logger.Log($"Stopped Carbon.Bridge on port {Listener.Port} ({_context})");
 		}
 		Listener?.Shutdown();
-		Listener = null;
 		OnNewConnection = null;
 		OnClosedConnection = null;
 		Messages = null;

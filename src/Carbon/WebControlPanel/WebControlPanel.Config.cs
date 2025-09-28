@@ -7,7 +7,7 @@ public static partial class WebControlPanel
 {
 	public static void LoadConfig()
 	{
-		var configFile = Defines.GetWebRconConfigFile();
+		var configFile = Defines.GetWebPanelConfigFile();
 		if (!File.Exists(configFile))
 		{
 			SaveConfig();
@@ -17,17 +17,21 @@ public static partial class WebControlPanel
 
 		// Save the config in case we change the config structure
 		SaveConfig();
+		RestartServer();
+	}
 
+	public static void SaveConfig()
+	{
+		File.WriteAllText(Defines.GetWebPanelConfigFile(), JsonConvert.SerializeObject(config ??= new(), Formatting.Indented));
+	}
+
+	public static void RestartServer()
+	{
 		server?.Shutdown();
 		if (config.ShouldStartServer())
 		{
 			(server ??= new Server()).Start(config.BridgeServer.Port, config.BridgeServer.Ip, serverMessages, context: nameof(WebControlPanel));
 		}
-	}
-
-	public static void SaveConfig()
-	{
-		File.WriteAllText(Defines.GetWebRconConfigFile(), JsonConvert.SerializeObject(config ??= new(), Formatting.Indented));
 	}
 
 	public class Config
@@ -36,9 +40,9 @@ public static partial class WebControlPanel
 		public ServerConfig BridgeServer = new();
 		public Account[] WebAccounts = [new()
 		{
-			id = "owner",
-			password = RandomEx.GetRandomString(7),
-			permissions = new Permissions(true)
+			Name = "owner",
+			Password = RandomEx.GetRandomString(7),
+			Permissions = new Permissions(true)
 		}];
 
 		public bool ShouldStartServer()

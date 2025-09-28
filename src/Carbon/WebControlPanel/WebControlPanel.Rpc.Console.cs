@@ -32,7 +32,7 @@ public static partial class WebControlPanel
 		using var connections = Pool.Get<PooledList<BridgeConnection>>();
 		foreach (var connection in server.Connections.Values)
 		{
-			if (connection.Reference is not Account account || !account.permissions.console_view)
+			if (connection.Reference is not Account account || !account.Permissions.console_view)
 			{
 				continue;
 			}
