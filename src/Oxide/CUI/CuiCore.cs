@@ -492,6 +492,93 @@ public class CuiScrollbar : ICuiComponent
 	[JsonProperty("trackColor")]
 	public string TrackColor { get; set; } = "0.09 0.09 0.09 1";
 }
+public class CuiHorizontalLayoutGroup : ICuiComponent
+{
+	public string Type => "UnityEngine.UI.HorizontalLayoutGroup";
+
+	[JsonProperty("spacing")]
+	public float Spacing { get; set; }
+
+	[JsonProperty("childAlignment")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public TextAnchor ChildAlignment { get; set; } = TextAnchor.UpperLeft;
+
+	[JsonProperty("childForceExpandWidth")]
+	public bool ChildForceExpandWidth { get; set; } = true;
+
+	[JsonProperty("childForceExpandHeight")]
+	public bool ChildForceExpandHeight { get; set; } = true;
+
+	[JsonProperty("childControlWidth")]
+	public bool ChildControlWidth { get; set; }
+
+	[JsonProperty("childControlHeight")]
+	public bool ChildControlHeight { get; set; }
+
+	[JsonProperty("childScaleWidth")]
+	public bool ChildScaleWidth { get; set; }
+
+	[JsonProperty("childScaleHeight")]
+	public bool ChildScaleHeight { get; set; }
+}
+public class CuiVerticalLayoutGroup : ICuiComponent
+{
+	public string Type => "UnityEngine.UI.VerticalLayoutGroup";
+
+	[JsonProperty("spacing")]
+	public float Spacing { get; set; }
+
+	[JsonProperty("childAlignment")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public TextAnchor ChildAlignment { get; set; } = TextAnchor.UpperLeft;
+
+	[JsonProperty("childForceExpandWidth")]
+	public bool ChildForceExpandWidth { get; set; } = true;
+
+	[JsonProperty("childForceExpandHeight")]
+	public bool ChildForceExpandHeight { get; set; } = true;
+
+	[JsonProperty("childControlWidth")]
+	public bool ChildControlWidth { get; set; }
+
+	[JsonProperty("childControlHeight")]
+	public bool ChildControlHeight { get; set; }
+
+	[JsonProperty("childScaleWidth")]
+	public bool ChildScaleWidth { get; set; }
+
+	[JsonProperty("childScaleHeight")]
+	public bool ChildScaleHeight { get; set; }
+}
+public class CuiGridLayoutGroup : ICuiComponent
+{
+	public string Type => "UnityEngine.UI.VerticalLayoutGroup";
+
+	[JsonProperty("cellSize")]
+	public string CellSize { get; set; } = "100 100";
+
+	[JsonProperty("spacing")]
+	public string Spacing { get; set; } = "0 0";
+
+	[JsonProperty("startCorner")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public GridLayoutGroup.Corner StartCorner { get; set; } = GridLayoutGroup.Corner.UpperLeft;
+
+	[JsonProperty("startAxis")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public GridLayoutGroup.Axis StartAxis { get; set; } = GridLayoutGroup.Axis.Horizontal;
+
+	[JsonProperty("childAlignment")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public TextAnchor ChildAlignment { get; set; } = TextAnchor.UpperLeft;
+
+	[JsonProperty("constraint")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public GridLayoutGroup.Constraint Constraint { get; set; } = GridLayoutGroup.Constraint.Flexible;
+
+	[JsonProperty("constraintCount")]
+	public int ConstraintCount { get; set; }
+}
 
 #endregion
 
@@ -523,6 +610,7 @@ public class CuiElement
 	public bool Update { get; set; }
 
 	[JsonProperty("activeSelf")]
+	[DefaultValue(true)]
 	public bool ActiveSelf { get; set; } = true;
 }
 public class CuiLabel
