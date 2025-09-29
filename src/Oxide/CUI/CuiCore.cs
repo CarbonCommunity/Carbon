@@ -620,7 +620,58 @@ public class CuiLayoutElement : ICuiComponent
 	[JsonProperty("ignoreLayout")]
 	public bool IgnoreLayout { get; set; }
 }
+public class CuiDraggable : ICuiComponent
+{
+	public string Type => "Draggable";
 
+	[JsonProperty("limitToParent")]
+	public bool LimitToParent { get; set; }
+
+	[JsonProperty("maxDistance")]
+	public float MaxDistance { get; set; } = -1f;
+
+	[JsonProperty("allowSwapping")]
+	public bool AllowSwapping { get; set; }
+
+	[JsonProperty("dropAnywhere")]
+	public bool DropAnywhere { get; set; } = true;
+
+	[JsonProperty("dragAlpha")]
+	public float DragAlpha { get; set; } = 1f;
+
+	[JsonProperty("parentLimitIndex")]
+	public int ParentLimitIndex { get; set; } = 1;
+
+	[JsonProperty("filter")]
+	public string Filter { get; set; }
+
+	[JsonProperty("parentPadding")]
+	public string ParentPadding { get; set; } = "0 0";
+
+	[JsonProperty("anchorOffset")]
+	public string AnchorOffset { get; set; } = "0 0";
+
+	[JsonProperty("keepOnTop")]
+	public bool KeepOnTop { get; set; }
+
+	[JsonProperty("positionRPC")]
+	public string PositionRPC { get; set; }
+
+	[JsonProperty("moveToAnchor")]
+	[DefaultValue(false)]
+	public bool MoveToAnchor { get; set; }
+
+	[JsonProperty("rebuildAnchor")]
+	[DefaultValue(false)]
+	public bool RebuildAnchor { get; set; }
+}
+public class CuiSlot : ICuiComponent
+{
+	public string Type => "Slot";
+
+	[JsonProperty("filter")]
+	public string Filter { get; set; }
+}
 #endregion
 
 public class CuiButton
