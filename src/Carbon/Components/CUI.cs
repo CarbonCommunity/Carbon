@@ -456,7 +456,7 @@ public readonly struct CUI : IDisposable
 
 		#region Pooled Elements
 
-		public CuiElement TakeFromPool(string name = null, string parent = "Hud", float fadeOut = 0f, string destroyUi = null, bool update = false, bool activeSelf = false)
+		public CuiElement TakeFromPool(string name = null, string parent = "Hud", float fadeOut = 0f, string destroyUi = null, bool update = false, bool activeSelf = true)
 		{
 			var element = (CuiElement)null;
 

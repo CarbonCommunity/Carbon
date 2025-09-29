@@ -701,8 +701,7 @@ public class CuiElement
 	[JsonProperty("update")]
 	public bool Update { get; set; }
 
-	[JsonProperty("activeSelf")]
-	[DefaultValue(true)]
+	[JsonProperty("activeSelf", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool ActiveSelf { get; set; } = true;
 }
 public class CuiLabel

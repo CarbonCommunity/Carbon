@@ -321,7 +321,7 @@ public partial class AdminModule
 									$"pluginbrowser.interact 12 \"{Path.GetFileNameWithoutExtension(plugin.File)}\"");
 							}
 
-							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(plugin.Name);
+							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(Path.GetFileNameWithoutExtension(plugin.File));
 							var favourite = cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor,
 								Cache.CUI.BlankColor, string.Empty, 0,
 								xMin: 0, xMax: 0, yMin: 1, OxMax: 30, OyMin: -30,
@@ -2419,7 +2419,7 @@ public partial class AdminModule
 		var session = Singleton.GetPlayerSession(arg.Player());
 		var tab = session.SelectedTab;
 		var vendor = PluginsTab.GetVendor(session.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		var pluginName = arg.FullString.Replace("\"", string.Empty).Trim();
+		var pluginName = arg.GetString(0).Replace("\"", string.Empty);
 		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName, StringComparison.CurrentCultureIgnoreCase));
 		try
 		{
