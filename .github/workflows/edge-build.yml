@@ -51,6 +51,12 @@ jobs:
           echo "version=2.1.$(curl -s -L 'https://api.carbonmod.gg/version?id=edge&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
           git config --global --add safe.directory /__w/Carbon/Carbon
 
+      - name: Git Tag
+        shell: bash
+        run: |
+          git tag "$version" "$GITHUB_SHA"
+          git push origin "$version"
+          
       - name: Rust Setup
         shell: bash
         run: |
