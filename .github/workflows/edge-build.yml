@@ -54,8 +54,9 @@ jobs:
       - name: Git Tag
         shell: bash
         run: |
-          git tag "$version" "$GITHUB_SHA"
-          git push origin "$version"
+          export VERSION=${{ steps.step1.outputs.version }}
+          git tag "$VERSION" "$GITHUB_SHA"
+          git push origin "$VERSION"
           
       - name: Rust Setup
         shell: bash
