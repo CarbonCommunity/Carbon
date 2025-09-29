@@ -459,6 +459,12 @@ public class CuiScrollViewComponent : ICuiComponent
 
 	[JsonProperty("verticalScrollbar")]
 	public CuiScrollbar VerticalScrollbar { get; set; }
+
+	[JsonProperty("horizontalNormalizedPosition")]
+	public float HorizontalNormalizedPosition { get; set; }
+
+	[JsonProperty("verticalNormalizedPosition")]
+	public float VerticalNormalizedPosition { get; set; }
 }
 public class CuiScrollbar : ICuiComponent
 {
@@ -613,7 +619,6 @@ public class CuiLayoutElement : ICuiComponent
 
 	[JsonProperty("ignoreLayout")]
 	public bool IgnoreLayout { get; set; }
-
 }
 
 #endregion
