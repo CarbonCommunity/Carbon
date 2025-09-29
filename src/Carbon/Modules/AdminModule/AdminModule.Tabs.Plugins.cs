@@ -186,6 +186,7 @@ public partial class AdminModule
 						content.OffsetMax = $"0 0";
 						verticalBar.Size = 7;
 						verticalBar.AutoHide = false;
+						verticalBar.Invert = true;
 
 						cui.CreateImage(container, scroll, selectedVendor.Hero, Cache.CUI.WhiteColor,
 							yMin: 1, yMax: 1, OyMin: -500);
@@ -320,7 +321,7 @@ public partial class AdminModule
 									$"pluginbrowser.interact 12 \"{Path.GetFileNameWithoutExtension(plugin.File)}\"");
 							}
 
-							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(plugin.Name);
+							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(Path.GetFileNameWithoutExtension(plugin.File));
 							var favourite = cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor,
 								Cache.CUI.BlankColor, string.Empty, 0,
 								xMin: 0, xMax: 0, yMin: 1, OxMax: 30, OyMin: -30,
@@ -495,6 +496,7 @@ public partial class AdminModule
 							selectedContent.OffsetMax = $"0 0";
 							selectedVerticalBar.Size = 7;
 							selectedVerticalBar.AutoHide = false;
+							selectedVerticalBar.Invert = true;
 
 							var icon = cui.CreateClientImage(container, selectedScroll, string.Empty,
 								Cache.CUI.BlankColor, id: "selectedpluginicn");
@@ -558,6 +560,7 @@ public partial class AdminModule
 								changelogVerticalBar.TrackColor = Cache.CUI.BlankColor;
 							changelogVerticalBar.Size = 0;
 							changelogVerticalBar.AutoHide = true;
+							changelogVerticalBar.Invert = true;
 
 							cui.CreateText(container, changelogScroll, "1 1 1 0.7", "lorem ipsum", 13,
 								align: TextAnchor.UpperLeft, id: "selectedpluginchlog");
@@ -2416,7 +2419,7 @@ public partial class AdminModule
 		var session = Singleton.GetPlayerSession(arg.Player());
 		var tab = session.SelectedTab;
 		var vendor = PluginsTab.GetVendor(session.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		var pluginName = arg.FullString.Replace("\"", string.Empty).Trim();
+		var pluginName = arg.GetString(0).Replace("\"", string.Empty);
 		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName, StringComparison.CurrentCultureIgnoreCase));
 		try
 		{

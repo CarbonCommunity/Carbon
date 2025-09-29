@@ -459,6 +459,12 @@ public class CuiScrollViewComponent : ICuiComponent
 
 	[JsonProperty("verticalScrollbar")]
 	public CuiScrollbar VerticalScrollbar { get; set; }
+
+	[JsonProperty("horizontalNormalizedPosition")]
+	public float HorizontalNormalizedPosition { get; set; }
+
+	[JsonProperty("verticalNormalizedPosition")]
+	public float VerticalNormalizedPosition { get; set; }
 }
 public class CuiScrollbar : ICuiComponent
 {
@@ -492,7 +498,180 @@ public class CuiScrollbar : ICuiComponent
 	[JsonProperty("trackColor")]
 	public string TrackColor { get; set; } = "0.09 0.09 0.09 1";
 }
+public class CuiHorizontalLayoutGroup : ICuiComponent
+{
+	public string Type => "UnityEngine.UI.HorizontalLayoutGroup";
 
+	[JsonProperty("spacing")]
+	public float Spacing { get; set; }
+
+	[JsonProperty("childAlignment")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public TextAnchor ChildAlignment { get; set; } = TextAnchor.UpperLeft;
+
+	[JsonProperty("childForceExpandWidth")]
+	public bool ChildForceExpandWidth { get; set; } = true;
+
+	[JsonProperty("childForceExpandHeight")]
+	public bool ChildForceExpandHeight { get; set; } = true;
+
+	[JsonProperty("childControlWidth")]
+	public bool ChildControlWidth { get; set; }
+
+	[JsonProperty("childControlHeight")]
+	public bool ChildControlHeight { get; set; }
+
+	[JsonProperty("childScaleWidth")]
+	public bool ChildScaleWidth { get; set; }
+
+	[JsonProperty("childScaleHeight")]
+	public bool ChildScaleHeight { get; set; }
+}
+public class CuiVerticalLayoutGroup : ICuiComponent
+{
+	public string Type => "UnityEngine.UI.VerticalLayoutGroup";
+
+	[JsonProperty("spacing")]
+	public float Spacing { get; set; }
+
+	[JsonProperty("childAlignment")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public TextAnchor ChildAlignment { get; set; } = TextAnchor.UpperLeft;
+
+	[JsonProperty("childForceExpandWidth")]
+	public bool ChildForceExpandWidth { get; set; } = true;
+
+	[JsonProperty("childForceExpandHeight")]
+	public bool ChildForceExpandHeight { get; set; } = true;
+
+	[JsonProperty("childControlWidth")]
+	public bool ChildControlWidth { get; set; }
+
+	[JsonProperty("childControlHeight")]
+	public bool ChildControlHeight { get; set; }
+
+	[JsonProperty("childScaleWidth")]
+	public bool ChildScaleWidth { get; set; }
+
+	[JsonProperty("childScaleHeight")]
+	public bool ChildScaleHeight { get; set; }
+}
+public class CuiGridLayoutGroup : ICuiComponent
+{
+	public string Type => "UnityEngine.UI.GridLayoutGroup";
+
+	[JsonProperty("cellSize")]
+	public string CellSize { get; set; } = "100 100";
+
+	[JsonProperty("spacing")]
+	public string Spacing { get; set; } = "0 0";
+
+	[JsonProperty("startCorner")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public GridLayoutGroup.Corner StartCorner { get; set; } = GridLayoutGroup.Corner.UpperLeft;
+
+	[JsonProperty("startAxis")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public GridLayoutGroup.Axis StartAxis { get; set; } = GridLayoutGroup.Axis.Horizontal;
+
+	[JsonProperty("childAlignment")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public TextAnchor ChildAlignment { get; set; } = TextAnchor.UpperLeft;
+
+	[JsonProperty("constraint")]
+	[JsonConverter(typeof(StringEnumConverter))]
+	public GridLayoutGroup.Constraint Constraint { get; set; } = GridLayoutGroup.Constraint.Flexible;
+
+	[JsonProperty("constraintCount")]
+	public int ConstraintCount { get; set; }
+}
+public class CuiContentSizeFitter : ICuiComponent
+{
+	public string Type => "UnityEngine.UI.ContentSizeFitter";
+
+	[JsonProperty("horizontalFit")]
+	public ContentSizeFitter.FitMode HorizontalFit { get; set; } = ContentSizeFitter.FitMode.Unconstrained;
+
+	[JsonProperty("verticalFit")]
+	public ContentSizeFitter.FitMode VerticalFit { get; set; } = ContentSizeFitter.FitMode.Unconstrained;
+}
+public class CuiLayoutElement : ICuiComponent
+{
+	public string Type => "UnityEngine.UI.LayoutElement";
+
+	[JsonProperty("preferredWidth")]
+	public float PreferredWidth { get; set; } = -1f;
+
+	[JsonProperty("preferredHeight")]
+	public float PreferredHeight { get; set; } = -1f;
+
+	[JsonProperty("minWidth")]
+	public float MinWidth { get; set; }
+
+	[JsonProperty("minHeight")]
+	public float MinHeight { get; set; }
+
+	[JsonProperty("flexibleWidth")]
+	public float FlexibleWidth { get; set; }
+
+	[JsonProperty("flexibleHeight")]
+	public float FlexibleHeight { get; set; }
+
+	[JsonProperty("ignoreLayout")]
+	public bool IgnoreLayout { get; set; }
+}
+public class CuiDraggable : ICuiComponent
+{
+	public string Type => "Draggable";
+
+	[JsonProperty("limitToParent")]
+	public bool LimitToParent { get; set; }
+
+	[JsonProperty("maxDistance")]
+	public float MaxDistance { get; set; } = -1f;
+
+	[JsonProperty("allowSwapping")]
+	public bool AllowSwapping { get; set; }
+
+	[JsonProperty("dropAnywhere")]
+	public bool DropAnywhere { get; set; } = true;
+
+	[JsonProperty("dragAlpha")]
+	public float DragAlpha { get; set; } = 1f;
+
+	[JsonProperty("parentLimitIndex")]
+	public int ParentLimitIndex { get; set; } = 1;
+
+	[JsonProperty("filter")]
+	public string Filter { get; set; }
+
+	[JsonProperty("parentPadding")]
+	public string ParentPadding { get; set; } = "0 0";
+
+	[JsonProperty("anchorOffset")]
+	public string AnchorOffset { get; set; } = "0 0";
+
+	[JsonProperty("keepOnTop")]
+	public bool KeepOnTop { get; set; }
+
+	[JsonProperty("positionRPC")]
+	public string PositionRPC { get; set; }
+
+	[JsonProperty("moveToAnchor")]
+	[DefaultValue(false)]
+	public bool MoveToAnchor { get; set; }
+
+	[JsonProperty("rebuildAnchor")]
+	[DefaultValue(false)]
+	public bool RebuildAnchor { get; set; }
+}
+public class CuiSlot : ICuiComponent
+{
+	public string Type => "Slot";
+
+	[JsonProperty("filter")]
+	public string Filter { get; set; }
+}
 #endregion
 
 public class CuiButton
@@ -521,6 +700,9 @@ public class CuiElement
 
 	[JsonProperty("update")]
 	public bool Update { get; set; }
+
+	[JsonProperty("activeSelf", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool ActiveSelf { get; set; } = true;
 }
 public class CuiLabel
 {

@@ -270,7 +270,7 @@ public partial class AdminModule
 						(ap, color1, color2, value) =>
 						{
 							Singleton.DataInstance.Colors.SelectedTabColor =
-								CUI.HexToRustColor($"#{color1}", includeAlpha: false);
+								CUI.HexToRustColor("#" + color1);
 							Singleton.Draw(ap.Player);
 						});
 					tab.AddColor(0, "Editable Input Highlight",
@@ -278,7 +278,7 @@ public partial class AdminModule
 						(ap, color1, color2, value) =>
 						{
 							Singleton.DataInstance.Colors.EditableInputHighlight =
-								CUI.HexToRustColor($"#{color1}", includeAlpha: false);
+								CUI.HexToRustColor("#" + color1);
 							Singleton.Draw(ap.Player);
 						});
 					tab.AddColor(0, "Name Text Color", () => Singleton.DataInstance.Colors.NameTextColor,
