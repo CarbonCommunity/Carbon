@@ -77,6 +77,11 @@ public class Defines
 	{
 		return Path.Combine(GetRustIdentityFolder(), "carbon.vault");
 	}
+	public static string GetWebPanelConfigFile()
+	{
+		_initializeCommandLine();
+		return Path.Combine(GetRootFolder(), "config.webpanel.json");
+	}
 
 	public static string GetRootFolder()
 	{

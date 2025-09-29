@@ -298,10 +298,10 @@ public class Command : Library
 			try
 			{
 				var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
-				var client = player == null ? Option.Server : Option.Client;
+				var option = player == null ? Option.Server : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
-				if (player != null) client = client.FromConnection(player.net.connection);
-				arg.Option = client;
+				if (player != null) option = option.FromConnection(player.net.connection);
+				arg.Option = option;
 				arg.FullString = fullString;
 				arg.Args = args;
 				arg.cmd = Community.Runtime.CommandManager.Find(command)?.RustCommand;
@@ -383,7 +383,7 @@ public class Command : Library
 					{
 						methodInfo?.Invoke(plugin, result);
 
-						if (!string.IsNullOrEmpty(arg.Reply))
+						if (!string.IsNullOrEmpty(arg.Reply) && option.PrintOutput)
 						{
 							if (player != null) player.ConsoleMessage(arg.Reply);
 							else if (FromRcon) Facepunch.RCon.OnMessage(arg.Reply, string.Empty, UnityEngine.LogType.Log);
@@ -406,48 +406,70 @@ public class Command : Library
 	}
 	public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 	{
-		AddConsoleCommand(command, plugin, (player, cmd, args) =>
+		// Client console
 		{
-			var arguments = Pool.Get<List<object>>();
-			var result = (object[])null;
-
-			try
+			var cmd = new API.Commands.Command.ClientConsole
 			{
-				var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
-				var client = player == null ? Option.Server : Option.Client;
-				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
-				if (player != null) client = client.FromConnection(player.net.connection);
-				arg.Option = client;
-				arg.FullString = fullString;
-				arg.Args = args;
-				arg.cmd = Community.Runtime.CommandManager.Find(command)?.RustCommand;
-
-				arguments.Add(arg);
-				result = arguments.ToArray();
-
-				// OnConsoleCommand / OnServerCommand
-				if (HookCaller.CallStaticHook(39952195, arg) == null && HookCaller.CallStaticHook(2535152661, arg) == null)
+				Name = command,
+				Reference = plugin,
+				Callback = args =>
 				{
-					callback.Invoke(arg);
-
-					if (!string.IsNullOrEmpty(arg.Reply))
+					if (!args.Tokenize(out Arg arg))
 					{
-						if (player != null) player.ConsoleMessage(arg.Reply);
-						else if (FromRcon) Facepunch.RCon.OnMessage(arg.Reply, string.Empty, UnityEngine.LogType.Log);
-						else Logger.Log(arg.Reply);
+						return;
 					}
-				}
-			}
-			catch (TargetParameterCountException) { }
-			catch (Exception ex) { Logger.Error ( $"Failed executing chat command '{command}' in '{plugin.ToPrettyString ()}' [callback]", ex.InnerException ?? ex ); }
+					callback?.Invoke(arg);
+					args.Reply = arg.Reply;
+					args.PrintOutput = arg.Option.PrintOutput;
+				},
+				Help = help,
+				Token = reference,
+				Auth = new API.Commands.Command.Authentication
+				{
+					AuthLevel = authLevel,
+					Permissions = permissions,
+					Groups = groups,
+					Cooldown = cooldown,
+				},
+				CanExecute = OnPlayerExecute(false)
+			};
+			cmd.SetFlag(CommandFlags.Hidden, isHidden);
+			cmd.SetFlag(CommandFlags.Protected, @protected);
 
-			Pool.FreeUnmanaged(ref arguments);
-
-			if (result != null)
+			if (!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason) && !silent)
 			{
-                Array.Clear(result, 0, result.Length);
-            }
-		}, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
+				Logger.Warn(reason);
+			}
+		}
+
+		// RCon console
+		{
+			var cmd = new API.Commands.Command.RCon
+			{
+				Name = command,
+				Reference = plugin,
+				Callback = args =>
+				{
+					if (!args.Tokenize(out Arg arg))
+					{
+						return;
+					}
+					callback?.Invoke(arg);
+					args.Reply = arg.Reply;
+					args.PrintOutput = arg.Option.PrintOutput;
+				},
+				Help = help,
+				Token = reference,
+				CanExecute = OnPlayerExecute(false)
+			};
+			cmd.SetFlag(CommandFlags.Hidden, isHidden);
+			cmd.SetFlag(CommandFlags.Protected, @protected);
+
+			if (!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason) && !silent)
+			{
+				Logger.Warn(reason);
+			}
+		}
 	}
 	public void AddCovalenceCommand(string command, BaseHookable plugin, string method, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = true)
 	{
