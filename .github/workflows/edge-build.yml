@@ -50,13 +50,6 @@ jobs:
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "version=2.1.$(curl -s -L 'https://api.carbonmod.gg/version?id=edge&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
           git config --global --add safe.directory /__w/Carbon/Carbon
-
-      - name: Git Tag
-        shell: bash
-        run: |
-          export VERSION=${{ steps.step1.outputs.version }}
-          git tag "$VERSION" "$GITHUB_SHA"
-          git push origin "$VERSION"
           
       - name: Rust Setup
         shell: bash
