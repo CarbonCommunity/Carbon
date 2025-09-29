@@ -552,7 +552,7 @@ public class CuiVerticalLayoutGroup : ICuiComponent
 }
 public class CuiGridLayoutGroup : ICuiComponent
 {
-	public string Type => "UnityEngine.UI.VerticalLayoutGroup";
+	public string Type => "UnityEngine.UI.GridLayoutGroup";
 
 	[JsonProperty("cellSize")]
 	public string CellSize { get; set; } = "100 100";
@@ -578,6 +578,42 @@ public class CuiGridLayoutGroup : ICuiComponent
 
 	[JsonProperty("constraintCount")]
 	public int ConstraintCount { get; set; }
+}
+public class CuiContentSizeFitter : ICuiComponent
+{
+	public string Type => "UnityEngine.UI.ContentSizeFitter";
+
+	[JsonProperty("horizontalFit")]
+	public ContentSizeFitter.FitMode HorizontalFit { get; set; } = ContentSizeFitter.FitMode.Unconstrained;
+
+	[JsonProperty("verticalFit")]
+	public ContentSizeFitter.FitMode VerticalFit { get; set; } = ContentSizeFitter.FitMode.Unconstrained;
+}
+public class CuiLayoutElement : ICuiComponent
+{
+	public string Type => "UnityEngine.UI.LayoutElement";
+
+	[JsonProperty("preferredWidth")]
+	public float PreferredWidth { get; set; } = -1f;
+
+	[JsonProperty("preferredHeight")]
+	public float PreferredHeight { get; set; } = -1f;
+
+	[JsonProperty("minWidth")]
+	public float MinWidth { get; set; }
+
+	[JsonProperty("minHeight")]
+	public float MinHeight { get; set; }
+
+	[JsonProperty("flexibleWidth")]
+	public float FlexibleWidth { get; set; }
+
+	[JsonProperty("flexibleHeight")]
+	public float FlexibleHeight { get; set; }
+
+	[JsonProperty("ignoreLayout")]
+	public bool IgnoreLayout { get; set; }
+
 }
 
 #endregion
