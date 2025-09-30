@@ -73,7 +73,7 @@ public partial class AdminModule
 			"banan",
 			"peanus"
 		];
-
+		
 		public static Tab TabInstance;
 
 		public static Vendor CodeflingInstance;

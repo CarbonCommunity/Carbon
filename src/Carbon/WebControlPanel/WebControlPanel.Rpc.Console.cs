@@ -39,7 +39,7 @@ public static partial class WebControlPanel
 			}
 		});
 	}
-	
+
 	private static void OnLog(string message, string stacktrace, LogType type)
 	{
 		if (server == null)
@@ -54,6 +54,10 @@ public static partial class WebControlPanel
 				continue;
 			}
 			connections.Add(connection);
+		}
+		if (connections.Count == 0)
+		{
+			return;
 		}
 		var write = StartRpcResponse(CONSOLE_LOG);
 		write.WriteObject(message);
