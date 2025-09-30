@@ -34,8 +34,9 @@ public static partial class WebControlPanel
 		var username = read.String();
 		var message = read.String();
 		var color = read.String();
-		var userid = read.UInt64();
-		ConVar.Chat.Broadcast(message, username, color, userid);
+		var userId = read.String();
+		ulong.TryParse(userId, out var userIdValue);
+		ConVar.Chat.Broadcast(message, username, color, userIdValue);
 	}
 
 	public static void OnPlayerChat(BasePlayer player, string message, ConVar.Chat.ChatChannel channel)
