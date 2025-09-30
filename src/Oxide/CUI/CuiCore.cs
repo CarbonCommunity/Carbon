@@ -63,6 +63,34 @@ public class ComponentConverter : JsonConverter
 				type = typeof(CuiScrollViewComponent);
 				break;
 
+			case "UnityEngine.UI.HorizontalLayoutGroup":
+				type = typeof(CuiHorizontalLayoutGroupComponent);
+				break;
+
+			case "UnityEngine.UI.VerticalLayoutGroup":
+				type = typeof(CuiVerticalLayoutGroupComponent);
+				break;
+
+			case "UnityEngine.UI.GridLayoutGroup":
+				type = typeof(CuiGridLayoutGroupComponent);
+				break;
+
+			case "UnityEngine.UI.ContentSizeFitter":
+				type = typeof(CuiContentSizeFitterComponent);
+				break;
+
+			case "UnityEngine.UI.LayoutElement":
+				type = typeof(CuiLayoutElementComponent);
+				break;
+
+			case "Draggable":
+				type = typeof(CuiDraggableComponent);
+				break;
+
+			case "Slot":
+				type = typeof(CuiSlotComponent);
+				break;
+
 			default:
 				return null;
 		}
@@ -79,7 +107,7 @@ public class ComponentConverter : JsonConverter
 
 #region Components
 
-public class CuiButtonComponent : ICuiComponent, ICuiColor
+public class CuiButtonComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiGraphic
 {
 	public string Type => "UnityEngine.UI.Button";
 
@@ -101,8 +129,35 @@ public class CuiButtonComponent : ICuiComponent, ICuiColor
 	[JsonProperty("imagetype")]
 	public Image.Type ImageType { get; set; }
 
+	[JsonProperty("normalColor")]
+	public string NormalColor { get; set; }
+
+	[JsonProperty("highlightedColor")]
+	public string HighlightedColor { get; set; }
+
+	[JsonProperty("pressedColor")]
+	public string PressedColor { get; set; }
+
+	[JsonProperty("selectedColor")]
+	public string SelectedColor { get; set; }
+
+	[JsonProperty("disabledColor")]
+	public string DisabledColor { get; set; }
+
+	[JsonProperty("colorMultiplier")]
+	public float ColorMultiplier { get; set; }
+
+	[JsonProperty("fadeDuration")]
+	public float FadeDuration { get; set; }
+
 	[JsonProperty("fadeIn")]
 	public float FadeIn { get; set; }
+
+	[JsonProperty("placeholderParentId")]
+	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
 public class CuiElementContainer : List<CuiElement>
 {
@@ -213,7 +268,7 @@ public class CuiElementContainer : List<CuiElement>
 		return CuiHelper.ToJson(this, false);
 	}
 }
-public class CuiImageComponent : ICuiComponent, ICuiColor
+public class CuiImageComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiGraphic
 {
 	public string Type => "UnityEngine.UI.Image";
 
@@ -232,6 +287,9 @@ public class CuiImageComponent : ICuiComponent, ICuiColor
 	[JsonProperty("png")]
 	public string Png { get; set; }
 
+	[JsonProperty("slice")]
+	public string Slice { get; set; }
+
 	[JsonProperty("fadeIn")]
 	public float FadeIn { get; set; }
 
@@ -240,8 +298,15 @@ public class CuiImageComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("skinid")]
 	public ulong SkinId { get; set; }
+
+	[JsonProperty("placeholderParentId")]
+	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
+
 }
-public class CuiInputFieldComponent : ICuiComponent, ICuiColor
+public class CuiInputFieldComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiGraphic
 {
 	public string Type => "UnityEngine.UI.InputField";
 
@@ -266,17 +331,14 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 	[JsonProperty("command")]
 	public string Command { get; set; }
 
-	[JsonProperty("password")]
+	[JsonProperty("password", DefaultValueHandling = DefaultValueHandling.Include)]
 	public bool IsPassword { get; set; }
 
-	[JsonProperty("readOnly")]
+	[JsonProperty("readOnly", DefaultValueHandling = DefaultValueHandling.Include)]
 	public bool ReadOnly { get; set; }
 
-	[JsonProperty("needsKeyboard")]
+	[JsonProperty("needsKeyboard", DefaultValueHandling = DefaultValueHandling.Include)]
 	public bool NeedsKeyboard { get; set; }
-
-	[JsonProperty("needsCursor")]
-	public bool NeedsCursor { get; set; }
 
 	[JsonConverter(typeof(StringEnumConverter))]
 	[JsonProperty("lineType")]
@@ -285,18 +347,34 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 	[JsonProperty("autofocus")]
 	public bool Autofocus { get; set; }
 
-	[JsonProperty("hudMenuInput")]
+	[JsonProperty("hudMenuInput", DefaultValueHandling = DefaultValueHandling.Include)]
 	public bool HudMenuInput { get; set; }
+
+	[JsonProperty("fadeIn")]
+	public float FadeIn { get; set; }
+
+	[JsonProperty("placeholderParentId")]
+	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
+
 }
-public class CuiNeedsCursorComponent : ICuiComponent
+public class CuiNeedsCursorComponent : ICuiComponent, ICuiEnableable
 {
 	public string Type => "NeedsCursor";
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
-public class CuiNeedsKeyboardComponent : ICuiComponent
+public class CuiNeedsKeyboardComponent : ICuiComponent, ICuiEnableable
 {
 	public string Type => "NeedsKeyboard";
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
-public class CuiOutlineComponent : ICuiComponent, ICuiColor
+public class CuiOutlineComponent : ICuiComponent, ICuiColor, ICuiEnableable
 {
 	public string Type => "UnityEngine.UI.Outline";
 
@@ -307,8 +385,12 @@ public class CuiOutlineComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("useGraphicAlpha")]
 	public bool UseGraphicAlpha { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
+
 }
-public class CuiRawImageComponent : ICuiComponent, ICuiColor
+public class CuiRawImageComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiGraphic
 {
 	public string Type => "UnityEngine.UI.RawImage";
 
@@ -331,6 +413,12 @@ public class CuiRawImageComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("steamid")]
 	public string SteamId { get; set; }
+
+	[JsonProperty("placeholderParentId")]
+	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
 public class CuiRectTransformComponent : CuiRectTransform, ICuiComponent
 {
@@ -350,8 +438,20 @@ public class CuiRectTransform
 
 	[JsonProperty("offsetmax")]
 	public string OffsetMax { get; set; }
+
+	[JsonProperty("rotation")]
+	public float Rotation { get; set; }
+
+	[JsonProperty("pivot")]
+	public string Pivot { get; set; }
+
+	[JsonProperty("setParent")]
+	public string SetParent { get; set; }
+
+	[JsonProperty("setTransformIndex")]
+	public int SetTransformIndex { get; set; }
 }
-public class CuiCountdownComponent : ICuiComponent
+public class CuiCountdownComponent : ICuiComponent, ICuiEnableable
 {
 	public string Type => "Countdown";
 
@@ -374,7 +474,7 @@ public class CuiCountdownComponent : ICuiComponent
 	[JsonProperty("numberFormat")]
 	public string NumberFormat { get; set; }
 
-	[JsonProperty("destroyIfDone")]
+	[JsonProperty("destroyIfDone", DefaultValueHandling = DefaultValueHandling.Include)]
 	public bool DestroyIfDone { get; set; }
 
 	[JsonProperty("command")]
@@ -382,6 +482,9 @@ public class CuiCountdownComponent : ICuiComponent
 
 	[JsonProperty("fadeIn")]
 	public float FadeIn { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
 
 public enum TimerFormat
@@ -399,7 +502,7 @@ public enum TimerFormat
 	Custom
 }
 
-public class CuiTextComponent : ICuiComponent, ICuiColor
+public class CuiTextComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiGraphic
 {
 	public string Type => "UnityEngine.UI.Text";
 
@@ -424,15 +527,21 @@ public class CuiTextComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("fadeIn")]
 	public float FadeIn { get; set; }
+
+	[JsonProperty("placeholderParentId")]
+	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
-public class CuiScrollViewComponent : ICuiComponent
+public class CuiScrollViewComponent : ICuiComponent, ICuiEnableable
 {
 	public string Type => "UnityEngine.UI.ScrollView";
 
-	[JsonProperty("vertical")]
+	[JsonProperty("vertical", DefaultValueHandling = DefaultValueHandling.Include)]
 	public bool Vertical { get; set; }
 
-	[JsonProperty("horizontal")]
+	[JsonProperty("horizontal", DefaultValueHandling = DefaultValueHandling.Include)]
 	public bool Horizontal { get; set; }
 
 	[JsonProperty("movementType")]
@@ -442,7 +551,7 @@ public class CuiScrollViewComponent : ICuiComponent
 	[JsonProperty("elasticity")]
 	public float Elasticity { get; set; }
 
-	[JsonProperty("inertia")]
+	[JsonProperty("inertia", DefaultValueHandling = DefaultValueHandling.Include)]
 	public bool Inertia { get; set; }
 
 	[JsonProperty("decelerationRate")]
@@ -465,8 +574,11 @@ public class CuiScrollViewComponent : ICuiComponent
 
 	[JsonProperty("verticalNormalizedPosition")]
 	public float VerticalNormalizedPosition { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
-public class CuiScrollbar : ICuiComponent
+public class CuiScrollbar : ICuiComponent, ICuiEnableable
 {
 	public string Type => "UnityEngine.UI.Scrollbar";
 
@@ -477,133 +589,129 @@ public class CuiScrollbar : ICuiComponent
 	public bool AutoHide { get; set; }
 
 	[JsonProperty("handleSprite")]
-	public string HandleSprite { get; set; } = "assets/content/ui/ui.rounded.tga";
+	public string HandleSprite { get; set; }
 
-	[DefaultValue(20)]
 	[JsonProperty("size")]
-	public float Size { get; set; } = 20;
+	public float Size { get; set; }
 
 	[JsonProperty("handleColor")]
-	public string HandleColor { get; set; } = "0.15 0.15 0.15 1";
+	public string HandleColor { get; set; }
 
 	[JsonProperty("highlightColor")]
-	public string HighlightColor { get; set; } = "0.17 0.17 0.17 1";
+	public string HighlightColor { get; set; }
 
 	[JsonProperty("pressedColor")]
-	public string PressedColor { get; set; } = "0.2 0.2 0.2 1";
+	public string PressedColor { get; set; }
 
 	[JsonProperty("trackSprite")]
-	public string TrackSprite { get; set; } = "assets/content/ui/ui.background.tile.psd";
+	public string TrackSprite { get; set; }
 
 	[JsonProperty("trackColor")]
-	public string TrackColor { get; set; } = "0.09 0.09 0.09 1";
+	public string TrackColor { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
-public class CuiHorizontalLayoutGroup : ICuiComponent
+public abstract class CuiLayoutGroupComponent : ICuiComponent, ICuiEnableable
 {
-	public string Type => "UnityEngine.UI.HorizontalLayoutGroup";
+	public abstract string Type { get; }
 
 	[JsonProperty("spacing")]
 	public float Spacing { get; set; }
 
-	[JsonProperty("childAlignment")]
 	[JsonConverter(typeof(StringEnumConverter))]
-	public TextAnchor ChildAlignment { get; set; } = TextAnchor.UpperLeft;
+	[JsonProperty("childAlignment")]
+	public TextAnchor ChildAlignment { get; set; }
 
 	[JsonProperty("childForceExpandWidth")]
-	public bool ChildForceExpandWidth { get; set; } = true;
+	public bool? ChildForceExpandWidth { get; set; }
 
 	[JsonProperty("childForceExpandHeight")]
-	public bool ChildForceExpandHeight { get; set; } = true;
+	public bool? ChildForceExpandHeight { get; set; }
 
 	[JsonProperty("childControlWidth")]
-	public bool ChildControlWidth { get; set; }
+	public bool? ChildControlWidth { get; set; }
 
 	[JsonProperty("childControlHeight")]
-	public bool ChildControlHeight { get; set; }
+	public bool? ChildControlHeight { get; set; }
 
 	[JsonProperty("childScaleWidth")]
-	public bool ChildScaleWidth { get; set; }
+	public bool? ChildScaleWidth { get; set; }
 
 	[JsonProperty("childScaleHeight")]
-	public bool ChildScaleHeight { get; set; }
+	public bool? ChildScaleHeight { get; set; }
+
+	[JsonProperty("padding")]
+	public string Padding { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
-public class CuiVerticalLayoutGroup : ICuiComponent
+public class CuiHorizontalLayoutGroupComponent : CuiLayoutGroupComponent
 {
-	public string Type => "UnityEngine.UI.VerticalLayoutGroup";
-
-	[JsonProperty("spacing")]
-	public float Spacing { get; set; }
-
-	[JsonProperty("childAlignment")]
-	[JsonConverter(typeof(StringEnumConverter))]
-	public TextAnchor ChildAlignment { get; set; } = TextAnchor.UpperLeft;
-
-	[JsonProperty("childForceExpandWidth")]
-	public bool ChildForceExpandWidth { get; set; } = true;
-
-	[JsonProperty("childForceExpandHeight")]
-	public bool ChildForceExpandHeight { get; set; } = true;
-
-	[JsonProperty("childControlWidth")]
-	public bool ChildControlWidth { get; set; }
-
-	[JsonProperty("childControlHeight")]
-	public bool ChildControlHeight { get; set; }
-
-	[JsonProperty("childScaleWidth")]
-	public bool ChildScaleWidth { get; set; }
-
-	[JsonProperty("childScaleHeight")]
-	public bool ChildScaleHeight { get; set; }
+	public override string Type => "UnityEngine.UI.HorizontalLayoutGroup";
 }
-public class CuiGridLayoutGroup : ICuiComponent
+public class CuiVerticalLayoutGroupComponent : CuiLayoutGroupComponent
+{
+	public override string Type => "UnityEngine.UI.VerticalLayoutGroup";
+}
+public class CuiGridLayoutGroupComponent : ICuiComponent, ICuiEnableable
 {
 	public string Type => "UnityEngine.UI.GridLayoutGroup";
 
 	[JsonProperty("cellSize")]
-	public string CellSize { get; set; } = "100 100";
+	public string CellSize { get; set; }
 
 	[JsonProperty("spacing")]
-	public string Spacing { get; set; } = "0 0";
+	public string Spacing { get; set; }
 
 	[JsonProperty("startCorner")]
 	[JsonConverter(typeof(StringEnumConverter))]
-	public GridLayoutGroup.Corner StartCorner { get; set; } = GridLayoutGroup.Corner.UpperLeft;
+	public GridLayoutGroup.Corner StartCorner { get; set; }
 
 	[JsonProperty("startAxis")]
 	[JsonConverter(typeof(StringEnumConverter))]
-	public GridLayoutGroup.Axis StartAxis { get; set; } = GridLayoutGroup.Axis.Horizontal;
+	public GridLayoutGroup.Axis StartAxis { get; set; }
 
 	[JsonProperty("childAlignment")]
 	[JsonConverter(typeof(StringEnumConverter))]
-	public TextAnchor ChildAlignment { get; set; } = TextAnchor.UpperLeft;
+	public TextAnchor ChildAlignment { get; set; }
 
 	[JsonProperty("constraint")]
 	[JsonConverter(typeof(StringEnumConverter))]
-	public GridLayoutGroup.Constraint Constraint { get; set; } = GridLayoutGroup.Constraint.Flexible;
+	public GridLayoutGroup.Constraint Constraint { get; set; }
 
 	[JsonProperty("constraintCount")]
 	public int ConstraintCount { get; set; }
+
+	[JsonProperty("padding")]
+	public string Padding { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
-public class CuiContentSizeFitter : ICuiComponent
+public class CuiContentSizeFitterComponent : ICuiComponent, ICuiEnableable
 {
 	public string Type => "UnityEngine.UI.ContentSizeFitter";
 
 	[JsonProperty("horizontalFit")]
-	public ContentSizeFitter.FitMode HorizontalFit { get; set; } = ContentSizeFitter.FitMode.Unconstrained;
+	public ContentSizeFitter.FitMode HorizontalFit { get; set; }
 
 	[JsonProperty("verticalFit")]
-	public ContentSizeFitter.FitMode VerticalFit { get; set; } = ContentSizeFitter.FitMode.Unconstrained;
+	public ContentSizeFitter.FitMode VerticalFit { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
-public class CuiLayoutElement : ICuiComponent
+public class CuiLayoutElementComponent : ICuiComponent, ICuiEnableable
 {
 	public string Type => "UnityEngine.UI.LayoutElement";
 
 	[JsonProperty("preferredWidth")]
-	public float PreferredWidth { get; set; } = -1f;
+	public float PreferredWidth { get; set; }
 
 	[JsonProperty("preferredHeight")]
-	public float PreferredHeight { get; set; } = -1f;
+	public float PreferredHeight { get; set; }
 
 	[JsonProperty("minWidth")]
 	public float MinWidth { get; set; }
@@ -618,59 +726,68 @@ public class CuiLayoutElement : ICuiComponent
 	public float FlexibleHeight { get; set; }
 
 	[JsonProperty("ignoreLayout")]
-	public bool IgnoreLayout { get; set; }
+	public bool? IgnoreLayout { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
-public class CuiDraggable : ICuiComponent
+public class CuiDraggableComponent : ICuiComponent, ICuiEnableable
 {
 	public string Type => "Draggable";
 
 	[JsonProperty("limitToParent")]
-	public bool LimitToParent { get; set; }
+	public bool? LimitToParent { get; set; }
 
 	[JsonProperty("maxDistance")]
-	public float MaxDistance { get; set; } = -1f;
+	public float MaxDistance { get; set; }
 
 	[JsonProperty("allowSwapping")]
-	public bool AllowSwapping { get; set; }
+	public bool? AllowSwapping { get; set; }
 
 	[JsonProperty("dropAnywhere")]
-	public bool DropAnywhere { get; set; } = true;
+	public bool? DropAnywhere { get; set; }
 
 	[JsonProperty("dragAlpha")]
-	public float DragAlpha { get; set; } = 1f;
+	public float DragAlpha { get; set; }
 
 	[JsonProperty("parentLimitIndex")]
-	public int ParentLimitIndex { get; set; } = 1;
+	public int ParentLimitIndex { get; set; }
 
 	[JsonProperty("filter")]
 	public string Filter { get; set; }
 
 	[JsonProperty("parentPadding")]
-	public string ParentPadding { get; set; } = "0 0";
+	public string ParentPadding { get; set; }
 
 	[JsonProperty("anchorOffset")]
-	public string AnchorOffset { get; set; } = "0 0";
+	public string AnchorOffset { get; set; }
 
 	[JsonProperty("keepOnTop")]
-	public bool KeepOnTop { get; set; }
+	public bool? KeepOnTop { get; set; }
+
+	[JsonConverter(typeof(StringEnumConverter))]
 
 	[JsonProperty("positionRPC")]
-	public string PositionRPC { get; set; }
+	public CommunityEntity.DraggablePositionSendType PositionRPC { get; set; }
 
 	[JsonProperty("moveToAnchor")]
-	[DefaultValue(false)]
 	public bool MoveToAnchor { get; set; }
 
 	[JsonProperty("rebuildAnchor")]
-	[DefaultValue(false)]
 	public bool RebuildAnchor { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
-public class CuiSlot : ICuiComponent
+public class CuiSlotComponent : ICuiComponent, ICuiEnableable
 {
 	public string Type => "Slot";
 
 	[JsonProperty("filter")]
 	public string Filter { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
 }
 #endregion
 
@@ -701,8 +818,22 @@ public class CuiElement
 	[JsonProperty("update")]
 	public bool Update { get; set; }
 
-	[JsonProperty("activeSelf", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool ActiveSelf { get; set; } = true;
+	[JsonProperty("activeSelf")]
+	public bool? ActiveSelf { get; set; }
+}
+
+public interface ICuiGraphic
+{
+	[JsonProperty("fadeIn")]
+	float FadeIn { get; set; }
+
+	[JsonProperty("placeholderParentId")]
+	string PlaceholderParentId { get; set; }
+}
+public interface ICuiEnableable
+{
+	[JsonProperty("enabled")]
+	bool? Enabled { get; set; }
 }
 public class CuiLabel
 {

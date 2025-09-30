@@ -638,7 +638,6 @@ public readonly struct CUI : IDisposable
 				element.Command = _defaultInputField.Command;
 				element.IsPassword = _defaultInputField.IsPassword;
 				element.ReadOnly = _defaultInputField.ReadOnly;
-				element.NeedsCursor = _defaultInputField.NeedsCursor;
 				element.NeedsKeyboard = _defaultInputField.NeedsKeyboard;
 				element.LineType = _defaultInputField.LineType;
 				element.Autofocus = _defaultInputField.Autofocus;
