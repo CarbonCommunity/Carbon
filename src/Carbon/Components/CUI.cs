@@ -802,8 +802,15 @@ public readonly struct CUI : IDisposable
 
 		public enum FontTypes
 		{
-			RobotoCondensedBold, RobotoCondensedRegular,
-			PermanentMarker, DroidSansMono, NotoSansArabicBold
+			RobotoCondensedBold,
+			RobotoCondensedRegular,
+			PermanentMarker,
+			DroidSansMono,
+			NotoSansArabicBold,
+			Poxel,
+			LCD,
+			NoToEmoji,
+			PressStart
 		}
 
 		public string GetFont(FontTypes type)
@@ -814,7 +821,11 @@ public readonly struct CUI : IDisposable
 				FontTypes.RobotoCondensedRegular => "robotocondensed-regular.ttf",
 				FontTypes.PermanentMarker => "permanentmarker.ttf",
 				FontTypes.DroidSansMono => "droidsansmono.ttf",
-				FontTypes.NotoSansArabicBold => "NotoSansArabic-Bold.ttf",
+				FontTypes.NotoSansArabicBold => "_nonenglish/notosanscjksc-bold.otf",
+				FontTypes.Poxel => "poxel.otf",
+				FontTypes.LCD => "lcd.ttf",
+				FontTypes.NoToEmoji => "_nonenglish/notoemoji-regular.ttf",
+				FontTypes.PressStart => "pressstart2p-regular.ttf",
 				_ => "robotocondensed-regular.ttf"
 			};
 		}
