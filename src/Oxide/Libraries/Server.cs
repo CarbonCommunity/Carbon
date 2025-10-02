@@ -20,6 +20,6 @@ public class Server : Library
 
 	public void Command(string command, params object[] args)
 	{
-		ConsoleSystem.Run(ConsoleSystem.Option.Server, command, args);
+		ConsoleSystem.Run(ConsoleSystem.Option.Server.FromServerConsole(), command, args);
 	}
 }
