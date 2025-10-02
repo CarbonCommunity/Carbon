@@ -27,6 +27,12 @@ jobs:
       version: ${{ steps.step1.outputs.version }}
 
     steps:
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global fetch.parallel 0
+          git config --global submodule.fetchJobs 0
+          
       - name: Git Clone
         uses: actions/checkout@v3
         with:
@@ -44,7 +50,7 @@ jobs:
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "version=2.1.$(curl -s -L 'https://api.carbonmod.gg/version?id=edge&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
           git config --global --add safe.directory /__w/Carbon/Carbon
-
+          
       - name: Rust Setup
         shell: bash
         run: |
@@ -116,7 +122,7 @@ jobs:
             Release/Carbon.Windows.Debug.info
             Release/Carbon.Windows.Minimal.zip
             Release/Carbon.Windows.Minimal.info
-
+            
   release-on-commit:
     name: Edge Release
     needs: ["build"]

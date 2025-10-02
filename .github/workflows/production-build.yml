@@ -19,6 +19,12 @@ jobs:
       version: ${{ steps.step1.outputs.version }}
 
     steps:
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global fetch.parallel 0
+          git config --global submodule.fetchJobs 0
+          
       - name: Git Clone
         uses: actions/checkout@v3
         with:
@@ -123,6 +129,13 @@ jobs:
             Release/Carbon.Windows.Release.info
             Release/Carbon.Windows.Minimal.zip
             Release/Carbon.Windows.Minimal.info
+            
+      - name: 🏷️ Register version tag
+        shell: bash
+        run: |
+          export VERSION=${{ steps.step1.outputs.version }}
+          git tag "$VERSION" "$GITHUB_SHA"
+          git push origin "$VERSION"
 
   release-on-commit:
     name: Production Release
@@ -150,7 +163,7 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: Release
-
+        
       - name: 🏷️ Update release tag
         uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
         with:

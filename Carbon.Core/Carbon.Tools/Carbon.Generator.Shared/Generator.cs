@@ -217,7 +217,7 @@ public class InternalCallHook
 
 					if (x.Default != null || x.Type is NullableTypeSyntax)
 					{
-						return $"narg{parameterIndex} is {type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : ({type})default";
+						return $"narg{parameterIndex} is {type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : ({type}{(x.Type is NullableTypeSyntax ? "?" : null)})default";
 					}
 
 					if (x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
