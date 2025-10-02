@@ -135,6 +135,13 @@ jobs:
             Release/Carbon.Windows.Minimal.zip
             Release/Carbon.Windows.Minimal.info
 
+      - name: 🏷️ Register version tag
+        shell: bash
+        run: |
+          export VERSION=${{ steps.step1.outputs.version }}
+          git tag "$VERSION-beta" "$GITHUB_SHA"
+          git push origin "$VERSION-beta"
+
   release-on-commit:
     name: Rust (Release) Release
     needs: ["build"]
