@@ -125,9 +125,9 @@ jobs:
       - name: 🏷️ Register version tag
         shell: bash
         run: |
-          export VERSION=${{ needs.build.outputs.version }}-beta
-          git tag "$VERSION" "$GITHUB_SHA"
-          git push origin "$VERSION"
+          export VERSION=${{ needs.build.outputs.version }}
+          git tag "$VERSION-beta" "$GITHUB_SHA"
+          git push origin "$VERSION-beta"
 
   release-on-commit:
     name: Edge Release
