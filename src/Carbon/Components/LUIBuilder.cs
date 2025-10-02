@@ -381,6 +381,11 @@ public struct LuiBuilderInstance : IDisposable
 			LuiCompType.NeedsCursor => "NeedsCursor",
 			LuiCompType.RectTransform => "RectTransform",
 			LuiCompType.Countdown => "Countdown",
+			LuiCompType.HorizontalLayoutGroup => "UnityEngine.UI.HorizontalLayoutGroup",
+			LuiCompType.VerticalLayoutGroup => "UnityEngine.UI.VerticalLayoutGroup",
+			LuiCompType.GridLayoutGroup => "UnityEngine.UI.GridLayoutGroup",
+			LuiCompType.ContentSizeFitter => "UnityEngine.UI.ContentSizeFitter",
+			LuiCompType.LayoutElement => "UnityEngine.UI.LayoutElement",
 			LuiCompType.Draggable => "Draggable",
 			LuiCompType.Slot  => "Slot",
 			LuiCompType.NeedsKeyboard => "NeedsKeyboard",
@@ -431,6 +436,11 @@ public struct LuiBuilderInstance : IDisposable
 	            this.WriteComma();
 	            this.WriteField("update", true);
             }
+            if (!element.activeSelf)
+            {
+	            this.WriteComma();
+	            this.WriteField("activeSelf", false);
+            }
             if (element.luiComponents.Count > 0)
             {
 	            this.WriteComma();
@@ -450,6 +460,11 @@ public struct LuiBuilderInstance : IDisposable
 	                {
 		                this.WriteComma();
 		                this.WriteField("fadeIn", component.fadeIn);
+	                }
+	                if (component.placeholderParentId != null)
+	                {
+		                this.WriteComma();
+		                this.WriteField("placeholderParentId", component.placeholderParentId);
 	                }
                     switch (component.type)
                     {
@@ -510,10 +525,20 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("imagetype", image.imageType);
 		                    }
+		                    if (image.fillCenter)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("fillCenter", true);
+		                    }
 		                    if (image.png != null)
 		                    {
 			                    this.WriteComma();
 			                    this.WriteField("png", image.png);
+		                    }
+		                    if (image.slice != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("slice", image.slice);
 		                    }
 		                    if (image.itemid != 0)
 		                    {
@@ -681,6 +706,11 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("command", input.command);
 		                    }
+		                    if (input.lineType != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("lineType", input.lineType);
+		                    }
 		                    if (input.text != null)
 		                    {
 			                    this.WriteComma();
@@ -691,10 +721,10 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("readOnly", true);
 		                    }
-		                    if (input.lineType != null)
+		                    if (input.placeholderId != null)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("lineType", input.lineType);
+			                    this.WriteField("placeholderId", input.placeholderId);
 		                    }
 		                    if (input.password)
 		                    {
@@ -734,6 +764,11 @@ public struct LuiBuilderInstance : IDisposable
                             this.WriteField("offsetmin", rect.offset.offsetMin);
 	                        this.WriteComma();
                             this.WriteField("offsetmax", rect.offset.offsetMax);
+	                        if (rect.rotation != 0)
+	                        {
+		                        this.WriteComma();
+		                        this.WriteField("rotation", rect.rotation);
+	                        }
 	                        if (rect.setParent != null)
 	                        {
 		                        this.WriteComma();
@@ -789,6 +824,201 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteField("command", countdown.command);
 		                    }
 		                    break;
+	                    case LuiCompType.HorizontalLayoutGroup:
+		                    LuiHorizontalLayoutGroupComp horizontalLayoutGroup = component as LuiHorizontalLayoutGroupComp;
+		                    found++;
+		                    if (horizontalLayoutGroup.spacing != 0)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("spacing", horizontalLayoutGroup.spacing);
+		                    }
+		                    if (horizontalLayoutGroup.childAlignment != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childAlignment", horizontalLayoutGroup.childAlignment);
+		                    }
+		                    if (!horizontalLayoutGroup.childForceExpandWidth)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childForceExpandWidth", false);
+		                    }
+		                    if (!horizontalLayoutGroup.childForceExpandHeight)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childForceExpandHeight", false);
+		                    }
+		                    if (horizontalLayoutGroup.childControlWidth)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childControlWidth", true);
+		                    }
+		                    if (horizontalLayoutGroup.childControlHeight)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childControlHeight", true);
+		                    }
+		                    if (horizontalLayoutGroup.childScaleWidth)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childScaleWidth", true);
+		                    }
+		                    if (horizontalLayoutGroup.childScaleHeight)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childScaleHeight", true);
+		                    }
+		                    if (horizontalLayoutGroup.padding != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("padding", horizontalLayoutGroup.padding);
+		                    }
+		                    break;
+	                    case LuiCompType.VerticalLayoutGroup:
+		                    LuiVerticalLayoutGroupComp verticalLayoutGroup = component as LuiVerticalLayoutGroupComp;
+		                    found++;
+		                    if (verticalLayoutGroup.spacing != 0)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("spacing", verticalLayoutGroup.spacing);
+		                    }
+		                    if (verticalLayoutGroup.childAlignment != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childAlignment", verticalLayoutGroup.childAlignment);
+		                    }
+		                    if (!verticalLayoutGroup.childForceExpandWidth)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childForceExpandWidth", false);
+		                    }
+		                    if (!verticalLayoutGroup.childForceExpandHeight)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childForceExpandHeight", false);
+		                    }
+		                    if (verticalLayoutGroup.childControlWidth)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childControlWidth", true);
+		                    }
+		                    if (verticalLayoutGroup.childControlHeight)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childControlHeight", true);
+		                    }
+		                    if (verticalLayoutGroup.childScaleWidth)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childScaleWidth", true);
+		                    }
+		                    if (verticalLayoutGroup.childScaleHeight)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childScaleHeight", true);
+		                    }
+		                    if (verticalLayoutGroup.padding != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("padding", verticalLayoutGroup.padding);
+		                    }
+		                    break;
+	                    case LuiCompType.GridLayoutGroup:
+		                    LuiGridLayoutGroupComp gridLayoutGroup = component as LuiGridLayoutGroupComp;
+		                    found++;
+		                    if (gridLayoutGroup.cellSize != new Vector2(100, 100))
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("cellSize", gridLayoutGroup.cellSize);
+		                    }
+		                    if (gridLayoutGroup.spacing != default)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("spacing", gridLayoutGroup.spacing);
+		                    }
+		                    if (gridLayoutGroup.startCorner != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("startCorner", gridLayoutGroup.startCorner);
+		                    }
+		                    if (gridLayoutGroup.startAxis != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("startAxis", gridLayoutGroup.startAxis);
+		                    }
+		                    if (gridLayoutGroup.childAlignment != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("childAlignment", gridLayoutGroup.childAlignment);
+		                    }
+		                    if (gridLayoutGroup.constraint != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("constraint", gridLayoutGroup.constraint);
+		                    }
+		                    if (gridLayoutGroup.constraintCount != 0)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("constraintCount", gridLayoutGroup.constraintCount);
+		                    }
+		                    if (gridLayoutGroup.padding != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("padding", gridLayoutGroup.padding);
+		                    }
+		                    break;
+	                    case LuiCompType.ContentSizeFitter:
+		                    LuiContentSizeFitterComp contentSizeFitter = component as LuiContentSizeFitterComp;
+		                    found++;
+		                    if (contentSizeFitter.horizontalFit != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("horizontalFit", contentSizeFitter.horizontalFit);
+		                    }
+		                    if (contentSizeFitter.verticalFit != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("verticalFit", contentSizeFitter.verticalFit);
+		                    }
+		                    break;
+	                    case LuiCompType.LayoutElement:
+		                    LuiLayoutElementComp layoutElement = component as LuiLayoutElementComp;
+		                    found++;
+		                    if (layoutElement.preferredWidth != -1)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("preferredWidth", layoutElement.preferredWidth);
+		                    }
+		                    if (layoutElement.preferredHeight != -1)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("preferredHeight", layoutElement.preferredHeight);
+		                    }
+		                    if (layoutElement.minWidth != 0)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("minWidth", layoutElement.minWidth);
+		                    }
+		                    if (layoutElement.minHeight != 0)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("minHeight", layoutElement.minHeight);
+		                    }
+		                    if (layoutElement.flexibleWidth != 0)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("flexibleWidth", layoutElement.flexibleWidth);
+		                    }
+		                    if (layoutElement.flexibleHeight != 0)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("flexibleHeight", layoutElement.flexibleHeight);
+		                    }
+		                    if (layoutElement.ignoreLayout)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("ignoreLayout", true);
+		                    }
+		                    break;
 	                    case LuiCompType.Draggable:
 		                    LuiDraggableComp draggable = component as LuiDraggableComp;
 		                    found++;
@@ -840,7 +1070,7 @@ public struct LuiBuilderInstance : IDisposable
 		                    if (draggable.keepOnTop)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("anchorOffset", draggable.keepOnTop);
+			                    this.WriteField("keepOnTop", draggable.keepOnTop);
 		                    }
 		                    if (draggable.positionRPC != null)
 		                    {
@@ -893,6 +1123,11 @@ public struct LuiBuilderInstance : IDisposable
 				                    this.WriteComma();
 				                    this.WriteField("offsetmax", scroll.offset.offsetMax);
 			                    }
+			                    if (scroll.pivot != new Vector2(0.5f, 0.5f))
+			                    {
+				                    this.WriteComma();
+				                    this.WriteField("pivot", scroll.pivot);
+			                    }
 			                    this.WriteEndObject();
 		                    }
 		                    if (scroll.horizontal)
@@ -944,6 +1179,16 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteStartObject("verticalScrollbar");
 			                    WriteScrollBar(scroll.verticalScrollbar);
 			                    this.WriteEndObject();
+		                    }
+		                    if (scroll.horizontalNormalizedPosition != 0)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("horizontalNormalizedPosition", scroll.horizontalNormalizedPosition);
+		                    }
+		                    if (scroll.verticalNormalizedPosition != 0)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("verticalNormalizedPosition", scroll.verticalNormalizedPosition);
 		                    }
 		                    break;
                     }
