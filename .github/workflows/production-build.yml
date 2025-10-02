@@ -19,6 +19,12 @@ jobs:
       version: ${{ steps.step1.outputs.version }}
 
     steps:
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global fetch.parallel 0
+          git config --global submodule.fetchJobs 0
+          
       - name: Git Clone
         uses: actions/checkout@v3
         with:
@@ -150,6 +156,13 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: Release
+
+      - name: 🏷️ Register version tag
+        shell: bash
+        run: |
+          export VERSION=${{ needs.build.outputs.version }}
+          git tag "$VERSION" "$GITHUB_SHA"
+          git push origin "$VERSION"
 
       - name: 🏷️ Update release tag
         uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
