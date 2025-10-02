@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Facepunch;
 
 namespace Carbon.Components;
 
@@ -97,7 +98,7 @@ public struct StringTable : IDisposable
 
 	private string ToStringDefault()
 	{
-		var builder = new StringBuilder();
+		var builder = Pool.Get<StringBuilder>();
 
 		var columnLengths = ColumnLengths();
 		var format = Enumerable.Range(0, Columns.Count)
@@ -132,7 +133,9 @@ public struct StringTable : IDisposable
 			builder.AppendFormat(" Count: {0}", Rows.Count);
 		}
 
-		return builder.ToString();
+		var result = builder.ToString();
+		Pool.FreeUnmanaged(ref builder);
+		return result;
 	}
 
 	private string ToStringMarkDown()
@@ -142,7 +145,7 @@ public struct StringTable : IDisposable
 
 	private string ToStringMarkDown(char delimiter)
 	{
-		var builder = new StringBuilder();
+		var builder = Pool.Get<StringBuilder>();
 
 		var columnLengths = ColumnLengths();
 		var format = Format(columnLengths, delimiter);
@@ -153,14 +156,16 @@ public struct StringTable : IDisposable
 		columnLengths = null;
 
 		builder.AppendLine(columnHeaders);
-		// builder.AppendLine(divider);
+		builder.AppendLine(divider);
 
 		foreach(var item in results)
 		{
 			builder.AppendLine(item);
 		}
 
-		return builder.ToString();
+		var result = builder.ToString();
+		Pool.FreeUnmanaged(ref builder);
+		return result;
 	}
 
 	public string ToStringMinimal()
@@ -170,7 +175,7 @@ public struct StringTable : IDisposable
 
 	public string ToStringAlternative()
 	{
-		var builder = new StringBuilder();
+		var builder = Pool.Get<StringBuilder>();
 
 		var temp1 = Columns.ToArray();
 		var columnLengths = ColumnLengths();
@@ -194,7 +199,9 @@ public struct StringTable : IDisposable
 		}
 		builder.AppendLine(dividerPlus);
 
-		return builder.ToString();
+		var result = builder.ToString();
+		Pool.FreeUnmanaged(ref builder);
+		return result;
 	}
 
 	private string Format(IEnumerable<int> columnLengths, char delimiter = '|')

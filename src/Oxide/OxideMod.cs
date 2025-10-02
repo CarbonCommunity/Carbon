@@ -11,7 +11,7 @@ public class OxideMod
 	public DataFileSystem DataFileSystem { get; private set; } = new DataFileSystem(Defines.GetDataFolder());
 	public PluginManager RootPluginManager { get; private set; }
 
-	public Permission Permission { get; private set; }
+	public Permission Permission { get; set; }
 
 	public string RootDirectory { get; private set; }
 	public string InstanceDirectory { get; private set; }
@@ -89,17 +89,32 @@ public class OxideMod
 
 	public bool LoadPlugin(string name)
 	{
-		CorePlugin.RefreshOrderedFiles();
+		CorePlugin.ProcessableFilesLookup();
 
-		var path = CorePlugin.GetPluginPath(name);
+		var path = CorePlugin.GetPluginFile(name);
 
-		if (string.IsNullOrEmpty(path.Key))
+		if (string.IsNullOrEmpty(path.Id))
 		{
 			return false;
 		}
 
-		Community.Runtime.ScriptProcessor.Prepare(path.Key, path.Value);
-		return true;
+		switch (path.Type)
+		{
+			case CorePlugin.ProcessableFile.Types.Script:
+				Community.Runtime.ScriptProcessor.Prepare(path.Id, path.Path);
+				return true;
+
+			case CorePlugin.ProcessableFile.Types.CSZIP:
+				Community.Runtime.ZipScriptProcessor.Prepare(path.Id, path.Path);
+				return true;
+#if DEBUG
+			case CorePlugin.ProcessableFile.Types.CSZIP_Dev:
+				Community.Runtime.ZipDevScriptProcessor.Prepare(path.Id, path.Path);
+				return true;
+#endif
+		}
+
+		return false;
 	}
 
 	public bool ReloadPlugin(string name)
@@ -109,15 +124,28 @@ public class OxideMod
 
 	public bool UnloadPlugin(string name)
 	{
-		if (!Community.Runtime.ScriptProcessor.InstanceBuffer.TryGetValue(name, out var instance))
+		var plugin = CorePlugin.GetPluginFile(name);
+
+		if (string.IsNullOrEmpty(plugin.Id))
 		{
-			return true;
+			return false;
 		}
 
-		instance.Clear();
-		instance.Dispose();
-		Community.Runtime.ScriptProcessor.Remove(name);
-		return true;
+		switch (plugin.Type)
+		{
+			case CorePlugin.ProcessableFile.Types.Script:
+				Community.Runtime.ScriptProcessor.Remove(plugin.Id);
+				return true;
+			case CorePlugin.ProcessableFile.Types.CSZIP:
+				Community.Runtime.ZipScriptProcessor.Remove(plugin.Id);
+				return true;
+#if DEBUG
+			case CorePlugin.ProcessableFile.Types.CSZIP_Dev:
+				Community.Runtime.ZipDevScriptProcessor.Remove(plugin.Id);
+				return true;
+#endif
+		}
+		return false;
 	}
 
 	public void ReloadAllPlugins(IList<string> skip = null)
@@ -131,12 +159,35 @@ public class OxideMod
 
 			plugin.Value.MarkDirty();
 		}
+		foreach (var plugin in Community.Runtime.ZipScriptProcessor.InstanceBuffer)
+		{
+			if (skip != null && skip.Any(x => plugin.Key.Contains(x)))
+			{
+				continue;
+			}
+
+			plugin.Value.MarkDirty();
+		}
+#if DEBUG
+		foreach (var plugin in Community.Runtime.ZipDevScriptProcessor.InstanceBuffer)
+		{
+			if (skip != null && skip.Any(x => plugin.Key.Contains(x)))
+			{
+				continue;
+			}
+
+			plugin.Value.MarkDirty();
+		}
+#endif
 	}
 
 	public void UnloadAllPlugins(IList<string> skip = null)
 	{
 		Community.Runtime.ScriptProcessor.Clear(skip);
 		Community.Runtime.ZipScriptProcessor.Clear(skip);
+#if DEBUG
+		Community.Runtime.ZipScriptProcessor.Clear(skip);
+#endif
 	}
 
 	public void OnSave()
@@ -148,6 +199,8 @@ public class OxideMod
 	{
 		if (!IsShuttingDown)
 		{
+			Permission?.SaveData();
+			Permission?.Dispose();
 			IsShuttingDown = true;
 		}
 	}

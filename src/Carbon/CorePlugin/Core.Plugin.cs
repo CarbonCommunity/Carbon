@@ -9,38 +9,104 @@ namespace Carbon.Core;
 
 public partial class CorePlugin : CarbonPlugin
 {
-	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
-
-	public static void RefreshOrderedFiles()
+	public struct ProcessableFile
 	{
-		OrderedFiles.Clear();
+		public string Id;
+		public string Path;
+		public Types Type;
+
+		public IBaseProcessor GetProcessor()
+		{
+			switch (Type)
+			{
+				case Types.Script:
+					return Community.Runtime.ScriptProcessor;
+				case Types.CSZIP:
+					return Community.Runtime.ZipScriptProcessor;
+#if DEBUG
+				case Types.CSZIP_Dev:
+					return Community.Runtime.ZipDevScriptProcessor;
+#endif
+			}
+			return null;
+		}
+
+		public enum Types
+		{
+			Script,
+			CSZIP,
+			CSZIP_Dev
+		}
+	}
+
+	public static List<ProcessableFile> ProcessableFiles { get; } = [];
+
+	public static void ProcessableFilesLookup()
+	{
+		ProcessableFiles.Clear();
+
+		static bool IsBlacklisted(string path)
+		{
+			return Community.Runtime.ScriptProcessor.IsBlacklisted(path)
+			       || Community.Runtime.ZipScriptProcessor.IsBlacklisted(path)
+#if DEBUG
+			       || Community.Runtime.ZipDevScriptProcessor.IsBlacklisted(path)
+#endif
+				;
+		}
 
 		var config = Community.Runtime.Config;
-		var processor = Community.Runtime.ScriptProcessor;
 
 		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cs", config.Watchers.ScriptWatcherOption))
 		{
-			if (processor.IsBlacklisted(file))
+			if (IsBlacklisted(file))
 			{
 				continue;
 			}
 
-			var id = Path.GetFileNameWithoutExtension(file);
-
-			if (!OrderedFiles.ContainsKey(id))
-			{
-				OrderedFiles.Add(id, file);
-			}
+			ProcessableFile processableFile = default;
+			processableFile.Id = Path.GetFileNameWithoutExtension(file);
+			processableFile.Path = file;
+			processableFile.Type = ProcessableFile.Types.Script;
+			ProcessableFiles.Add(processableFile);
 		}
+		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cszip", config.Watchers.ScriptWatcherOption))
+		{
+			if (IsBlacklisted(file))
+			{
+				continue;
+			}
+
+			ProcessableFile processableFile = default;
+			processableFile.Id = Path.GetFileNameWithoutExtension(file);
+			processableFile.Path = file;
+			processableFile.Type = ProcessableFile.Types.CSZIP;
+			ProcessableFiles.Add(processableFile);
+		}
+#if DEBUG
+		var zipDevPlugins = Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly);
+		foreach (var file in zipDevPlugins)
+		{
+			ProcessableFile processableFile = default;
+			processableFile.Id = Path.GetFileNameWithoutExtension(file);
+			processableFile.Path = file;
+			processableFile.Type = ProcessableFile.Types.CSZIP_Dev;
+			ProcessableFiles.Add(processableFile);
+		}
+#endif
 	}
 
-	public static KeyValuePair<string, string> GetPluginPath(string shortName)
+	public static ProcessableFile GetPluginFile(string shortName)
 	{
-		RefreshOrderedFiles();
+		ProcessableFilesLookup();
 
-		foreach (var file in OrderedFiles.Where(file => file.Key.Equals(shortName, StringComparison.InvariantCultureIgnoreCase)))
+		foreach (var file in ProcessableFiles)
 		{
-			return new KeyValuePair<string, string>(file.Key, file.Value);
+			if (!file.Id.Equals(shortName, StringComparison.InvariantCultureIgnoreCase))
+			{
+				continue;
+			}
+			return file;
 		}
 
 		return default;
@@ -92,6 +158,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		cmd.AddConsoleCommand("help", this, nameof(Help), authLevel: 2, help: "HELP!");
 		cmd.AddConsoleCommand("harmony.mods", this, nameof(HarmonyMods), authLevel: 2, help: "Prints a full list of all active HarmonyMods processed by Rust.");
+		cmd.AddConsoleCommand("sayas", this, nameof(SayAs), authLevel: 2, help: "Sends a message in chat. It's basically `global.say` but customizable.");
 
 		return true;
 	}

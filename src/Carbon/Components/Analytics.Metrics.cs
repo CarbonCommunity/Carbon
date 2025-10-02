@@ -111,13 +111,13 @@ public partial struct Analytics
 	/// </summary>
 	public static void plugin_native_compile_fail(ISource initialSource, Exception ex)
 	{
-		if (!Enabled)
+		if (!Enabled || initialSource == null)
 		{
 			return;
 		}
 
 		Singleton.
-			Include("file", $"{initialSource.ContextFilePath}").
+			Include("file", initialSource.ContextFilePath).
 			Include("stacktrace", $"({ex.Message}) {ex.StackTrace}").
 			Submit("plugin_native_compile_fail");
 	}
@@ -235,5 +235,19 @@ public partial struct Analytics
 
 		Singleton.
 			Submit("codefling_login");
+	}
+
+	public static void perms_migration(Permission.SerializationMode mode, int groups, int users)
+	{
+		if (!Enabled)
+		{
+			return;
+		}
+
+		Singleton.
+			Include("mode", mode.ToString()).
+			Include("groups", groups.ToString("n0")).
+			Include("users", users.ToString("n0")).
+			Submit("perms_migration");
 	}
 }

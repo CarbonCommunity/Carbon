@@ -106,6 +106,14 @@ public class RustPlugin : Plugin
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
+	/// <param name="args"></param>
+	public void Puts(string message, params object[] args) => Puts((object)message, args: args);
+
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'NOTICE'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
 	public void Log(object message) => Logger.Log($"[{Title}] {message}");
 
 	/// <summary>

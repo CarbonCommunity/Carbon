@@ -73,7 +73,7 @@ public partial class AdminModule
 			"banan",
 			"peanus"
 		];
-
+		
 		public static Tab TabInstance;
 
 		public static Vendor CodeflingInstance;
@@ -102,74 +102,12 @@ public partial class AdminModule
 			OsEx.Folder.Create(Path.Combine(Defines.GetScriptsFolder(), "backups"));
 
 			Tab tab = null;
-			tab = new Tab("plugins", "Plugins", Community.Runtime.Core, access: "plugins.use", onChange: (session, tab1) =>
-			{
-				tab.AddColumn(0, true);
-				tab.AddColumn(1, true);
-
-				var listView = session.GetStorage(tab, "listview", false);
-				if (listView)
+			tab = new Tab("plugins", "Plugins", Community.Runtime.Core, access: "plugins.use", onChange:
+				(session, tab1) =>
 				{
-					tab.Override = null;
-					tab.AddButton(0, "Main View", ap =>
-					{
-						ap.SetStorage(tab, "listview", false);
-						tab.OnChange?.Invoke(ap, tab);
-						Singleton.Draw(ap.Player);
-					});
+					tab.AddColumn(0, true);
+					tab.AddColumn(1, true);
 
-					var search = session.GetStorage(tab, "search", string.Empty);
-					tab.AddInput(-1, "Search", _ => search, (ap, args) =>
-					{
-						search = ap.SetStorage(tab, "search", args.ToString(" "));
-						tab.OnChange?.Invoke(ap, tab);
-					});
-
-					var selectedPlugin = session.GetStorage<Plugin>(tab, "selectedplugin");
-					var vendors = Enum.GetNames(typeof(VendorTypes));
-					for (int i = 0; i < vendors.Length; i++)
-					{
-						var vendor = vendors[i];
-						tab.AddName(0, vendor);
-
-						var plugins = GetPlugins(GetVendor((VendorTypes)Enum.Parse(typeof(VendorTypes), vendor)), tab, session, out _, int.MaxValue);
-						for (int p = 0; p < plugins.Count; p++)
-						{
-							var plugin = plugins[p];
-
-							if (!string.IsNullOrEmpty(search) && (!plugin.Name.Contains(search, CompareOptions.IgnoreCase) &&
-							                                      !plugin.Author.Contains(search, CompareOptions.IgnoreCase)))
-							{
-								continue;
-							}
-
-							tab.AddButton(0, $"{plugin.Name}  <size=8>{plugin.CurrentVersion()}  {plugin.Author}</size>", ap =>
-							{
-								session.SetStorage(tab, "selectedplugin", plugin);
-								tab.OnChange?.Invoke(ap, tab);
-							}, ap => plugin == selectedPlugin ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
-						}
-						Facepunch.Pool.FreeUnmanaged(ref plugins);
-					}
-
-					if (selectedPlugin != null)
-					{
-						var isLoaded = selectedPlugin.IsInstalled();
-						tab.AddInput(1, "Name", ap => selectedPlugin.Name);
-						tab.AddInput(1, "Author", ap => selectedPlugin.Author);
-						tab.AddInput(1, "Version", ap => selectedPlugin.Version);
-						tab.AddName(1, "Settings");
-						tab.AddButtonArray(1, 0f, new Tab.OptionButton("Reload", ap =>
-						{
-							if (isLoaded)
-							{
-								selectedPlugin.ExistentPlugin.ProcessorProcess.MarkDirty();
-							}
-						}, ap => isLoaded ? Tab.OptionButton.Types.Warned : Tab.OptionButton.Types.None));
-					}
-				}
-				else
-				{
 					tab.Override = (tab, cui, container, panel, ap) =>
 					{
 						cui.CreatePanel(container, panel, Cache.CUI.BlackColor);
@@ -186,24 +124,32 @@ public partial class AdminModule
 
 						foreach (var vendor in Enum.GetNames(typeof(VendorTypes)))
 						{
-							var isSelected = selectedVendor.GetType().Name == vendor;
-							CreateTabButton(cui, container, options, vendor, selectedVendor.BarInfo.ToUpper(), isSelected, ref optionsOffset);
+							var disabled = GetVendor((VendorTypes)Enum.Parse(typeof(VendorTypes), vendor)) == null;
+							var isSelected =  selectedVendor.GetType().Name == vendor;
+							CreateTabButton(cui, container, options, vendor, selectedVendor?.BarInfo.ToUpper(),
+								isSelected, ref optionsOffset, disabled);
 						}
 
-						// CreateTabButton(cui, container, options, "LIST", "SHOW IN LIST VIEW", true, ref optionsOffset);
-
-						static void CreateTabButton(CUI cui, CuiElementContainer container, string panel, string text, string subtext, bool isSelected, ref float optionsOffset)
+						static void CreateTabButton(CUI cui, CuiElementContainer container, string panel, string text,
+							string subtext, bool isSelected, ref float optionsOffset, bool disabled)
 						{
 							var btn = cui.CreateProtectedButton(container, panel,
-								isSelected ? "#af3726" : "#454239", Cache.CUI.BlankColor, string.Empty, 0,
-								xMin: 0.05f, xMax: 0.05f, OxMin: optionsOffset, OxMax: optionsOffset + optionsWidth, command: $"pluginbrowser.changetab {text}");
+								isSelected ? "#af3726" : CUI.HexToRustColor("#454239", 0.5f), Cache.CUI.BlankColor, string.Empty, 0,
+								xMin: 0.05f, xMax: 0.05f, OxMin: optionsOffset, OxMax: optionsOffset + optionsWidth,
+								command: disabled ? string.Empty : $"pluginbrowser.changetab {text}");
 							cui.CreateImage(container, btn, "fade", Cache.CUI.WhiteColor);
 							cui.CreateText(container, btn, !isSelected ? "1 1 1 0.4" : "1 0.8 0.8 1",
-								text.ToUpper(), 12, font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: isSelected ? 0.3f : 0f);
+								text.ToUpper(), 12, font: CUI.Handler.FontTypes.RobotoCondensedBold,
+								yMin: isSelected || disabled ? 0.3f : 0f);
 
 							if (isSelected)
 							{
 								cui.CreateText(container, btn, "1 0.8 0.8 0.5", subtext, 10, yMax: 0.5f);
+							}
+
+							if (disabled)
+							{
+								cui.CreateText(container, btn, "1 0.8 0.8 0.5", "DISABLED", 10, yMax: 0.5f);
 							}
 
 							optionsOffset += optionsWidth + optionsSpacing;
@@ -240,6 +186,7 @@ public partial class AdminModule
 						content.OffsetMax = $"0 0";
 						verticalBar.Size = 7;
 						verticalBar.AutoHide = false;
+						verticalBar.Invert = true;
 
 						cui.CreateImage(container, scroll, selectedVendor.Hero, Cache.CUI.WhiteColor,
 							yMin: 1, yMax: 1, OyMin: -500);
@@ -277,7 +224,9 @@ public partial class AdminModule
 						{
 							var defaultProfile = Singleton.ImageDatabase.GetKeyImage("default_profile");
 							cui.CreateClientImage(container, contentPanel,
-								authVendor != null && authVendor.IsLoggedIn ? authVendor.User.AvatarUrl : defaultProfile,
+								authVendor != null && authVendor.IsLoggedIn
+									? authVendor.User.AvatarUrl
+									: defaultProfile,
 								"1 1 1 0.7", xMin: 0.91f, xMax: 0.96f, yMin: 1, yMax: 1, OyMin: -65,
 								OyMax: -20);
 							cui.CreateText(container, contentPanel, "0.8 0.8 0.8 0.9",
@@ -315,7 +264,7 @@ public partial class AdminModule
 						var currentAnim = 1f;
 						var vendorLogo = Singleton.ImageDatabase.GetKeyImage(selectedVendor.Logo);
 
-						for(int p = 0; p < plugins.Count; p++)
+						for (int p = 0; p < plugins.Count; p++)
 						{
 							index++;
 
@@ -325,9 +274,14 @@ public partial class AdminModule
 							{
 								plugin = plugin.PreferredVendorPlugin;
 							}
-							var displayVendor = plugin.HasNoImage() || plugin.HasInvalidImage();
+
+							var displayVendor = Singleton.DataInstance.HidePluginIcons || plugin.HasNoImage() ||
+							                    plugin.HasInvalidImage();
 							var card = cui.CreateProtectedButton(container, contentPanel, "0.1 0.1 0.1 0.7",
-								Cache.CUI.BlankColor, null, 0, command: $"pluginbrowser.selectplugin \"{Path.GetFileNameWithoutExtension(plugin.File)}\"", xMin: 0,
+								Cache.CUI.BlankColor, null, 0,
+								command:
+								$"pluginbrowser.selectplugin \"{Path.GetFileNameWithoutExtension(plugin.File)}\"",
+								xMin: 0,
 								xMax: 0, yMin: 1, yMax: 1,
 								OxMin: currentWidth, OxMax: currentWidth + cardWidth,
 								OyMin: -(currentHeight + cardHeight), OyMax: -currentHeight);
@@ -357,16 +311,22 @@ public partial class AdminModule
 									font: CUI.Handler.FontTypes.RobotoCondensedBold);
 							}
 
-							if (selectedVendor == LocalInstance && originalPlugin.AvailableOn != null && originalPlugin.AvailableOn.Count > 1)
+							if (selectedVendor == LocalInstance && originalPlugin.AvailableOn != null &&
+							    originalPlugin.AvailableOn.Count > 1)
 							{
-								cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor, "0.75 1 0.5 0.8", originalPlugin.PreferredVendor.ToString().ToUpper().SpacedString(1), 8, font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: 0.83f, yMax: 0.92f, command: $"pluginbrowser.interact 12 \"{Path.GetFileNameWithoutExtension(plugin.File)}\"");
+								cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor, "0.75 1 0.5 0.8",
+									originalPlugin.PreferredVendor.ToString().ToUpper().SpacedString(1), 8,
+									font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: 0.83f, yMax: 0.92f,
+									command:
+									$"pluginbrowser.interact 12 \"{Path.GetFileNameWithoutExtension(plugin.File)}\"");
 							}
 
-							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(plugin.Name);
+							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(Path.GetFileNameWithoutExtension(plugin.File));
 							var favourite = cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor,
 								Cache.CUI.BlankColor, string.Empty, 0,
 								xMin: 0, xMax: 0, yMin: 1, OxMax: 30, OyMin: -30,
-								command: $"pluginbrowser.interact 10 \"{Path.GetFileNameWithoutExtension(plugin.File)}\"");
+								command:
+								$"pluginbrowser.interact 10 \"{Path.GetFileNameWithoutExtension(plugin.File)}\"");
 							cui.CreateImage(container, favourite, "top_left",
 								isFavourited ? "0.7 0.2 0.2 0.6" : "0.1 0.1 0.1 0.2");
 							cui.CreateImage(container, favourite, "star",
@@ -536,6 +496,7 @@ public partial class AdminModule
 							selectedContent.OffsetMax = $"0 0";
 							selectedVerticalBar.Size = 7;
 							selectedVerticalBar.AutoHide = false;
+							selectedVerticalBar.Invert = true;
 
 							var icon = cui.CreateClientImage(container, selectedScroll, string.Empty,
 								Cache.CUI.BlankColor, id: "selectedpluginicn");
@@ -599,6 +560,7 @@ public partial class AdminModule
 								changelogVerticalBar.TrackColor = Cache.CUI.BlankColor;
 							changelogVerticalBar.Size = 0;
 							changelogVerticalBar.AutoHide = true;
+							changelogVerticalBar.Invert = true;
 
 							cui.CreateText(container, changelogScroll, "1 1 1 0.7", "lorem ipsum", 13,
 								align: TextAnchor.UpperLeft, id: "selectedpluginchlog");
@@ -607,7 +569,8 @@ public partial class AdminModule
 
 							var closeButton = cui.CreateProtectedButton(container, selectedPlugin,
 								"0.2 0.2 0.2 0.9", Cache.CUI.BlankColor, string.Empty, 0,
-								command: "pluginbrowser.deselectplugin", xMin: 0.05f, xMax: 0.08f, yMin: 0.9f, yMax: 0.955f);
+								command: "pluginbrowser.deselectplugin", xMin: 0.05f, xMax: 0.08f, yMin: 0.9f,
+								yMax: 0.955f);
 							cui.CreateImage(container, closeButton, "close", "0.7 0.7 0.7 0.4", xMin: 0.3f,
 								xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
 							cui.CreateImage(container, closeButton, "fade", Cache.CUI.WhiteColor);
@@ -718,8 +681,7 @@ public partial class AdminModule
 
 						Facepunch.Pool.FreeUnmanaged(ref plugins);
 					};
-				}
-			});
+				});
 
 			CodeflingInstance = new Codefling();
 			if (CodeflingInstance is IVendorStored cfStored && !cfStored.Load())
@@ -731,21 +693,36 @@ public partial class AdminModule
 				});
 			}
 
-			uModInstance = new uMod();
-			if (uModInstance is IVendorStored umodStored && !umodStored.Load())
-			{
-				uModInstance.FetchList((vendor) =>
-				{
-					uModInstance.Refresh();
-					uModInstance.VersionCheck();
-				});
-			}
+			InstallUModTab();
 
 			LocalInstance = new Installed();
 			LocalInstance.Refresh();
 
 			ServerOwner.Load();
 			return TabInstance = tab;
+		}
+
+		public static void InstallUModTab()
+		{
+			if (Singleton.DataInstance.DisableUMod)
+			{
+				if (uModInstance is uMod umod)
+				{
+					umod.Dispose();
+				}
+				uModInstance = null;
+				return;
+			}
+
+			uModInstance = new uMod();
+			if (uModInstance is IVendorStored umodStored && !umodStored.Load())
+			{
+				uModInstance.FetchList(_ =>
+				{
+					uModInstance.Refresh();
+					uModInstance.VersionCheck();
+				});
+			}
 		}
 
 		public static List<Plugin> GetPlugins(Vendor vendor, Tab tab, PlayerSession ap, int pluginCount)
@@ -914,7 +891,7 @@ public partial class AdminModule
 
 			foreach (var element in plugins)
 			{
-				if (element.HasNoImage()) continue;
+				if (Singleton.DataInstance.HidePluginIcons || element.HasNoImage()) continue;
 
 				if (element.HasInvalidImage())
 				{
@@ -1075,8 +1052,7 @@ public partial class AdminModule
 
 			public override string BarInfo => $"{FetchedPlugins.Count(x => !x.IsPaid()):n0} free, {FetchedPlugins.Count(x => x.IsPaid()):n0} paid";
 
-			public override string ListEndpoint => "https://codefling.com/db/?category=2";
-			public string List2Endpoint => "https://codefling.com/db/?category=21";
+			public override string ListEndpoint => "https://codefling.com/db/?category=2,21";
 			public override string DownloadEndpoint => "https://codefling.com/files/file/[ID]-a?do=download";
 
 			private Dictionary<string, string> _headers = new();
@@ -1140,22 +1116,7 @@ public partial class AdminModule
 					Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
 					ParseData(data, false, false, FetchedPlugins, callback, this, plugins);
 					Facepunch.Pool.FreeUnmanaged(ref plugins);
-
-					Community.Runtime.Core.webrequest.Enqueue(List2Endpoint, null, (error, data) =>
-					{
-						if (error != 200)
-						{
-							Logger.Error($"[{Type}] Failed parsing data for vendor. Error code {error}!");
-							return;
-						}
-
-						var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
-						Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
-						ParseData(data, true, true, FetchedPlugins, callback, this, plugins);
-						Facepunch.Pool.FreeUnmanaged(ref plugins);
-
-						VersionCheck();
-					}, Community.Runtime.Core);
+					VersionCheck();
 
 					static void ParseData(string data, bool doSave, bool insert, List<Plugin> fetchedPlugins, Action<Vendor> callback, Vendor vendor, List<RustPlugin> plugins)
 					{
@@ -1164,9 +1125,7 @@ public partial class AdminModule
 							var list = JArray.Parse(data);
 							foreach (var token in list)
 							{
-								//var fileStatus = token["file_status"]?.ToString();
 								var price = token["prices"];
-
 								var plugin = new Plugin
 								{
 									Id = token["id"]?.ToString(),
@@ -1611,6 +1570,20 @@ public partial class AdminModule
 			public override string DownloadEndpoint => "https://umod.org/plugins/[ID].cs";
 			public override string PluginLookupEndpoint => "https://umod.org/plugins/[ID]/latest.json";
 
+			public global::Oxide.Core.Libraries.WebRequests.WebRequest FetchingRequest;
+			public global::Oxide.Core.Libraries.WebRequests.WebRequest FetchingPageRequest;
+			public Timer FetchingTimer;
+
+			public void Dispose()
+			{
+				FetchingRequest?.Dispose();
+				FetchingPageRequest?.Dispose();
+				FetchingTimer?.Destroy();
+				FetchingRequest = null;
+				FetchingPageRequest = null;
+				FetchingTimer = null;
+			}
+
 			public override void Refresh()
 			{
 				if (FetchedPlugins == null) return;
@@ -1651,7 +1624,7 @@ public partial class AdminModule
 
 				Logger.Log($"[{Type}] Caching plugin metadata for displaying plugins in the Admin module -> Plugins tab. This might take a while..");
 
-				Community.Runtime.Core.webrequest.Enqueue(ListEndpoint.Replace("[ID]", "0"), null, (error, data) =>
+				FetchingRequest = Community.Runtime.Core.webrequest.Enqueue(ListEndpoint.Replace("[ID]", "0"), null, (error, data) =>
 				{
 					if(error != 200)
 					{
@@ -1777,7 +1750,7 @@ public partial class AdminModule
 					return;
 				}
 
-				Community.Runtime.Core.webrequest.Enqueue(ListEndpoint.Replace("[ID]", $"{page}"), null, (error, data) =>
+				FetchingPageRequest = Community.Runtime.Core.webrequest.Enqueue(ListEndpoint.Replace("[ID]", $"{page}"), null, (error, data) =>
 				{
 					if (error != 200)
 					{
@@ -1827,7 +1800,7 @@ public partial class AdminModule
 						Logger.Log($"Caching plugin metadata page {page} out of {maxPage}");
 					}
 				}, Community.Runtime.Core);
-				Community.Runtime.Core.timer.In(5f, () => FetchPage(page + 1, maxPage, callback));
+				FetchingTimer = Community.Runtime.Core.timer.In(5f, () => FetchPage(page + 1, maxPage, callback));
 			}
 
 			public bool Load()
@@ -1946,7 +1919,7 @@ public partial class AdminModule
 						if (plugin.IsCorePlugin) continue;
 
 						var codefling = CodeflingInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
-						var umod = uModInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
+						var umod = uModInstance?.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 						var installed = FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 
 						if (installed == null)
@@ -2274,7 +2247,7 @@ public partial class AdminModule
 			case "11":
 			{
 				var fileName = Path.GetFileNameWithoutExtension(tabPlugin.File);
-				var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginPath(fileName).Value);
+				var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginFile(fileName).Path);
 				if (tabPlugin.IsInstalled())
 				{
 					Run(Option.Server, $"c.unload \"{fileName}\"");
@@ -2446,7 +2419,7 @@ public partial class AdminModule
 		var session = Singleton.GetPlayerSession(arg.Player());
 		var tab = session.SelectedTab;
 		var vendor = PluginsTab.GetVendor(session.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		var pluginName = arg.FullString.Replace("\"", string.Empty).Trim();
+		var pluginName = arg.GetString(0).Replace("\"", string.Empty);
 		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName, StringComparison.CurrentCultureIgnoreCase));
 		try
 		{
@@ -2534,7 +2507,7 @@ public partial class AdminModule
 			update.Add(cui.UpdateImage("selectedplugin_b1_icn", "clouddl", "#d9f7a3"));
 			update.Add(cui.UpdateImage("selectedplugin_b1_fade", "fade", Cache.CUI.BlankColor));
 
-			var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginPath(Path.GetFileNameWithoutExtension(plugin.File)).Value);
+			var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginFile(Path.GetFileNameWithoutExtension(plugin.File)).Path);
 
 			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", !isLoadable ? CUI.HexToRustColor("#8db842", 0.4f) : "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 \"{Path.GetFileNameWithoutExtension(plugin.File)}\""));
 			update.Add(cui.UpdateText("selectedplugin_b2_txt", "#d9f7a3", text: "LOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));

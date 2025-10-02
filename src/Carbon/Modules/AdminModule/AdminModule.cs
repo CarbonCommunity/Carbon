@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ConVar;
+using Newtonsoft.Json;
 using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
 using static Carbon.Components.CUI;
@@ -564,11 +565,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
 		}
 
-		var button = cui.CreateProtectedButton(container, parent,
+		var button = cui.CreateProtectedButton(container, panel,
 			color: DataInstance.Colors.OptionColor,
 			textColor: "1 1 1 0.5",
 			text: string.Empty, 11,
-			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
+			xMin: 0.985f, xMax: 0.985f, OxMin: -25, OyMin: -12.5f, OyMax: 12.5f, yMin: 0.5f, yMax: 0.5f,
 			command: command,
 			font: Handler.FontTypes.RobotoCondensedRegular);
 
@@ -794,6 +795,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreateText(container, button, "1 1 1 0.7", options[index], 10,
 			xMin: string.IsNullOrEmpty(icon) ? 0.035f : 0.09f, xMax: 1f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleLeft);
+
+		cui.CreateText(container, button, "1 1 1 0.4", "▼", 8,
+        	xMin: 0, xMax: 0.965f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleRight);
 
 		if (!string.IsNullOrEmpty(icon))
 		{
@@ -1101,11 +1105,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
 		}
 
-		using var split = TempArray<string>.New(color.Split(' '));
+		var colorSplit = color.Split(' ');
 		cui.CreateProtectedButton(container, parent,
 			color: color,
 			textColor: "1 1 1 1",
-			text: split.Length > 1 ? $"#{ColorUtility.ToHtmlStringRGB(new Color(split.Get(0).ToFloat(), split.Get(1).ToFloat(), split.Get(2).ToFloat(), 1))}" : string.Empty, 10,
+			text: colorSplit.Length > 1 ? $"#{ColorUtility.ToHtmlStringRGB(new Color(colorSplit[0].ToFloat(), colorSplit[1].ToFloat(), colorSplit[2].ToFloat(), 1))}" : string.Empty, 10,
 			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
 			command: command,
 			font: Handler.FontTypes.RobotoCondensedRegular);
@@ -1312,21 +1316,18 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				color: $"0 0 0 {DataInstance.BackgroundOpacity}",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 				needsCursor: true, destroyUi: PanelId, parent: ClientPanels.HudMenu);
-
+			cui.CreatePanel(container, PanelId, color: "0 0 0 0.6");
+			cui.CreatePanel(container, PanelId, color: "0 0 0 0.5", blur: DataInstance.BackgroundBlur);
 			cui.CreateImage(container, PanelId, "fade", Cache.CUI.WhiteColor);
 
 			var isMaximized = DataInstance.Maximize;
-
-			var shade = cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
+			var main = cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
 				color: "0 0 0 0.6",
 				xMin: 0.5f, xMax: 0.5f, yMin: 0.5f, yMax: 0.5f,
 				OxMin: -475 * (isMaximized ? MaximizedScale_XMin : 1),
 				OxMax: 475 * (isMaximized ? MaximizedScale_XMax : 1),
 				OyMin: -300 * (isMaximized ? MaximizedScale_YMin : 1),
 				OyMax: 300 * (isMaximized ? MaximizedScale_YMax : 1));
-			var main = cui.CreatePanel(container, shade,
-				color: "0 0 0 0.5",
-				blur: DataInstance.BackgroundBlur);
 
 			cui.CreateImage(container, main, DataInstance.BackgroundImage, "1 1 1 " + DataInstance.BackgroundImageOpacity, yMin: DataInstance.BackgroundImageYAnchor.x, yMax: DataInstance.BackgroundImageYAnchor.y);
 
@@ -2275,7 +2276,62 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#endregion
 
-	internal static void StartSpectating(BasePlayer player, BaseEntity target)
+	public static void BlindPlayer(BasePlayer player, BasePlayer target)
+	{
+		using CUI cui = new CUI(Singleton.Handler);
+
+		var container = cui.v2.CreateParent(ClientPanels.Overlay, LuiPosition.Full, "blindingpanel").AddCursor()
+			.AddKeyboard().SetDestroy("blindingpanel");
+		cui.v2.CreateImageFromDb(container, LuiPosition.Full, LuiOffset.None, "bsod","0 0 0 1");
+
+		PlayersTab.BlindedPlayers.Add(target);
+		cui.v2.SendUi(target);
+		// OnCarbonBlinded
+		HookCaller.CallStaticHook(3658185574, player, target);
+	}
+
+	public static void UnblindPlayer(BasePlayer player, BasePlayer target)
+	{
+		if (!PlayersTab.BlindedPlayers.Remove(target)) return;
+		using CUI cui = new CUI(Singleton.Handler);
+		cui.Destroy("blindingpanel", target);
+		// OnCarbonUnblinded
+		HookCaller.CallStaticHook(3911772319, player, target);
+	}
+
+	public static void EmpowerPlayerStats(BasePlayer player, BasePlayer target)
+	{
+		Debugging.RefillPlayerVitals(target, true);
+
+		// OnCarbonEmpowerPlayerStats
+		HookCaller.CallStaticHook(837777771, player, target);
+	}
+
+	public static void LockPlayerContainer(BasePlayer player, BasePlayer target, ItemContainer container, bool wants)
+	{
+		container.SetLocked(wants);
+
+		// OnCarbonLockPlayerContainer
+		HookCaller.CallStaticHook(298795244, player, target, container, wants);
+	}
+
+	public static void PrivateMessagePlayer(BasePlayer player, BasePlayer target, string message)
+	{
+		if (string.IsNullOrEmpty(message)) return;
+
+		target.ChatMessage($"[{player.displayName}]: {message}");
+
+		if (Singleton.ConfigInstance.PlayPMSound)
+		{
+			Effect.server.Run(Singleton.ConfigInstance.PMSound, target,2, Vector3.zero, new Vector3(0,2,0));
+		}
+
+		// OnCarbonPrivateMessage
+		HookCaller.CallStaticHook(468227819, player, target, message);
+	}
+
+
+	public static void StartSpectating(BasePlayer player, BaseEntity target)
 	{
 		if (!string.IsNullOrEmpty(player.spectateFilter))
 		{
@@ -2301,6 +2357,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.eyes.NetworkUpdate(target.transform.rotation);
 		player.SendNetworkUpdate();
 		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
+
+		// OnCarbonSpectateStart
+		HookCaller.CallStaticHook(597991647, player, targetPlayer);
 
 		using var cui = new CUI(Singleton.Handler);
 		var container = cui.CreateContainer(SpectatePanelId, color: Cache.CUI.BlankColor, needsCursor: targetPlayer != null && targetPlayer.IsSleeping(), parent: ClientPanels.Overlay, destroyUi: SpectatePanelId);
@@ -2338,7 +2397,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Community.Runtime.Core.NextTick(() => Singleton.Close(player));
 	}
-	internal static void StopSpectating(BasePlayer player, bool clearUi = true)
+	public static void StopSpectating(BasePlayer player, bool clearUi = true)
 	{
 		if (clearUi)
 		{
@@ -2369,6 +2428,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			player.Teleport(player.transform.position + (Vector3.up * -3f));
 		}
 
+		// OnCarbonSpectateEnd
+		HookCaller.CallStaticHook(2609635685, player, spectated);
+
 		if (clearUi)
 		{
 			var tab = Singleton.GetTab(player);
@@ -2379,7 +2441,87 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 	}
 
-	internal static void OpenPlayerContainer(PlayerSession ap, BasePlayer player, Tab tab)
+	public static void MutePlayer(BasePlayer player, BasePlayer target, bool wants, string reason = "No reason given")
+	{
+		target.State.chatMuted = wants;
+		target.SetPlayerFlag(BasePlayer.PlayerFlags.ChatMute, wants);
+		target.DirtyPlayerState();
+		target.ChatMessage($"You have been {(wants ? "muted" : "unmuted")} by an admin. Reason: {reason}");
+
+		// OnCarbonMutePlayer
+		HookCaller.CallStaticHook(2716457321, player, target, wants, reason);
+	}
+
+	public static void BanPlayer(BasePlayer player, BasePlayer target, string reason = "No reason given", string duration = "")
+	{
+		var expiry = TimeSpan.Zero;
+		if (!string.IsNullOrEmpty(duration))
+		{
+			expiry = BanStringToSeconds(duration);
+		}
+
+		long expiryUnixTime = -1L;
+		if (expiry != TimeSpan.Zero)
+		{
+			expiryUnixTime = new DateTimeOffset(DateTime.UtcNow.Add(expiry)).ToUnixTimeSeconds();
+		}
+		ServerUsers.Set(target.userID, ServerUsers.UserGroup.Banned, target.displayName, reason, expiryUnixTime);
+		ServerUsers.Save();
+
+		// OnCarbonBanPlayer
+		HookCaller.CallStaticHook(338697635, player, target, reason, expiry);
+
+		KickPlayer(player, target, reason);
+	}
+
+	public static void UnbanPlayer(BasePlayer player, BasePlayer target)
+	{
+		ServerUsers.Remove(target.userID);
+		ServerUsers.Save();
+
+		// OnCarbonUnbanPlayer
+		HookCaller.CallStaticHook(1355418005, player, target);
+	}
+
+	public static void KickPlayer(BasePlayer player, BasePlayer target, string reason = "No reason given")
+	{
+		target.Kick(reason, false);
+
+		// OnCarbonKickPlayer
+		HookCaller.CallStaticHook(3987303153, player, target, reason);
+	}
+
+	private static TimeSpan BanStringToSeconds(string duration)
+	{
+		var banDuration = TimeSpan.Zero;
+		if (duration.EndsWith("Y") && int.TryParse(duration.TrimEnd('Y'), out var years))
+		{
+			banDuration = TimeSpan.FromDays(years * 365);
+		}
+		else if (duration.EndsWith("M") && int.TryParse(duration.TrimEnd('M'), out var months))
+		{
+			banDuration = TimeSpan.FromDays(months * 30);
+		}
+		else if (duration.EndsWith("d") && int.TryParse(duration.TrimEnd('d'), out var days))
+		{
+			banDuration = TimeSpan.FromDays(days);
+		}
+		else if (duration.EndsWith("h") && int.TryParse(duration.TrimEnd('h'), out var hours))
+		{
+			banDuration = TimeSpan.FromHours(hours);
+		}
+		else if (duration.EndsWith("m") && int.TryParse(duration.TrimEnd('m'), out var minutes))
+		{
+			banDuration = TimeSpan.FromMinutes(minutes);
+		}
+		else if (duration.EndsWith("s") && int.TryParse(duration.TrimEnd('s'), out var seconds))
+		{
+			banDuration = TimeSpan.FromSeconds(seconds);
+		}
+		return banDuration;
+	}
+
+	public static void OpenPlayerContainer(PlayerSession ap, BasePlayer player, Tab tab)
 	{
 		Singleton.Subscribe("OnEntityVisibilityCheck");
 		Singleton.Subscribe("OnEntityDistanceCheck");
@@ -2407,7 +2549,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			ap.Player.ClientRPC(RpcTarget.Player("RPC_OpenLootPanel", ap.Player), "player_corpse");
 		});
 	}
-	internal static void OpenContainer(PlayerSession ap, ItemContainer container, Tab tab)
+	public static void OpenContainer(PlayerSession ap, ItemContainer container, Tab tab)
 	{
 		EntitiesTab.LastContainerLooter = null;
 		ap.ClearStorage(tab, "lootedent");
@@ -2442,6 +2584,8 @@ public class AdminConfig
 	public bool SpectatingEndTeleportBack = false;
 	public List<ActionButton> QuickActions = new();
 	public bool HideConsole = false;
+	public bool PlayPMSound = true;
+	public string PMSound = "assets/prefabs/locks/keypad/effects/lock.code.unlock.prefab";
 
 	public class ActionButton
 	{
@@ -2456,6 +2600,7 @@ public class AdminData
 {
 	public bool GreetDisplayed = false;
 	public bool HidePluginIcons = false;
+	public bool DisableUMod = true;
 	public bool Maximize = false;
 	public bool BackgroundBlur = true;
 	public float BackgroundOpacity = 0.75f;

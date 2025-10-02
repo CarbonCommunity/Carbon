@@ -24,28 +24,30 @@ public class WebRequests : Library
 		ServicePointManager.DefaultConnectionLimit = 200;
 	}
 
-	public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
+	public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, DecompressionMethods decompressionMethod = DecompressionMethods.None)
 	{
 		return new WebRequest(url, callback, owner)
 		{
 			Method = method.ToString(),
 			RequestHeaders = headers,
 			Timeout = timeout,
-			Body = body
+			Body = body,
+			DecompressionMethod = decompressionMethod
 		}.Start();
 	}
-	public WebRequest EnqueueData(string url, string body, Action<int, byte[]> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
+	public WebRequest EnqueueData(string url, string body, Action<int, byte[]> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, DecompressionMethods decompressionMethod = DecompressionMethods.None)
 	{
 		return new WebRequest(url, callback, owner)
 		{
 			Method = method.ToString(),
 			RequestHeaders = headers,
 			Timeout = timeout,
-			Body = body
+			Body = body,
+			DecompressionMethod = decompressionMethod
 		}.Start();
 	}
 
-	public async Task<WebRequest> EnqueueAsync(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
+	public async Task<WebRequest> EnqueueAsync(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, DecompressionMethods decompressionMethod = DecompressionMethods.None)
 	{
 		var tcs = new TaskCompletionSource<bool>();
 
@@ -68,14 +70,15 @@ public class WebRequests : Library
 			Method = method.ToString(),
 			RequestHeaders = headers,
 			Timeout = timeout,
-			Body = body
+			Body = body,
+			DecompressionMethod = decompressionMethod
 		}.Start();
 
 		await tcs.Task;
 
 		return request;
 	}
-	public async Task<WebRequest> EnqueueDataAsync(string url, string body, Action<int, byte[]> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
+	public async Task<WebRequest> EnqueueDataAsync(string url, string body, Action<int, byte[]> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, DecompressionMethods decompressionMethod = DecompressionMethods.None)
 	{
 		var tcs = new TaskCompletionSource<bool>();
 
@@ -98,7 +101,8 @@ public class WebRequests : Library
 			Method = method.ToString(),
 			RequestHeaders = headers,
 			Timeout = timeout,
-			Body = body
+			Body = body,
+			DecompressionMethod = decompressionMethod
 		}.Start();
 
 		await tcs.Task;
@@ -133,6 +137,7 @@ public class WebRequests : Library
 		public string Method { get; set; }
 		public string Url { get; }
 		public string Body { get; set; }
+		public DecompressionMethods DecompressionMethod { get; set; } = DecompressionMethods.GZip;
 
 		public TimeSpan ResponseDuration { get; protected set; }
 		public int ResponseCode { get; protected set; }
@@ -177,6 +182,7 @@ public class WebRequests : Library
 			_client.Credentials = CredentialCache.DefaultCredentials;
 			_client.Proxy = null;
 			_client.Encoding = Encoding.UTF8;
+			_client.AutomaticDecompression = DecompressionMethod;
 
 			if (RequestHeaders != null && RequestHeaders.Count > 0)
 			{
@@ -406,6 +412,7 @@ public class WebRequests : Library
 		public class Client : WebClient
 		{
 			public int StatusCode { get; private set; }
+			public DecompressionMethods AutomaticDecompression { get; set; } = DecompressionMethods.GZip;
 
 			public Client()
 			{
@@ -466,17 +473,15 @@ public class WebRequests : Library
 
 			protected override System.Net.WebRequest GetWebRequest(Uri address)
 			{
-				if (!Community.IsConfigReady || string.IsNullOrEmpty(Community.Runtime.Config.WebRequestIp))
-				{
-					return base.GetWebRequest(address);
-				}
-
 				var request = base.GetWebRequest(address) as HttpWebRequest;
 
 				request.UserAgent = Community.Runtime.Analytics.UserAgent;
+				request.AutomaticDecompression = AutomaticDecompression;
 
-				request.AutomaticDecompression = DecompressionMethods.GZip;
-				request.ServicePoint.BindIPEndPointDelegate = (_, _, _) => new IPEndPoint(IPAddress.Parse(Community.Runtime.Config.WebRequestIp), 0);
+				if (Community.IsConfigReady && !string.IsNullOrEmpty(Community.Runtime.Config.WebRequestIp))
+				{
+					request.ServicePoint.BindIPEndPointDelegate = (_, _, _) => new IPEndPoint(IPAddress.Parse(Community.Runtime.Config.WebRequestIp), 0);
+				}
 
 				return request;
 			}

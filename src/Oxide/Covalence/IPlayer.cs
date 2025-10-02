@@ -18,7 +18,7 @@ public class RustPlayer : IPlayer
 		Name = Oxide.Plugins.ExtensionMethods.Sanitize(player.displayName);
 		LastCommand = 0;
 		IsServer = false;
-		perms = Permission.Singleton;
+		perms = Community.Runtime.Core.permission;
 	}
 	public RustPlayer(string id, UserData data)
 	{
@@ -26,7 +26,7 @@ public class RustPlayer : IPlayer
 		Name = Oxide.Plugins.ExtensionMethods.Sanitize(data.LastSeenNickname);
 		LastCommand = 0;
 		IsServer = false;
-		perms = Permission.Singleton;
+		perms = Community.Runtime.Core.permission;
 	}
 
 	private static Permission perms;
@@ -117,7 +117,14 @@ public class RustPlayer : IPlayer
 			return;
 		}
 
-		ServerUsers.Set(id, ServerUsers.UserGroup.Banned, ((BasePlayer != null) ? BasePlayer.displayName : null) ?? "Unknown", reason, -1L);
+		var expiryUnixTime = -1L;
+		if (duration != TimeSpan.Zero)
+		{
+			DateTime expiryTime = DateTime.UtcNow.Add(duration);
+			expiryUnixTime = new DateTimeOffset(expiryTime).ToUnixTimeSeconds();
+		}
+
+		ServerUsers.Set(id, ServerUsers.UserGroup.Banned, ((BasePlayer != null) ? BasePlayer.displayName : null) ?? "Unknown", reason, expiryUnixTime);
 		ServerUsers.Save();
 
 		if (IsConnected)
@@ -274,7 +281,7 @@ public class RustPlayer : IPlayer
 		BasePlayer.net.connection.username = name;
 		BasePlayer.displayName = name;
 		BasePlayer._name = name;
-		BasePlayer.SendNetworkUpdateImmediate(false);
+		BasePlayer.SendNetworkUpdateImmediate();
 		var iPlayer = BasePlayer.AsIPlayer();
 		iPlayer.Name = name;
 		perms.UpdateNickname(BasePlayer.UserIDString, name);

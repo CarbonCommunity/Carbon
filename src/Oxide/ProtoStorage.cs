@@ -18,8 +18,6 @@ public class ProtoStorage
 		{
 			yield return Utility.GetFileNameWithoutExtension(value);
 		}
-
-		yield break;
 	}
 
 	public static T Load<T>(params string[] subPaths)
@@ -58,8 +56,7 @@ public class ProtoStorage
 
 			using var stream = new MemoryStream();
 			Serializer.Serialize(stream, data);
-			using var temp = TempArray<byte>.New(stream.ToArray());
-			OsEx.File.Create(fileDataPath, temp.array);
+			OsEx.File.Create(fileDataPath, stream.ToArray());
 		}
 		catch (Exception ex)
 		{

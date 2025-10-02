@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Facepunch;
 using Formatter = Oxide.Core.Libraries.Covalence.Formatter;
 
 namespace Oxide.Core
@@ -118,16 +119,19 @@ namespace Oxide.Core
 
 			if (enumerator.MoveNext())
 			{
-				StringBuilder stringBuilder = new StringBuilder((t != null) ? t.ToString() : null);
+				var builder = Pool.Get<StringBuilder>();
+				builder.Append((t != null) ? t.ToString() : null);
 				bool flag = true;
 				while (flag)
 				{
 					T t2 = enumerator.Current;
 					flag = enumerator.MoveNext();
-					stringBuilder.Append(flag ? ", " : " and ");
-					stringBuilder.Append(t2);
+					builder.Append(flag ? ", " : " and ");
+					builder.Append(t2);
 				}
-				return stringBuilder.ToString();
+				var result = builder.ToString();
+				Pool.FreeUnmanaged(ref builder);
+				return result;
 			}
 			if (t == null)
 			{
@@ -266,16 +270,19 @@ namespace Oxide.Plugins
 
 			if (enumerator.MoveNext())
 			{
-				StringBuilder stringBuilder = new StringBuilder((t != null) ? t.ToString() : null);
+				var builder = Pool.Get<StringBuilder>();
+				builder.Append((t != null) ? t.ToString() : null);
 				bool flag = true;
 				while (flag)
 				{
 					T t2 = enumerator.Current;
 					flag = enumerator.MoveNext();
-					stringBuilder.Append(flag ? ", " : " and ");
-					stringBuilder.Append(t2);
+					builder.Append(flag ? ", " : " and ");
+					builder.Append(t2);
 				}
-				return stringBuilder.ToString();
+				var result = builder.ToString();
+				Pool.FreeUnmanaged(ref builder);
+				return result;
 			}
 			if (t == null)
 			{

@@ -19,10 +19,7 @@ public partial class CorePlugin
 			Analytics.on_server_initialized();
 		}
 
-		if (!ConVar.Server.autoUploadMap)
-		{
-			Community.Runtime.MarkServerInitialized(true);
-		}
+		Community.Runtime.MarkServerInitialized(true);
 
 		Community.Runtime.Events.Trigger(CarbonEvent.OnServerInitialized, EventArgs.Empty);
 		return null;
@@ -64,7 +61,7 @@ public partial class CorePlugin
 		Logger.Log($"Shutting down Carbon..");
 		Interface.Oxide.OnShutdown();
 
-		Bridge.Server?.Shutdown();
+		WebControlPanel.Shutdown();
 
 		using var plugins = Pool.Get<PooledList<RustPlugin>>();
 		ModLoader.Packages.GetAllHookables(plugins);

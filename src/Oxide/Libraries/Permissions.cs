@@ -5,8 +5,6 @@ namespace Oxide.Core.Libraries;
 
 public class Permission : Library
 {
-	public static Permission Singleton;
-
 	public enum SerializationMode
 	{
 		Storeless = -1,
@@ -20,8 +18,6 @@ public class Permission : Library
 
 	public Permission()
 	{
-		Singleton = this;
-
 		permset = new Dictionary<BaseHookable, HashSet<string>>();
 
 		RegisterValidate(delegate (string value)
@@ -33,9 +29,8 @@ public class Permission : Library
 		CleanUp();
 	}
 
-	internal readonly static char[] Star = ['*'];
-	internal readonly static string StarStr = "*";
-	internal readonly static string[] EmptyStringArray = [];
+	public static readonly char[] Star = ['*'];
+	public static readonly string StarStr = "*";
 
 	public Dictionary<string, UserData> userdata = [];
 	public Dictionary<string, GroupData> groupdata = [];
@@ -340,7 +335,20 @@ public class Permission : Library
 	}
 	public virtual bool UserExists(string id)
 	{
-		return userdata.ContainsKey(id);
+		if (userdata.ContainsKey(id))
+		{
+			return true;
+		}
+
+		foreach (var user in userdata)
+		{
+			if (user.Value.LastSeenNickname.Equals(id, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 	public virtual bool UserExists(string id, out UserData data)
 	{
@@ -374,12 +382,29 @@ public class Permission : Library
 
 	public virtual KeyValuePair<string, UserData> FindUser(string id)
 	{
-		if (id.IsSteamId()) GetUserData(id, true);
+		if (id.IsSteamId())
+			return new KeyValuePair<string, UserData>(id, GetUserData(id, true));
 
+		using var validUsers = Pool.Get<PooledList<KeyValuePair<string, UserData>>>();
+		validUsers.Clear();
 		foreach (var user in userdata)
 		{
-			if (user.Value != null && user.Key == id || (!string.IsNullOrEmpty(user.Value.LastSeenNickname) && user.Value.LastSeenNickname.Equals(id, StringComparison.InvariantCultureIgnoreCase)))
+			if (user.Value == null) continue;
+			if (user.Key == id)
 				return new KeyValuePair<string, UserData>(user.Key, user.Value);
+			if (!string.IsNullOrEmpty(user.Value.LastSeenNickname) && user.Value.LastSeenNickname.IndexOf(id, StringComparison.InvariantCultureIgnoreCase) >= 0)
+				validUsers.Add(user);
+		}
+		if (validUsers.Count >= 1)
+		{
+			if (validUsers.Count > 1)
+			{
+				Logger.Warn($"Found {validUsers.Count} users with '{id}' in nickname:");
+				foreach (var validUser in validUsers)
+					Logger.Warn($"  - {validUser.Key} ({validUser.Value.LastSeenNickname})");
+				Logger.Warn($"Using first ({validUsers[0].Key}) as an result...");
+			}
+			return new KeyValuePair<string, UserData>(validUsers[0].Key, validUsers[0].Value);
 		}
 
 		return default;
@@ -404,6 +429,8 @@ public class Permission : Library
 		{
 			user.Language = Community.Runtime.Config.Language;
 		}
+
+		CommitUser(player.UserIDString, user);
 
 		if (Community.Runtime.Config.Permissions.AutoGrantPlayerGroup && !string.IsNullOrEmpty(Community.Runtime.Config.Permissions.PlayerDefaultGroup))
 		{
@@ -454,10 +481,15 @@ public class Permission : Library
 			var userData = GetUserData(id);
 			var lastSeenNickname = userData.LastSeenNickname;
 			userData.LastSeenNickname = nickname.Sanitize();
+			CommitUser(id, userData);
 
 			// OnUserNameUpdated
 			HookCaller.CallStaticHook(4255507790, id, lastSeenNickname, userData.LastSeenNickname);
 		}
+	}
+	public virtual void CommitUser(string userId, UserData data)
+	{
+
 	}
 
 	public virtual bool UserHasAnyGroup(string id)
@@ -547,12 +579,12 @@ public class Permission : Library
 	{
 		if (!GroupExists(name))
 		{
-			return EmptyStringArray;
+			return Array.Empty<string>();
 		}
 
 		if (!groupdata.TryGetValue(name.ToLower(), out var groupData))
 		{
-			return EmptyStringArray;
+			return Array.Empty<string>();
 		}
 
 		return new HashSet<string>(groupData.Perms.Concat(GetGroupPermissions(groupData.ParentGroup, parents))).ToArray();
@@ -567,7 +599,7 @@ public class Permission : Library
 	}
 	public virtual string[] GetPermissionUsers(string perm)
 	{
-		if (string.IsNullOrEmpty(perm)) return EmptyStringArray;
+		if (string.IsNullOrEmpty(perm)) return Array.Empty<string>();
 
 		if (!perm.IsLower())
 		{
@@ -587,7 +619,7 @@ public class Permission : Library
 	}
 	public virtual string[] GetPermissionGroups(string perm)
 	{
-		if (string.IsNullOrEmpty(perm)) return EmptyStringArray;
+		if (string.IsNullOrEmpty(perm)) return Array.Empty<string>();
 
 		if (!perm.IsLower())
 		{
@@ -620,6 +652,11 @@ public class Permission : Library
 	}
 	public virtual void RemoveUserGroup(string id, string name)
 	{
+		if (!name.IsLower())
+		{
+			name = name.ToLower();
+		}
+
 		if (!GroupExists(name)) return;
 
 		var userData = GetUserData(id);
@@ -641,7 +678,7 @@ public class Permission : Library
 		}
 		else
 		{
-			if (!userData.Groups.Remove(name.ToLower()))
+			if (!userData.Groups.Remove(name))
 			{
 				return;
 			}
@@ -698,7 +735,7 @@ public class Permission : Library
 	{
 		if (!GroupExists(group))
 		{
-			return EmptyStringArray;
+			return Array.Empty<string>();
 		}
 
 		if (!group.IsLower())
@@ -748,6 +785,21 @@ public class Permission : Library
 		}
 
 		return groupData.Rank;
+	}
+	public virtual string GetGroupParent(string group)
+	{
+		if (!GroupExists(group)) return string.Empty;
+
+		if (!group.IsLower())
+		{
+			group = group.ToLower();
+		}
+
+		if (groupdata.TryGetValue(group, out var groupData))
+		{
+			return groupData.ParentGroup;
+		}
+		return string.Empty;
 	}
 
 	public virtual bool GrantUserPermission(string id, string perm, BaseHookable owner)
@@ -1099,22 +1151,6 @@ public class Permission : Library
 		// OnGroupRankSet
 		HookCaller.CallStaticHook(407332709, group, rank);
 		return true;
-	}
-
-	public virtual string GetGroupParent(string group)
-	{
-		if (!GroupExists(group)) return string.Empty;
-
-		if (!group.IsLower())
-		{
-			group = group.ToLower();
-		}
-
-		if (groupdata.TryGetValue(group, out var groupData))
-		{
-			return groupData.ParentGroup;
-		}
-		return string.Empty;
 	}
 	public virtual bool SetGroupParent(string group, string parent)
 	{

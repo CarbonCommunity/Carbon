@@ -31,10 +31,10 @@ public partial class AdminModule
 			{
 				var blur = cui.CreatePanel(container, panel, "0.1 0.1 0.1 0.8", blur: true);
 
-				using var lines = TempArray<string>.New(content.Split('\n'));
+				var lines = content.Split('\n');
 				var temp = Pool.Get<List<string>>();
 
-				var resultContent = lines.array.ToString("\n");
+				var resultContent = lines.ToString("\n");
 
 				for (int i = 0; i < lines.Length; i++) temp.Add($"{i + 1}");
 
@@ -66,7 +66,7 @@ public partial class AdminModule
 				cui.CreatePanel(container, scrollview, "0.2 0.2 0.2 1", xMin: 0, xMax: 0, OxMin: 29, OxMax: 30);
 				cui.CreatePanel(container, blur, "0.2 0.2 0.2 1", xMin: 0, xMax: 0, OxMin: 29, OxMax: 30, yMin: 0.96f);
 
-				var longestLine = lines.array.Max(x => x.Length);
+				var longestLine = lines.Max(x => x.Length);
 				var height = -(11.2f * lines.Length.Clamp(45, int.MaxValue));
 				var width = 2.75f * longestLine.Clamp(547, int.MaxValue);
 
@@ -163,11 +163,13 @@ public partial class AdminModule
 			public string Process(SyntaxTree syntaxTree)
 			{
 				var root = syntaxTree.GetRoot();
-				var builder = new StringBuilder();
+				var builder = Pool.Get<StringBuilder>();
 
 				WriteNode(root, builder);
 
-				return builder.ToString();
+				var result = builder.ToString();
+				Pool.FreeUnmanaged(ref builder);
+				return result;
 			}
 
 			private void WriteNode(SyntaxNode node, StringBuilder builder)

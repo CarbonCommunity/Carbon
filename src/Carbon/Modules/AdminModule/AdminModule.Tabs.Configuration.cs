@@ -216,9 +216,7 @@ public partial class AdminModule
 								Singleton.Save();
 							}
 						},
-						ap => _applyChangesTimeSince > _applyChangesCooldown
-							? OptionButton.Types.Selected
-							: OptionButton.Types.None);
+						ap => _applyChangesTimeSince > _applyChangesCooldown ? OptionButton.Types.Selected : OptionButton.Types.None);
 					tab.AddToggle(0, "Spectating Info Overlay",
 						ap => Singleton.ConfigInstance.SpectatingInfoOverlay =
 							!Singleton.ConfigInstance.SpectatingInfoOverlay,
@@ -227,6 +225,9 @@ public partial class AdminModule
 						ap => Singleton.ConfigInstance.SpectatingEndTeleportBack =
 							!Singleton.ConfigInstance.SpectatingEndTeleportBack,
 						ap => Singleton.ConfigInstance.SpectatingEndTeleportBack);
+					tab.AddToggle(0, "Disable uMod (Plugins tab)",
+						ap => Singleton.DataInstance.DisableUMod = !Singleton.DataInstance.DisableUMod,
+						ap => Singleton.DataInstance.DisableUMod);
 					tab.AddToggle(0, "Hide Plugin Icons (Plugins tab)",
 						ap => Singleton.DataInstance.HidePluginIcons = !Singleton.DataInstance.HidePluginIcons,
 						ap => Singleton.DataInstance.HidePluginIcons);
@@ -269,7 +270,7 @@ public partial class AdminModule
 						(ap, color1, color2, value) =>
 						{
 							Singleton.DataInstance.Colors.SelectedTabColor =
-								CUI.HexToRustColor($"#{color1}", includeAlpha: false);
+								CUI.HexToRustColor("#" + color1);
 							Singleton.Draw(ap.Player);
 						});
 					tab.AddColor(0, "Editable Input Highlight",
@@ -277,7 +278,7 @@ public partial class AdminModule
 						(ap, color1, color2, value) =>
 						{
 							Singleton.DataInstance.Colors.EditableInputHighlight =
-								CUI.HexToRustColor($"#{color1}", includeAlpha: false);
+								CUI.HexToRustColor("#" + color1);
 							Singleton.Draw(ap.Player);
 						});
 					tab.AddColor(0, "Name Text Color", () => Singleton.DataInstance.Colors.NameTextColor,

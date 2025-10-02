@@ -170,6 +170,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	public virtual void Remove(string id)
 	{
 		var existent = !InstanceBuffer.ContainsKey(id) ? null : InstanceBuffer[id];
+		existent?.Clear();
 		existent?.Dispose();
 
 		if (InstanceBuffer.ContainsKey(id)) InstanceBuffer.Remove(id);
@@ -257,7 +258,6 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.FullPath), out var instance2))
 		{
-			Logger.Debug(2, $"[{Name}] File created: {e.FullPath}");
 			instance2?.MarkDirty();
 			return;
 		}
@@ -273,7 +273,6 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 		if (InstanceBuffer.TryGetValue(name, out var mod))
 		{
-			Logger.Debug(2, $"[{Name}] File changed: {path}");
 			mod.MarkDirty();
 		}
 	}
@@ -286,7 +285,6 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 		if (InstanceBuffer.TryGetValue(name, out var mod))
 		{
-			Logger.Debug(2, $"[{Name}] File renamed: {path}");
 			mod.MarkDeleted();
 		}
 		InstanceBuffer.Add(name, null);
@@ -300,7 +298,6 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 		if (InstanceBuffer.TryGetValue(name, out var mod))
 		{
-			Logger.Debug(2, $"[{Name}] File deleted: {path}");
 			mod.MarkDeleted();
 		}
 	}

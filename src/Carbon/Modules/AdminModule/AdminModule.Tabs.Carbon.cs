@@ -184,9 +184,9 @@ public partial class AdminModule
 								}
 								else
 								{
-									using var commands = TempArray<string>.New(action.Command.Split('|'));
+									var commandsSplit = action.Command.Split('|');
 
-									foreach (var command in commands.array)
+									foreach (var command in commandsSplit)
 									{
 										if (action.User)
 										{
@@ -309,18 +309,6 @@ public partial class AdminModule
 							Community.Runtime.SaveConfig();
 						}
 					});
-					tab.AddEnum(1, Singleton.GetPhrase("permmode", ap.Player.UserIDString), (ap, back) =>
-					{
-						var e = Enum.GetNames(typeof(Permission.SerializationMode));
-						Config.Permissions.PermissionSerialization += back ? -1 : 1;
-
-						if (Config.Permissions.PermissionSerialization < (Permission.SerializationMode)(-1))
-							Config.Permissions.PermissionSerialization = (Permission.SerializationMode)(e.Length - 2);
-						else if ((int)Config.Permissions.PermissionSerialization >= e.Length - 1)
-							Config.Permissions.PermissionSerialization = (Permission.SerializationMode)(-1);
-
-						Community.Runtime.SaveConfig();
-					}, ap => Config.Permissions.PermissionSerialization.ToString());
 				}
 #if WIN
 				tab.AddToggle(1, Singleton.GetPhrase("consoleinfo", ap.Player.UserIDString), ap =>

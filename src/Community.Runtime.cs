@@ -83,9 +83,9 @@ public partial class Community
 		if (_protectMap.TryGetValue(name, out var result))
 			return result;
 
-		using var split = TempArray<string>.New(name.Split(' '));
-		var command = split.array[0];
-		var arguments = split.array.Skip(1).ToString(" ");
+		var split = name.Split(' ');
+		var command = split[0];
+		var arguments = split.Skip(1).ToString(" ");
 
 		if (_protectCommands.TryGetValue(command, out string cmdPrefix))
 			return _protectMap[name] = $"{cmdPrefix} {arguments}".TrimEnd();

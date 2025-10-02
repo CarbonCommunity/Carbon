@@ -162,6 +162,7 @@ public partial class FileModule : CarbonModule<EmptyModuleConfig, EmptyModuleDat
 			cui.CreatePanel(container, scroll, Cache.CUI.BlankColor);
 
 			verticalScrollbar.Size = 3f;
+			verticalScrollbar.Invert = true;
 
 			var offset = 0f;
 			const float scale = 25f;

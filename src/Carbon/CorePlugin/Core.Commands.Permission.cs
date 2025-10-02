@@ -671,4 +671,89 @@ public partial class CorePlugin
 				break;
 		}
 	}
+
+	[ConsoleCommand("migrate_perms_sql", "This will migrate all groups and users to a locally stored SQLite database from your Protobuf/Storeless database.")]
+	[AuthLevel(2)]
+	private void MigrateToSql(ConsoleSystem.Arg arg)
+	{
+		if (Community.Runtime.Config.Permissions.PermissionSerialization == Permission.SerializationMode.SQL)
+		{
+			arg.ReplyWith("Permission serialization must be anything but SQL");
+			return;
+		}
+
+		var path = Switches.GetSQLPermissionsDatabase(Path.Combine(ConVar.Server.filesStorageFolder, "carbon.perms.db"));
+		if (File.Exists(path))
+		{
+			File.Move(path, Switches.GetSQLPermissionsDatabase(Path.Combine(ConVar.Server.filesStorageFolder, "carbon.perms.db.old")));
+		}
+		var sql = new PermissionSql();
+		sql.MigrateFromProto(Community.Runtime.Core.permission);
+
+		Community.Runtime.Core.permission.Dispose();
+		foreach (var package in ModLoader.Packages)
+		{
+			foreach (var plugin in package.Plugins)
+			{
+				plugin.permission = sql;
+			}
+		}
+
+		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		{
+			if (module is BaseModule baseModule)
+			{
+				baseModule.SetPermissions(sql);
+			}
+		}
+
+		Interface.Oxide.Permission = sql;
+
+		Community.Runtime.Core.permission = sql;
+		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.SQL;
+		Community.Runtime.SaveConfig();
+
+		Analytics.perms_migration(Community.Runtime.Config.Permissions.PermissionSerialization, sql.groupdata.Count, sql.userdata.Count);
+	}
+
+	[ConsoleCommand("migrate_perms_proto", "This will migrate all groups and users to a locally stored Protobuf database from your SQL database.")]
+	[AuthLevel(2)]
+	private void MigrateToProto(ConsoleSystem.Arg arg)
+	{
+		if (Community.Runtime.Config.Permissions.PermissionSerialization == Permission.SerializationMode.Protobuf || Community.Runtime.Core.permission is not PermissionSql sql)
+		{
+			arg.ReplyWith("Permission serialization must be anything but Protobuf");
+			return;
+		}
+
+		var protobuf = new Permission();
+		sql.MigrateToProto(protobuf);
+		sql.Dispose();
+
+		foreach (var package in ModLoader.Packages)
+		{
+			foreach (var plugin in package.Plugins)
+			{
+				plugin.permission = protobuf;
+			}
+		}
+
+		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		{
+			if (module is BaseModule baseModule)
+			{
+				baseModule.SetPermissions(protobuf);
+			}
+		}
+
+		Interface.Oxide.Permission = protobuf;
+
+		Community.Runtime.Core.permission = protobuf;
+		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.Protobuf;
+		Community.Runtime.SaveConfig();
+
+		Analytics.perms_migration(Community.Runtime.Config.Permissions.PermissionSerialization, protobuf.groupdata.Count, protobuf.userdata.Count);
+
+		protobuf.SaveData();
+	}
 }

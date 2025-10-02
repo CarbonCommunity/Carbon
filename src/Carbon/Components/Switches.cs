@@ -5,6 +5,9 @@ public sealed class Switches
 	[Switch(Name = "-carbon.rootdir", Help = "Overrides the root directory of Carbon, aka the \"carbon\" folder. Upon changing this, you must also apply another command line variable which links to the custom Carbon root, Carbon.Preloader.dll;\n--doorstop-target-assembly \"customrootdir/managed/Carbon.Preloader.dll\"")]
 	public static string GetRootDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.rootdir", defaultValue);
 
+	[Switch(Name = "-carbon.carbonconfigdir", Help = "Overrides the settings root directory where Carbon stores its configuration files")]
+	public static string GetCarbonConfigDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.carbonconfigdir", defaultValue);
+
 	[Switch(Name = "-carbon.scriptdir", Help = "Overrides the scripts directory of Carbon, aka the \"carbon/plugins\" folder.")]
 	public static string GetScriptDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.scriptdir", defaultValue);
 
@@ -32,17 +35,11 @@ public sealed class Switches
 	[Switch(Name = "-carbon.profiledir", Help = "Overrides the mono profiler results directory of Carbon, aka the \"carbon/profiles\" folder.")]
 	public static string GetProfileDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.profiledir", defaultValue);
 
+	[Switch(Name = "-carbon.sqlpermsdb", Help = "Overrides the SQLite Permissions database path, aka the \"server/identity/carbon.perms.db\" file.")]
+	public static string GetSQLPermissionsDatabase(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.sqlpermsdb", defaultValue);
+
 	[Switch(Name = "-harmonydir", Help = "Overrides the directory of Rust's HarmonyMods folder.")]
 	public static string GetHarmonyDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-harmonydir", defaultValue);
-
-	[Switch(Name = "-bridge.ip", Help = "Assigns the ip of the Carbon.Bridge server.")]
-	public static string GetBridgeIp(string defaultValue = null) => CommandLineEx.GetArgumentResult("-bridge.ip", defaultValue);
-
-	[Switch(Name = "-bridge.port", Help = "Assigns the port of the Carbon.Bridge server.")]
-	public static string GetBridgePort(string defaultValue = null) => CommandLineEx.GetArgumentResult("-bridge.port", defaultValue);
-
-	[Switch(Name = "-bridge.password", Help = "Assigns the password of the Carbon.Bridge server.")]
-	public static string GetBridgePassword(string defaultValue = null) => CommandLineEx.GetArgumentResult("-bridge.password", defaultValue);
 }
 
 [AttributeUsage(AttributeTargets.Method)]
