@@ -125,7 +125,6 @@ jobs:
       - name: 🏷️ Register version tag
         shell: bash
         run: |
-          export VERSION=${{ needs.build.outputs.version }}
           git tag "$VERSION-beta" "$GITHUB_SHA"
           git push origin "$VERSION-beta"
 
