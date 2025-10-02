@@ -35,7 +35,7 @@ public class JsonContext
 			CloseOutput = false
 		};
 		jwFormatted = new JsonTextWriter(sw)
-		{   
+		{
 			Formatting = Formatting.Indented,
 			ArrayPool = JsonArrayPool<char>.Shared,
 			CloseOutput = false
@@ -87,7 +87,7 @@ public static class CuiHelper
 		return count;
 	}
 
-	public static string ToJson(List<CuiElement> elements, bool format = false)
+	public static string ToJson(IReadOnlyList<CuiElement> elements, bool format = false)
 	{
 		var ctx = _jsonContext.Value;
 		ctx.sb.Clear();
