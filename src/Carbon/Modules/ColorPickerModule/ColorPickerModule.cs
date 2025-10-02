@@ -280,8 +280,8 @@ public partial class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyMo
 
 		var onColorPicked = ap.GetStorage<Action<string, string, float>>(ap.SelectedTab, OnColorPicked);
 
-		if (!hex.StartsWith("#")) hex = $"#{hex}";
-		var rawColor = HexToRustColor(hex, includeAlpha: false);
+		if (!hex.StartsWith("#")) hex = "#" + hex;
+		var rawColor = HexToRustColor(hex);
 		onColorPicked?.Invoke(hex, rawColor, alpha);
 		Close (args.Player());
 	}

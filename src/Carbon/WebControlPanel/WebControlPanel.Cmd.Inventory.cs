@@ -1,9 +1,9 @@
-﻿namespace Carbon.Documentation;
+﻿namespace Carbon;
 
-public static partial class WebRCon
+public static partial class WebControlPanel
 {
-	[DocsRpc]
-	private static DocsRpcResponse SendPlayerInventory(ConsoleSystem.Arg arg)
+	[WebCall]
+	private static Response CMD_SendPlayerInventory(ConsoleSystem.Arg arg)
 	{
 		var player = BasePlayer.FindAwakeOrSleepingByID(arg.GetULong(1));
 
@@ -14,7 +14,7 @@ public static partial class WebRCon
 
 		var lootedEntity = player.inventory.loot.entitySource as StorageContainer;
 
-		return Response(new
+		return GetResponse(new
 		{
 			ActiveSlot = player.GetActiveItem()?.position ?? -1,
 			Main = player.inventory.containerMain.itemList.Select(x => ParseItem(x)),
@@ -28,8 +28,8 @@ public static partial class WebRCon
 		});
 	}
 
-	[DocsRpc]
-	private static DocsRpcResponse MoveInventoryItem(ConsoleSystem.Arg arg)
+	[WebCall]
+	private static Response CMD_MoveInventoryItem(ConsoleSystem.Arg arg)
 	{
 		var player = BasePlayer.FindAwakeOrSleepingByID(arg.GetULong(1));
 
@@ -56,6 +56,6 @@ public static partial class WebRCon
 				break;
 		}
 
-		return Response(arg);
+		return GetResponse(arg);
 	}
 }

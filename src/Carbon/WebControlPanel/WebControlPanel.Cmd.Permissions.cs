@@ -1,11 +1,11 @@
 ﻿using Facepunch;
 
-namespace Carbon.Documentation;
+namespace Carbon;
 
-public static partial class WebRCon
+public static partial class WebControlPanel
 {
-	[DocsRpc]
-	private static DocsRpcResponse GetPermissionsMetadata(ConsoleSystem.Arg _)
+	[WebCall]
+	private static Response CMD_GetPermissionsMetadata(ConsoleSystem.Arg _)
 	{
 		var permission = Community.Runtime.Core.permission;
 
@@ -59,7 +59,7 @@ public static partial class WebRCon
 			});
 		}
 
-		return Response(new
+		return GetResponse(new
 		{
 			Groups = permission.GetGroups(),
 			Permissions = Community.Runtime.Core.permission.GetPermissions(),
@@ -68,18 +68,18 @@ public static partial class WebRCon
 		});
 	}
 
-	[DocsRpc]
-	private static DocsRpcResponse GetGroupPermissions(ConsoleSystem.Arg arg)
+	[WebCall]
+	private static Response CMD_GetGroupPermissions(ConsoleSystem.Arg arg)
 	{
 		var group = arg.GetString(1);
-		return Response(new
+		return GetResponse(new
 		{
 			Permissions = Community.Runtime.Core.permission.GetGroupPermissions(group, true)
 		});
 	}
 
-	[DocsRpc]
-	private static DocsRpcResponse TogglePermission(ConsoleSystem.Arg arg)
+	[WebCall]
+	private static Response CMD_TogglePermission(ConsoleSystem.Arg arg)
 	{
 		var group = arg.GetString(1);
 		var permission = arg.GetString(2);
@@ -93,13 +93,13 @@ public static partial class WebRCon
 				{
 					Community.Runtime.Core.permission.GrantGroupPermission(group, perm, null);
 				}
-				return Response();
+				return GetResponse();
 			case "revokeall":
 				foreach (var perm in Community.Runtime.Core.permission.GetPermissions(hookable))
 				{
 					Community.Runtime.Core.permission.RevokeGroupPermission(group, perm);
 				}
-				return Response();
+				return GetResponse();
 		}
 
 		if (Community.Runtime.Core.permission.GroupHasPermission(group, permission))
@@ -110,6 +110,6 @@ public static partial class WebRCon
 		{
 			Community.Runtime.Core.permission.GrantGroupPermission(group, permission, null);
 		}
-		return Response();
+		return GetResponse();
 	}
 }

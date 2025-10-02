@@ -79,4 +79,8 @@ public partial class CorePlugin
 				break;
 		}
 	}
+	private void OnPlayerChat(BasePlayer player, string message, ConVar.Chat.ChatChannel channel)
+	{
+		WebControlPanel.OnPlayerChat(player, message, channel);
+	}
 }

@@ -469,12 +469,32 @@ public static partial class ModLoader
 
 			foreach (var consoleCommand in consoleCommands)
 			{
-				Community.Runtime.Core.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true);
+				Community.Runtime.Core.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable,
+					arg =>
+					{
+						argBuffer[0] = arg;
+						var result = method.Invoke(hookable, argBuffer);
+						if (result != null && arg.Option.PrintOutput)
+						{
+							Logger.Log(result);
+						}
+						return true;
+					}, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true);
 			}
 
 			foreach (var protectedCommand in protectedCommands)
 			{
-				Community.Runtime.Core.cmd.AddConsoleCommand(Community.Protect(string.IsNullOrEmpty(prefix) ? protectedCommand.Name : $"{prefix}.{protectedCommand.Name}"), hookable, method, help: protectedCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true, silent: true);
+				Community.Runtime.Core.cmd.AddConsoleCommand(Community.Protect(string.IsNullOrEmpty(prefix) ? protectedCommand.Name : $"{prefix}.{protectedCommand.Name}"), hookable,
+					arg =>
+					{
+						argBuffer[0] = arg;
+						var result = method.Invoke(hookable, argBuffer);
+						if (result != null && arg.Option.PrintOutput)
+						{
+							Logger.Log(result);
+						}
+						return true;
+					}, help: protectedCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true, silent: true);
 			}
 
 			foreach (var rconCommand in rconCommands)
@@ -488,17 +508,17 @@ public static partial class ModLoader
 						argBuffer[0] = arg;
 						var result = method.Invoke(hookable, argBuffer);
 
-						if (result != null)
+						if (result != null && arg.PrintOutput)
 						{
 							Logger.Log(result);
 						}
 					},
 					Help = rconCommand.Help,
 					Token = rconCommand,
-					CanExecute = (cmd, arg) => true
+					CanExecute = (_, _) => true
 				};
 
-				Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason);
+				Community.Runtime.CommandManager.RegisterCommand(cmd, out _);
 			}
 
 			if (ps != null && ps.Length > 0)
@@ -529,43 +549,41 @@ public static partial class ModLoader
 
 			if (var != null)
 			{
-				Community.Runtime.Core.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
+				Community.Runtime.Core.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, args =>
 				{
 					var value = field.GetValue(hookable);
 
-					if (args != null && args.Length > 0)
+					if (args != null && args.HasArgs(1))
 					{
-						var rawString = args.ToString(" ");
-
 						try
 						{
 							if (field.FieldType == typeof(string))
 							{
-								value = rawString;
+								value = args.GetString(0);
 							}
 							else if (field.FieldType == typeof(bool))
 							{
-								value = rawString.ToBool();
+								value = args.GetBool(0);
 							}
 							if (field.FieldType == typeof(int))
 							{
-								value = rawString.ToInt();
+								value = args.GetInt(0);
 							}
 							if (field.FieldType == typeof(uint))
 							{
-								value = rawString.ToUint();
+								value = args.GetUInt(0);
 							}
 							else if (field.FieldType == typeof(float))
 							{
-								value = rawString.ToFloat();
+								value = args.GetFloat(0);
 							}
 							else if (field.FieldType == typeof(long))
 							{
-								value = rawString.ToLong();
+								value = args.GetLong(0);
 							}
 							else if (field.FieldType == typeof(ulong))
 							{
-								value = rawString.ToUlong();
+								value = args.GetULong(0);
 							}
 
 							field.SetValue(hookable, value);
@@ -576,7 +594,8 @@ public static partial class ModLoader
 					value = field.GetValue(hookable);
 					if (value != null && var.Protected) value = new string('*', value.ToString().Length);
 
-					Community.LogCommand($"{command}: \"{value}\"", player);
+					args.ReplyWith($"{args.cmd.FullName}: \"{value}\"");
+					return true;
 				}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: var.Protected, isHidden: hidden, silent: true);
 			}
 		}
@@ -595,43 +614,41 @@ public static partial class ModLoader
 
 			if (var != null)
 			{
-				Community.Runtime.Core.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
+				Community.Runtime.Core.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, args =>
 				{
 					var value = property.GetValue(hookable);
 
-					if (args != null && args.Length > 0)
+					if (args != null && args.HasArgs(1))
 					{
-						var rawString = args.ToString(" ");
-
 						try
 						{
 							if (property.PropertyType == typeof(string))
 							{
-								value = rawString;
+								value = args.GetString(0);
 							}
 							else if (property.PropertyType == typeof(bool))
 							{
-								value = rawString.ToBool();
+								value = args.GetBool(0);
 							}
 							if (property.PropertyType == typeof(int))
 							{
-								value = rawString.ToInt();
+								value = args.GetInt(0);
 							}
 							if (property.PropertyType == typeof(uint))
 							{
-								value = rawString.ToUint();
+								value = args.GetUInt(0);
 							}
 							else if (property.PropertyType == typeof(float))
 							{
-								value = rawString.ToFloat();
+								value = args.GetFloat(0);
 							}
 							else if (property.PropertyType == typeof(long))
 							{
-								value = rawString.ToLong();
+								value = args.GetLong(0);
 							}
 							else if (property.PropertyType == typeof(ulong))
 							{
-								value = rawString.ToUlong();
+								value = args.GetULong(0);
 							}
 
 							property.SetValue(hookable, value);
@@ -642,7 +659,8 @@ public static partial class ModLoader
 					value = property.GetValue(hookable);
 					if (value != null && var.Protected) value = new string('*', value.ToString().Length);
 
-					Community.LogCommand($"{command}: \"{value}\"", player);
+					args.ReplyWith($"{args.cmd.FullName}: \"{value}\"");
+					return true;
 				}, help: var.Help, reference: property, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: var.Protected, isHidden: hidden, silent: true);
 			}
 		}
