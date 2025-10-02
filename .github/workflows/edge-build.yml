@@ -122,6 +122,12 @@ jobs:
             Release/Carbon.Windows.Debug.info
             Release/Carbon.Windows.Minimal.zip
             Release/Carbon.Windows.Minimal.info
+      - name: 🏷️ Register version tag
+        shell: bash
+        run: |
+          export VERSION=${{ needs.build.outputs.version }}-beta
+          git tag "$VERSION" "$GITHUB_SHA"
+          git push origin "$VERSION"
 
   release-on-commit:
     name: Edge Release
@@ -149,13 +155,6 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: Release
-
-      - name: 🏷️ Register version tag
-        shell: bash
-        run: |
-          export VERSION=${{ needs.build.outputs.version }}-beta
-          git tag "$VERSION" "$GITHUB_SHA"
-          git push origin "$VERSION"
 
       - name: 🏷️ Update release tag
         uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
