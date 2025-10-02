@@ -673,7 +673,7 @@ public class LUI : IDisposable
 		public string destroyUi;
 		public float fadeOut;
 		public bool update;
-		public bool activeSelf;
+		public bool activeSelf = true;
 
 		#region Container Methods - Global
 
@@ -2809,6 +2809,7 @@ public static class LuiPool
 		comp.color = null;
 		comp.verticalOverflow = null;
 		comp.fadeIn = 0;
+		comp.placeholderParentId = null;
 		return comp;
 	}
 
@@ -2823,10 +2824,13 @@ public static class LuiPool
 		comp.material = null;
 		comp.color = null;
 		comp.imageType = null;
+		comp.fillCenter = false;
+		comp.slice = null;
 		comp.png = null;
 		comp.itemid = 0;
 		comp.skinid = 0;
 		comp.fadeIn = 0;
+		comp.placeholderParentId = null;
 		return comp;
 	}
 
@@ -2844,6 +2848,7 @@ public static class LuiPool
 		comp.png = null;
 		comp.steamid = null;
 		comp.fadeIn = 0;
+		comp.placeholderParentId = null;
 		return comp;
 	}
 
@@ -2868,6 +2873,7 @@ public static class LuiPool
 		comp.colorMultiplier = -1;
 		comp.fadeDuration = -1;
 		comp.fadeIn = 0;
+		comp.placeholderParentId = null;
 		return comp;
 	}
 
@@ -2900,13 +2906,14 @@ public static class LuiPool
 		comp.command = null;
 		comp.text= null;
 		comp.readOnly = false;
+		comp.placeholderId = null;
 		comp.lineType = null;
 		comp.password = false;
 		comp.needsKeyboard = false;
 		comp.hudMenuInput = false;
 		comp.autofocus = false;
 		comp.fadeIn = 0;
-
+		comp.placeholderParentId = null;
 		return comp;
 	}
 
@@ -2929,6 +2936,7 @@ public static class LuiPool
 		LuiRectTransformComp comp = _rects.Pop() as LuiRectTransformComp;
 		comp.anchor = LuiPosition.Full;
 		comp.offset = LuiOffset.None;
+		comp.rotation = 0;
 		comp.setParent = null;
 		comp.setTransformIndex = -1;
 		return comp;
@@ -3085,6 +3093,7 @@ public static class LuiPool
 		comp.enabled = true;
 		comp.anchor = LuiPosition.Full;
 		comp.offset = LuiOffset.None;
+		comp.pivot = new Vector2(0.5f, 0.5f);
 		comp.horizontal = false;
 		comp.vertical = false;
 		comp.movementType = null;
@@ -3094,6 +3103,8 @@ public static class LuiPool
 		comp.scrollSensitivity = -1;
 		comp.horizontalScrollbar = default;
 		comp.verticalScrollbar = default;
+		comp.horizontalNormalizedPosition = 0;
+		comp.verticalNormalizedPosition = 0;
 		return comp;
 	}
 
@@ -3150,6 +3161,7 @@ public static class LuiPool
 			cont.destroyUi = null;
 			cont.fadeOut = 0;
 			cont.update = false;
+			cont.activeSelf = true;
 			return cont;
 		}
 		else
