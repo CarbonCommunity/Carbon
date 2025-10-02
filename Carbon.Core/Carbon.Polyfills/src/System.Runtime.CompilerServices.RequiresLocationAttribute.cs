@@ -8,12 +8,13 @@
 namespace System.Runtime.CompilerServices
 {
     /// <summary>
-    /// Reserved to be used by the compiler for tracking metadata.
-    /// This class should not be used by developers in source code.
+    /// Reserved for use by a compiler for tracking metadata.
+    /// This attribute should not be used by developers in source code.
     /// </summary>
+    [global::System.AttributeUsage(global::System.AttributeTargets.Parameter, Inherited = false)]
     [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public static class IsExternalInit
+    public sealed class RequiresLocationAttribute : global::System.Attribute
     {
     }
 }
