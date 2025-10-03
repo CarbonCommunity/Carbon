@@ -13,7 +13,7 @@ public class Player : Library
 	{
 		try
 		{
-			return CultureInfo.GetCultureInfo(player.net.connection.info.GetString("global.language", "en"));
+			return CultureInfo.GetCultureInfo(player.net.connection.language ?? "en");
 		}
 		catch (CultureNotFoundException)
 		{
