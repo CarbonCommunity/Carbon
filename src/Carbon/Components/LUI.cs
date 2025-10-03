@@ -30,6 +30,9 @@ public class LUI : IDisposable
 	/// </summary>
 	public string lastName = string.Empty;
 
+	public static readonly Vector2 defaultPivot = new(0.5f, 0.5f);
+	public static readonly Vector2 defaultCellSize = new(100, 100);
+
 	#region Core Panel
 
 	public LuiContainer CreateParent(CUI.ClientPanels parent, LuiPosition position, string name = "") => CreateParent(_parent.GetClientPanel(parent), position, name);
@@ -78,6 +81,16 @@ public class LUI : IDisposable
 		cont.name = name;
 		cont.update = true;
 		cont.SetAnchorAndOffset(pos, off);
+		elements.Add(cont);
+		return cont;
+	}
+
+	public LuiContainer UpdateRotation(string name, float rotation)
+	{
+		LuiContainer cont = LuiPool.GetContainer();
+		cont.name = name;
+		cont.update = true;
+		cont.SetRotation(rotation);
 		elements.Add(cont);
 		return cont;
 	}
@@ -757,7 +770,7 @@ public class LUI : IDisposable
 			}
 			else
 			{
-				Logger.Warn($"[LUI] You're trying to switch fadeIn of component '{typeof(T)}' but it isn't present. Ignoring.");
+				Logger.Warn($"[LUI] You're trying to switch placeholderParentId of component '{typeof(T)}' but it isn't present. Ignoring.");
 			}
 		}
 
@@ -2606,7 +2619,7 @@ public class LuiVerticalLayoutGroupComp : LuiCompBase
 
 public class LuiGridLayoutGroupComp : LuiCompBase
 {
-	public Vector2 cellSize = new Vector2(100, 100);
+	public Vector2 cellSize = LUI.defaultCellSize;
 	public Vector2 spacing;
 	public string startCorner;
 	public string startAxis;
@@ -2692,7 +2705,7 @@ public class LuiScrollComp : LuiCompBase
 {
 	public LuiPosition anchor = LuiPosition.Full;
 	public LuiOffset offset = LuiOffset.None;
-	public Vector2 pivot = new Vector2(0.5f, 0.5f);
+	public Vector2 pivot = LUI.defaultPivot;
 	public bool horizontal;
 	public bool vertical;
 	public string movementType;
@@ -3004,7 +3017,7 @@ public static class LuiPool
 			return new();
 
 		LuiGridLayoutGroupComp comp = _grids.Pop() as LuiGridLayoutGroupComp;
-		comp.cellSize = new Vector2(100, 100);
+		comp.cellSize = LUI.defaultCellSize;
 		comp.spacing = default;
 		comp.startCorner = null;
 		comp.startAxis = null;
@@ -3095,7 +3108,7 @@ public static class LuiPool
 		comp.enabled = true;
 		comp.anchor = LuiPosition.Full;
 		comp.offset = LuiOffset.None;
-		comp.pivot = new Vector2(0.5f, 0.5f);
+		comp.pivot = LUI.defaultPivot;
 		comp.horizontal = false;
 		comp.vertical = false;
 		comp.movementType = null;
@@ -3123,6 +3136,11 @@ public static class LuiPool
 			not null when type == typeof(LuiCursorComp) => LuiCompType.NeedsCursor,
 			not null when type == typeof(LuiRectTransformComp) => LuiCompType.RectTransform,
 			not null when type == typeof(LuiCountdownComp) => LuiCompType.Countdown,
+			not null when type == typeof(LuiHorizontalLayoutGroupComp) => LuiCompType.HorizontalLayoutGroup,
+			not null when type == typeof(LuiVerticalLayoutGroupComp) => LuiCompType.VerticalLayoutGroup,
+			not null when type == typeof(LuiGridLayoutGroupComp) => LuiCompType.GridLayoutGroup,
+			not null when type == typeof(LuiContentSizeFitterComp) => LuiCompType.ContentSizeFitter,
+			not null when type == typeof(LuiLayoutElementComp) => LuiCompType.LayoutElement,
 			not null when type == typeof(LuiDraggableComp) => LuiCompType.Draggable,
 			not null when type == typeof(LuiSlotComp) => LuiCompType.Slot,
 			not null when type == typeof(LuiKeyboardComp) => LuiCompType.NeedsKeyboard,
@@ -3144,6 +3162,11 @@ public static class LuiPool
 			not null when type == typeof(LuiCursorComp) => LuiPool.GetCursor() as T,
 			not null when type == typeof(LuiRectTransformComp) => LuiPool.GetRect() as T,
 			not null when type == typeof(LuiCountdownComp) => LuiPool.GetCountdown() as T,
+			not null when type == typeof(LuiHorizontalLayoutGroupComp) => LuiPool.GetHorizontalLayoutGroup() as T,
+			not null when type == typeof(LuiVerticalLayoutGroupComp) => LuiPool.GetVerticalLayoutGroup() as T,
+			not null when type == typeof(LuiGridLayoutGroupComp) => LuiPool.GetGridLayoutGroup() as T,
+			not null when type == typeof(LuiContentSizeFitterComp) => LuiPool.GetContentSizeFitter() as T,
+			not null when type == typeof(LuiLayoutElementComp) => LuiPool.GetLayoutElement() as T,
 			not null when type == typeof(LuiDraggableComp) => LuiPool.GetDraggable() as T,
 			not null when type == typeof(LuiSlotComp) => LuiPool.GetSlot() as T,
 			not null when type == typeof(LuiKeyboardComp) => LuiPool.GetKeyboard() as T,

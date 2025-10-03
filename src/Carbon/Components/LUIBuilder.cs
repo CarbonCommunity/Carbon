@@ -925,7 +925,7 @@ public struct LuiBuilderInstance : IDisposable
 	                    case LuiCompType.GridLayoutGroup:
 		                    LuiGridLayoutGroupComp gridLayoutGroup = component as LuiGridLayoutGroupComp;
 		                    found++;
-		                    if (gridLayoutGroup.cellSize != new Vector2(100, 100))
+		                    if (gridLayoutGroup.cellSize != LUI.defaultCellSize)
 		                    {
 			                    this.WriteComma();
 			                    this.WriteField("cellSize", gridLayoutGroup.cellSize);
@@ -1105,7 +1105,7 @@ public struct LuiBuilderInstance : IDisposable
 		                    found++;
 		                    bool changeAnchor = scroll.anchor != LuiPosition.Full;
 		                    bool changeOffset = scroll.offset != LuiOffset.None;
-		                    if (changeAnchor || changeOffset)
+		                    if (changeAnchor || changeOffset || scroll.pivot != LUI.defaultPivot)
 		                    {
 			                    this.WriteComma();
 			                    this.WriteStartObject("contentTransform");
@@ -1123,9 +1123,10 @@ public struct LuiBuilderInstance : IDisposable
 				                    this.WriteComma();
 				                    this.WriteField("offsetmax", scroll.offset.offsetMax);
 			                    }
-			                    if (scroll.pivot != new Vector2(0.5f, 0.5f))
+			                    if (scroll.pivot != LUI.defaultPivot)
 			                    {
-				                    this.WriteComma();
+				                    if (changeAnchor || changeOffset)
+										this.WriteComma();
 				                    this.WriteField("pivot", scroll.pivot);
 			                    }
 			                    this.WriteEndObject();
