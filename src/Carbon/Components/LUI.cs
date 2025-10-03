@@ -512,8 +512,6 @@ public class LUI : IDisposable
 
 	#region Quicker Strings
 
-
-
 	public static string GetFont(CUI.Handler.FontTypes type)
 	{
 		return type switch
@@ -522,7 +520,11 @@ public class LUI : IDisposable
 			CUI.Handler.FontTypes.RobotoCondensedRegular => "robotocondensed-regular.ttf",
 			CUI.Handler.FontTypes.PermanentMarker => "permanentmarker.ttf",
 			CUI.Handler.FontTypes.DroidSansMono => "droidsansmono.ttf",
-			CUI.Handler.FontTypes.NotoSansArabicBold => "NotoSansArabic-Bold.ttf",
+			CUI.Handler.FontTypes.NotoSansArabicBold => "_nonenglish/notosanscjksc-bold.otf",
+			CUI.Handler.FontTypes.Poxel => "poxel.otf",
+			CUI.Handler.FontTypes.LCD => "lcd.ttf",
+			CUI.Handler.FontTypes.NoToEmoji => "_nonenglish/notoemoji-regular.ttf",
+			CUI.Handler.FontTypes.PressStart => "pressstart2p-regular.ttf",
 			_ => "robotocondensed-regular.ttf"
 		};
 	}
