@@ -31,12 +31,20 @@ public static partial class WebControlPanel
 	[WebCall.Condition.Permission(PermissionTypes.ChatInput)]
 	private static void RPC_ChatInput(BridgeRead read)
 	{
-		var username = read.String();
+		var username = read.String().EscapeRichText();
 		var message = read.String();
 		var color = read.String();
 		var userId = read.String();
-		ulong.TryParse(userId, out var userIdValue);
-		ConVar.Chat.Broadcast(message, username, color, userIdValue);
+		ConsoleNetwork.BroadcastToAllClients("chat.add", 2, userId, $"<color={color}>{username}</color>: {message}");
+		ConVar.Chat.Record(new ConVar.Chat.ChatEntry()
+		{
+			Channel = ConVar.Chat.ChatChannel.Global,
+			Message = message,
+			UserId = userId,
+			Username = username,
+			Color = color,
+			Time = Epoch.Current
+		});
 	}
 
 	public static void OnPlayerChat(BasePlayer player, string message, ConVar.Chat.ChatChannel channel)
