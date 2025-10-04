@@ -13,11 +13,14 @@ public class Files : Executor
 	public void Create(string target, string content) => File.WriteAllText(target, content);
 
 	[Expose("Copies a file if the file exists")]
-	public void Copy(string target, string destination)
+	public void Copy(string target, string destination, bool optional = false)
 	{
 		if (!File.Exists(target))
 		{
-			Error($"File '{target}' not found!");
+			if (!optional)
+			{
+				Error($"File '{target}' not found!");
+			}
 			return;
 		}
 
@@ -35,11 +38,14 @@ public class Files : Executor
 	public bool Exists(string target) => File.Exists(target);
 
 	[Expose("Deletes a file if the file exists")]
-	public void Delete(string target)
+	public void Delete(string target, bool optional = false)
 	{
 		if (!File.Exists(target))
 		{
-			Log($"File '{target}' not found. Skipping..");
+			if (!optional)
+			{
+				Log($"File '{target}' not found. Skipping..");
+			}
 			return;
 		}
 
@@ -48,11 +54,14 @@ public class Files : Executor
 	}
 
 	[Expose("Deletes all files in a folder that contain a string in their name")]
-	public void DeleteContains(string folder, string contains)
+	public void DeleteContains(string folder, string contains, bool optional = false)
 	{
 		if (!Directory.Exists(folder))
 		{
-			Log($"Folder '{folder}' not found. Skipping..");
+			if (!optional)
+			{
+				Log($"Folder '{folder}' not found. Skipping..");
+			}
 			return;
 		}
 
