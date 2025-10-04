@@ -16,8 +16,6 @@ public static partial class ModLoader
 	internal static List<string> PostBatchFailedRequirees { get; } = new();
 	internal static bool FirstLoadSinceStartup { get; set; } = true;
 
-	private static object[] argBuffer = new object[1];
-
 	internal const string CARBON_PLUGIN = "CarbonPlugin";
 	internal const string RUST_PLUGIN = "RustPlugin";
 	internal const string COVALENCE_PLUGIN = "CovalencePlugin";
@@ -472,11 +470,23 @@ public static partial class ModLoader
 				Community.Runtime.Core.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable,
 					arg =>
 					{
-						argBuffer[0] = arg;
-						var result = method.Invoke(hookable, argBuffer);
-						if (result != null && arg.Option.PrintOutput)
+						var parameters = method.GetParameters();
+						var argBuffer = HookCaller.Caller.AllocateBuffer(parameters.Length);
+						if (argBuffer.Length >= 1)
 						{
-							Logger.Log(result);
+							argBuffer[0] = arg;
+						}
+						try
+						{
+							var result = method.Invoke(hookable, argBuffer);
+							if (result != null && arg.Option.PrintOutput)
+							{
+								Logger.Log(result);
+							}
+						}
+						finally
+						{
+							HookCaller.Caller.ReturnBuffer(argBuffer);
 						}
 						return true;
 					}, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true);
@@ -487,11 +497,23 @@ public static partial class ModLoader
 				Community.Runtime.Core.cmd.AddConsoleCommand(Community.Protect(string.IsNullOrEmpty(prefix) ? protectedCommand.Name : $"{prefix}.{protectedCommand.Name}"), hookable,
 					arg =>
 					{
-						argBuffer[0] = arg;
-						var result = method.Invoke(hookable, argBuffer);
-						if (result != null && arg.Option.PrintOutput)
+						var parameters = method.GetParameters();
+						var argBuffer = HookCaller.Caller.AllocateBuffer(parameters.Length);
+						if (argBuffer.Length >= 1)
 						{
-							Logger.Log(result);
+							argBuffer[0] = arg;
+						}
+						try
+						{
+							var result = method.Invoke(hookable, argBuffer);
+							if (result != null && arg.Option.PrintOutput)
+							{
+								Logger.Log(result);
+							}
+						}
+						finally
+						{
+							HookCaller.Caller.ReturnBuffer(argBuffer);
 						}
 						return true;
 					}, help: protectedCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true, silent: true);
@@ -505,12 +527,23 @@ public static partial class ModLoader
 					Reference = hookable,
 					Callback = arg =>
 					{
-						argBuffer[0] = arg;
-						var result = method.Invoke(hookable, argBuffer);
-
-						if (result != null && arg.PrintOutput)
+						var parameters = method.GetParameters();
+						var argBuffer = HookCaller.Caller.AllocateBuffer(parameters.Length);
+						if (argBuffer.Length >= 1)
 						{
-							Logger.Log(result);
+							argBuffer[0] = arg.Token;
+						}
+						try
+						{
+							var result = method.Invoke(hookable, argBuffer);
+							if (result != null && arg.PrintOutput)
+							{
+								Logger.Log(result);
+							}
+						}
+						finally
+						{
+							HookCaller.Caller.ReturnBuffer(argBuffer);
 						}
 					},
 					Help = rconCommand.Help,
