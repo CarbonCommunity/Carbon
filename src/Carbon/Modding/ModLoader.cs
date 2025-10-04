@@ -531,7 +531,7 @@ public static partial class ModLoader
 						var argBuffer = HookCaller.Caller.AllocateBuffer(parameters.Length);
 						if (argBuffer.Length >= 1)
 						{
-							argBuffer[0] = arg.Token;
+							argBuffer[0] = arg.Token ?? arg;
 						}
 						try
 						{
