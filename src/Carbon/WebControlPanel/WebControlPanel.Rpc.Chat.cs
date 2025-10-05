@@ -72,7 +72,7 @@ public static partial class WebControlPanel
 		write.WriteObject(message);
 		write.WriteObject(player.UserIDString);
 		write.WriteObject(player.displayName);
-		write.WriteObject(ConVar.Chat.GetNameColor(player.userID, player));
+		write.WriteObject(ConVar.Chat.GetNameColor(player.userID));
 		write.WriteObject(Epoch.Current);
 		SendRpcResponse(connections, write);
 	}
