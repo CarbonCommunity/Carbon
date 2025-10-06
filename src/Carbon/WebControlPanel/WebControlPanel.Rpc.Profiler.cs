@@ -63,6 +63,7 @@ public static partial class WebControlPanel
 		write.WriteObject(MonoProfiler.IsRecording);
 		write.WriteObject(MonoProfiler.Enabled);
 		write.WriteObject(MonoProfiler.Crashed);
+		write.WriteObject((float)MonoProfiler.CurrentDurationTime.TotalSeconds);
 		SendRpcResponse(read.Connection, write);
 	}
 
