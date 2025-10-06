@@ -108,7 +108,6 @@ public static partial class WebControlPanel
 			}
 			else
 			{
-				Logger.Log(flags);
 				MonoProfiler.ToggleProfiling(flags, logging: false);
 			}
 		});
