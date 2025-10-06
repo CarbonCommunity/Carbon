@@ -62,6 +62,9 @@ public static partial class WebControlPanel
 				PermissionTypes.EntitiesEdit => account.Permissions.entities_edit,
 				PermissionTypes.PermissionsView => account.Permissions.permissions_view,
 				PermissionTypes.PermissionsEdit => account.Permissions.permissions_edit,
+				PermissionTypes.ProfilerView => account.Permissions.profiler_view,
+				PermissionTypes.ProfilerLoad => account.Permissions.profiler_load,
+				PermissionTypes.ProfilerEdit => account.Permissions.profiler_edit,
 				_ => false
 			};
 		}
@@ -80,6 +83,9 @@ public static partial class WebControlPanel
 		public bool entities_edit = enabled;
 		public bool permissions_view = enabled;
 		public bool permissions_edit = enabled;
+		public bool profiler_view = enabled;
+		public bool profiler_load = enabled;
+		public bool profiler_edit = enabled;
 
 		public void Serialize(BridgeWrite write)
 		{
@@ -94,6 +100,9 @@ public static partial class WebControlPanel
 			write.WriteObject(entities_edit);
 			write.WriteObject(permissions_view);
 			write.WriteObject(permissions_edit);
+			write.WriteObject(profiler_view);
+			write.WriteObject(profiler_load);
+			write.WriteObject(profiler_edit);
 		}
 	}
 
@@ -111,5 +120,8 @@ public static partial class WebControlPanel
 		EntitiesEdit,
 		PermissionsView,
 		PermissionsEdit,
+		ProfilerView,
+		ProfilerLoad,
+		ProfilerEdit
 	}
 }
