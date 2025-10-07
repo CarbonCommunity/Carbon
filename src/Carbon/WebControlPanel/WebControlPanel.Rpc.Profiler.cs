@@ -56,7 +56,7 @@ public static partial class WebControlPanel
 	}
 
 	[WebCall]
-	[WebCall.Condition.Permission(PermissionTypes.ProfilerEdit)]
+	[WebCall.Condition.Permission(PermissionTypes.ProfilerView)]
 	private static void RPC_ProfilesState(BridgeRead read)
 	{
 		var write = StartRpcResponse();
