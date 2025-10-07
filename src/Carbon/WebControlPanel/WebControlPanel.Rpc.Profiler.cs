@@ -79,12 +79,14 @@ public static partial class WebControlPanel
 		var timings = read.Bool();
 		var calls = read.Bool();
 		var gcEvents = read.Bool();
+		var stackWalkAllocsEvents = read.Bool();
 
 		if (callMemory) flags |= MonoProfiler.ProfilerArgs.CallMemory;
 		if (advancedMemory) flags |= MonoProfiler.ProfilerArgs.AdvancedMemory;
 		if (timings) flags |= MonoProfiler.ProfilerArgs.Timings;
 		if (calls) flags |= MonoProfiler.ProfilerArgs.Calls;
 		if (gcEvents) flags |= MonoProfiler.ProfilerArgs.GCEvents;
+		if (stackWalkAllocsEvents) flags |= MonoProfiler.ProfilerArgs.StackWalkAllocations;
 
 		if (flags == MonoProfiler.ProfilerArgs.None) flags = MonoProfiler.AllFlags;
 

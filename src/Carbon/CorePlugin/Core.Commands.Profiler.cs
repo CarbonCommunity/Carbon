@@ -34,6 +34,7 @@ public partial class CorePlugin
 		if (arg.HasArg("-t")) flags |= MonoProfiler.ProfilerArgs.Timings;
 		if (arg.HasArg("-c")) flags |= MonoProfiler.ProfilerArgs.Calls;
 		if (arg.HasArg("-gc")) flags |= MonoProfiler.ProfilerArgs.GCEvents;
+		if (arg.HasArg("-sw")) flags |= MonoProfiler.ProfilerArgs.StackWalkAllocations;
 
 		if (flags == MonoProfiler.ProfilerArgs.None) flags = MonoProfiler.AllFlags;
 
