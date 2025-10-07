@@ -14,10 +14,15 @@ public static partial class WebControlPanel
 		foreach(var file in files)
 		{
 			var info = new FileInfo(file);
+			var isValid = MonoProfiler.ValidateFile(file, out var protocol, out var duration, out var isCompared);
 			write.WriteObject(file);
 			write.WriteObject(Path.GetFileNameWithoutExtension(file));
 			write.WriteObject(info.Length);
 			write.WriteObject(Epoch.FromDateTime(info.LastWriteTimeUtc));
+			write.WriteObject(isValid);
+			write.WriteObject(protocol);
+			write.WriteObject((float)duration);
+			write.WriteObject(isCompared);
 		}
 		SendRpcResponse(read.Connection, write);
 	}
