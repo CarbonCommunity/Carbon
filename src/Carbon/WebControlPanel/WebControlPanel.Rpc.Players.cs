@@ -1,4 +1,6 @@
-﻿namespace Carbon;
+﻿using Facepunch;
+
+namespace Carbon;
 
 public static partial class WebControlPanel
 {
@@ -13,10 +15,20 @@ public static partial class WebControlPanel
 		{
 			new PlayerInfo(BasePlayer.activePlayerList[i]).Serialize(write, !canSeeIps);
 		}
-		write.WriteObject(BasePlayer.sleepingPlayerList.Count);
+		using var sleepers = Pool.Get<PooledList<BasePlayer>>();
 		for (int i = 0; i < BasePlayer.sleepingPlayerList.Count; i++)
 		{
-			new PlayerInfo(BasePlayer.sleepingPlayerList[i]).Serialize(write, !canSeeIps);
+			var sleeper = BasePlayer.sleepingPlayerList[i];
+			if (sleeper.IsConnected)
+			{
+				continue;
+			}
+			sleepers.Add(sleeper);
+		}
+		write.WriteObject(sleepers.Count);
+		for (int i = 0; i < sleepers.Count; i++)
+		{
+			new PlayerInfo(sleepers[i]).Serialize(write, !canSeeIps);
 		}
 		SendRpcResponse(read.Connection, write);
 	}
