@@ -69,12 +69,14 @@ public static partial class WebControlPanel
 	{
 		private bool hasTeam = team != null;
 		private List<ulong> members = team?.members;
+		private ulong leader = team?.teamLeader ?? 0;
 
 		public void Serialize(BridgeWrite write)
 		{
 			write.WriteObject(hasTeam);
 			if (hasTeam)
 			{
+				write.WriteObject(leader);
 				write.WriteObject(members.Count);
 				for (int i = 0; i < members.Count; i++)
 				{
