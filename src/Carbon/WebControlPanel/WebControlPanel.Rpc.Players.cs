@@ -46,6 +46,7 @@ public static partial class WebControlPanel
 		private int currentLevel = 0;
 		private int unspentXp = 0;
 		private float health = player.health;
+		private TeamInfo team = new(player.Team);
 
 		public void Serialize(BridgeWrite write, bool excludeIps)
 		{
@@ -60,6 +61,26 @@ public static partial class WebControlPanel
 			write.WriteObject(currentLevel);
 			write.WriteObject(unspentXp);
 			write.WriteObject(health);
+			team.Serialize(write);
+		}
+	}
+
+	public struct TeamInfo(RelationshipManager.PlayerTeam team)
+	{
+		private bool hasTeam = team != null;
+		private List<ulong> members = team?.members;
+
+		public void Serialize(BridgeWrite write)
+		{
+			write.WriteObject(hasTeam);
+			if (hasTeam)
+			{
+				write.WriteObject(members.Count);
+				for (int i = 0; i < members.Count; i++)
+				{
+					write.WriteObject(members[i]);
+				}
+			}
 		}
 	}
 }
