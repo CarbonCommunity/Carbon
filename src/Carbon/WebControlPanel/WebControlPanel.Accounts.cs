@@ -65,6 +65,8 @@ public static partial class WebControlPanel
 				PermissionTypes.ProfilerView => account.Permissions.profiler_view,
 				PermissionTypes.ProfilerLoad => account.Permissions.profiler_load,
 				PermissionTypes.ProfilerEdit => account.Permissions.profiler_edit,
+				PermissionTypes.PluginsView => account.Permissions.plugins_view,
+				PermissionTypes.PluginsEdit => account.Permissions.plugins_edit,
 				_ => false
 			};
 		}
@@ -86,6 +88,8 @@ public static partial class WebControlPanel
 		public bool profiler_view = enabled;
 		public bool profiler_load = enabled;
 		public bool profiler_edit = enabled;
+		public bool plugins_view = enabled;
+		public bool plugins_edit = enabled;
 
 		public void Serialize(BridgeWrite write)
 		{
@@ -103,6 +107,8 @@ public static partial class WebControlPanel
 			write.WriteObject(profiler_view);
 			write.WriteObject(profiler_load);
 			write.WriteObject(profiler_edit);
+			write.WriteObject(plugins_view);
+			write.WriteObject(plugins_edit);
 		}
 	}
 
@@ -122,6 +128,8 @@ public static partial class WebControlPanel
 		PermissionsEdit,
 		ProfilerView,
 		ProfilerLoad,
-		ProfilerEdit
+		ProfilerEdit,
+		PluginsView,
+		PluginsEdit
 	}
 }
