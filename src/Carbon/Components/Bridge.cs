@@ -12,8 +12,6 @@ namespace Carbon.Components;
 /// </summary>
 public static class Bridge
 {
-	public static BridgeServer Server = new();
-
 	/// <summary>
 	/// Opens the connection to a local or external Bridge server. The other server must have a Bridge.Server initialized. Think of it RCon but not really.
 	/// </summary>
@@ -91,7 +89,7 @@ public class DefaultBridgeMessages : BridgeMessages
 /// <summary>
 /// At its core, it uses Fleck (AKA Facepunch RCon's listener). It's entirely independent to Rust's RCon system, it just uses the core components at base (connection and memory management, etc.).
 /// </summary>
-public sealed class BridgeServer
+public abstract class BridgeServer
 {
 	public Listener Listener;
 	public Action<BridgeConnection> OnNewConnection;
@@ -99,84 +97,140 @@ public sealed class BridgeServer
 	public BridgeMessages Messages;
 	public readonly Dictionary<int, BridgeConnection> Connections = [];
 
-	public void Start(int port, string password, string ip = null, BridgeMessages messages = null)
+	private string _context;
+	private bool _isConnected;
+
+	public void Start(int port, string ip = null, BridgeMessages messages = null, string context = "Generic")
 	{
-		if (password is null or "unset" or "password")
+		Start(port, null, ip, messages, context);
+	}
+	public void Start(int port, string password, string ip = null, BridgeMessages messages = null, string context = "Generic")
+	{
+		_context = context;
+		if (!OnPasswordValidate(password))
 		{
 			return;
 		}
 
-		Messages = messages ?? new DefaultBridgeMessages();
+		SetMessages(messages);
 
-		Listener = new Listener();
+		var listener = Listener = new Listener();
 		if (!string.IsNullOrEmpty(ip))
 		{
-			Listener.Address = ip;
+			listener.Address = ip;
 		}
 
-		Listener.Password = Vault.ApplyReplacement(password) ?? password;
-		Listener.Port = port;
-		Listener.Start();
-		Listener.server._config = socket =>
+		listener.Password = Vault.ApplyReplacement(password) ?? password;
+		listener.Port = port;
+		try
 		{
-			lock (Listener.clients)
+			listener.Start();
+			listener.server._config = socket =>
 			{
-				if (socket.ConnectionInfo.Path != $"/{Listener.Password}")
+				lock (listener.clients)
 				{
-					socket.Close();
-				}
-				else
-				{
-					var connectionId = Interlocked.Increment(ref Listener.nextClientId);
-					var bridgeConnection = Pool.Get<BridgeConnection>().Init(socket, Messages);
-					socket.OnOpen = () =>
+					if (!OnSocketValidate(socket))
 					{
-						Listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
-						Connections[connectionId] = bridgeConnection;
-						OnNewConnection?.Invoke(bridgeConnection);
-					};
-					socket.OnClose = () =>
+						socket.Close();
+					}
+					else
 					{
-						Listener._subscribedRconClients.Remove(connectionId);
-						Listener.clients.Remove(connectionId);
-						if (Connections.TryGetValue(connectionId, out var bridgeConnection))
+						var connectionId = Interlocked.Increment(ref listener.nextClientId);
+						var bridgeConnection = Pool.Get<BridgeConnection>().Init(socket, Messages);
+						socket.OnOpen = () =>
 						{
-							Pool.Free(ref bridgeConnection);
-							Connections.Remove(connectionId);
-						}
+							listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
+							Connections[connectionId] = bridgeConnection;
+							OnNewConnection?.Invoke(bridgeConnection);
+							OnBridgeConnection(bridgeConnection);
+						};
+						socket.OnClose = () =>
+						{
+							listener._subscribedRconClients.Remove(connectionId);
+							listener.clients.Remove(connectionId);
+							if (Connections.TryGetValue(connectionId, out var bridgeConnection))
+							{
+								OnBridgeDisconnection(bridgeConnection);
+								Pool.Free(ref bridgeConnection);
+								Connections.Remove(connectionId);
+							}
 
-						OnClosedConnection?.Invoke(bridgeConnection);
-					};
-					socket.OnBinary += data =>
-					{
-						using var stream = Pool.Get<BufferStream>().Initialize();
-						stream._buffer = BufferStream.RentBuffer(data.Length);
-						stream._length = stream._buffer.Length;
-						stream._isBufferOwned = true;
-						for (var i = 0; i < data.Length; i++)
+							OnClosedConnection?.Invoke(bridgeConnection);
+						};
+						socket.OnBinary += data =>
 						{
-							stream._buffer[i] = data[i];
-						}
-						var read = BridgeRead.Rent(stream, bridgeConnection);
-						Messages.HandleChannelRead(read);
-						BridgeRead.Return(ref read);
-					};
-					socket.OnError = e =>
-					{
-						Logger.Error("Socket failure", e);
-					};
+							using var stream = Pool.Get<BufferStream>().Initialize();
+							stream._buffer = BufferStream.RentBuffer(data.Length);
+							stream._length = stream._buffer.Length;
+							stream._isBufferOwned = true;
+							for (var i = 0; i < data.Length; i++)
+							{
+								stream._buffer[i] = data[i];
+							}
+
+							var read = BridgeRead.Rent(stream, bridgeConnection);
+							Messages.HandleChannelRead(read);
+							BridgeRead.Return(ref read);
+						};
+						socket.OnError = e =>
+						{
+							Logger.Error("Socket failure", e);
+						};
+					}
 				}
-			}
-		};
-		Logger.Log($"Carbon.Bridge Started on {port}");
+			};
+			Logger.Log($"Started Carbon.Bridge on port {port} ({_context})");
+			_isConnected = true;
+		}
+		catch(Exception ex)
+		{
+			Logger.Error($"Failed to start Carbon.Bridge on port {port} ({_context})", ex);
+			Shutdown();
+		}
 	}
-
 	public void Shutdown()
 	{
+		using var connections = Pool.Get<PooledList<BridgeConnection>>();
+		connections.AddRange(Connections.Values);
+		for (int i = 0; i < connections.Count; i++)
+		{
+			connections[i]?.Socket?.Close();
+		}
+		Connections.Clear();
+		if (Listener != null)
+		{
+			Logger.Log($"Stopped Carbon.Bridge on port {Listener.Port} ({_context})");
+		}
 		Listener?.Shutdown();
 		OnNewConnection = null;
 		OnClosedConnection = null;
 		Messages = null;
+		_isConnected = false;
+	}
+
+	public bool IsConnected()
+	{
+		return Listener != null && _isConnected;
+	}
+
+	public virtual bool OnPasswordValidate(string password)
+	{
+		return password is not (null or "unset" or "password");
+	}
+	public virtual bool OnSocketValidate(IWebSocketConnection socket)
+	{
+		return socket.ConnectionInfo.Path == $"/{Listener.Password}";
+	}
+	public abstract void OnBridgeConnection(BridgeConnection connection);
+	public abstract void OnBridgeDisconnection(BridgeConnection connection);
+
+	public void SetMessages(BridgeMessages messages)
+	{
+		Messages = messages ?? new DefaultBridgeMessages();
+		foreach(var connection in Connections.Values)
+		{
+			connection.Messages = Messages;
+		}
 	}
 }
 
@@ -279,6 +333,7 @@ public sealed class BridgeConnection : Pool.IPooled
 {
 	public IWebSocketConnection Socket;
 	public BridgeMessages Messages;
+	public object Reference;
 
 	public BridgeConnection Init(IWebSocketConnection connection, BridgeMessages messages)
 	{
@@ -366,5 +421,25 @@ public sealed class BridgeWrite : NetWrite
 	public void BridgeMessage(BridgeMessages.Channels message)
 	{
 		Int32((int)message);
+	}
+}
+
+public struct BridgeWriter : IDisposable
+{
+	public BridgeWrite write;
+
+	public static BridgeWriter Begin()
+	{
+		BridgeWriter writer = default;
+		writer.write = BridgeWrite.Rent();
+		return writer;
+	}
+
+	public void Dispose()
+	{
+		if (write != null)
+		{
+			BridgeWrite.Return(ref write);
+		}
 	}
 }

@@ -30,6 +30,9 @@ public class LUI : IDisposable
 	/// </summary>
 	public string lastName = string.Empty;
 
+	public static readonly Vector2 defaultPivot = new(0.5f, 0.5f);
+	public static readonly Vector2 defaultCellSize = new(100, 100);
+
 	#region Core Panel
 
 	public LuiContainer CreateParent(CUI.ClientPanels parent, LuiPosition position, string name = "") => CreateParent(_parent.GetClientPanel(parent), position, name);
@@ -78,6 +81,16 @@ public class LUI : IDisposable
 		cont.name = name;
 		cont.update = true;
 		cont.SetAnchorAndOffset(pos, off);
+		elements.Add(cont);
+		return cont;
+	}
+
+	public LuiContainer UpdateRotation(string name, float rotation)
+	{
+		LuiContainer cont = LuiPool.GetContainer();
+		cont.name = name;
+		cont.update = true;
+		cont.SetRotation(rotation);
 		elements.Add(cont);
 		return cont;
 	}
@@ -326,6 +339,71 @@ public class LUI : IDisposable
 		return cont;
 	}
 
+	public LuiContainer CreateHorizontalLayoutGroup(LuiContainer container, LuiPosition position, LuiOffset offset, float spacing = 0, string name = "") => CreateHorizontalLayoutGroup(container.name, position, offset, spacing, name);
+	public LuiContainer CreateHorizontalLayoutGroup(LuiContainer container, LuiOffset offset, float spacing = 0, string name = "") => CreateHorizontalLayoutGroup(container.name, LuiPosition.None, offset, spacing, name);
+	public LuiContainer CreateHorizontalLayoutGroup(string parent, LuiOffset offset, float spacing = 0, string name = "") => CreateHorizontalLayoutGroup(parent, LuiPosition.None, offset, spacing, name);
+
+	public LuiContainer CreateHorizontalLayoutGroup(string parent, LuiPosition position, LuiOffset offset, float spacing = 0, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		cont.SetHorizontalLayoutSpacing(spacing);
+		elements.Add(cont);
+		return cont;
+	}
+
+	public LuiContainer CreateVerticalLayoutGroup(LuiContainer container, LuiPosition position, LuiOffset offset, float spacing = 0, string name = "") => CreateVerticalLayoutGroup(container.name, position, offset, spacing, name);
+	public LuiContainer CreateVerticalLayoutGroup(LuiContainer container, LuiOffset offset, float spacing = 0, string name = "") => CreateVerticalLayoutGroup(container.name, LuiPosition.None, offset, spacing, name);
+	public LuiContainer CreateVerticalLayoutGroup(string parent, LuiOffset offset, float spacing = 0, string name = "") => CreateVerticalLayoutGroup(parent, LuiPosition.None, offset, spacing, name);
+
+	public LuiContainer CreateVerticalLayoutGroup(string parent, LuiPosition position, LuiOffset offset, float spacing = 0, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		cont.SetVerticalLayoutSpacing(spacing);
+		elements.Add(cont);
+		return cont;
+	}
+
+	public LuiContainer CreateGridLayoutGroup(LuiContainer container, LuiPosition position, LuiOffset offset, Vector2 cellSize, string name = "") => CreateGridLayoutGroup(container.name, position, offset, cellSize, name);
+	public LuiContainer CreateGridLayoutGroup(LuiContainer container, LuiOffset offset, Vector2 cellSize, string name = "") => CreateGridLayoutGroup(container.name, LuiPosition.None, offset, cellSize, name);
+	public LuiContainer CreateGridLayoutGroup(string parent, LuiOffset offset, Vector2 cellSize, string name = "") => CreateGridLayoutGroup(parent, LuiPosition.None, offset, cellSize, name);
+
+	public LuiContainer CreateGridLayoutGroup(string parent, LuiPosition position, LuiOffset offset, Vector2 cellSize, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		cont.SetCellSize(cellSize);
+		elements.Add(cont);
+		return cont;
+	}
+
+	public LuiContainer CreateContentFitter(LuiContainer container, LuiPosition position, LuiOffset offset, ContentSizeFitter.FitMode horizontal, ContentSizeFitter.FitMode vertical, string name = "") => CreateContentFitter(container.name, position, offset, horizontal, vertical, name);
+	public LuiContainer CreateContentFitter(LuiContainer container, LuiOffset offset, ContentSizeFitter.FitMode horizontal, ContentSizeFitter.FitMode vertical, string name = "") => CreateContentFitter(container.name, LuiPosition.None, offset, horizontal, vertical, name);
+	public LuiContainer CreateContentFitter(string parent, LuiOffset offset, ContentSizeFitter.FitMode horizontal, ContentSizeFitter.FitMode vertical, string name = "") => CreateContentFitter(parent, LuiPosition.None, offset, horizontal, vertical, name);
+
+	public LuiContainer CreateContentFitter(string parent, LuiPosition position, LuiOffset offset, ContentSizeFitter.FitMode horizontal, ContentSizeFitter.FitMode vertical, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		cont.SetFitMode(horizontal, vertical);
+		elements.Add(cont);
+		return cont;
+	}
+
+	public LuiContainer CreateLayoutElement(LuiContainer container, LuiPosition position, LuiOffset offset, float minWidth, float minHeight, string name = "") => CreateLayoutElement(container.name, position, offset, minWidth, minHeight, name);
+	public LuiContainer CreateLayoutElement(LuiContainer container, LuiOffset offset, float minWidth, float minHeight, string name = "") => CreateLayoutElement(container.name, LuiPosition.None, offset, minWidth, minHeight, name);
+	public LuiContainer CreateLayoutElement(string parent, LuiOffset offset, float minWidth, float minHeight, string name = "") => CreateLayoutElement(parent, LuiPosition.None, offset, minWidth, minHeight, name);
+
+	public LuiContainer CreateLayoutElement(string parent, LuiPosition position, LuiOffset offset, float minWidth, float minHeight, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		cont.SetMinimalSize(minWidth, minHeight);
+		elements.Add(cont);
+		return cont;
+	}
+
 	public LuiContainer CreateDraggable(LuiContainer container, LuiPosition position, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(container.name, position, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
 	public LuiContainer CreateDraggable(LuiContainer container, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(container.name, LuiPosition.None, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
 	public LuiContainer CreateDraggable(string parent, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(parent, LuiPosition.None, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
@@ -447,8 +525,6 @@ public class LUI : IDisposable
 
 	#region Quicker Strings
 
-
-
 	public static string GetFont(CUI.Handler.FontTypes type)
 	{
 		return type switch
@@ -457,7 +533,11 @@ public class LUI : IDisposable
 			CUI.Handler.FontTypes.RobotoCondensedRegular => "robotocondensed-regular.ttf",
 			CUI.Handler.FontTypes.PermanentMarker => "permanentmarker.ttf",
 			CUI.Handler.FontTypes.DroidSansMono => "droidsansmono.ttf",
-			CUI.Handler.FontTypes.NotoSansArabicBold => "NotoSansArabic-Bold.ttf",
+			CUI.Handler.FontTypes.NotoSansArabicBold => "_nonenglish/notosanscjksc-bold.otf",
+			CUI.Handler.FontTypes.Poxel => "poxel.otf",
+			CUI.Handler.FontTypes.LCD => "lcd.ttf",
+			CUI.Handler.FontTypes.NoToEmoji => "_nonenglish/notoemoji-regular.ttf",
+			CUI.Handler.FontTypes.PressStart => "pressstart2p-regular.ttf",
 			_ => "robotocondensed-regular.ttf"
 		};
 	}
@@ -542,6 +622,62 @@ public class LUI : IDisposable
 		};
 	}
 
+	public static string GetCorner(GridLayoutGroup.Corner corner)
+	{
+		return corner switch
+		{
+			GridLayoutGroup.Corner.UpperLeft => nameof(GridLayoutGroup.Corner.UpperLeft),
+			GridLayoutGroup.Corner.UpperRight => nameof(GridLayoutGroup.Corner.UpperRight),
+			GridLayoutGroup.Corner.LowerLeft => nameof(GridLayoutGroup.Corner.LowerLeft),
+			GridLayoutGroup.Corner.LowerRight => nameof(GridLayoutGroup.Corner.LowerRight),
+			_ => nameof(GridLayoutGroup.Corner.UpperLeft)
+		};
+	}
+
+	public static string GetAxis(GridLayoutGroup.Axis axis)
+	{
+		return axis switch
+		{
+			GridLayoutGroup.Axis.Horizontal => nameof(GridLayoutGroup.Axis.Horizontal),
+			GridLayoutGroup.Axis.Vertical => nameof(GridLayoutGroup.Axis.Vertical),
+			_ => nameof(GridLayoutGroup.Axis.Vertical)
+		};
+	}
+
+	public static string GetConstraint(GridLayoutGroup.Constraint constraint)
+	{
+		return constraint switch
+		{
+			GridLayoutGroup.Constraint.Flexible => nameof(GridLayoutGroup.Constraint.Flexible),
+			GridLayoutGroup.Constraint.FixedColumnCount => nameof(GridLayoutGroup.Constraint.FixedColumnCount),
+			GridLayoutGroup.Constraint.FixedRowCount => nameof(GridLayoutGroup.Constraint.FixedRowCount),
+			_ => nameof(GridLayoutGroup.Constraint.FixedRowCount)
+		};
+	}
+
+	public static string GetFitMode(ContentSizeFitter.FitMode mode)
+	{
+		return mode switch
+		{
+			ContentSizeFitter.FitMode.Unconstrained => nameof(ContentSizeFitter.FitMode.Unconstrained),
+			ContentSizeFitter.FitMode.MinSize => nameof(ContentSizeFitter.FitMode.MinSize),
+			ContentSizeFitter.FitMode.PreferredSize => nameof(ContentSizeFitter.FitMode.PreferredSize),
+			_ => nameof(ContentSizeFitter.FitMode.Unconstrained)
+		};
+	}
+
+	public static string GetSendType(CommunityEntity.DraggablePositionSendType type)
+	{
+		return type switch
+		{
+			CommunityEntity.DraggablePositionSendType.NormalizedScreen => nameof(CommunityEntity.DraggablePositionSendType.NormalizedScreen),
+			CommunityEntity.DraggablePositionSendType.NormalizedParent => nameof(CommunityEntity.DraggablePositionSendType.NormalizedParent),
+			CommunityEntity.DraggablePositionSendType.Relative => nameof(CommunityEntity.DraggablePositionSendType.Relative),
+			CommunityEntity.DraggablePositionSendType.RelativeAnchor => nameof(CommunityEntity.DraggablePositionSendType.RelativeAnchor),
+			_ => nameof(CommunityEntity.DraggablePositionSendType.NormalizedScreen)
+		};
+	}
+
 	#endregion
 
 	public class LuiContainer
@@ -552,6 +688,7 @@ public class LUI : IDisposable
 		public string destroyUi;
 		public float fadeOut;
 		public bool update;
+		public bool activeSelf = true;
 
 		#region Container Methods - Global
 
@@ -570,6 +707,12 @@ public class LUI : IDisposable
 		public LuiContainer SetName(string newName)
 		{
 			name = newName;
+			return this;
+		}
+
+		public LuiContainer SetActiveSelf(bool active)
+		{
+			activeSelf = active;
 			return this;
 		}
 
@@ -616,6 +759,18 @@ public class LUI : IDisposable
 			else
 			{
 				Logger.Warn($"[LUI] You're trying to switch fadeIn of component '{typeof(T)}' but it isn't present. Ignoring.");
+			}
+		}
+
+		public void SetPlaceholderParentId<T>(string placeholderParentId) where T : LuiCompBase
+		{
+			if (luiComponents.TryGetValue<T>(LuiPool.GetLuiCompType(typeof(T)), out var component))
+			{
+				component.placeholderParentId = placeholderParentId;
+			}
+			else
+			{
+				Logger.Warn($"[LUI] You're trying to switch placeholderParentId of component '{typeof(T)}' but it isn't present. Ignoring.");
 			}
 		}
 
@@ -802,6 +957,36 @@ public class LUI : IDisposable
 					img.png = png;
 				if (color != null)
 					img.color = color;
+				luiComponents.Add(img.type, img);
+			}
+			return this;
+		}
+
+		public LuiContainer SetFillCenter(bool fill)
+		{
+			if (luiComponents.TryGetValue<LuiImageComp>(LuiCompType.Image, out var img))
+			{
+				img.fillCenter = fill;
+			}
+			else
+			{
+				img = LuiPool.GetImage();
+				img.fillCenter = fill;
+				luiComponents.Add(img.type, img);
+			}
+			return this;
+		}
+
+		public LuiContainer SetImageSlice(string sliceValue)
+		{
+			if (luiComponents.TryGetValue<LuiImageComp>(LuiCompType.Image, out var img))
+			{
+				img.slice = sliceValue;
+			}
+			else
+			{
+				img = LuiPool.GetImage();
+				img.slice = sliceValue;
 				luiComponents.Add(img.type, img);
 			}
 			return this;
@@ -1191,6 +1376,21 @@ public class LUI : IDisposable
 			return this;
 		}
 
+		public LuiContainer SetInputPlaceholder(string placeholderId)
+		{
+			if (luiComponents.TryGetValue<LuiInputComp>(LuiCompType.InputField, out var input))
+			{
+				input.placeholderId = placeholderId;
+			}
+			else
+			{
+				input = LuiPool.GetInput();
+				input.placeholderId = placeholderId;
+				luiComponents.Add(input.type, input);
+			}
+			return this;
+		}
+
 		#endregion
 
 		#region Container Methods - LuiCursorComp
@@ -1234,6 +1434,21 @@ public class LUI : IDisposable
 			{
 				rect = LuiPool.GetRect();
 				rect.offset = off;
+				luiComponents.Add(rect.type, rect);
+			}
+			return this;
+		}
+
+		public LuiContainer SetRotation(float rotation)
+		{
+			if (luiComponents.TryGetValue<LuiRectTransformComp>(LuiCompType.RectTransform, out var rect))
+			{
+				rect.rotation = rotation;
+			}
+			else
+			{
+				rect = LuiPool.GetRect();
+				rect.rotation = rotation;
 				luiComponents.Add(rect.type, rect);
 			}
 			return this;
@@ -1355,6 +1570,434 @@ public class LUI : IDisposable
 
 		#endregion
 
+		#region Container Methods - LuiHorizontalLayoutGroupComp
+
+		public LuiContainer SetHorizontalLayoutSpacing(float spacing)
+		{
+			if (luiComponents.TryGetValue<LuiHorizontalLayoutGroupComp>(LuiCompType.HorizontalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.spacing = spacing;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetHorizontalLayoutGroup();
+				layoutGroup.spacing = spacing;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetHorizontalLayoutAlignment(TextAnchor anchor)
+		{
+			if (luiComponents.TryGetValue<LuiHorizontalLayoutGroupComp>(LuiCompType.HorizontalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.childAlignment = GetAlign(anchor);
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetHorizontalLayoutGroup();
+				layoutGroup.childAlignment = GetAlign(anchor);
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetHorizontalLayoutForceExpand(bool width, bool height)
+		{
+			if (luiComponents.TryGetValue<LuiHorizontalLayoutGroupComp>(LuiCompType.HorizontalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.childForceExpandWidth = width;
+				layoutGroup.childForceExpandHeight = height;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetHorizontalLayoutGroup();
+				layoutGroup.childForceExpandWidth = width;
+				layoutGroup.childForceExpandHeight = height;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetHorizontalLayoutControl(bool width, bool height)
+		{
+			if (luiComponents.TryGetValue<LuiHorizontalLayoutGroupComp>(LuiCompType.HorizontalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.childControlWidth = width;
+				layoutGroup.childControlHeight = height;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetHorizontalLayoutGroup();
+				layoutGroup.childControlWidth = width;
+				layoutGroup.childControlHeight = height;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetHorizontalLayoutScale(bool width, bool height)
+		{
+			if (luiComponents.TryGetValue<LuiHorizontalLayoutGroupComp>(LuiCompType.HorizontalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.childScaleWidth = width;
+				layoutGroup.childScaleHeight = height;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetHorizontalLayoutGroup();
+				layoutGroup.childScaleWidth = width;
+				layoutGroup.childScaleHeight = height;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetHorizontalLayoutPadding(string padding)
+		{
+			if (luiComponents.TryGetValue<LuiHorizontalLayoutGroupComp>(LuiCompType.HorizontalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.padding = padding;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetHorizontalLayoutGroup();
+				layoutGroup.padding = padding;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		#endregion
+
+
+		#region Container Methods - LuiVerticalLayoutGroupComp
+
+		public LuiContainer SetVerticalLayoutSpacing(float spacing)
+		{
+			if (luiComponents.TryGetValue<LuiVerticalLayoutGroupComp>(LuiCompType.VerticalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.spacing = spacing;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetVerticalLayoutGroup();
+				layoutGroup.spacing = spacing;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetVerticalLayoutAlignment(TextAnchor anchor)
+		{
+			if (luiComponents.TryGetValue<LuiVerticalLayoutGroupComp>(LuiCompType.VerticalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.childAlignment = GetAlign(anchor);
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetVerticalLayoutGroup();
+				layoutGroup.childAlignment = GetAlign(anchor);
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetVerticalLayoutForceExpand(bool width, bool height)
+		{
+			if (luiComponents.TryGetValue<LuiVerticalLayoutGroupComp>(LuiCompType.VerticalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.childForceExpandWidth = width;
+				layoutGroup.childForceExpandHeight = height;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetVerticalLayoutGroup();
+				layoutGroup.childForceExpandWidth = width;
+				layoutGroup.childForceExpandHeight = height;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetVerticalLayoutControl(bool width, bool height)
+		{
+			if (luiComponents.TryGetValue<LuiVerticalLayoutGroupComp>(LuiCompType.VerticalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.childControlWidth = width;
+				layoutGroup.childControlHeight = height;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetVerticalLayoutGroup();
+				layoutGroup.childControlWidth = width;
+				layoutGroup.childControlHeight = height;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetVerticalLayoutScale(bool width, bool height)
+		{
+			if (luiComponents.TryGetValue<LuiVerticalLayoutGroupComp>(LuiCompType.VerticalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.childScaleWidth = width;
+				layoutGroup.childScaleHeight = height;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetVerticalLayoutGroup();
+				layoutGroup.childScaleWidth = width;
+				layoutGroup.childScaleHeight = height;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetVerticalLayoutPadding(string padding)
+		{
+			if (luiComponents.TryGetValue<LuiVerticalLayoutGroupComp>(LuiCompType.VerticalLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.padding = padding;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetVerticalLayoutGroup();
+				layoutGroup.padding = padding;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		#endregion
+
+		#region Container Methods - LuiGridLayoutGroupComp
+
+		public LuiContainer SetCellSize(Vector2 size)
+		{
+			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.cellSize = size;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetGridLayoutGroup();
+				layoutGroup.cellSize = size;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetCellSpacing(Vector2 spacing)
+		{
+			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.spacing = spacing;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetGridLayoutGroup();
+				layoutGroup.spacing = spacing;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetStartCorner(GridLayoutGroup.Corner corner)
+		{
+			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.startCorner = GetCorner(corner);
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetGridLayoutGroup();
+				layoutGroup.startCorner = GetCorner(corner);
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetStartAxis(GridLayoutGroup.Axis axis)
+		{
+			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.startAxis = GetAxis(axis);
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetGridLayoutGroup();
+				layoutGroup.startAxis = GetAxis(axis);
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetChildAlign(TextAnchor align)
+		{
+			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.childAlignment = GetAlign(align);
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetGridLayoutGroup();
+				layoutGroup.childAlignment = GetAlign(align);
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetContraint(GridLayoutGroup.Constraint constraint)
+		{
+			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.constraint = GetConstraint(constraint);
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetGridLayoutGroup();
+				layoutGroup.constraint = GetConstraint(constraint);
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetContraintCount(int count)
+		{
+			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.constraintCount = count;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetGridLayoutGroup();
+				layoutGroup.constraintCount = count;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		public LuiContainer SetGridLayoutPadding(string padding)
+		{
+			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
+			{
+				layoutGroup.padding = padding;
+			}
+			else
+			{
+				layoutGroup = LuiPool.GetGridLayoutGroup();
+				layoutGroup.padding = padding;
+				luiComponents.Add(layoutGroup.type, layoutGroup);
+			}
+			return this;
+		}
+
+		#endregion
+
+		#region Container Methods - LuiContentSizeFitterComp
+
+		public LuiContainer SetFitMode(ContentSizeFitter.FitMode horizontalFit, ContentSizeFitter.FitMode verticalFit)
+		{
+			if (luiComponents.TryGetValue<LuiContentSizeFitterComp>(LuiCompType.ContentSizeFitter, out var fitterComp))
+			{
+				fitterComp.horizontalFit = GetFitMode(horizontalFit);
+				fitterComp.verticalFit = GetFitMode(verticalFit);
+			}
+			else
+			{
+				fitterComp = LuiPool.GetContentSizeFitter();
+				fitterComp.horizontalFit = GetFitMode(horizontalFit);
+				fitterComp.verticalFit = GetFitMode(verticalFit);
+				luiComponents.Add(fitterComp.type, fitterComp);
+			}
+			return this;
+		}
+
+		#endregion
+
+		#region Container Methods - LuiLayoutElementComp
+
+		public LuiContainer SetPrefferedSize(float width = -1f, float height = -1f)
+		{
+			if (luiComponents.TryGetValue<LuiLayoutElementComp>(LuiCompType.LayoutElement, out var layoutComp))
+			{
+				if (width != -1f)
+					layoutComp.preferredWidth = width;
+				if (height != -1f)
+					layoutComp.preferredHeight = height;
+			}
+			else
+			{
+				layoutComp = LuiPool.GetLayoutElement();
+				if (width != -1f)
+					layoutComp.preferredWidth = width;
+				if (height != -1f)
+					layoutComp.preferredHeight = height;
+				luiComponents.Add(layoutComp.type, layoutComp);
+			}
+			return this;
+		}
+
+		public LuiContainer SetMinimalSize(float width = -1f, float height = -1f)
+		{
+			if (luiComponents.TryGetValue<LuiLayoutElementComp>(LuiCompType.LayoutElement, out var layoutComp))
+			{
+				if (width != -1f)
+					layoutComp.minWidth = width;
+				if (height != -1f)
+					layoutComp.minHeight = height;
+			}
+			else
+			{
+				layoutComp = LuiPool.GetLayoutElement();
+				if (width != -1f)
+					layoutComp.minWidth = width;
+				if (height != -1f)
+					layoutComp.minHeight = height;
+				luiComponents.Add(layoutComp.type, layoutComp);
+			}
+			return this;
+		}
+
+		public LuiContainer SetFlexible(float width = -1f, float height = -1f)
+		{
+			if (luiComponents.TryGetValue<LuiLayoutElementComp>(LuiCompType.LayoutElement, out var layoutComp))
+			{
+				if (width != -1f)
+					layoutComp.flexibleWidth = width;
+				if (height != -1f)
+					layoutComp.flexibleHeight = height;
+			}
+			else
+			{
+				layoutComp = LuiPool.GetLayoutElement();
+				if (width != -1f)
+					layoutComp.flexibleWidth = width;
+				if (height != -1f)
+					layoutComp.flexibleHeight = height;
+				luiComponents.Add(layoutComp.type, layoutComp);
+			}
+			return this;
+		}
+
+		public LuiContainer SetIgnoreLayout(bool ignore)
+		{
+			if (luiComponents.TryGetValue<LuiLayoutElementComp>(LuiCompType.LayoutElement, out var layoutComp))
+			{
+				layoutComp.ignoreLayout = ignore;
+			}
+			else
+			{
+				layoutComp = LuiPool.GetLayoutElement();
+				layoutComp.ignoreLayout = ignore;
+				luiComponents.Add(layoutComp.type, layoutComp);
+			}
+			return this;
+		}
+
+		#endregion
+
 		#region Container Methods - LuiDraggableComp
 
 		public LuiContainer SetDraggable(string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false)
@@ -1385,6 +2028,82 @@ public class LUI : IDisposable
 			}
 			return this;
 		}
+
+		public LuiContainer SetDragAlpha(float alpha)
+		{
+			if (luiComponents.TryGetValue<LuiDraggableComp>(LuiCompType.Draggable, out var drag))
+			{
+				drag.dragAlpha = alpha;
+			}
+			else
+			{
+				drag = LuiPool.GetDraggable();
+				drag.dragAlpha = alpha;
+				luiComponents.Add(drag.type, drag);
+			}
+			return this;
+		}
+
+		public LuiContainer SetParentLimitIndex(int index)
+		{
+			if (luiComponents.TryGetValue<LuiDraggableComp>(LuiCompType.Draggable, out var drag))
+			{
+				drag.parentLimitIndex = index;
+			}
+			else
+			{
+				drag = LuiPool.GetDraggable();
+				drag.parentLimitIndex = index;
+				luiComponents.Add(drag.type, drag);
+			}
+			return this;
+		}
+
+		public LuiContainer SetDraggableParentPadding(Vector2 padding)
+		{
+			if (luiComponents.TryGetValue<LuiDraggableComp>(LuiCompType.Draggable, out var drag))
+			{
+				drag.parentPadding = padding;
+			}
+			else
+			{
+				drag = LuiPool.GetDraggable();
+				drag.parentPadding = padding;
+				luiComponents.Add(drag.type, drag);
+			}
+			return this;
+		}
+
+		public LuiContainer SetDraggableAnchorOffset(Vector2 offset)
+		{
+			if (luiComponents.TryGetValue<LuiDraggableComp>(LuiCompType.Draggable, out var drag))
+			{
+				drag.anchorOffset = offset;
+			}
+			else
+			{
+				drag = LuiPool.GetDraggable();
+				drag.anchorOffset = offset;
+				luiComponents.Add(drag.type, drag);
+			}
+			return this;
+		}
+
+		public LuiContainer SetDraggableRPC(CommunityEntity.DraggablePositionSendType posSendType)
+		{
+			if (luiComponents.TryGetValue<LuiDraggableComp>(LuiCompType.Draggable, out var drag))
+			{
+				drag.positionRPC = GetSendType(posSendType);
+			}
+			else
+			{
+				drag = LuiPool.GetDraggable();
+				drag.positionRPC = GetSendType(posSendType);
+				luiComponents.Add(drag.type, drag);
+			}
+			return this;
+		}
+
 		#endregion
 
 		#region Container Methods - LuiSlotComp
@@ -1479,6 +2198,42 @@ public class LUI : IDisposable
 				scroll = LuiPool.GetScroll();
 				scroll.anchor = pos;
 				scroll.offset = offset;
+				luiComponents.Add(scroll.type, scroll);
+			}
+			return this;
+		}
+
+		public LuiContainer SetScrollPivot(Vector2 pivot)
+		{
+			if (luiComponents.TryGetValue<LuiScrollComp>(LuiCompType.ScrollView, out var scroll))
+			{
+				scroll.pivot = pivot;
+			}
+			else
+			{
+				scroll = LuiPool.GetScroll();
+				scroll.pivot = pivot;
+				luiComponents.Add(scroll.type, scroll);
+			}
+			return this;
+		}
+
+		public LuiContainer SetScrollbarPosition(float horizontal = 0, float vertical = 0)
+		{
+			if (luiComponents.TryGetValue<LuiScrollComp>(LuiCompType.ScrollView, out var scroll))
+			{
+				if (horizontal != 0)
+					scroll.horizontalNormalizedPosition = horizontal;
+				if (vertical != 0)
+					scroll.verticalNormalizedPosition = vertical;
+			}
+			else
+			{
+				scroll = LuiPool.GetScroll();
+				if (horizontal != 0)
+					scroll.horizontalNormalizedPosition = horizontal;
+				if (vertical != 0)
+					scroll.verticalNormalizedPosition = vertical;
 				luiComponents.Add(scroll.type, scroll);
 			}
 			return this;
@@ -1654,19 +2409,24 @@ public readonly struct LuiPosition
 
 public enum LuiCompType
 {
-	Text = 0,
-	Image = 1,
-	RawImage = 2,
-	Button = 3,
-	Outline = 4,
-	InputField = 5,
-	NeedsCursor = 6,
-	RectTransform = 7,
-	Countdown = 8,
-	Draggable = 9,
-	Slot = 10,
-	NeedsKeyboard = 11,
-	ScrollView = 12,
+	Text,
+	Image,
+	RawImage,
+	Button,
+	Outline,
+	InputField,
+	NeedsCursor,
+	RectTransform,
+	Countdown,
+	HorizontalLayoutGroup,
+	VerticalLayoutGroup,
+	GridLayoutGroup,
+	ContentSizeFitter,
+	LayoutElement,
+	Draggable,
+	Slot,
+	NeedsKeyboard,
+	ScrollView,
 }
 
 public class LuiCompBase
@@ -1674,6 +2434,7 @@ public class LuiCompBase
 	public LuiCompType type;
 	public bool enabled = true;
 	public float fadeIn; //Present in like 80% of elements but to reduce method list, adding it here.
+	public string placeholderParentId; //Present in like 80% of elements but to reduce method list, adding it here.
 }
 
 public class LuiTextComp : LuiCompBase
@@ -1697,7 +2458,9 @@ public class LuiImageComp : LuiCompBase
 	public string material;
 	public string color;
 	public string imageType;
+	public bool fillCenter;
 	public string png;
+	public string slice;
 	public int itemid;
 	public ulong skinid;
 
@@ -1764,9 +2527,10 @@ public class LuiInputComp : LuiCompBase
 	public string color;
 	public int characterLimit;
 	public string command;
+	public string lineType;
 	public string text;
 	public bool readOnly;
-	public string lineType;
+	public string placeholderId;
 	public bool password;
 	public bool needsKeyboard;
 	public bool hudMenuInput;
@@ -1790,6 +2554,7 @@ public class LuiRectTransformComp : LuiCompBase
 {
 	public LuiPosition anchor = LuiPosition.Full;
 	public LuiOffset offset = LuiOffset.None;
+	public float rotation;
 	public string setParent;
 	public int setTransformIndex = -1;
 
@@ -1813,6 +2578,86 @@ public class LuiCountdownComp : LuiCompBase
 	public LuiCountdownComp()
 	{
 		type = LuiCompType.Countdown;
+	}
+}
+
+public class LuiHorizontalLayoutGroupComp : LuiCompBase
+{
+	public float spacing;
+	public string childAlignment;
+	public bool childForceExpandWidth = true;
+	public bool childForceExpandHeight = true;
+	public bool childControlWidth;
+	public bool childControlHeight;
+	public bool childScaleWidth;
+	public bool childScaleHeight;
+	public string padding;
+
+	public LuiHorizontalLayoutGroupComp()
+	{
+		type = LuiCompType.HorizontalLayoutGroup;
+	}
+}
+
+public class LuiVerticalLayoutGroupComp : LuiCompBase
+{
+	public float spacing;
+	public string childAlignment;
+	public bool childForceExpandWidth = true;
+	public bool childForceExpandHeight = true;
+	public bool childControlWidth;
+	public bool childControlHeight;
+	public bool childScaleWidth;
+	public bool childScaleHeight;
+	public string padding;
+
+	public LuiVerticalLayoutGroupComp()
+	{
+		type = LuiCompType.VerticalLayoutGroup;
+	}
+}
+
+public class LuiGridLayoutGroupComp : LuiCompBase
+{
+	public Vector2 cellSize = LUI.defaultCellSize;
+	public Vector2 spacing;
+	public string startCorner;
+	public string startAxis;
+	public string childAlignment;
+	public string constraint;
+	public int constraintCount;
+	public string padding;
+
+	public LuiGridLayoutGroupComp()
+	{
+		type = LuiCompType.GridLayoutGroup;
+	}
+}
+
+public class LuiContentSizeFitterComp : LuiCompBase
+{
+	public string horizontalFit;
+	public string verticalFit;
+
+	public LuiContentSizeFitterComp()
+	{
+		type = LuiCompType.ContentSizeFitter;
+	}
+}
+
+public class LuiLayoutElementComp : LuiCompBase
+{
+	public float preferredWidth = -1f;
+	public float preferredHeight = -1f;
+	public float minWidth;
+	public float minHeight;
+	public float flexibleWidth;
+	public float flexibleHeight;
+	public bool ignoreLayout;
+
+	public LuiLayoutElementComp()
+	{
+		type = LuiCompType.LayoutElement;
 	}
 }
 
@@ -1860,6 +2705,7 @@ public class LuiScrollComp : LuiCompBase
 {
 	public LuiPosition anchor = LuiPosition.Full;
 	public LuiOffset offset = LuiOffset.None;
+	public Vector2 pivot = LUI.defaultPivot;
 	public bool horizontal;
 	public bool vertical;
 	public string movementType;
@@ -1869,6 +2715,8 @@ public class LuiScrollComp : LuiCompBase
 	public float scrollSensitivity = -1;
 	public LuiScrollbar horizontalScrollbar;
 	public LuiScrollbar verticalScrollbar;
+	public float horizontalNormalizedPosition;
+	public float verticalNormalizedPosition;
 
 
 	public LuiScrollComp()
@@ -1928,6 +2776,11 @@ public static class LuiPool
 	private static readonly Stack<LuiCompBase> _cursors  = new();
 	private static readonly Stack<LuiCompBase> _rects = new();
 	private static readonly Stack<LuiCompBase> _countdowns = new();
+	private static readonly Stack<LuiCompBase> _horizontals = new();
+	private static readonly Stack<LuiCompBase> _verticals = new();
+	private static readonly Stack<LuiCompBase> _grids = new();
+	private static readonly Stack<LuiCompBase> _fitters = new();
+	private static readonly Stack<LuiCompBase> _layouts = new();
 	private static readonly Stack<LuiCompBase> _draggables = new();
 	private static readonly Stack<LuiCompBase> _slots = new();
 	private static readonly Stack<LuiCompBase> _keyboards = new();
@@ -1971,6 +2824,7 @@ public static class LuiPool
 		comp.color = null;
 		comp.verticalOverflow = null;
 		comp.fadeIn = 0;
+		comp.placeholderParentId = null;
 		return comp;
 	}
 
@@ -1985,10 +2839,13 @@ public static class LuiPool
 		comp.material = null;
 		comp.color = null;
 		comp.imageType = null;
+		comp.fillCenter = false;
+		comp.slice = null;
 		comp.png = null;
 		comp.itemid = 0;
 		comp.skinid = 0;
 		comp.fadeIn = 0;
+		comp.placeholderParentId = null;
 		return comp;
 	}
 
@@ -2006,6 +2863,7 @@ public static class LuiPool
 		comp.png = null;
 		comp.steamid = null;
 		comp.fadeIn = 0;
+		comp.placeholderParentId = null;
 		return comp;
 	}
 
@@ -2030,6 +2888,7 @@ public static class LuiPool
 		comp.colorMultiplier = -1;
 		comp.fadeDuration = -1;
 		comp.fadeIn = 0;
+		comp.placeholderParentId = null;
 		return comp;
 	}
 
@@ -2062,13 +2921,14 @@ public static class LuiPool
 		comp.command = null;
 		comp.text= null;
 		comp.readOnly = false;
+		comp.placeholderId = null;
 		comp.lineType = null;
 		comp.password = false;
 		comp.needsKeyboard = false;
 		comp.hudMenuInput = false;
 		comp.autofocus = false;
 		comp.fadeIn = 0;
-
+		comp.placeholderParentId = null;
 		return comp;
 	}
 
@@ -2091,6 +2951,7 @@ public static class LuiPool
 		LuiRectTransformComp comp = _rects.Pop() as LuiRectTransformComp;
 		comp.anchor = LuiPosition.Full;
 		comp.offset = LuiOffset.None;
+		comp.rotation = 0;
 		comp.setParent = null;
 		comp.setTransformIndex = -1;
 		return comp;
@@ -2111,6 +2972,86 @@ public static class LuiPool
 		comp.numberFormat = null;
 		comp.destroyIfDone = true;
 		comp.command = null;
+		return comp;
+	}
+
+	public static LuiHorizontalLayoutGroupComp GetHorizontalLayoutGroup()
+	{
+		if (_horizontals.Count == 0)
+			return new();
+
+		LuiHorizontalLayoutGroupComp comp = _horizontals.Pop() as LuiHorizontalLayoutGroupComp;
+		comp.spacing = 0;
+		comp.childAlignment = null;
+		comp.childForceExpandWidth = true;
+		comp.childForceExpandWidth = true;
+		comp.childControlWidth = false;
+		comp.childControlHeight = false;
+		comp.childScaleWidth = false;
+		comp.childScaleHeight = false;
+		comp.padding = null;
+		return comp;
+	}
+
+	public static LuiVerticalLayoutGroupComp GetVerticalLayoutGroup()
+	{
+		if (_verticals.Count == 0)
+			return new();
+
+		LuiVerticalLayoutGroupComp comp = _verticals.Pop() as LuiVerticalLayoutGroupComp;
+		comp.spacing = 0;
+		comp.childAlignment = null;
+		comp.childForceExpandWidth = true;
+		comp.childForceExpandWidth = true;
+		comp.childControlWidth = false;
+		comp.childControlHeight = false;
+		comp.childScaleWidth = false;
+		comp.childScaleHeight = false;
+		comp.padding = null;
+		return comp;
+	}
+
+	public static LuiGridLayoutGroupComp GetGridLayoutGroup()
+	{
+		if (_grids.Count == 0)
+			return new();
+
+		LuiGridLayoutGroupComp comp = _grids.Pop() as LuiGridLayoutGroupComp;
+		comp.cellSize = LUI.defaultCellSize;
+		comp.spacing = default;
+		comp.startCorner = null;
+		comp.startAxis = null;
+		comp.childAlignment = null;
+		comp.constraint = null;
+		comp.constraintCount = 0;
+		comp.padding = null;
+		return comp;
+	}
+
+	public static LuiContentSizeFitterComp GetContentSizeFitter()
+	{
+		if (_fitters.Count == 0)
+			return new();
+
+		LuiContentSizeFitterComp comp = _fitters.Pop() as LuiContentSizeFitterComp;
+		comp.horizontalFit = null;
+		comp.verticalFit = null;
+		return comp;
+	}
+
+	public static LuiLayoutElementComp GetLayoutElement()
+	{
+		if (_layouts.Count == 0)
+			return new();
+
+		LuiLayoutElementComp comp = _layouts.Pop() as LuiLayoutElementComp;
+		comp.preferredWidth = -1f;
+		comp.preferredHeight = -1f;
+		comp.minWidth = 0;
+		comp.minHeight = 0;
+		comp.flexibleWidth = 0;
+		comp.flexibleHeight = 0;
+		comp.ignoreLayout = false;
 		return comp;
 	}
 
@@ -2167,6 +3108,7 @@ public static class LuiPool
 		comp.enabled = true;
 		comp.anchor = LuiPosition.Full;
 		comp.offset = LuiOffset.None;
+		comp.pivot = LUI.defaultPivot;
 		comp.horizontal = false;
 		comp.vertical = false;
 		comp.movementType = null;
@@ -2176,6 +3118,8 @@ public static class LuiPool
 		comp.scrollSensitivity = -1;
 		comp.horizontalScrollbar = default;
 		comp.verticalScrollbar = default;
+		comp.horizontalNormalizedPosition = 0;
+		comp.verticalNormalizedPosition = 0;
 		return comp;
 	}
 
@@ -2192,6 +3136,11 @@ public static class LuiPool
 			not null when type == typeof(LuiCursorComp) => LuiCompType.NeedsCursor,
 			not null when type == typeof(LuiRectTransformComp) => LuiCompType.RectTransform,
 			not null when type == typeof(LuiCountdownComp) => LuiCompType.Countdown,
+			not null when type == typeof(LuiHorizontalLayoutGroupComp) => LuiCompType.HorizontalLayoutGroup,
+			not null when type == typeof(LuiVerticalLayoutGroupComp) => LuiCompType.VerticalLayoutGroup,
+			not null when type == typeof(LuiGridLayoutGroupComp) => LuiCompType.GridLayoutGroup,
+			not null when type == typeof(LuiContentSizeFitterComp) => LuiCompType.ContentSizeFitter,
+			not null when type == typeof(LuiLayoutElementComp) => LuiCompType.LayoutElement,
 			not null when type == typeof(LuiDraggableComp) => LuiCompType.Draggable,
 			not null when type == typeof(LuiSlotComp) => LuiCompType.Slot,
 			not null when type == typeof(LuiKeyboardComp) => LuiCompType.NeedsKeyboard,
@@ -2213,6 +3162,11 @@ public static class LuiPool
 			not null when type == typeof(LuiCursorComp) => LuiPool.GetCursor() as T,
 			not null when type == typeof(LuiRectTransformComp) => LuiPool.GetRect() as T,
 			not null when type == typeof(LuiCountdownComp) => LuiPool.GetCountdown() as T,
+			not null when type == typeof(LuiHorizontalLayoutGroupComp) => LuiPool.GetHorizontalLayoutGroup() as T,
+			not null when type == typeof(LuiVerticalLayoutGroupComp) => LuiPool.GetVerticalLayoutGroup() as T,
+			not null when type == typeof(LuiGridLayoutGroupComp) => LuiPool.GetGridLayoutGroup() as T,
+			not null when type == typeof(LuiContentSizeFitterComp) => LuiPool.GetContentSizeFitter() as T,
+			not null when type == typeof(LuiLayoutElementComp) => LuiPool.GetLayoutElement() as T,
 			not null when type == typeof(LuiDraggableComp) => LuiPool.GetDraggable() as T,
 			not null when type == typeof(LuiSlotComp) => LuiPool.GetSlot() as T,
 			not null when type == typeof(LuiKeyboardComp) => LuiPool.GetKeyboard() as T,
@@ -2232,6 +3186,7 @@ public static class LuiPool
 			cont.destroyUi = null;
 			cont.fadeOut = 0;
 			cont.update = false;
+			cont.activeSelf = true;
 			return cont;
 		}
 		else

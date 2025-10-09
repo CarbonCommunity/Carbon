@@ -13,7 +13,7 @@ public class Player : Library
 	{
 		try
 		{
-			return CultureInfo.GetCultureInfo(player.net.connection.info.GetString("global.language", "en"));
+			return CultureInfo.GetCultureInfo(player.net.connection.language ?? "en");
 		}
 		catch (CultureNotFoundException)
 		{
@@ -149,7 +149,7 @@ public class Player : Library
 		player.net.connection.username = name;
 		player.displayName = name;
 		player._name = name;
-		player.SendNetworkUpdateImmediate(false);
+		player.SendNetworkUpdateImmediate();
 		permission.UpdateNickname(player.UserIDString, name);
 		Teleport(player, player.transform.position);
 	}

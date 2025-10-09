@@ -167,7 +167,7 @@ public partial class ModalModule : CarbonModule<EmptyModuleConfig, EmptyModuleDa
 					case Field.FieldTypes.HexColor:
 						var originalColor = string.IsNullOrEmpty($"{field.Value.Value}") ? (field.Value.Type == Field.FieldTypes.RustColor ? "1 1 1" : "#ffffff") : field.Value.Value.ToString();
 						var hexColor = field.Value.Type == Field.FieldTypes.RustColor ? RustToHexColor(originalColor, includeAlpha: true) : originalColor;
-						var rustColor = field.Value.Type == Field.FieldTypes.HexColor ? HexToRustColor(originalColor, includeAlpha: true) : originalColor;
+						var rustColor = field.Value.Type == Field.FieldTypes.HexColor ? HexToRustColor(originalColor) : originalColor;
 						var rustColorSplit = rustColor.Split(' ');
 						rustColor = $"R:{rustColorSplit[0].ToFloat() * 255:0}   G:{rustColorSplit[1].ToFloat() * 255:0}   B:{rustColorSplit[2].ToFloat() * 255:0}   A:{(rustColorSplit.Length == 4 ? rustColorSplit[3].ToFloat() : 1f) * 255:0}";
 						Array.Clear(rustColorSplit, 0, rustColorSplit.Length);
