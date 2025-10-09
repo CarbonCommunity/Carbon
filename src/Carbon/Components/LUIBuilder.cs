@@ -1025,7 +1025,7 @@ public struct LuiBuilderInstance : IDisposable
 		                    if (draggable.limitToParent)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("endTime", true);
+			                    this.WriteField("limitToParent", true);
 		                    }
 		                    if (draggable.maxDistance > 0)
 		                    {
@@ -1045,7 +1045,7 @@ public struct LuiBuilderInstance : IDisposable
 		                    if (draggable.dragAlpha != -1)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("maxDistance", draggable.maxDistance);
+			                    this.WriteField("dragAlpha", draggable.dragAlpha);
 		                    }
 		                    if (draggable.parentLimitIndex != -1)
 		                    {
