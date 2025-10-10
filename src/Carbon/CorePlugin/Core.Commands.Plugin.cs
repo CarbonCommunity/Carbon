@@ -143,7 +143,7 @@ public partial class CorePlugin
 
 		ProcessableFilesLookup();
 
-		var name = arg.FullString;
+		var name = arg.GetString(0);
 		switch (name)
 		{
 			case "*":
@@ -297,7 +297,7 @@ public partial class CorePlugin
 
 		ProcessableFilesLookup();
 
-		var name = arg.FullString;
+		var name = arg.GetString(0);
 		switch (name)
 		{
 			case "*":
