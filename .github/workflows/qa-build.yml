@@ -30,6 +30,12 @@ jobs:
           echo "version=2.9.$(curl -s -L 'https://api.carbonmod.gg/version?id=qa&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
           git config --global --add safe.directory /__w/Carbon/Carbon
 
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global fetch.parallel 0
+          git config --global submodule.fetchJobs 0
+          
       - name: Git Clone
         uses: actions/checkout@v3
         with:
@@ -98,7 +104,7 @@ jobs:
         shell: bash
         run: |
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs staging
 
       - name: Carbon Build
         shell: bash

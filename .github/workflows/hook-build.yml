@@ -73,6 +73,12 @@ jobs:
     continue-on-error: false
     
     steps:
+    - name: Configure Git
+      shell: bash
+      run: |
+        git config --global fetch.parallel 0
+        git config --global submodule.fetchJobs 0
+          
     - name: Git Clone
       uses: actions/checkout@v3
       with:
