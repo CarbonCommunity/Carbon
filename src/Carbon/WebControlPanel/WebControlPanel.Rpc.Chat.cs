@@ -12,9 +12,10 @@ public static partial class WebControlPanel
 	private static void RPC_ChatTail(BridgeRead read)
 	{
 		int count = ConVar.Chat.History.Size - read.Int32();
-		var logs = ConVar.Chat.History.Skip(count);
+		using var logs = Pool.Get<PooledList<ConVar.Chat.ChatEntry>>();
+		logs.AddRange(ConVar.Chat.History.Skip(count));
 		var write = StartRpcResponse();
-		write.WriteObject(logs.Count());
+		write.WriteObject(logs.Count);
 		foreach (var log in logs)
 		{
 			write.WriteObject((int)log.Channel);
