@@ -42,24 +42,6 @@ public static partial class WebControlPanel
 		server = null;
 	}
 
-	internal static void RunCommand(ConsoleSystem.Arg arg)
-	{
-		currentRpcId = arg.GetUInt(0);
-		if(!rpcs.TryGetValue(currentRpcId, out WebCall rpc))
-		{
-			return;
-		}
-		try
-		{
-			args[0] = arg;
-			arg.ReplyWithObject(((Response)rpc.Method.Invoke(null, args)).WithRpcId(currentRpcId));
-		}
-		catch(Exception ex)
-		{
-			Logger.Error($"Failed WebControlPanel.RunCommand", ex.InnerException);
-		}
-	}
-
 	private static void RunRpc(BridgeRead read)
 	{
 		currentRpcId = read.UInt32();
@@ -86,30 +68,6 @@ public static partial class WebControlPanel
 		catch(Exception ex)
 		{
 			Logger.Error($"Failed WebControlPanel.RunRpc", ex.InnerException);
-		}
-	}
-
-	public static Response GetResponse(object value = null)
-	{
-		Response response = default;
-		response.value = value;
-		return response.WithValue(value);
-	}
-
-	public struct Response
-	{
-		public uint rpcId;
-		public object value;
-
-		public Response WithRpcId(uint rpcId)
-		{
-			this.rpcId = rpcId;
-			return this;
-		}
-		public Response WithValue(object value)
-		{
-			this.value = value;
-			return this;
 		}
 	}
 

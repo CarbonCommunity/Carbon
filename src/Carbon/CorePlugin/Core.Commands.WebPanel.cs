@@ -2,13 +2,6 @@
 
 public partial class CorePlugin
 {
-	[ConsoleCommand("webpanel.cmd", "WebControlPanel client-specific command. Shouldn't be used by admins.")]
-	[AuthLevel(2)]
-	private void OnWebRConRPC(ConsoleSystem.Arg arg)
-	{
-		WebControlPanel.RunCommand(arg);
-	}
-
 	[ConsoleCommand("webpanel.loadcfg", "Loads the Carbon WebControlPanel configuration (refreshes authorization accounts)")]
 	[AuthLevel(2)]
 	private void LoadWebControlPanelConfig(ConsoleSystem.Arg arg)
