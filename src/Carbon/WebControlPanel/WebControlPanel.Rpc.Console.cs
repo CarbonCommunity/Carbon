@@ -12,9 +12,10 @@ public static partial class WebControlPanel
 	private static void RPC_ConsoleTail(BridgeRead read)
 	{
 		var count = Math.Min(0, Output.HistoryOutput.Count - read.Int32());
-		var logs = Output.HistoryOutput.Skip(count);
+		using var logs = Pool.Get<PooledList<Output.Entry>>();
+		logs.AddRange(Output.HistoryOutput.Skip(count));
 		var write = StartRpcResponse();
-		write.WriteObject(logs.Count());
+		write.WriteObject(logs.Count);
 		foreach (var log in logs)
 		{
 			write.WriteObject(log.Message);
