@@ -62,18 +62,21 @@ public static partial class WebControlPanel
 	private static void RPC_PluginsUnload(BridgeRead read)
 	{
 		var fileName = Path.GetFileNameWithoutExtension(read.String());
-		var plugin = ModLoader.FindPlugin(fileName);
-		if (plugin == null)
+		Community.Runtime.Core.NextFrame(() =>
 		{
-			return;
-		}
-		CorePlugin.ProcessableFilesLookup();
-		var path = CorePlugin.GetPluginFile(fileName);
-		if (!string.IsNullOrEmpty(path.Path))
-		{
-			path.GetProcessor().Ignore(path.Path);
-		}
-		ModLoader.UninitializePlugin(plugin);
+			var plugin = ModLoader.FindPlugin(fileName);
+			if (plugin == null)
+			{
+				return;
+			}
+			CorePlugin.ProcessableFilesLookup();
+			var path = CorePlugin.GetPluginFile(fileName);
+			if (!string.IsNullOrEmpty(path.Path))
+			{
+				path.GetProcessor().Ignore(path.Path);
+			}
+			ModLoader.UninitializePlugin(plugin);
+		});
 	}
 
 	[WebCall]
@@ -81,13 +84,16 @@ public static partial class WebControlPanel
 	private static void RPC_PluginsLoad(BridgeRead read)
 	{
 		var fileName = read.String();
-		CorePlugin.ProcessableFilesLookup();
-		var path = CorePlugin.GetPluginFile(fileName);
-		if (!string.IsNullOrEmpty(path.Path) && path.GetProcessor() is IBaseProcessor processor)
+		Community.Runtime.Core.NextFrame(() =>
 		{
-			processor.ClearIgnore(path.Path);
-			processor.Prepare(path.Id, path.Path);
-		}
+			CorePlugin.ProcessableFilesLookup();
+			var path = CorePlugin.GetPluginFile(fileName);
+			if (!string.IsNullOrEmpty(path.Path) && path.GetProcessor() is IBaseProcessor processor)
+			{
+				processor.ClearIgnore(path.Path);
+				processor.Prepare(path.Id, path.Path);
+			}
+		});
 	}
 
 	public struct PluginInfo(RustPlugin plugin)
