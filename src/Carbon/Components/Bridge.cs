@@ -181,6 +181,7 @@ public abstract class BridgeServer
 			};
 			Logger.Log($"Started Carbon.Bridge on port {port} ({_context})");
 			_isConnected = true;
+			OnServerConnected();
 		}
 		catch(Exception ex)
 		{
@@ -206,6 +207,7 @@ public abstract class BridgeServer
 		OnClosedConnection = null;
 		Messages = null;
 		_isConnected = false;
+		OnServerDisconnected();
 	}
 
 	public bool IsConnected()
@@ -213,6 +215,8 @@ public abstract class BridgeServer
 		return Listener != null && _isConnected;
 	}
 
+	public virtual void OnServerConnected() { }
+	public virtual void OnServerDisconnected() { }
 	public virtual bool OnPasswordValidate(string password)
 	{
 		return password is not (null or "unset" or "password");

@@ -113,6 +113,12 @@ public static partial class WebControlPanel
 
 	public class Server : BridgeServer
 	{
+		public override void OnServerConnected()
+		{
+			base.OnServerConnected();
+			Analytics.webcontrolpanel_serverconnect();
+		}
+
 		public override bool OnPasswordValidate(string password)
 		{
 			return true;
@@ -127,6 +133,7 @@ public static partial class WebControlPanel
 		{
 			if (TryFindAccount(connection.Socket.ConnectionInfo.Path.TrimStart('/'), out var account))
 			{
+				Analytics.webcontrolpanel_clientconnect();
 				connection.Reference = account;
 			}
 		}

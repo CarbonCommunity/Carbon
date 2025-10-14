@@ -237,6 +237,9 @@ public partial struct Analytics
 			Submit("codefling_login");
 	}
 
+	/// <summary>
+	/// Metric executed whenever permissions become migrated.
+	/// </summary>
 	public static void perms_migration(Permission.SerializationMode mode, int groups, int users)
 	{
 		if (!Enabled)
@@ -249,5 +252,33 @@ public partial struct Analytics
 			Include("groups", groups.ToString("n0")).
 			Include("users", users.ToString("n0")).
 			Submit("perms_migration");
+	}
+
+	/// <summary>
+	/// Metric executed whenever the WebControlPanel Bridge-based server successfully gets connected.
+	/// </summary>
+	public static void webcontrolpanel_serverconnect()
+	{
+		if (!Enabled)
+		{
+			return;
+		}
+
+		Singleton.
+			Submit("webcontrolpanel_serverconnect");
+	}
+
+	/// <summary>
+	/// Metric executed whenever a client connects to the WebControlPanel Bridge-based server.
+	/// </summary>
+	public static void webcontrolpanel_clientconnect()
+	{
+		if (!Enabled)
+		{
+			return;
+		}
+
+		Singleton.
+			Submit("webcontrolpanel_clientconnect");
 	}
 }
