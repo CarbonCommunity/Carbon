@@ -4,11 +4,11 @@ namespace Carbon;
 
 public static partial class WebControlPanel
 {
-	[WebCall]
-	[WebCall.Condition.Permission(PermissionTypes.PluginsView)]
-	private static void RPC_Plugins(BridgeRead read)
+	public static readonly uint PLUGINS = Vault.Pool.Get("RPC_Plugins");
+
+	public static BridgeWrite CollectPlugins()
 	{
-		var write = StartRpcResponse();
+		var write = StartRpcResponse(PLUGINS);
 		using var plugins = Pool.Get<PooledList<RustPlugin>>();
 		ModLoader.Packages.GetAllHookables(plugins, true);
 		write.WriteObject(plugins.Count);
@@ -53,8 +53,36 @@ public static partial class WebControlPanel
 				write.WriteObject(error.Line);
 			}
 		}
+		return write;
+	}
 
-		SendRpcResponse(read.Connection, write);
+	public static void SendPluginsToAllConnections()
+	{
+		if (server == null)
+		{
+			return;
+		}
+		using var connections = Pool.Get<PooledList<BridgeConnection>>();
+		foreach (var connection in server.Connections.Values)
+		{
+			if (connection.Reference is not Account account || !account.Permissions.plugins_view)
+			{
+				continue;
+			}
+			connections.Add(connection);
+		}
+		if (connections.Count == 0)
+		{
+			return;
+		}
+		SendRpcResponse(connections, CollectPlugins());
+	}
+
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.PluginsView)]
+	private static void RPC_Plugins(BridgeRead read)
+	{
+		SendRpcResponse(read.Connection, CollectPlugins());
 	}
 
 	[WebCall]
