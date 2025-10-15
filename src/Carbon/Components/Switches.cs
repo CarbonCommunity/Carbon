@@ -2,6 +2,12 @@
 
 public sealed class Switches
 {
+	[Switch(Name = "+carbon.onboot", Help = "Executes a set of commands separated by \"|\" that get executed when Carbon boots. Can be defined in \"cfg/server.cfg\" as well.")]
+	public static string GetOnBootCommands(string defaultValue = null) => CommandLineEx.GetArgumentResult("+carbon.onboot", defaultValue);
+
+	[Switch(Name = "+carbon.onserverinit", Help = "Executes a set of commands separated by \"|\" that get executed when the server becomes fully initialized. Can be defined in \"cfg/server.cfg\" as well.")]
+	public static string GetOnServerInitCommands(string defaultValue = null) => CommandLineEx.GetArgumentResult("+carbon.onserverinit", defaultValue);
+
 	[Switch(Name = "-carbon.rootdir", Help = "Overrides the root directory of Carbon, aka the \"carbon\" folder. Upon changing this, you must also apply another command line variable which links to the custom Carbon root, Carbon.Preloader.dll;\n--doorstop-target-assembly \"customrootdir/managed/Carbon.Preloader.dll\"")]
 	public static string GetRootDir(string defaultValue = null) => CommandLineEx.GetArgumentResult("-carbon.rootdir", defaultValue);
 
