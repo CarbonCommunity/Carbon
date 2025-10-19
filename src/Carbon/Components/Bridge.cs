@@ -32,6 +32,8 @@ public static class Bridge
 /// </summary>
 public abstract class BridgeMessages
 {
+	public virtual bool ShouldPool => true;
+
 	protected abstract void OnRpc(BridgeRead read);
 	protected abstract void OnCommand(BridgeRead read);
 	protected abstract void OnCustom(BridgeRead read);
@@ -170,7 +172,10 @@ public abstract class BridgeServer
 
 							var read = BridgeRead.Rent(stream, bridgeConnection);
 							Messages.HandleChannelRead(read);
-							BridgeRead.Return(ref read);
+							if (messages.ShouldPool)
+							{
+								BridgeRead.Return(ref read);
+							}
 						};
 						socket.OnError = e =>
 						{
@@ -312,7 +317,11 @@ public sealed class BridgeClient
 						{
 							Logger.Error("Carbon.Bridge.ReceiveLoop[OnRead] failure", ex);
 						}
-						BridgeRead.Return(ref read);
+
+						if (Messages.ShouldPool)
+						{
+							BridgeRead.Return(ref read);
+						}
 						break;
 
 					case WebSocketMessageType.Close:
