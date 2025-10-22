@@ -1,4 +1,7 @@
 ﻿using Facepunch;
+using ProtoBuf;
+using Object = UnityEngine.Object;
+using Ping = ConVar.Ping;
 
 namespace Carbon;
 
@@ -11,6 +14,7 @@ public static partial class WebControlPanel
 
 	private static uint currentRpcId;
 	private static object[] args = [1];
+	private static Queue<BridgeRead> reads = new();
 
 	public static void Init()
 	{
@@ -29,6 +33,9 @@ public static partial class WebControlPanel
 			rpcs[rpc.MethodId] = rpc;
 		}
 		Output.OnPostMessage += OnLog;
+
+		var webObject = new GameObject(nameof(WebControlPanel)).AddComponent<WebBehaviour>();
+		Object.DontDestroyOnLoad(webObject.gameObject);
 	}
 
 	public static void Shutdown()
@@ -40,6 +47,16 @@ public static partial class WebControlPanel
 		}
 		server.Shutdown();
 		server = null;
+	}
+
+	public static void Frame()
+	{
+		while (reads.Count > 0)
+		{
+			var read = reads.Dequeue();
+			RunRpc(read);
+			BridgeRead.Return(ref read);
+		}
 	}
 
 	private static void RunRpc(BridgeRead read)
@@ -69,6 +86,11 @@ public static partial class WebControlPanel
 		{
 			Logger.Error($"Failed WebControlPanel.RunRpc", ex.InnerException);
 		}
+	}
+
+	private static void EnqueueRpc(BridgeRead read)
+	{
+		reads.Enqueue(read);
 	}
 
 	[AttributeUsage(AttributeTargets.Method)]
@@ -102,6 +124,18 @@ public static partial class WebControlPanel
 					return Account.HasPermission(connection, PermissionType);
 				}
 			}
+		}
+	}
+
+	public class WebBehaviour : FacepunchBehaviour
+	{
+		public void Update()
+		{
+			if (server == null)
+			{
+				return;
+			}
+			Frame();
 		}
 	}
 }

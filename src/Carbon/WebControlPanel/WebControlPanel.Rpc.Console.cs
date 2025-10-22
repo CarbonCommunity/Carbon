@@ -31,14 +31,11 @@ public static partial class WebControlPanel
 	{
 		var message = read.String();
 		var connection = read.Connection;
-		Community.Runtime.Core.NextFrame(() =>
+		string result = ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), message);
+		if (!string.IsNullOrEmpty(result))
 		{
-			string result = ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), message);
-			if (!string.IsNullOrEmpty(result))
-			{
-				connection.Reply(result);
-			}
-		});
+			connection.Reply(result);
+		}
 	}
 
 	private static void OnLog(string message, string stacktrace, LogType type)

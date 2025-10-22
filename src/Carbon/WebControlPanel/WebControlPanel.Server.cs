@@ -145,6 +145,8 @@ public static partial class WebControlPanel
 
 	public class ServerMessages : BridgeMessages
 	{
+		public override bool ShouldPool => false;
+
 		protected override void OnCommand(BridgeRead read)
 		{
 
@@ -157,7 +159,7 @@ public static partial class WebControlPanel
 
 		protected override void OnRpc(BridgeRead read)
 		{
-			RunRpc(read);
+			EnqueueRpc(read);
 		}
 
 		protected override void OnUnhandled(BridgeRead read)
