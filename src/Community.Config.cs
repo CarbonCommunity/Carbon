@@ -149,6 +149,10 @@ public partial class Community
 			if (Config.Aliases.Count == 0)
 			{
 				Config.Aliases["carbon"] = "c.version";
+				Config.Aliases["plugins"] = "c.plugins";
+				Config.Aliases["reload"] = "c.reload";
+				Config.Aliases["load"] = "c.load";
+				Config.Aliases["unload"] = "c.unload";
 				needsSave = true;
 			}
 			else if (Config.Aliases.Remove("harmony.load") ||
