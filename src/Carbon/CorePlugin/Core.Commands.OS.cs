@@ -4,6 +4,8 @@ namespace Carbon.Core;
 
 public partial class CorePlugin
 {
+#if WIN
+
 	[ConsoleCommand("openplugin", "Locally opens the `cs` file of a loaded plugin.")]
 	[AuthLevel(2)]
 	private void OpenPlugin(ConsoleSystem.Arg arg)
@@ -92,6 +94,8 @@ public partial class CorePlugin
 		arg.ReplyWith($"Opened '{folder}'");
 	}
 
+#endif
+
 	[ConsoleCommand("delete", "Locally deletes a file or directory relative to the server root. Syntax: c.deleteext \"path/to\"")]
 	[AuthLevel(2)]
 	private void Delete(ConsoleSystem.Arg arg)
@@ -138,6 +142,8 @@ public partial class CorePlugin
 		}
 	}
 
+#if WIN
+
 	[ConsoleCommand("createplugin", "It creates a new plugin in the plugins folder. Syntax: c.createplugin \"PluginName\" \"Author\" \"Description\"")]
 	[AuthLevel(2)]
 	private void CreatePlugin(ConsoleSystem.Arg arg)
@@ -166,4 +172,6 @@ public partial class CorePlugin
 			         $"\t}}\n" +
 			         $"}}");
 	}
+
+#endif
 }
