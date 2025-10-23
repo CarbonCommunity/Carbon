@@ -344,10 +344,9 @@ public class ScriptLoader : IScriptLoader
 
 		if (missingRequires.Count > 0)
 		{
-			Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFileName}':");
 			foreach (var require in missingRequires)
 			{
-				Logger.Warn($" Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
+				Logger.Warn($" Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}', retrying..");
 			}
 
 			ModLoader.AddPostBatchFailedRequiree(InitialSource.ContextFilePath);

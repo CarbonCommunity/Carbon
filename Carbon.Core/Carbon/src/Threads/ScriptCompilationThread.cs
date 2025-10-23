@@ -412,7 +412,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		if (missingReferences.Count > 0)
 		{
-			Logger.Error($"Failed compiling '{InitialSource.ContextFileName}':");
 			foreach (var reference in missingReferences)
 			{
 				Logger.Warn($" Couldn't find reference '{reference}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
