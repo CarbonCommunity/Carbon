@@ -14,7 +14,6 @@ public partial class AdminModule
 		public Action<Tab, CUI, CuiElementContainer, string, PlayerSession> Over, Under, Override;
 		public Dictionary<int, OptionPool> Columns = new();
 		public Action<PlayerSession, Tab> OnChange;
-		public Dictionary<string, Radio> Radios = new();
 		public TabDialog Dialog;
 		public bool IsFullscreen;
 
@@ -177,30 +176,6 @@ public partial class AdminModule
 
 			return AddRow(column, option, hidden);
 		}
-		public Tab AddRadio(int column, string name, string id, bool wantsOn, Action<bool, PlayerSession> callback = null, string tooltip = null, bool hidden = false)
-		{
-			if (!Radios.TryGetValue(id, out var radio))
-			{
-				Radios[id] = radio = new();
-			}
-
-			radio.TemporaryIndex++;
-			if (wantsOn) radio.Selected = radio.TemporaryIndex;
-
-			var index = radio.TemporaryIndex;
-
-			var option = Pool.Get<OptionRadio>();
-			option.Name = name;
-			option.Id = id;
-			option.Index = index;
-			option.Callback = callback;
-			option.Radio = radio;
-			option.Tooltip = tooltip;
-
-			radio.Options.Add(option);
-
-			return AddRow(column, option, hidden);
-		}
 		public Tab AddDropdown(int column, string name, Func<PlayerSession, int> index, Action<PlayerSession, int> callback, string[] options, string[] optionsIcons = null, float optionsIconScale = 0f, string tooltip = null, bool hidden = false)
 		{
 			var option = Pool.Get<OptionDropdown>();
@@ -226,20 +201,10 @@ public partial class AdminModule
 
 			return AddRow(column, option, hidden);
 		}
-		public Tab AddButtonArray(int column, float spacing, params OptionButton[] buttons)
-		{
-			var option = Pool.Get<OptionButtonArray>();
-			option.Name = string.Empty;
-			option.Spacing = spacing;
-			option.Buttons = buttons;
-
-			return AddRow(column, option);
-		}
 		public Tab AddButtonArray(int column, params OptionButton[] buttons)
 		{
 			var option = Pool.Get<OptionButtonArray>();
 			option.Name = string.Empty;
-			option.Spacing = 0.01f;
 			option.Buttons = buttons;
 
 			return AddRow(column, option);
@@ -338,27 +303,6 @@ public partial class AdminModule
 			Columns = null;
 		}
 
-		public class Radio : IDisposable
-		{
-			public int Selected;
-
-			public int TemporaryIndex = -1;
-
-			public List<OptionRadio> Options = new();
-
-			public void Change(int index, PlayerSession ap)
-			{
-				Options[Selected]?.Callback?.Invoke(false, ap);
-
-				Selected = index;
-			}
-
-			public void Dispose()
-			{
-				Options.Clear();
-				Options = null;
-			}
-		}
 		public class TabDialog
 		{
 			public string Title;
@@ -523,22 +467,6 @@ public partial class AdminModule
 				Text = (ap) => { try { return text?.Invoke(ap); } catch (Exception ex) { Logger.Error($"Failed OptionRange.Callback callback ({name}): {ex.Message}"); return string.Empty; } };
 			}
 		}
-		public class OptionRadio : Option
-		{
-			public string Id;
-			public int Index;
-			public Action<bool, PlayerSession> Callback;
-			public Radio Radio;
-
-			public OptionRadio() { }
-			public OptionRadio(string name, string id, int index, Action<bool, PlayerSession> callback, Radio radio, string tooltip = null, bool hidden = false) : base(name, tooltip, hidden)
-			{
-				Id = id;
-				Callback = (value, ap) => { try { callback?.Invoke(value, ap); } catch (Exception ex) { Logger.Error($"Failed OptionRadio.Callback callback ({name}): {ex.Message}"); } };
-				Index = index;
-				Radio = radio;
-			}
-		}
 		public class OptionDropdown : Option
 		{
 			public Func<PlayerSession, int> Index;
@@ -572,13 +500,11 @@ public partial class AdminModule
 		public class OptionButtonArray : Option
 		{
 			public OptionButton[] Buttons;
-			public float Spacing = 0.01f;
 
 			public OptionButtonArray() { }
-			public OptionButtonArray(string name, float spacing, string tooltip = null, bool hidden = false, params OptionButton[] buttons) : base(name, tooltip, hidden)
+			public OptionButtonArray(string name, string tooltip = null, bool hidden = false, params OptionButton[] buttons) : base(name, tooltip, hidden)
 			{
 				Buttons = buttons;
-				Spacing = spacing;
 			}
 		}
 		public class OptionColor : Option
