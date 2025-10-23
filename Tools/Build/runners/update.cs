@@ -1,4 +1,4 @@
-var branch = GetArg(1, "public");
+var branch = GetArg(1, "release");
 
 Warn($"Branch: {branch}");
 
