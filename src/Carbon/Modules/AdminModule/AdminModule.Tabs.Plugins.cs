@@ -73,7 +73,7 @@ public partial class AdminModule
 			"banan",
 			"peanus"
 		];
-		
+
 		public static Tab TabInstance;
 
 		public static Vendor CodeflingInstance;
@@ -149,7 +149,7 @@ public partial class AdminModule
 
 							if (disabled)
 							{
-								cui.CreateText(container, btn, "1 0.8 0.8 0.5", "DISABLED", 10, yMax: 0.5f);
+								cui.CreateText(container, btn, "1 0.8 0.8 0.5", "ENABLE VIA COG", 10, yMax: 0.5f);
 							}
 
 							optionsOffset += optionsWidth + optionsSpacing;
