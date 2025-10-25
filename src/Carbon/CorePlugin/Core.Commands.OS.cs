@@ -142,8 +142,6 @@ public partial class CorePlugin
 		}
 	}
 
-#if WIN
-
 	[ConsoleCommand("createplugin", "It creates a new plugin in the plugins folder. Syntax: c.createplugin \"PluginName\" \"Author\" \"Description\"")]
 	[AuthLevel(2)]
 	private void CreatePlugin(ConsoleSystem.Arg arg)
@@ -172,6 +170,4 @@ public partial class CorePlugin
 			         $"\t}}\n" +
 			         $"}}");
 	}
-
-#endif
 }
