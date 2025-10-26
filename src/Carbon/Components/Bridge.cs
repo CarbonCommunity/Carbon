@@ -358,6 +358,10 @@ public sealed class BridgeConnection : Pool.IPooled
 
 	public void Send(BridgeWrite write)
 	{
+		if (Socket == null)
+		{
+			return;
+		}
 		Socket.Send(write.GetMemory());
 	}
 
