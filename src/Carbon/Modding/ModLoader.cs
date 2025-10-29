@@ -449,20 +449,21 @@ public static partial class ModLoader
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
+			var doCooldownPenalty = cooldown?.DoCooldownPenalty ?? false;
 
 			foreach (var command in commands)
 			{
 				foreach (var commandName in command.Names)
 				{
 					var name = string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}";
-					Community.Runtime.Core.cmd.AddChatCommand(name, hookable, method, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true);
-					Community.Runtime.Core.cmd.AddConsoleCommand(name, hookable, method, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true);
+					Community.Runtime.Core.cmd.AddChatCommand(name, hookable, method, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
+					Community.Runtime.Core.cmd.AddConsoleCommand(name, hookable, method, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
 				}
 			}
 
 			foreach (var chatCommand in chatCommands)
 			{
-				Community.Runtime.Core.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method, help: chatCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true);
+				Community.Runtime.Core.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method, help: chatCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
 			}
 
 			foreach (var consoleCommand in consoleCommands)
@@ -489,7 +490,7 @@ public static partial class ModLoader
 							HookCaller.Caller.ReturnBuffer(argBuffer);
 						}
 						return true;
-					}, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true);
+					}, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
 			}
 
 			foreach (var protectedCommand in protectedCommands)
@@ -516,7 +517,7 @@ public static partial class ModLoader
 							HookCaller.Caller.ReturnBuffer(argBuffer);
 						}
 						return true;
-					}, help: protectedCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true, silent: true);
+					}, help: protectedCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true, silent: true, doCooldownPenalty: doCooldownPenalty);
 			}
 
 			foreach (var rconCommand in rconCommands)
@@ -579,6 +580,7 @@ public static partial class ModLoader
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
+			var doCooldownPenalty = cooldown?.DoCooldownPenalty ?? false;
 
 			if (var != null)
 			{
@@ -629,7 +631,7 @@ public static partial class ModLoader
 
 					args.ReplyWith($"{args.cmd.FullName}: \"{value}\"");
 					return true;
-				}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: var.Protected, isHidden: hidden, silent: true);
+				}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: var.Protected, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
 			}
 		}
 
@@ -644,6 +646,7 @@ public static partial class ModLoader
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
+			var doCooldownPenalty = cooldown?.DoCooldownPenalty ?? false;
 
 			if (var != null)
 			{
@@ -694,7 +697,7 @@ public static partial class ModLoader
 
 					args.ReplyWith($"{args.cmd.FullName}: \"{value}\"");
 					return true;
-				}, help: var.Help, reference: property, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: var.Protected, isHidden: hidden, silent: true);
+				}, help: var.Help, reference: property, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: var.Protected, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
 			}
 		}
 
