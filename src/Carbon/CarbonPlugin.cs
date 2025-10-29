@@ -22,19 +22,25 @@ public class CarbonPlugin : RustPlugin
 
 	#region Command Cooldown
 
-	internal static Dictionary<BasePlayer, List<CooldownInstance>> _commandCooldownBuffer = new();
+	internal static Dictionary<BasePlayer, List<CooldownInstance>> CommandCooldownBuffer = [];
 
-	public static bool IsCommandCooledDown(BasePlayer player, string command, int time, out float timeLeft, bool doCooldownIfNot = true, float appendMultiplier = 0.5f)
+	public static bool IsCommandCooledDown(
+		BasePlayer player, string command,
+		int time,
+		out float timeLeft,
+		bool doCooldownIfNot = true,
+		float appendMultiplier = 0.5f,
+		bool doCooldownPenalty = false)
 	{
+		timeLeft = -1;
 		if (time == 0 || player == null)
 		{
-			timeLeft = -1;
 			return false;
 		}
 
-		if (!_commandCooldownBuffer.TryGetValue(player, out var pairs))
+		if (!CommandCooldownBuffer.TryGetValue(player, out var pairs))
 		{
-			_commandCooldownBuffer.Add(player, pairs = new List<CooldownInstance>());
+			CommandCooldownBuffer.Add(player, pairs = []);
 		}
 
 		var lookupCommand = pairs.FirstOrDefault(x => x.Command == command);
@@ -51,13 +57,12 @@ public class CarbonPlugin : RustPlugin
 				lookupCommand.LastCall = DateTime.Now;
 			}
 
-			timeLeft = -1;
 			return false;
 		}
 
 		timeLeft = (float)((time - timePassed.TotalMilliseconds) * 0.001f);
 
-		if (appendMultiplier != 1)
+		if (doCooldownPenalty)
 		{
 			lookupCommand.LastCall = lookupCommand.LastCall.AddMilliseconds(time * appendMultiplier);
 		}

@@ -75,7 +75,7 @@ public class Command : Library
 						}
 					}
 
-					if (!(Community.Runtime.Config.Permissions.BypassAdminCooldowns && player.Connection.authLevel > 1) && CarbonPlugin.IsCommandCooledDown(player, cmd.Name, authenticatedCommand.Auth.Cooldown, out var timeLeft, true))
+					if (!(Community.Runtime.Config.Permissions.BypassAdminCooldowns && player.Connection.authLevel > 1) && CarbonPlugin.IsCommandCooledDown(player, cmd.Name, authenticatedCommand.Auth.Cooldown, out var timeLeft, doCooldownPenalty: authenticatedCommand.Auth.DoCooldownPenalty))
 					{
 						if (isChat) player.ChatMessage(Localisation.Get("cooldown_player", player.UserIDString, TimeEx.Format(timeLeft).ToLower()));
 						else player.ConsoleMessage(Localisation.Get("cooldown_player", player.UserIDString, TimeEx.Format(timeLeft).ToLower()));
@@ -88,7 +88,7 @@ public class Command : Library
 		};
 	}
 
-	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
+	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false, bool doCooldownPenalty = false)
 	{
 		var cmd = new API.Commands.Command.Chat
 		{
@@ -112,6 +112,7 @@ public class Command : Library
 				Permissions = permissions,
 				Groups = groups,
 				Cooldown = cooldown,
+				DoCooldownPenalty = doCooldownPenalty,
 			},
 			CanExecute = OnPlayerExecute(true)
 		};
@@ -123,16 +124,16 @@ public class Command : Library
 			Logger.Warn(reason);
 		}
 	}
-	public void AddChatCommand(string command, BaseHookable plugin, string method, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
+	public void AddChatCommand(string command, BaseHookable plugin, string method, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false, bool doCooldownPenalty = false)
 	{
 		var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 		var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer))));
 		var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer))));
 		var methodInfo = covalenceMethod ?? consoleMethod;
 
-		AddChatCommand(command, plugin, methodInfo, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
+		AddChatCommand(command, plugin, methodInfo, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent, doCooldownPenalty);
 	}
-	public void AddChatCommand(string command, BaseHookable plugin, MethodInfo methodInfo, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
+	public void AddChatCommand(string command, BaseHookable plugin, MethodInfo methodInfo, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false, bool doCooldownPenalty = false)
 	{
 		AddChatCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -217,9 +218,9 @@ public class Command : Library
 			}
 
 			arg = null;
-		}, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
+		}, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent, doCooldownPenalty);
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
+	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false, bool doCooldownPenalty = false)
 	{
 		// Client console
 		{
@@ -244,6 +245,7 @@ public class Command : Library
 					Permissions = permissions,
 					Groups = groups,
 					Cooldown = cooldown,
+					DoCooldownPenalty = doCooldownPenalty,
 				},
 				CanExecute = OnPlayerExecute(false)
 			};
@@ -279,16 +281,16 @@ public class Command : Library
 			}
 		}
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, string method, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
+	public void AddConsoleCommand(string command, BaseHookable plugin, string method, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false, bool doCooldownPenalty = false)
 	{
 		var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 		var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer))));
 		var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer))));
 		var methodInfo = covalenceMethod ?? consoleMethod;
 
-		AddConsoleCommand(command, plugin, methodInfo, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
+		AddConsoleCommand(command, plugin, methodInfo, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent, doCooldownPenalty);
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, MethodInfo methodInfo, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
+	public void AddConsoleCommand(string command, BaseHookable plugin, MethodInfo methodInfo, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false, bool doCooldownPenalty = false)
 	{
 		AddConsoleCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -402,9 +404,9 @@ public class Command : Library
 			{
 				Array.Clear(result, 0, result.Length);
 			}
-		}, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
+		}, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent, doCooldownPenalty);
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
+	public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false, bool doCooldownPenalty = false)
 	{
 		// Client console
 		{
@@ -430,6 +432,7 @@ public class Command : Library
 					Permissions = permissions,
 					Groups = groups,
 					Cooldown = cooldown,
+					DoCooldownPenalty = doCooldownPenalty,
 				},
 				CanExecute = OnPlayerExecute(false)
 			};
@@ -471,15 +474,15 @@ public class Command : Library
 			}
 		}
 	}
-	public void AddCovalenceCommand(string command, BaseHookable plugin, string method, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = true)
+	public void AddCovalenceCommand(string command, BaseHookable plugin, string method, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = true, bool doCooldownPenalty = false)
 	{
-		AddChatCommand(command, plugin, method, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
-		AddConsoleCommand(command, plugin, method, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
+		AddChatCommand(command, plugin, method, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent, doCooldownPenalty);
+		AddConsoleCommand(command, plugin, method, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent, doCooldownPenalty);
 	}
-	public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = true)
+	public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = true, bool doCooldownPenalty = false)
 	{
-		AddChatCommand(command, plugin, callback, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
-		AddConsoleCommand(command, plugin, callback, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
+		AddChatCommand(command, plugin, callback, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent, doCooldownPenalty);
+		AddConsoleCommand(command, plugin, callback, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent, doCooldownPenalty);
 	}
 
 	public void RemoveChatCommand(string command, BaseHookable plugin = null)
