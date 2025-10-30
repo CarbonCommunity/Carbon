@@ -145,6 +145,46 @@ public partial class CorePlugin
 	}
 	public bool NoGiveNoticesCache;
 
+	[CarbonAutoVar("noadminchatcolor", "No Admin Chat Coloring",
+		"Will make admins' nicknames look the same as the player (no green, from #af5 to #5af).")]
+	[AuthLevel(2)]
+	public string NoAdminChatColor
+	{
+		get => NoAdminChatColorCache ? "1" : "-1";
+		set
+		{
+			if (string.IsNullOrEmpty(value))
+			{
+				NoAdminChatColorCache = false;
+				return;
+			}
+
+			NoAdminChatColorCache = value.ToBool();
+		}
+	}
+
+	public bool NoAdminChatColorCache;
+
+	[CarbonAutoVar("nodevchatcolor", "No Developer Chat Coloring",
+		"Will make facepunch developers' nicknames look the same as the player (no orange, from #fa5 to #5af).")]
+	[AuthLevel(2)]
+	public string NoDevChatColor
+	{
+		get => NoDevChatColorCache ? "1" : "-1";
+		set
+		{
+			if (string.IsNullOrEmpty(value))
+			{
+				NoDevChatColorCache = false;
+				return;
+			}
+
+			NoDevChatColorCache = value.ToBool();
+		}
+	}
+
+	public bool NoDevChatColorCache;
+
 	private string _customMapName = "-1";
 
 	[CarbonAutoVar("defaultserverchatname", "Server Chat Name", help: "Default server chat name.")]
