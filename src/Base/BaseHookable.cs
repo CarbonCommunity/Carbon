@@ -357,7 +357,7 @@ public class BaseHookable : Integrations.ITestable
 		return true;
 	}
 
-	public void UnapplyOrderedPatches(AutoPatchAttribute.Orders order, string category = null, bool silent = true)
+	public void UnapplyOrderedPatches(AutoPatchAttribute.Orders order, bool silent = true, string category = null)
 	{
 		try
 		{
@@ -380,7 +380,7 @@ public class BaseHookable : Integrations.ITestable
 
 	public void UnapplyDelayedPatches(string category = null, bool silent = true)
 	{
-		UnapplyOrderedPatches(AutoPatchAttribute.Orders.Delayed, category, silent);
+		UnapplyOrderedPatches(AutoPatchAttribute.Orders.Delayed, silent, category);
 	}
 
 	#endregion
