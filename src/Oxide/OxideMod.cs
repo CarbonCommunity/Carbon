@@ -124,24 +124,29 @@ public class OxideMod
 
 	public bool UnloadPlugin(string name)
 	{
-		var plugin = CorePlugin.GetPluginFile(name);
+		var file = CorePlugin.GetPluginFile(name);
 
-		if (string.IsNullOrEmpty(plugin.Id))
+		if (string.IsNullOrEmpty(file.Id))
 		{
 			return false;
 		}
 
-		switch (plugin.Type)
+		if (ModLoader.FindPlugin(name) is RustPlugin plugin && !plugin.IsCorePlugin)
+		{
+			ModLoader.UninitializePlugin(plugin);
+		}
+
+		switch (file.Type)
 		{
 			case CorePlugin.ProcessableFile.Types.Script:
-				Community.Runtime.ScriptProcessor.Remove(plugin.Id);
+				Community.Runtime.ScriptProcessor.Remove(file.Id);
 				return true;
 			case CorePlugin.ProcessableFile.Types.CSZIP:
-				Community.Runtime.ZipScriptProcessor.Remove(plugin.Id);
+				Community.Runtime.ZipScriptProcessor.Remove(file.Id);
 				return true;
 #if DEBUG
 			case CorePlugin.ProcessableFile.Types.CSZIP_Dev:
-				Community.Runtime.ZipDevScriptProcessor.Remove(plugin.Id);
+				Community.Runtime.ZipDevScriptProcessor.Remove(file.Id);
 				return true;
 #endif
 		}
