@@ -26,6 +26,11 @@ public class AutoPatchAttribute : Attribute
 	/// </summary>
 	public string PatchFailureCallback;
 
+	/// <summary>
+	/// If true, it will no longer print the patch info to console when plugin loads / patches occur.
+	/// </summary>
+	public bool Silent;
+
 	public enum Orders
 	{
 		/// <summary>

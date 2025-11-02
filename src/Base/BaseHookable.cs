@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Carbon.Test;
+using HarmonyLib;
 using Newtonsoft.Json;
 
 namespace Carbon.Base;
@@ -236,14 +237,21 @@ public class BaseHookable : Integrations.ITestable
 
 	protected HarmonyLib.Harmony HarmonyInstance => GetHarmonyInstance(AutoPatchAttribute.Orders.AfterPluginInit, true);
 
-	protected int RemoveHarmonyInstance(AutoPatchAttribute.Orders order)
+	protected int RemoveHarmonyInstance(AutoPatchAttribute.Orders order, string category = null)
 	{
 		if (_harmonyInstanceCache.TryGetValue(order, out var instance))
 		{
 			var count = instance.GetPatchedMethods()?.Count();
 			if (count > 0)
 			{
-				instance.UnpatchAll(GetHarmonyId(order));
+				if (!string.IsNullOrEmpty(category))
+				{
+					instance.UnpatchCategory(category);
+				}
+				else
+				{
+					instance.UnpatchAll(GetHarmonyId(order));
+				}
 			}
 			_harmonyInstanceCache.Remove(order);
 			return count.GetValueOrDefault();
@@ -252,7 +260,7 @@ public class BaseHookable : Integrations.ITestable
 		return 0;
 	}
 
-	public bool ApplyOrderedPatches(AutoPatchAttribute.Orders order)
+	public bool ApplyOrderedPatches(AutoPatchAttribute.Orders order, string category = null)
 	{
 		var instance = GetHarmonyInstance(order);
 		if (instance != null)
@@ -276,19 +284,32 @@ public class BaseHookable : Integrations.ITestable
 				continue;
 			}
 
+			var patchCategory = type.GetCustomAttribute<HarmonyPatchCategory>();
+
+			if (patchCategory != null && patchCategory.info != null && patchCategory.info.category != category)
+			{
+				continue;
+			}
+
 			try
 			{
 				var harmonyMethods = instance.CreateClassProcessor(type)?.Patch();
 
 				if (harmonyMethods == null || harmonyMethods.Count == 0)
 				{
-					Logger.Warn($"[{Name}] AutoPatch attribute found on '{type.Name}' but no HarmonyPatch methods found. Skipping.. [{order}]");
+					if (!attribute.Silent)
+					{
+						Logger.Warn($"[{Name}] AutoPatch attribute found on '{type.Name}' but no HarmonyPatch methods found. Skipping.. [{order}]");
+					}
 					continue;
 				}
 
-				foreach (MethodInfo method in harmonyMethods)
+				if (!attribute.Silent)
 				{
-					Logger.Log($"[{Name}] Automatically Harmony patched '{method.Name}' ({type.Name}) method [{order}].");
+					foreach (MethodInfo method in harmonyMethods)
+					{
+						Logger.Log($"[{Name}] Automatically Harmony patched '{method.Name}' ({type.Name}) method [{order}].");
+					}
 				}
 
 				if (!string.IsNullOrEmpty(attribute.PatchSuccessCallback))
@@ -335,11 +356,12 @@ public class BaseHookable : Integrations.ITestable
 		}
 		return true;
 	}
-	public void UnapplyOrderedPatches(AutoPatchAttribute.Orders order, bool silent = true)
+
+	public void UnapplyOrderedPatches(AutoPatchAttribute.Orders order, string category = null, bool silent = true)
 	{
 		try
 		{
-			var count = RemoveHarmonyInstance(order);
+			var count = RemoveHarmonyInstance(order, category);
 			if (!silent && count > 0)
 			{
 				Logger.Log($"[{Name}] Automatically Harmony unpatched {count:n0} {count.Plural("method", "methods")} [{order}].");
@@ -349,6 +371,16 @@ public class BaseHookable : Integrations.ITestable
 		{
 			Logger.Error($"[{Name}] Failed auto unpatching {GetHarmonyId(order)} [{order}]", ex);
 		}
+	}
+
+	public bool ApplyDelayedPatches(string category = null)
+	{
+		return ApplyOrderedPatches(AutoPatchAttribute.Orders.Delayed, category);
+	}
+
+	public void UnapplyDelayedPatches(string category = null, bool silent = true)
+	{
+		UnapplyOrderedPatches(AutoPatchAttribute.Orders.Delayed, category, silent);
 	}
 
 	#endregion
