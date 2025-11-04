@@ -118,6 +118,20 @@ public static partial class WebControlPanel
 		}
 	}
 
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.PluginsView)]
+	private static void RPC_PluginDetails(BridgeRead read)
+	{
+		var plugin = ModLoader.FindPlugin(read.String());
+		if (plugin == null)
+		{
+			return;
+		}
+		var write = StartRpcResponse();
+		new PluginDetails(plugin).Serialize(write);
+		SendRpcResponse(read.Connection, write);
+	}
+
 	public struct PluginInfo(RustPlugin plugin)
 	{
 		private string name = plugin.Name;
@@ -133,6 +147,72 @@ public static partial class WebControlPanel
 			write.WriteObject(version);
 			write.WriteObject(author);
 			write.WriteObject(description);
+		}
+	}
+
+	public struct PluginDetails(RustPlugin plugin)
+	{
+		private int compileTime = (int)plugin.CompileTime.TotalMilliseconds;
+		private int intCallHookGenTime = (int)plugin.InternalCallHookGenTime.TotalMilliseconds;
+		private int uptime = (int)plugin.Uptime;
+		private int memoryUsed = (int)plugin.TotalMemoryUsed;
+		private bool hasInternalHookOverride = plugin.InternalCallHookOverriden;
+		private bool hasConditionals = plugin.HasConditionals;
+		private string[] permissions = plugin.permission.GetPermissions(plugin);
+		private BaseHookable.HookCachePool hookPool = plugin.HookPool;
+
+		public bool IsHookValid(BaseHookable.CachedHookInstance hook) => plugin.Hooks.Contains(hook.PrimaryHook.Id);
+
+		public void Serialize(BridgeWrite write)
+		{
+			write.WriteObject(compileTime);
+			write.WriteObject(intCallHookGenTime);
+			write.WriteObject(uptime);
+			write.WriteObject(memoryUsed);
+			write.WriteObject(hasInternalHookOverride);
+			write.WriteObject(hasConditionals);
+			write.WriteObject(permissions.Length);
+			for (int i = 0; i < permissions.Length; i++)
+			{
+				write.WriteObject(permissions[i]);
+			}
+
+			using var hooks = Pool.Get<PooledList<BaseHookable.CachedHookInstance>>();
+			foreach(var hook in hookPool)
+			{
+				if (!IsHookValid(hook.Value))
+				{
+					continue;
+				}
+				hooks.Add(hook.Value);
+			}
+			write.WriteObject(hooks.Count);
+			for (int i = 0; i < hooks.Count; i++)
+			{
+				new HookDetails(hooks[i]).Serialize(write);
+			}
+		}
+	}
+
+	public struct HookDetails(BaseHookable.CachedHookInstance instance)
+	{
+		private string name = instance.PrimaryHook.Name;
+		private uint id = instance.PrimaryHook.Id;
+		private int fires = instance.Hooks.Sum(x => x.TimesFired);
+		private int memoryUsage = (int)instance.Hooks.Sum(x => x.MemoryUsage);
+		private int lagSpikes = instance.Hooks.Sum(x => x.LagSpikes);
+		private int asyncOverloads = instance.Hooks.Count(x => x.IsAsync);
+		private int debuggedOverloads = instance.Hooks.Count(x => x.IsDebugged);
+
+		public void Serialize(BridgeWrite write)
+		{
+			write.WriteObject(name);
+			write.WriteObject(id);
+			write.WriteObject(fires);
+			write.WriteObject(memoryUsage);
+			write.WriteObject(lagSpikes);
+			write.WriteObject(asyncOverloads);
+			write.WriteObject(debuggedOverloads);
 		}
 	}
 }
