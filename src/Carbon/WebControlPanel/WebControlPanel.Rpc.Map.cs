@@ -125,15 +125,7 @@ public static partial class WebControlPanel
 
 		public bool HasValidLabel()
 		{
-			for (int i = 0; i < label.Length; i++)
-			{
-				var character = label[i];
-				if (!char.IsLetterOrDigit(character) && character != ' ')
-				{
-					return false;
-				}
-			}
-			return true;
+			return label.Length > 2;
 		}
 
 		public void Serialize(BridgeWrite write)
