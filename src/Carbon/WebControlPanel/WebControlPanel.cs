@@ -40,7 +40,10 @@ public static partial class WebControlPanel
 
 	public static void ServerInit()
 	{
-		MAPINFO_CACHE = MapInfo.Get();
+		if (config.ShouldStartServer())
+		{
+			MAPINFO_CACHE = MapInfo.Get();
+		}
 	}
 
 	public static void Shutdown()

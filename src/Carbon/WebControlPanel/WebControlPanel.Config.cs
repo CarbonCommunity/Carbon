@@ -31,6 +31,10 @@ public static partial class WebControlPanel
 		if (config.ShouldStartServer())
 		{
 			(server ??= new Server()).Start(config.BridgeServer.Port, config.BridgeServer.Ip, serverMessages, context: nameof(WebControlPanel));
+			if (Community.IsServerInitialized && !MAPINFO_CACHE.IsValid())
+			{
+				MAPINFO_CACHE = MapInfo.Get();
+			}
 		}
 	}
 
