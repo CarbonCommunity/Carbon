@@ -38,6 +38,11 @@ public static partial class WebControlPanel
 		Object.DontDestroyOnLoad(webObject.gameObject);
 	}
 
+	public static void ServerInit()
+	{
+		MAPINFO_CACHE = MapInfo.Get();
+	}
+
 	public static void Shutdown()
 	{
 		Output.OnPostMessage -= OnLog;

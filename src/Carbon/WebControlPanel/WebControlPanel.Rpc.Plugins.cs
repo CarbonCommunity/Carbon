@@ -176,7 +176,6 @@ public static partial class WebControlPanel
 			{
 				write.WriteObject(permissions[i]);
 			}
-
 			using var hooks = Pool.Get<PooledList<BaseHookable.CachedHookInstance>>();
 			foreach(var hook in hookPool)
 			{

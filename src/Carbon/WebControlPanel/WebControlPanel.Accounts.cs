@@ -41,7 +41,7 @@ public static partial class WebControlPanel
 	{
 		public string Name;
 		public string Password;
-		public Permissions Permissions = new(true);
+		public Permissions Permissions = new(false);
 
 		public static bool HasPermission(BridgeConnection connection, PermissionTypes permission)
 		{
@@ -67,6 +67,8 @@ public static partial class WebControlPanel
 				PermissionTypes.ProfilerEdit => account.Permissions.profiler_edit,
 				PermissionTypes.PluginsView => account.Permissions.plugins_view,
 				PermissionTypes.PluginsEdit => account.Permissions.plugins_edit,
+				PermissionTypes.MapView => account.Permissions.map_view,
+				PermissionTypes.MapEntities => account.Permissions.map_entities,
 				_ => false
 			};
 		}
@@ -90,6 +92,8 @@ public static partial class WebControlPanel
 		public bool profiler_edit = enabled;
 		public bool plugins_view = enabled;
 		public bool plugins_edit = enabled;
+		public bool map_view = enabled;
+		public bool map_entities = enabled;
 
 		public void Serialize(BridgeWrite write)
 		{
@@ -109,6 +113,8 @@ public static partial class WebControlPanel
 			write.WriteObject(profiler_edit);
 			write.WriteObject(plugins_view);
 			write.WriteObject(plugins_edit);
+			write.WriteObject(map_view);
+			write.WriteObject(map_entities);
 		}
 	}
 
@@ -130,6 +136,8 @@ public static partial class WebControlPanel
 		ProfilerLoad,
 		ProfilerEdit,
 		PluginsView,
-		PluginsEdit
+		PluginsEdit,
+		MapView,
+		MapEntities
 	}
 }

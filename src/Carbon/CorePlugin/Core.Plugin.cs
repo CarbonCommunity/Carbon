@@ -185,7 +185,6 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					continue;
 				}
-
 				player.AsIPlayer();
 			}
 			catch (Exception ex)
@@ -193,6 +192,8 @@ public partial class CorePlugin : CarbonPlugin
 				Logger.Error($"Failed getting IPlayer object for {player.displayName}[{player.UserIDString}]", ex);
 			}
 		}
+
+		WebControlPanel.ServerInit();
 	}
 	private void OnServerSave()
 	{
