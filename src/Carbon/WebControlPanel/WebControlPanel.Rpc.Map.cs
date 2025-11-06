@@ -82,7 +82,7 @@ public static partial class WebControlPanel
 		public static MapInfo Get()
 		{
 			MapInfo info = default;
-			info.imageData = MapImageRenderer.Render(out var width, out var height, out var background, lossy: false, transparent: true, oceanMargin: 0);
+			info.imageData = MapImageRenderer.Render(out var width, out var height, out _, scale: 1f, lossy: false, transparent: true, oceanMargin: 0);
 			info.imageWidth = width;
 			info.imageHeight = height;
 			info.worldSize = World.Size;
