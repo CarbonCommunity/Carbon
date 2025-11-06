@@ -30,6 +30,12 @@ jobs:
           echo "version=2.4.$(curl -s -L 'https://api.carbonmod.gg/version?id=release&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
           git config --global --add safe.directory /__w/Carbon/Carbon
 
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global fetch.parallel 0
+          git config --global submodule.fetchJobs 0
+          
       - name: Git Clone
         uses: actions/checkout@v3
         with:
@@ -128,6 +134,13 @@ jobs:
             Release/Carbon.Windows.Release.info
             Release/Carbon.Windows.Minimal.zip
             Release/Carbon.Windows.Minimal.info
+
+      - name: 🏷️ Register version tag
+        shell: bash
+        run: |
+          export VERSION=${{ steps.step1.outputs.version }}
+          git tag "$VERSION-beta" "$GITHUB_SHA"
+          git push origin "$VERSION-beta"
 
   release-on-commit:
     name: Rust (Release) Release

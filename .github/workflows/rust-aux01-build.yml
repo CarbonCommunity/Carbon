@@ -19,6 +19,12 @@ jobs:
       version: ${{ steps.step1.outputs.version }}
 
     steps:
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global fetch.parallel 0
+          git config --global submodule.fetchJobs 0
+          
       - name: Git Clone
         uses: actions/checkout@v3
         with:
@@ -84,7 +90,7 @@ jobs:
         shell: bash
         run: |
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs aux01
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs aux01-staging
 
       - name: Carbon Build
         shell: bash

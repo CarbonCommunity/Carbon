@@ -45,7 +45,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Carbon.Publicizer.Shared", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.UniTask", "Carbon.UniTask\src\Carbon.UniTask.csproj", "{1A100547-E579-3E23-FA88-3FA99EEA3358}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Oxide", "Carbon.Components\Carbon.Oxide\Carbon.Oxide.csproj", "{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Polyfills", "Carbon.Polyfills\Carbon.Polyfills.csproj", "{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -447,30 +447,30 @@ Global
 		{1A100547-E579-3E23-FA88-3FA99EEA3358}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|x64
 		{1A100547-E579-3E23-FA88-3FA99EEA3358}.ReleaseUnix|x64.ActiveCfg = ReleaseUnix|x64
 		{1A100547-E579-3E23-FA88-3FA99EEA3358}.ReleaseUnix|x64.Build.0 = ReleaseUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Debug|Any CPU.Build.0 = Debug|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Debug|x64.ActiveCfg = Debug|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Debug|x64.Build.0 = Debug|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.DebugUnix|Any CPU.ActiveCfg = DebugUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.DebugUnix|Any CPU.Build.0 = DebugUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.DebugUnix|x64.ActiveCfg = DebugUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.DebugUnix|x64.Build.0 = DebugUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Minimal|Any CPU.ActiveCfg = Minimal|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Minimal|Any CPU.Build.0 = Minimal|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Minimal|x64.ActiveCfg = Minimal|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Minimal|x64.Build.0 = Minimal|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.MinimalUnix|Any CPU.ActiveCfg = MinimalUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.MinimalUnix|Any CPU.Build.0 = MinimalUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.MinimalUnix|x64.ActiveCfg = MinimalUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.MinimalUnix|x64.Build.0 = MinimalUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Release|Any CPU.ActiveCfg = Release|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Release|Any CPU.Build.0 = Release|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Release|x64.ActiveCfg = Release|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.Release|x64.Build.0 = Release|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.ReleaseUnix|Any CPU.ActiveCfg = ReleaseUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.ReleaseUnix|x64.ActiveCfg = ReleaseUnix|x64
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5}.ReleaseUnix|x64.Build.0 = ReleaseUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Debug|Any CPU.Build.0 = Debug|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Debug|x64.ActiveCfg = Debug|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Debug|x64.Build.0 = Debug|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.DebugUnix|Any CPU.ActiveCfg = DebugUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.DebugUnix|Any CPU.Build.0 = DebugUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.DebugUnix|x64.ActiveCfg = DebugUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.DebugUnix|x64.Build.0 = DebugUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Minimal|Any CPU.ActiveCfg = Minimal|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Minimal|Any CPU.Build.0 = Minimal|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Minimal|x64.ActiveCfg = Minimal|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Minimal|x64.Build.0 = Minimal|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.MinimalUnix|Any CPU.ActiveCfg = MinimalUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.MinimalUnix|Any CPU.Build.0 = MinimalUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.MinimalUnix|x64.ActiveCfg = MinimalUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.MinimalUnix|x64.Build.0 = MinimalUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Release|Any CPU.ActiveCfg = Release|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Release|Any CPU.Build.0 = Release|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Release|x64.ActiveCfg = Release|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.Release|x64.Build.0 = Release|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.ReleaseUnix|Any CPU.ActiveCfg = ReleaseUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.ReleaseUnix|x64.ActiveCfg = ReleaseUnix|x64
+		{5DAC6222-2BB2-A556-FD96-D5EB9D970A4C}.ReleaseUnix|x64.Build.0 = ReleaseUnix|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -491,7 +491,6 @@ Global
 		{EDB9021B-9267-49E2-B1CA-4CA756854684} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{05275584-550B-440B-86C5-8D76E490DCD2} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{206FEF5D-2782-4954-8272-2AB61B2695B7} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{C28DCEE8-DA67-CEDD-0FB4-12D048F5F2B5} = {31982314-60E6-4740-98FC-2FCDDFB5E35A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {28C89D3B-47B2-45D4-88D4-08EE9E94E67A}
@@ -502,7 +501,6 @@ Global
 		Carbon.Tools\Carbon.Publicizer.Shared\Carbon.Publicizer.Shared.projitems*{10cf4f1a-61bb-4d8e-b8d0-50c9336ce449}*SharedItemsImports = 5
 		Carbon.Tools\Carbon.Publicizer.Shared\Carbon.Publicizer.Shared.projitems*{206fef5d-2782-4954-8272-2ab61b2695b7}*SharedItemsImports = 13
 		Carbon.Tools\Carbon.Generator.Shared\Carbon.Generator.Shared.projitems*{531a79e2-9d4e-4c69-b277-d668f515c209}*SharedItemsImports = 5
-		Carbon.Tools\Carbon.Generator.Shared\Carbon.Generator.Shared.projitems*{c28dcee8-da67-cedd-0fb4-12d048f5f2b5}*SharedItemsImports = 5
 		Carbon.Tools\Carbon.Generator.Shared\Carbon.Generator.Shared.projitems*{edb9021b-9267-49e2-b1ca-4ca756854684}*SharedItemsImports = 5
 		Carbon.Tools\Carbon.Publicizer.Shared\Carbon.Publicizer.Shared.projitems*{edb9021b-9267-49e2-b1ca-4ca756854684}*SharedItemsImports = 5
 	EndGlobalSection
