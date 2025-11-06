@@ -60,16 +60,13 @@ public static partial class WebControlPanel
 			}
 		}
 
-		if (entities.Count == 0)
-		{
-			return;
-		}
 		var write = StartRpcResponse();
 		write.WriteObject(entities.Count);
 		for (int i = 0; i < entities.Count; i++)
 		{
 			entities[i].Serialize(write);
 		}
+		write.WriteObject(TOD_Sky.Instance.Cycle.Hour);
 		SendRpcResponse(read.Connection, write);
 	}
 
