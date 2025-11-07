@@ -79,13 +79,16 @@ public static partial class WebControlPanel
 
 		public bool IsValid() => imageData != null;
 
-		public static MapInfo Get()
+		public static MapInfo Get(float scale)
 		{
+			scale = scale.Clamp(.1f, 1f);
+
 			MapInfo info = default;
-			info.imageData = MapImageRenderer.Render(out var width, out var height, out _, scale: 1f, lossy: false, transparent: true, oceanMargin: 0);
+			info.imageData = MapImageRenderer.Render(out var width, out var height, out _, scale: scale, lossy: false, transparent: true, oceanMargin: 0);
 			info.imageWidth = width;
 			info.imageHeight = height;
 			info.worldSize = World.Size;
+			Logger.Warn($"Processed WebControlPanel map ({width}x{height} at scale {scale:0.0}");
 			return info;
 		}
 

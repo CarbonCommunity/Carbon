@@ -42,7 +42,7 @@ public static partial class WebControlPanel
 	{
 		if (config.ShouldStartServer())
 		{
-			MAPINFO_CACHE = MapInfo.Get();
+			MAPINFO_CACHE = MapInfo.Get(config.Panel.MapImageScale);
 		}
 	}
 

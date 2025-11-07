@@ -111,6 +111,11 @@ public static partial class WebControlPanel
 		public int Port;
 	}
 
+	public class PanelConfig
+	{
+		public float MapImageScale = 1f;
+	}
+
 	public class Server : BridgeServer
 	{
 		public override void OnServerConnected()

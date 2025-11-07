@@ -33,7 +33,7 @@ public static partial class WebControlPanel
 			(server ??= new Server()).Start(config.BridgeServer.Port, config.BridgeServer.Ip, serverMessages, context: nameof(WebControlPanel));
 			if (Community.IsServerInitialized && !MAPINFO_CACHE.IsValid())
 			{
-				MAPINFO_CACHE = MapInfo.Get();
+				MAPINFO_CACHE = MapInfo.Get(config.Panel.MapImageScale);
 			}
 		}
 	}
@@ -41,6 +41,7 @@ public static partial class WebControlPanel
 	public class Config
 	{
 		public bool Enabled = false;
+		public PanelConfig Panel = new();
 		public ServerConfig BridgeServer = new();
 		public Account[] WebAccounts = [new()
 		{

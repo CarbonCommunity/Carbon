@@ -19,23 +19,6 @@ public static partial class WebControlPanel
 		};
 	}
 
-	private static object ParseEntity(BaseEntity entity) => new { NetId = entity.net.ID.Value, Name = entity.name, Flags = entity.flags };
-
-	private static object ParseItem(Item item)
-	{
-		return new
-		{
-			ItemId = item.info?.itemid,
-			ShortName = item.info?.shortname,
-			Position = item.position,
-			Amount = item.amount,
-			MaxCondition = item.maxCondition,
-			Condition = item.condition,
-			ConditionNormalized = item.conditionNormalized,
-			HasCondition = item.hasCondition
-		};
-	}
-
 	private static string CompressStringToBase64(string data)
 	{
 		if (string.IsNullOrEmpty(data))
@@ -95,30 +78,6 @@ public static partial class WebControlPanel
 	    return new TextDecoder().decode(decompressedBuffer);
 	}
 	 */
-
-	public struct EntitySearchRange
-	{
-		public Vector3 position;
-		public float range;
-		public string filter;
-
-		public readonly bool isValid => position != Vector3.zero && range > 0;
-
-		public static EntitySearchRange Parse(string value)
-		{
-			if (!value.Contains(":"))
-			{
-				return default;
-			}
-			var split = value.Split(':');
-			var coordinates = split[0].Split(' ');
-			EntitySearchRange range = default;
-			range.position = new Vector3(float.Parse(coordinates[0]), float.Parse(coordinates[1]), float.Parse(coordinates[2]));
-			range.range = float.Parse(split[1]);
-			range.filter = split.Length >= 3 ? split[2] : null;
-			return range;
-		}
-	}
 
 	private struct ResponseError(ResponseErrorCodes code, string error)
 	{
