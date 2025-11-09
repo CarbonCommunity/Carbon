@@ -1845,7 +1845,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			case Tab.OptionToggle toggle:
 				toggle.Callback?.Invoke(ap);
 				return toggle.Callback != null;
-			
+
 			case Tab.OptionDropdown dropdown:
 				var page = ap._selectedDropdownPage;
 				switch (args.ElementAt(0).ToBool())
@@ -2295,6 +2295,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		_spectateStartPosition[player.userID] = player.transform.position;
 
 		var targetPlayer = target as BasePlayer;
+		player.DisablePlayerCollider();
+		Rust.Ai.SimpleAIMemory.AddIgnorePlayer(player);
+		BaseEntity.Query.Server.RemovePlayer(player);
 		player.Teleport(target.transform.position);
 		player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: true);
 		player.gameObject.SetLayerRecursive(10);
@@ -2306,6 +2309,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.eyes.NetworkUpdate(target.transform.rotation);
 		player.SendNetworkUpdate();
 		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
+		player.limitNetworking = true;
+		player.UpdateNetworkGroup();
 
 		// OnCarbonSpectateStart
 		HookCaller.CallStaticHook(597991647, player, targetPlayer);
@@ -2368,6 +2373,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (spectated != null) player.Teleport(spectated.transform.position);
 		player.spectateFilter = string.Empty;
 		if (!player.IsFlying) player.SendConsoleCommand("noclip");
+		player.limitNetworking = false;
+		player.UpdateNetworkGroup();
+		Rust.Ai.SimpleAIMemory.RemoveIgnorePlayer(player);
+		BaseEntity.Query.Server.RemovePlayer(player);
+		BaseEntity.Query.Server.AddPlayer(player);
 
 		if (Singleton.ConfigInstance.SpectatingEndTeleportBack && _spectateStartPosition.TryGetValue(player.userID, out var position))
 		{
@@ -2385,9 +2395,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var tab = Singleton.GetTab(player);
 			var ap = Singleton.GetPlayerSession(player);
-			EntitiesTab.SelectEntity(tab, ap, spectated);
-			EntitiesTab.DrawEntitySettings(tab, 1, ap);
-			Singleton.Draw(player);
+			if (tab != null)
+			{
+				EntitiesTab.SelectEntity(tab, ap, spectated);
+				EntitiesTab.DrawEntitySettings(tab, 1, ap);
+				Singleton.Draw(player);
+			}
 		}
 	}
 

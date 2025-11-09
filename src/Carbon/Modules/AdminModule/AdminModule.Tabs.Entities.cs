@@ -548,9 +548,7 @@ public partial class AdminModule
 
 					if (Singleton.HasAccess(ap3.Player, "entities.spectate_players"))
 					{
-						if (!multiSelection && ap3.Player != player &&
-						    (ap3.Player.spectateFilter != player?.UserIDString &&
-						     ap3.Player.spectateFilter != entity.net.ID.ToString()))
+						if (!multiSelection && ap3.Player != player && (ap3.Player.spectatingTarget != player && ap3.Player.spectatingTarget != entity))
 						{
 							tab.AddButton(1, "Spectate", ap =>
 							{
@@ -560,9 +558,7 @@ public partial class AdminModule
 							});
 						}
 
-						if (!multiSelection && !string.IsNullOrEmpty(ap3.Player.spectateFilter) &&
-						    (ap3.Player.UserIDString == player?.UserIDString ||
-						     ap3.Player.spectateFilter == entity.net.ID.ToString()))
+						if (!multiSelection && !string.IsNullOrEmpty(ap3.Player.spectateFilter) && (ap3.Player.UserIDString == player?.UserIDString || ap3.Player.spectatingTarget == entity))
 						{
 							tab.AddButton(1, "End Spectating", ap =>
 							{
