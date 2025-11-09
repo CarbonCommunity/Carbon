@@ -421,7 +421,7 @@ public class OxideMod
 		if (type == typeof(Command)) return Community.Runtime.Core.cmd as T;
 		if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.Core.rust as T;
 		if (type == typeof(WebRequests)) return Community.Runtime.Core.webrequest as T;
-		if (type == typeof(Timers)) return Community.Runtime.Core.timer as T;
+		if (type == typeof(PluginTimers)) return Community.Runtime.Core.timer as T;
 
 		name ??= type.Name;
 

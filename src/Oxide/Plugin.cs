@@ -70,6 +70,8 @@ public class Plugin : BaseHookable, IDisposable
 		return target != null;
 	}
 
+	internal Action onDisposed;
+
 	public virtual bool IInit()
 	{
 		BuildHookCache(BindingFlags.NonPublic | BindingFlags.Instance);
@@ -173,6 +175,16 @@ public class Plugin : BaseHookable, IDisposable
 			Logger.Error($"Failed calling Plugin.IUnload.UnprocessHooks on {this}", ex);
 		}
 
+		try
+		{
+			onDisposed?.Invoke();
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Failed calling Plugin.IUnload.onDisposed on {this}", ex);
+		}
+
+		onDisposed = null;
 		HasInitialized = false;
 	}
 

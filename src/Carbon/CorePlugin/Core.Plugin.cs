@@ -1,5 +1,6 @@
 ﻿using API.Events;
 using Facepunch;
+using VLB;
 using Application = UnityEngine.Application;
 using CommandLine = Carbon.Components.CommandLine;
 
@@ -110,6 +111,12 @@ public partial class CorePlugin : CarbonPlugin
 		}
 
 		return default;
+	}
+
+	public override void Setup(string name, string author, VersionNumber version, string description)
+	{
+		base.Setup(name, author, version, description);
+		persistence.GetOrAddComponent<TimeBehaviour>();
 	}
 
 	public override bool IInit()
@@ -242,5 +249,15 @@ public partial class CorePlugin : CarbonPlugin
 	protected override void LoadDefaultMessages()
 	{
 		lang.RegisterMessages(Localisation.Phrases, this);
+	}
+
+	public class TimeBehaviour : FacepunchBehaviour
+	{
+		private global::Oxide.Core.Libraries.Timer timer = Interface.Oxide.GetLibrary<global::Oxide.Core.Libraries.Timer>("Timer");
+
+		public void Update()
+		{
+			timer.Update(0);
+		}
 	}
 }
