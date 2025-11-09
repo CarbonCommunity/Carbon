@@ -199,7 +199,10 @@ namespace Oxide.Core.Libraries
                 Owner = owner;
                 Destroyed = false;
 
-                owner?.onDisposed += () => Destroy();
+                if (owner != null)
+                {
+	                owner.onDisposed += () => Destroy();
+                }
             }
 
             /// <summary>
