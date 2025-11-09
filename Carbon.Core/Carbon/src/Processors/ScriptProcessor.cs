@@ -152,24 +152,12 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 			{
 				try
 				{
-					#region Handle Unicode & Quote Escaping
-
-					// if (input.Contains("\\u"))
-					// {
-					// 	output = Regex.Unescape(input.Replace(Quote, QuoteReplacer).Replace(NewLine, NewLineReplacer)).Replace(QuoteReplacer, Quote).Replace(NewLineReplacer, NewLine);
-					// }
-					// else output = input;
-
-					#endregion
-
 					if (input.Contains(FOOT))
 					{
 						Logger.Warn($" Warning! '{Path.GetFileNameWithoutExtension(file)}' uses UnityEngine.GameObject.FindObjectsOfType. That may cause significant performance drops, and/or server stalls. Report to the developer or use at your own discretion!");
 					}
-
-					output = input.Replace("PluginTimers", "Timers");
 				}
-				catch
+				finally
 				{
 					output = input;
 				}
