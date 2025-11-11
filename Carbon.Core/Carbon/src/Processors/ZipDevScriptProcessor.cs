@@ -222,8 +222,10 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 					{
 						Logger.Warn($" Warning! '{Path.GetFileNameWithoutExtension(file)}' uses UnityEngine.GameObject.FindObjectsOfType. That may cause significant performance drops, and/or server stalls. Report to the developer or use at your own discretion!");
 					}
+
+					output = input.Replace("PluginTimers", "Timers");
 				}
-				finally
+				catch
 				{
 					output = input;
 				}
