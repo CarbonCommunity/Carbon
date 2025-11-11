@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using API.Hooks;
 using Facepunch;
+using Timer = Oxide.Core.Libraries.Timer;
 
 namespace Carbon.Core;
 
