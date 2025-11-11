@@ -243,17 +243,7 @@ namespace Oxide.Core.Libraries
             /// </summary>
             public bool Destroy()
             {
-                lock (Lock)
-                {
-                    if (Destroyed)
-                    {
-                        return false;
-                    }
-
-                    Destroyed = true;
-                    Remove();
-                }
-                return true;
+                return DestroyToPool();
             }
 
             /// <summary>
@@ -438,11 +428,6 @@ namespace Oxide.Core.Libraries
                     }
                 }
             }
-        }
-
-        public void CancelAll(Plugin plugin)
-        {
-
         }
 
         internal TimerInstance AddTimer(int repetitions, float delay, Action callback, Plugin owner = null)
