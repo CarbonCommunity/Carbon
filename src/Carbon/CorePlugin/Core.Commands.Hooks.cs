@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using API.Hooks;
 using Facepunch;
-using Timer = Oxide.Core.Libraries.Timer;
+using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Core;
 
@@ -280,7 +280,7 @@ public partial class CorePlugin
 
 #if DEBUG
 	private uint _debuggedHook;
-	private global::Oxide.Plugins.Timer _debuggedTimer;
+	private Timer _debuggedTimer;
 
 	internal static bool EnforceHookDebugging;
 

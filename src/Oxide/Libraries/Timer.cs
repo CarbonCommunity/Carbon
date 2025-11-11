@@ -1,503 +1,263 @@
-﻿/*
- The MIT License (MIT)
+﻿using Logger = Carbon.Logger;
 
-Copyright (c) 2013-2020 Oxide Team and Contributors
+namespace Oxide.Plugins;
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
- */
-
-namespace Oxide.Core.Libraries
+public class Timers : Library
 {
-    /// <summary>
-    /// The timer library
-    /// </summary>
-    public class Timer : Library
-    {
-        public override bool IsGlobal => false;
+	public Plugin Plugin { get; }
+	internal List<Timer> _timers { get; set; } = new();
 
-        public static int Count { get; private set; }
+	public Timers() { }
+	public Timers(Plugin plugin)
+	{
+		Plugin = plugin;
+	}
 
-        internal static readonly object Lock = new object();
+	public bool IsValid()
+	{
+		return Plugin != null && Plugin.persistence != null;
+	}
+	public void Clear()
+	{
+		if (_timers == null)
+		{
+			return;
+		}
 
-        internal static readonly OxideMod Oxide = Interface.Oxide;
+		foreach (var timer in _timers)
+		{
+			timer.Destroy();
+		}
 
-        public class TimeSlot
-        {
-            public int Count;
-            public TimerInstance FirstInstance;
-            public TimerInstance LastInstance;
+		_timers.Clear();
+		_timers = null;
+	}
 
-            public void GetExpired(double now, Queue<TimerInstance> queue)
-            {
-                TimerInstance instance = FirstInstance;
-                while (instance != null)
-                {
-                    if (instance.ExpiresAt > now)
-                    {
-                        break;
-                    }
+	public Plugin.Persistence Persistence => Plugin.persistence;
 
-                    queue.Enqueue(instance);
-                    instance = instance.NextInstance;
-                }
-            }
+	public Timer In(float time, Action action)
+	{
+		if (!IsValid())
+		{
+			return null;
+		}
 
-            public void InsertTimer(TimerInstance timer)
-            {
-                float expires_at = timer.ExpiresAt;
+		var timer = new Timer(Persistence, action, Plugin);
+		var activity = new Action(() =>
+		{
+			try
+			{
+				action?.Invoke();
+				timer.TimesTriggered++;
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Timer of {time}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+				timer.Destroy();
+			}
+		});
 
-                TimerInstance first_instance = FirstInstance;
-                TimerInstance last_instance = LastInstance;
+		timer.Delay = time;
+		timer.Callback = activity;
 
-                TimerInstance next_instance = first_instance;
-                if (first_instance != null)
-                {
-                    float first_at = first_instance.ExpiresAt;
-                    float last_at = last_instance.ExpiresAt;
-                    if (expires_at <= first_at)
-                    {
-                        next_instance = first_instance;
-                    }
-                    else if (expires_at >= last_at)
-                    {
-                        next_instance = null;
-                    }
-                    else if (last_at - expires_at < expires_at - first_at)
-                    {
-                        next_instance = last_instance;
-                        TimerInstance instance = next_instance;
-                        while (instance != null)
-                        {
-                            if (instance.ExpiresAt <= expires_at)
-                            {
-                                // We need to insert after this instance
-                                break;
-                            }
-                            next_instance = instance;
-                            instance = instance.PreviousInstance;
-                        }
-                    }
-                    else
-                    {
-                        while (next_instance != null)
-                        {
-                            if (next_instance.ExpiresAt > expires_at)
-                            {
-                                break;
-                            }
+		if (Community.IsServerInitialized)
+		{
+			Persistence.Invoke(activity, time);
+		}
 
-                            next_instance = next_instance.NextInstance;
-                        }
-                    }
-                }
+		return timer;
+	}
+	public Timer Once(float time, Action action)
+	{
+		return In(time, action);
+	}
+	public Timer Every(float time, Action action)
+	{
+		if (!IsValid())
+		{
+			return null;
+		}
 
-                if (next_instance == null)
-                {
-                    timer.NextInstance = null;
-                    if (last_instance == null)
-                    {
-                        FirstInstance = timer;
-                        LastInstance = timer;
-                    }
-                    else
-                    {
-                        last_instance.NextInstance = timer;
-                        timer.PreviousInstance = last_instance;
-                        LastInstance = timer;
-                    }
-                }
-                else
-                {
-                    TimerInstance previous = next_instance.PreviousInstance;
-                    if (previous == null)
-                    {
-                        FirstInstance = timer;
-                    }
-                    else
-                    {
-                        previous.NextInstance = timer;
-                    }
-                    next_instance.PreviousInstance = timer;
-                    timer.PreviousInstance = previous;
-                    timer.NextInstance = next_instance;
-                }
+		var timer = new Timer(Persistence, action, Plugin);
+		var activity = new Action(() =>
+		{
+			try
+			{
+				action?.Invoke();
+				timer.TimesTriggered++;
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Timer of {time}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+				timer.Destroy();
+			}
+		});
 
-                timer.Added(this);
-            }
-        }
+		timer.Callback = activity;
+		Persistence.InvokeRepeating(activity, time, time);
+		return timer;
+	}
+	public Timer Repeat(float time, int times, Action action)
+	{
+		if (!IsValid()) return null;
 
-        /// <summary>
-        /// Represents a single timer instance
-        /// </summary>
-        public class TimerInstance
-        {
-            public const int MaxPooled = 5000;
+		var timer = new Timer(Persistence, action, Plugin);
+		var activity = new Action(() =>
+		{
+			try
+			{
+				action?.Invoke();
+				timer.TimesTriggered++;
 
-            internal static Queue<TimerInstance> Pool = new Queue<TimerInstance>();
+				if (times == 0 || timer.TimesTriggered < times) return;
+				if (Persistence == null) return;
+				Persistence.CancelInvoke(timer.Callback);
+				Persistence.CancelInvokeFixedTime(timer.Callback);
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Timer of {time}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+				timer.Destroy();
+			}
+		});
 
-            /// <summary>
-            /// Gets the number of repetitions left on this timer
-            /// </summary>
-            public int Repetitions { get; private set; }
+		timer.Delay = time;
+		timer.Callback = activity;
+		Persistence.InvokeRepeating(activity, time, time);
+		return timer;
+	}
+	public void Destroy(ref Timer timer)
+	{
+		if (timer != null)
+		{
+			timer.Destroy();
+		}
 
-            /// <summary>
-            /// Gets the delay between each repetition
-            /// </summary>
-            public float Delay { get; private set; }
+		timer = null;
+	}
+	public void DestroyAll()
+	{
+		foreach (var timer in _timers)
+		{
+			timer.Destroy();
+		}
 
-            /// <summary>
-            /// Gets the callback delegate
-            /// </summary>
-            public Action Callback { get; private set; }
+		_timers.Clear();
+	}
+}
 
-            /// <summary>
-            /// Gets if this timer has been destroyed
-            /// </summary>
-            public bool Destroyed { get; private set; }
+public class Timer : IDisposable
+{
+	public Plugin Plugin { get; set; }
 
-            /// <summary>
-            /// Gets the plugin to which this timer belongs, if any
-            /// </summary>
-            public Plugin Owner { get; private set; }
+	public Action Activity { get; set; }
+	public Action Callback { get; set; }
+	public Plugin.Persistence Persistence { get; set; }
+	public int Repetitions { get; set; }
+	public float Delay { get; set; }
+	public int TimesTriggered { get; set; }
+	public bool Destroyed { get; set; }
 
-            internal float ExpiresAt;
+	public Timer() { }
+	public Timer(Plugin.Persistence persistence, Action activity, Plugin plugin = null)
+	{
+		Persistence = persistence;
+		Activity = activity;
+		Plugin = plugin;
+	}
 
-            internal TimeSlot TimeSlot;
-            internal TimerInstance NextInstance;
-            internal TimerInstance PreviousInstance;
+	public void Reset(float delay = -1f, int repetitions = 1)
+	{
+		TimesTriggered = 0;
+		Repetitions = repetitions;
 
-            private Timer timer;
+		if (delay < 0)
+		{
+			delay = Delay;
+		}
+		else
+		{
+			Delay = delay;
+		}
 
-            internal TimerInstance(Timer timer, int repetitions, float delay, Action callback, Plugin owner)
-            {
-                Load(timer, repetitions, delay, callback, owner);
-            }
+		if (Destroyed)
+		{
+			Logger.Warn($"You cannot restart a timer that has been destroyed.");
+			return;
+		}
 
-            internal void Load(Timer timer, int repetitions, float delay, Action callback, Plugin owner)
-            {
-                this.timer = timer;
-                Repetitions = repetitions;
-                Delay = delay;
-                Callback = callback;
-                ExpiresAt = Oxide.Now + delay;
-                Owner = owner;
-                Destroyed = false;
+		if (Persistence != null)
+		{
+			Persistence.CancelInvoke(Callback);
+			Persistence.CancelInvokeFixedTime(Callback);
+		}
 
-                if (owner != null)
-                {
-	                owner.onDisposed += () => Destroy();
-                }
-            }
+		if (Repetitions == 1)
+		{
+			Callback = () =>
+			{
+				try
+				{
+					Activity?.Invoke();
+					TimesTriggered++;
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"Timer of {delay}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+				}
 
-            /// <summary>
-            /// Resets the timer optionally changing the delay setting a number of repetitions
-            /// </summary>
-            /// <param name="delay">The new delay between repetitions</param>
-            /// <param name="repetitions">Number of repetitions before being destroyed</param>
-            public void Reset(float delay = -1, int repetitions = 1)
-            {
-                lock (Lock)
-                {
-                    if (delay < 0)
-                    {
-                        delay = Delay;
-                    }
-                    else
-                    {
-                        Delay = delay;
-                    }
+				Destroy();
+			};
 
-                    Repetitions = repetitions;
-                    ExpiresAt = Oxide.Now + delay;
-                    if (Destroyed)
-                    {
-                        Destroyed = false;
-                        Plugin owner = Owner;
-                    }
-                    else
-                    {
-                        Remove();
-                    }
-                    timer.InsertTimer(this);
-                }
-            }
+			Persistence.Invoke(Callback, delay);
+		}
+		else
+		{
+			Callback = () =>
+			{
+				try
+				{
+					Activity?.Invoke();
+					TimesTriggered++;
 
-            /// <summary>
-            /// Destroys this timer
-            /// </summary>
-            public bool Destroy()
-            {
-                lock (Lock)
-                {
-                    if (Destroyed)
-                    {
-                        return false;
-                    }
+					if (TimesTriggered >= Repetitions)
+					{
+						Dispose();
+					}
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"Timer of {delay}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+					Destroy();
+				}
+			};
 
-                    Destroyed = true;
-                    Remove();
-                }
-                return true;
-            }
+			Persistence.InvokeRepeating(Callback, delay, delay);
+		}
+	}
+	public bool Destroy()
+	{
+		if (Destroyed) return false;
+		Destroyed = true;
 
-            /// <summary>
-            /// Destroys this timer and adds it to the pool
-            /// </summary>
-            public bool DestroyToPool()
-            {
-                lock (Lock)
-                {
-                    if (Destroyed)
-                    {
-                        return false;
-                    }
+		if (Persistence != null)
+		{
+			Persistence.CancelInvoke(Callback);
+		}
 
-                    Destroyed = true;
-                    Callback = null;
-                    Remove();
-                    Queue<TimerInstance> pooled_instances = Pool;
-                    if (pooled_instances.Count < MaxPooled)
-                    {
-                        pooled_instances.Enqueue(this);
-                    }
-                }
-                return true;
-            }
+		if (Callback != null)
+		{
+			Callback = null;
+		}
 
-            internal void Added(TimeSlot time_slot)
-            {
-                time_slot.Count++;
-                Count++;
-                TimeSlot = time_slot;
-            }
-
-            internal void Invoke(float now)
-            {
-                if (Repetitions > 0)
-                {
-                    if (--Repetitions == 0)
-                    {
-                        Destroy();
-                        FireCallback();
-                        return;
-                    }
-                }
-
-                Remove();
-
-                float expires_at = ExpiresAt + Delay;
-                ExpiresAt = expires_at;
-                timer.InsertTimer(this, expires_at < now);
-
-                FireCallback();
-            }
-
-            internal void Remove()
-            {
-                TimeSlot slot = TimeSlot;
-                if (slot == null)
-                {
-                    return;
-                }
-
-                slot.Count--;
-                Count--;
-
-                TimerInstance previous = PreviousInstance;
-                TimerInstance next = NextInstance;
-
-                if (next == null)
-                {
-                    slot.LastInstance = previous;
-                }
-                else
-                {
-                    next.PreviousInstance = previous;
-                }
-
-                if (previous == null)
-                {
-                    slot.FirstInstance = next;
-                }
-                else
-                {
-                    previous.NextInstance = next;
-                }
-
-                TimeSlot = null;
-                PreviousInstance = null;
-                NextInstance = null;
-            }
-
-            private void FireCallback()
-            {
-                Owner?.TrackStart();
-                try
-                {
-                    Callback();
-                }
-                catch (Exception ex)
-                {
-                    Destroy();
-                    string error_message = $"Failed to run a {Delay:0.00} timer";
-                    if (Owner && Owner != null)
-                    {
-                        error_message += $" in '{Owner.Name} v{Owner.Version}'";
-                    }
-
-                    Interface.Oxide.LogException(error_message, ex);
-                    return;
-                }
-                finally
-                {
-                    Owner?.TrackEnd();
-                }
-            }
-        }
-
-        // An even number of time slots is required. More slots means more efficient inserts with a higher number of timers but also more per-frame overhead.
-        public const int TimeSlots = 512;
-        public const int LastTimeSlot = TimeSlots - 1;
-        public const float TickDuration = .01f;
-
-        private readonly TimeSlot[] timeSlots = new TimeSlot[TimeSlots];
-        private readonly Queue<TimerInstance> expiredInstanceQueue = new Queue<TimerInstance>();
-
-        private int currentSlot;
-
-        // This needs to be a double in order to avoid precision errors
-        private double nextSlotAt = TickDuration;
-
-        public Timer()
-        {
-            for (int i = 0; i < TimeSlots; i++)
-            {
-                timeSlots[i] = new TimeSlot();
-            }
-        }
-
-        /// <summary>
-        /// Called every server frame to process expired timers
-        /// </summary>
-        public void Update(float delta)
-        {
-            float now = Oxide.Now;
-            TimeSlot[] time_slots = timeSlots;
-            Queue<TimerInstance> expired_queue = expiredInstanceQueue;
-            int checked_slots = 0;
-
-            lock (Lock)
-            {
-                int current_slot = currentSlot;
-                double next_slot_at = nextSlotAt;
-
-                while (true)
-                {
-                    time_slots[current_slot].GetExpired(next_slot_at > now ? now : next_slot_at, expired_queue);
-
-                    // Only move to the next slot once real time is out of the current slot so that the current slot is rechecked each frame
-                    if (now <= next_slot_at)
-                    {
-                        break;
-                    }
-
-                    checked_slots++;
-                    current_slot = current_slot < LastTimeSlot ? current_slot + 1 : 0;
-                    next_slot_at += TickDuration;
-                }
-
-                if (checked_slots > 0)
-                {
-                    currentSlot = current_slot;
-                    nextSlotAt = next_slot_at;
-                }
-
-                int expired_count = expired_queue.Count;
-                for (int i = 0; i < expired_count; i++)
-                {
-                    TimerInstance instance = expired_queue.Dequeue();
-                    if (!instance.Destroyed)
-                    {
-                        instance.Invoke(now);
-                    }
-                }
-            }
-        }
-
-        public void CancelAll(Plugin plugin)
-        {
-
-        }
-
-        internal TimerInstance AddTimer(int repetitions, float delay, Action callback, Plugin owner = null)
-        {
-            lock (Lock)
-            {
-                TimerInstance timer;
-                Queue<TimerInstance> pooled_instances = TimerInstance.Pool;
-                if (pooled_instances.Count > 0)
-                {
-                    timer = pooled_instances.Dequeue();
-                    timer.Load(this, repetitions, delay, callback, owner);
-                }
-                else
-                {
-                    timer = new TimerInstance(this, repetitions, delay, callback, owner);
-                }
-                InsertTimer(timer, timer.ExpiresAt < Oxide.Now);
-                return timer;
-            }
-        }
-
-        private void InsertTimer(TimerInstance timer, bool in_past = false)
-        {
-            int index = in_past ? currentSlot : (int)(timer.ExpiresAt / TickDuration) & LastTimeSlot;
-            timeSlots[index].InsertTimer(timer);
-        }
-
-        /// <summary>
-        /// Creates a timer that fires once
-        /// </summary>
-        /// <param name="delay"></param>
-        /// <param name="callback"></param>
-        /// <param name="owner"></param>
-        /// <returns></returns>
-        [LibraryFunction("Once")]
-        public TimerInstance Once(float delay, Action callback, Plugin owner = null) => AddTimer(1, delay, callback, owner);
-
-        /// <summary>
-        /// Creates a timer that fires many times
-        /// </summary>
-        /// <param name="delay"></param>
-        /// <param name="reps"></param>
-        /// <param name="callback"></param>
-        /// <param name="owner"></param>
-        /// <returns></returns>
-        [LibraryFunction("Repeat")]
-        public TimerInstance Repeat(float delay, int reps, Action callback, Plugin owner = null) => AddTimer(reps, delay, callback, owner);
-
-        /// <summary>
-        /// Creates a timer that fires once next frame
-        /// </summary>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        [LibraryFunction("NextFrame")]
-        public TimerInstance NextFrame(Action callback) => AddTimer(1, 0.0f, callback);
-    }
+		return true;
+	}
+	public void DestroyToPool()
+	{
+		Destroy();
+	}
+	public void Dispose()
+	{
+		Destroy();
+	}
 }
