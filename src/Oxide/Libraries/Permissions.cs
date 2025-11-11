@@ -461,6 +461,11 @@ public class Permission : Library
 			}
 		}
 
+		if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.AdminDefaultGroup) && player.net is { connection.authLevel: 3 })
+		{
+			AddUserGroup(player.UserIDString, Community.Runtime.Config.Permissions.AdminDefaultGroup);
+		}
+
 		RustPlayer rustPlayer;
 
 		if (iPlayerField.GetValue(player) == null)
