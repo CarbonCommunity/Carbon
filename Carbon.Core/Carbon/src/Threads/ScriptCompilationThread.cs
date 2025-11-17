@@ -135,7 +135,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		if (allowCache && _referenceCache.TryGetValue(name, out var reference))
 		{
-			Logger.Debug(id, $"Added common references from cache '{name}'", 4);
 			references.Add(reference);
 		}
 		else
@@ -172,7 +171,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var processedReference = MetadataReference.CreateFromStream(mem);
 			references.Add(processedReference);
 			_referenceCache[name] = processedReference;
-			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
 	private void _injectExtensionReference(string name, List<MetadataReference> references)
