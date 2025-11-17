@@ -67,7 +67,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	private void Awake()
 	{
-		Logger.Log($"Initializing {this}..");
+		if (!Community.Runtime.Config.Logging.ReducedLogging)
+		{
+			Logger.Log($"Initializing {this}..");
+		}
+
 		sw = new Stopwatch();
 
 		_dynamicHooks = new List<HookEx>();
@@ -82,9 +86,12 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		if (Community.Runtime.Config.SelfUpdating.HookUpdates)
 		{
-			Logger.Log("Updating hooks...");
+			if (!Community.Runtime.Config.Logging.ReducedLogging)
+			{
+				Logger.Log("Updating hooks...");
+			}
 
-			Updater.DoUpdate((bool result) =>
+			Updater.DoUpdate(result =>
 			{
 				if (!result)
 					Logger.Error($"Unable to update the hooks at this time, please try again later");
@@ -145,7 +152,10 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	private void OnDisable()
 	{
-		Logger.Log("Stopping hook processor...");
+		if (!Community.Runtime.Config.Logging.ReducedLogging)
+		{
+			Logger.Log("Stopping hook processor...");
+		}
 
 		foreach (HookEx item in _installed.AsEnumerable().Reverse())
 		{
@@ -160,7 +170,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		if (!_doReload) return;
 
-		Logger.Log("Reloading hook processor...");
+		if (!Community.Runtime.Config.Logging.ReducedLogging)
+		{
+			Logger.Log("Reloading hook processor...");
+		}
+
 		_doReload = false;
 		enabled = true;
 	}
@@ -226,7 +240,10 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	private void OnDestroy()
 	{
-		Logger.Log("Destroying hook processor...");
+		if (!Community.Runtime.Config.Logging.ReducedLogging)
+		{
+			Logger.Log("Destroying hook processor...");
+		}
 		Dispose();
 	}
 
@@ -327,14 +344,17 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			if (stats.Total == 0) return;
 
 			var fileName = Path.GetFileName(filePath);
-			Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic}) from file '{fileName}' in {sw.ElapsedMilliseconds}ms");
+			if (!Community.Runtime.Config.Logging.ReducedLogging)
+			{
+				Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic}) from file '{fileName}' in {sw.ElapsedMilliseconds}ms");
+			}
 
 #if !(RUST_STAGING || RUST_RELEASE || RUST_AUX01 || RUST_AUX02 || RUST_AUX03 || QA)
 			if (hooks.GetType("Carbon.Hooks._Meta") is Type type)
 			{
 				var checksum = (string)type.GetField("Checksum").GetValue(null);
 				var currentChecksum = BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(typeof(ServerMgr).Assembly.Location)), 0).ToString();
-				if (!checksum.Equals(currentChecksum))
+				if (!checksum.Equals(currentChecksum) && !Community.Runtime.Config.Logging.ReducedLogging)
 				{
 					Logger.Warn($"Checksum validation failed for Rust has failed ({currentChecksum} =/ {checksum}) - [{fileName}]");
 				}
@@ -360,8 +380,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		TaskStatus stats = LoadHooks(types);
 		if (stats.Total == 0) return;
 
-		Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic})"
-			+ $" from type '{type}' in {sw.ElapsedMilliseconds}ms");
+		if (!Community.Runtime.Config.Logging.ReducedLogging)
+		{
+			Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic})"
+			           + $" from type '{type}' in {sw.ElapsedMilliseconds}ms");
+		}
 	}
 
 	private TaskStatus LoadHooks(IEnumerable<TypeInfo> types)

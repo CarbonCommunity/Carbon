@@ -132,23 +132,8 @@ public class Initializer : ICarbonComponent
 			return;
 		}
 
-		Logger.Log(Environment.NewLine +
-			@"                                               " + Environment.NewLine +
-			@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
-			@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
-			@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
-			@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
-			@"                          discord.gg/carbonmod " + Environment.NewLine +
-			@"                                               " + Environment.NewLine
-		);
-
 		try
 		{
-#if MINIMAL
-			Logger.Log("Initializing minimal build...");
-#else
-			Logger.Log("Initializing...");
-#endif
 			if (CommunityInternal.InternalRuntime == null) CommunityInternal.InternalRuntime = new CommunityInternal();
 			else CommunityInternal.InternalRuntime?.Uninitialize();
 
@@ -161,7 +146,7 @@ public class Initializer : ICarbonComponent
 		}
 	}
 	public void OnUnloaded(EventArgs args)
-	{	
+	{
 		Logger.Log("Uninitalizing...");
 		CommunityInternal.InternalRuntime?.Uninitialize();
 		CommunityInternal.InternalRuntime = null;
