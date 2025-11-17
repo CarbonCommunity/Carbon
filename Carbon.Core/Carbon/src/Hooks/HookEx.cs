@@ -103,11 +103,8 @@ public class HookEx : IDisposable, IHook
 				Type generic = TargetType;
 				IEnumerable<Type> constrains = AccessToolsEx.GetConstraints(generic);
 
-				Logger.Debug($"Generic {generic} matched {constrains.Count()} constrains", 2);
-
 				foreach (Type item in AccessToolsEx.MatchConstrains(constrains))
 				{
-					Logger.Debug($" > Unrolling generic {generic}[{item}] requested by {type}", 3);
 					Type constructed = generic.MakeGenericType(new Type[] { item });
 					MethodInfo method = AccessTools.Method(constructed, TargetMethod) ?? null;
 					if (method != null) TargetMethods.Add(method);
@@ -175,7 +172,6 @@ public class HookEx : IDisposable, IHook
 				) ?? null) ?? throw new Exception($"HarmonyLib failed to patch '{method}'");
 
 				_runtime.Status = HookState.Success;
-				Logger.Debug($"Hook '{this}' patched '[{method.DeclaringType}] {method}'", 2);
 			}
 		}
 #if DEBUG
@@ -210,8 +206,6 @@ public class HookEx : IDisposable, IHook
 		{
 			if (!IsInstalled) return true;
 			_runtime.HarmonyHandler.UnpatchAll(Identifier);
-
-			Logger.Debug($"Hook '{HookFullName}[{Identifier}]' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
 			_runtime.Status = HookState.Inactive;
 			return true;
 		}

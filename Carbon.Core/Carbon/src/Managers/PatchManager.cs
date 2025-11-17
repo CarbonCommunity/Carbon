@@ -124,7 +124,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		if (_patches.Count > 0)
 		{
-			Logger.Debug($" - Installing patches");
 			// I don't like this, patching stuff that may not be used but for the
 			// sake of time I will let it go for now but this needs to be reviewed.
 			foreach (HookEx hook in _patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
@@ -133,7 +132,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		if (_staticHooks.Count > 0)
 		{
-			Logger.Debug($" - Installing static hooks");
 			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
 				Subscribe(hook.Identifier, "Carbon.Static");
 
@@ -287,7 +285,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 					case true when !isInstalled:
 						if (!hook.ApplyPatch())
 							throw new ApplicationException($"A general error occured while installing '{hook}'");
-						Logger.Debug($"Installed hook '{hook}'", 1);
 						_installed.Add(hook);
 						break;
 
@@ -295,7 +292,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 					case false when isInstalled:
 						if (!hook.RemovePatch())
 							throw new ApplicationException($"A general error occured while uninstalling '{hook}'");
-						Logger.Debug($"Uninstalled hook '{hook}'", 1);
 						_installed.Remove(hook);
 						break;
 				}
@@ -420,21 +416,18 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				{
 					retvar.Patch++;
 					_patches.Add(hook);
-					Logger.Debug($"Loaded patch '{hook}'", 4);
 					if (!hook.HasDependencies()) Subscribe(hook.Identifier, "Carbon.Patch");
 				}
 				else if (hook.IsStaticHook)
 				{
 					retvar.Static++;
 					_staticHooks.Add(hook);
-					Logger.Debug($"Loaded static hook '{hook}'", 4);
 					Subscribe(hook.Identifier, "Carbon.Static");
 				}
 				else
 				{
 					retvar.Dynamic++;
 					_dynamicHooks.Add(hook);
-					Logger.Debug($"Loaded dynamic hook '{hook}'", 4);
 				}
 
 				HookStringPool.GetOrAdd(hook.HookName);
@@ -559,9 +552,8 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 			if (!hooks.Any())
 			{
-				Logger.Debug($"Failed to subscribe '{hookName}' by '{requester}', hook not found");
 				return;
-			};
+			}
 
 			foreach (var item in hooks.Where(hook => !HookIsSubscribedBy(hook.Identifier, requester)))
 			{
@@ -580,11 +572,8 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	{
 		try
 		{
-			Logger.Debug($"Subscribe to '{hook}' by '{requester}'");
-
 			foreach (HookEx dependency in GetHookDependencyTree(hook))
 			{
-				Logger.Debug($"Subscribe dependency '{dependency}' for '{hook}'", 1);
 				AddSubscriber(dependency.Identifier, requester);
 				Enqueue(dependency.Identifier);
 			}
@@ -594,7 +583,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 			foreach (HookEx dependant in GetHookDependantTree(hook))
 			{
-				Logger.Debug($"Subscribe dependant '{dependant}' for '{hook}'", 1);
 				AddSubscriber(dependant.Identifier, requester);
 				Enqueue(dependant.Identifier);
 			}
@@ -602,7 +590,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		catch (Exception e)
 		{
 			Logger.Error($"Error while subscribing hook '{hook}'", e);
-			return;
 		}
 	}
 
@@ -627,7 +614,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 			if (!hooks.Any())
 			{
-				Logger.Debug($"Failure to subscribe to '{hookName}' by '{requester}', no hook found");
 				return;
 			};
 
@@ -635,13 +621,10 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			{
 				Unsubscribe(hook, requester);
 			}
-
-			hooks = default;
 		}
 		catch (Exception e)
 		{
 			Logger.Error($"Error while unsubscribing hook '{hookName}'", e);
-			return;
 		}
 	}
 
@@ -651,7 +634,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		{
 			foreach (HookEx dependant in GetHookDependantTree(hook))
 			{
-				Logger.Debug($"Unsubscribe dependant '{dependant}' for '{hook}'", 1);
 				RemoveSubscriber(dependant.Identifier, requester);
 				Enqueue(dependant.Identifier);
 			}
@@ -661,7 +643,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 			foreach (HookEx dependency in GetHookDependencyTree(hook))
 			{
-				Logger.Debug($"Unsubscribe dependency '{dependency}' for '{hook}'", 1);
 				RemoveSubscriber(dependency.Identifier, requester);
 				Enqueue(dependency.Identifier);
 			}
@@ -669,7 +650,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		catch (Exception e)
 		{
 			Logger.Error($"Error while unsubscribing hook '{hook}'", e);
-			return;
 		}
 	}
 
