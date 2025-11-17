@@ -25,6 +25,7 @@ public class Patch : IDisposable
 
 	public static AssemblyDefinition bootstrap;
 	public static AssemblyDefinition common;
+	public static AssemblyDefinition facepunchSystem;
 
 	public AssemblyDefinition assembly;
 	public ReaderParameters readerParameters;
@@ -39,6 +40,7 @@ public class Patch : IDisposable
 		{
 			common = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(carbonManagedDir, "Carbon.Common.dll"))));
 			bootstrap = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(carbonManagedDir, "Carbon.Bootstrap.dll"))));
+			facepunchSystem = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(rustManagedDir, "Facepunch.System.dll"))));
 		}
 		catch { }
 
