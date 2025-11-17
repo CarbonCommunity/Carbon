@@ -108,6 +108,7 @@ public class Config
 		public int LogFileMode = 2;
 		public int LogVerbosity = 0;
 		public bool CommandSuggestions = true;
+		public bool ReducedLogging = true;
 	}
 
 	public class AnalyticsConfig
