@@ -30,11 +30,17 @@ public class RustHarmony() : Patch(RustManagedDirectory, "Rust.Harmony.dll")
 	{
 		var harmonyLoader = assembly.MainModule.GetType("HarmonyLoader");
 		var method = harmonyLoader.Methods.FirstOrDefault(x => x.Name == "LoadHarmonyMods");
-		var getSwitchType = Type.GetType("Facepunch.CommandLine")?.GetMethod("GetSwitch", [typeof(string), typeof(string)]);
+		var getSwitchType = facepunchSystem.MainModule.GetType("Facepunch.CommandLine")?.Methods.FirstOrDefault(x => x.Name == "GetSwitch");
 
 		if (getSwitchType == null || method is null || !method.HasBody)
 		{
 			return;
+		}
+
+		var tryingToLoadAssemblyLogMethod = harmonyLoader.NestedTypes.FirstOrDefault(x => x.FullName == "HarmonyLoader/<>c").Methods.FirstOrDefault(x => x.Name == "<LoadHarmonyMods>b__12_0").Body.Instructions;
+		for (int i = 0; i < 5; i++)
+		{
+			tryingToLoadAssemblyLogMethod.RemoveAt(0);
 		}
 
 		var switchReference = assembly.MainModule.ImportReference(getSwitchType);

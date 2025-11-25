@@ -281,7 +281,6 @@ public class ScriptLoader : IScriptLoader
 					{
 						var @ref = $"{line.Replace("// Reference:", "").Replace("//Reference:", "")}".Trim();
 						resultReferences.Add(@ref);
-						Logger.Debug($" Added reference: {@ref}");
 					}
 				}
 				catch { }
@@ -292,7 +291,6 @@ public class ScriptLoader : IScriptLoader
 
 						var @ref = $"{line.Replace("// Requires:", "").Replace("//Requires:", "")}".Trim();
 						resultRequires.Add(@ref);
-						Logger.Debug($" Added required plugin: {@ref}");
 					}
 				}
 				catch { }
@@ -459,8 +457,6 @@ public class ScriptLoader : IScriptLoader
 			Pool.FreeUnmanaged(ref missingRequires);
 			yield break;
 		}
-
-		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime.TotalMilliseconds:0}ms [int. {AsyncLoader.InternalCallHookGenTime.TotalMilliseconds:0}ms]...", 1);
 
 		var assembly = AsyncLoader.Assembly;
 		var firstPlugin = true;
