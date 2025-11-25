@@ -36,13 +36,25 @@ public class Patch : IDisposable
 		CarbonManagedDirectory = carbonManagedDir;
 		RustManagedDirectory = rustManagedDir;
 
-		try
+		if (!string.IsNullOrEmpty(carbonManagedDir))
 		{
-			common = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(carbonManagedDir, "Carbon.Common.dll"))));
-			bootstrap = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(carbonManagedDir, "Carbon.Bootstrap.dll"))));
-			facepunchSystem = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(rustManagedDir, "Facepunch.System.dll"))));
+			TryLoadCommonAssembly(ref common, Path.Combine(carbonManagedDir, "Carbon.Common.dll"));
+			TryLoadCommonAssembly(ref bootstrap, Path.Combine(carbonManagedDir, "Carbon.Bootstrap.dll"));
 		}
-		catch { }
+
+		if (!string.IsNullOrEmpty(rustManagedDir))
+		{
+			TryLoadCommonAssembly(ref facepunchSystem, Path.Combine(rustManagedDir, "Facepunch.System.dll"));
+		}
+
+		static void TryLoadCommonAssembly(ref AssemblyDefinition definition, string path)
+		{
+			if (!File.Exists(path))
+			{
+				return;
+			}
+			definition = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(path)));
+		}
 
 		BuiltInPatches.Current =
 		[
@@ -72,7 +84,7 @@ public class Patch : IDisposable
 	{
 		private readonly IDictionary<string, AssemblyDefinition> _cache = new Dictionary<string, AssemblyDefinition> (StringComparer.Ordinal);
 
-		public override AssemblyDefinition Resolve (AssemblyNameReference name)
+		public override AssemblyDefinition Resolve(AssemblyNameReference name)
 		{
 			if (_cache.TryGetValue (name.FullName, out var assembly))
 				return assembly;
@@ -80,14 +92,22 @@ public class Patch : IDisposable
 			var directories = GetSearchDirectories();
 			foreach (var directory in directories)
 			{
+				if (!Directory.Exists(directory))
+				{
+					continue;
+				}
 				var files = Directory.GetFiles(directory, "*.dll", SearchOption.AllDirectories);
 				foreach (var file in files)
 				{
 					var fileName = Path.GetFileNameWithoutExtension(file);
 					if (fileName.Equals(name.Name, StringComparison.OrdinalIgnoreCase))
 					{
-						using var stream = new MemoryStream(File.ReadAllBytes(file));
-						assembly = AssemblyDefinition.ReadAssembly(stream);
+						try
+						{
+							using var stream = new MemoryStream(File.ReadAllBytes(file));
+							assembly = AssemblyDefinition.ReadAssembly(stream);
+						}
+						catch { }
 						break;
 					}
 				}
