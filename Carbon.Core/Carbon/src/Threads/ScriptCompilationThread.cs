@@ -414,9 +414,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				Logger.Warn($" Couldn't find reference '{reference}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
 			}
-			IsDone = true;
-			Pool.FreeUnmanaged(ref missingReferences);
-			return;
 		}
 
 		Pool.FreeUnmanaged(ref missingReferences);
