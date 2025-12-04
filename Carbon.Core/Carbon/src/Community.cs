@@ -64,7 +64,11 @@ public class CommunityInternal : Community
 		var commandCount = CommandManager.Chat.Count(x => x.Reference == Core && !x.HasFlag(CommandFlags.Hidden)) +
 		                   CommandManager.ClientConsole.Count(x => x.Reference == Core && !x.HasFlag(CommandFlags.Hidden));
 
-		Logger.Log($"Initialized Carbon Core plugin ({Core.Hooks.Count:n0} {Core.Hooks.Count.Plural("hook", "hooks")}, {commandCount:n0} {commandCount.Plural("command", "commands")})");
+		if (!Config.Logging.ReducedLogging)
+		{
+			Logger.Log($"Initialized Carbon Core plugin ({Core.Hooks.Count:n0} {Core.Hooks.Count.Plural("hook", "hooks")}, {commandCount:n0} {commandCount.Plural("command", "commands")})");
+		}
+
 
 #if !MINIMAL
 		CarbonAuto.Init();
@@ -73,7 +77,10 @@ public class CommunityInternal : Community
 	}
 	internal void _installProcessors()
 	{
-		Carbon.Logger.Log("Installed processors");
+		if (!Config.Logging.ReducedLogging)
+		{
+			Logger.Log("Installed processors");
+		}
 		{
 			_uninstallProcessors();
 
@@ -93,8 +100,11 @@ public class CommunityInternal : Community
 	}
 	internal void _installTest()
 	{
-		Carbon.Test.Integrations.Logger = new Logger();
-		Carbon.Logger.Log($"Initialized Carbon.Test backend");
+		Test.Integrations.Logger = new Logger();
+		if (!Config.Logging.ReducedLogging)
+		{
+			Logger.Log($"Initialized Carbon.Test backend");
+		}
 	}
 	internal void _registerProcessors()
 	{
@@ -105,7 +115,10 @@ public class CommunityInternal : Community
 #endif
 
 		if (ScriptProcessor != null) ScriptProcessor.InvokeRepeating(() => { RefreshConsoleInfo(); }, 1f, 1f);
-		Carbon.Logger.Log("Registered processors");
+		if (!Config.Logging.ReducedLogging)
+		{
+			Logger.Log("Registered processors");
+		}
 	}
 	internal void _uninstallProcessors()
 	{
@@ -148,12 +161,35 @@ public class CommunityInternal : Community
 		LoadConfig();
 		LoadMonoProfilerConfig();
 
+		if (!Config.Logging.ReducedLogging)
+		{
+			Logger.Log(Environment.NewLine +
+			           @"                                               " + Environment.NewLine +
+			           @"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
+			           @" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
+			           @" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
+			           @" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
+			           @"                          discord.gg/carbonmod " + Environment.NewLine +
+			           @"                                               " + Environment.NewLine
+			);
+
+#if MINIMAL
+			Logger.Log("Initializing minimal build...");
+#else
+			Logger.Log("Initializing...");
+#endif
+		}
+
 		Compat.Init();
 
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
 		Logger.InitTaskExceptions();
-		Logger.Log("Loaded config");
+
+		if (!Config.Logging.ReducedLogging)
+		{
+			Logger.Log("Loaded config");
+		}
 
 		Defines.Initialize();
 
@@ -189,9 +225,9 @@ public class CommunityInternal : Community
 			ReloadPlugins();
 		});
 
-		Logger.Log($"  Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort} on {Analytics.Platform.ToCamelCase()}");
-		Logger.Log($"         {Build.Git.Author} on {Build.Git.Branch} ({Build.Git.Date})");
-		Logger.Log($"  Rust   {Facepunch.BuildInfo.Current.Build.Number}/{Rust.Protocol.printable} on {Facepunch.BuildInfo.Current.Scm.Branch} ({Facepunch.BuildInfo.Current.Scm.Date})");
+		Logger.Log($"Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort} on {Analytics.Platform.ToCamelCase()}");
+		Logger.Log($"       {Build.Git.Author} on {Build.Git.Branch} ({Build.Git.Date})");
+		Logger.Log($"Rust   {Facepunch.BuildInfo.Current.Build.Number}/{Rust.Protocol.printable} on {Facepunch.BuildInfo.Current.Scm.Branch} ({Facepunch.BuildInfo.Current.Scm.Date})");
 
 		Interface.Initialize();
 
@@ -199,7 +235,6 @@ public class CommunityInternal : Community
 
 		IsInitialized = true;
 
-		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
 
 		WebControlPanel.Init();
