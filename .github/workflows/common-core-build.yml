@@ -19,7 +19,7 @@ on:
 
 jobs:
   configure:
-    name: Configure Build
+    name: Configure Build (${{ inputs.GIT_BRANCH }})
     runs-on: ubuntu-latest
     outputs:
       api_id: ${{ steps.config.outputs.api_id }}
@@ -50,7 +50,6 @@ jobs:
           NATIVE_MODE="standard"
           # CS Mode: "debug", "release", "full" (Debug+Release)
           CS_MODE="debug"
-          
           RUN_NUGET="false"
           CREATE_GIT_TAG="false"
           GIT_TAG_SUFFIX=""
@@ -66,7 +65,6 @@ jobs:
               MAJOR_VER="2.1"
               RELEASE_NAME="Edge"
               ;;
-          
             "preview")
               API_ID="preview"
               BUILD_DEFINE="PREVIEW"
@@ -74,7 +72,6 @@ jobs:
               MAJOR_VER="2.2"
               RELEASE_NAME="Preview"
               ;;
-          
             "qa")
               API_ID="qa"
               BUILD_DEFINE="QA"
@@ -85,7 +82,6 @@ jobs:
               MAJOR_VER="2.9"
               RELEASE_NAME="QA"
               ;;
-
             "production")
               API_ID="production"
               BUILD_DEFINE="PROD"
@@ -98,7 +94,6 @@ jobs:
               MAJOR_VER="2.0"
               RELEASE_NAME="Production"
               ;;
-
             "rust_beta/aux01")
               API_ID="aux01"
               BUILD_DEFINE="RUST_AUX01"
@@ -107,7 +102,6 @@ jobs:
               MAJOR_VER="2.5"
               RELEASE_NAME="Rust (Aux01)"
               ;;
-
             "rust_beta/aux02")
               API_ID="aux02"
               BUILD_DEFINE="RUST_AUX02"
@@ -116,7 +110,6 @@ jobs:
               MAJOR_VER="2.6"
               RELEASE_NAME="Rust (Aux02)"
               ;;
-
             "rust_beta/aux03")
               API_ID="aux03"
               BUILD_DEFINE="RUST_AUX03"
@@ -125,7 +118,6 @@ jobs:
               MAJOR_VER="2.7"
               RELEASE_NAME="Rust (Aux03)"
               ;;
-
             "rust_beta/staging")
               API_ID="staging"
               BUILD_DEFINE="RUST_STAGING"
@@ -134,7 +126,6 @@ jobs:
               MAJOR_VER="2.3"
               RELEASE_NAME="Rust (Staging)"
               ;;
-
             "rust_beta/release")
               API_ID="release"
               BUILD_DEFINE="RUST_RELEASE"
@@ -147,7 +138,6 @@ jobs:
               MAJOR_VER="2.4"
               RELEASE_NAME="Rust (Release)"
               ;;
-          
             *)
               echo "Unknown branch ref: $REF"
               exit 1
@@ -214,7 +204,6 @@ jobs:
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
-          echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           
           REAL_SHA=$(git rev-parse HEAD)
           echo "commit_sha=$REAL_SHA" >> $GITHUB_OUTPUT
@@ -222,17 +211,6 @@ jobs:
           
           VER_SUFFIX=$(curl -s -L "https://api.carbonmod.gg/version?id=$API&token=$TOKEN")
           echo "version=$MAJOR.$VER_SUFFIX" >> $GITHUB_OUTPUT
-
-      - name: Install MinGW (Windows Build Only) (Cond)
-        if: matrix.group == 'Windows'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mingw-w64
-
-      - name: Cache Rust
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: Carbon.Core/Carbon.Native
 
       - name: Setup .NET 8 & 9 SDK
         uses: actions/setup-dotnet@v5
@@ -243,34 +221,62 @@ jobs:
             8.0.x
             9.0.x
 
-      - name: Carbon.Native Toolchain
+      - name: Get Carbon.Native Hash
+        id: rust-hash
+        shell: bash
+        run: |
+          HASH=$(git rev-parse HEAD:Carbon.Core/Carbon.Native)
+          echo "hash=$HASH" >> $GITHUB_OUTPUT
+
+      - name: Restore Rust Cache Target
+        id: cache-rust
+        uses: actions/cache@v5
+        with:
+          path: Carbon.Core/Carbon.Native/target
+          key: rust-target-v1-${{ matrix.target }}-${{ needs.configure.outputs.native_mode }}-${{ steps.rust-hash.outputs.hash }}
+
+      - name: Install MinGW (Windows) (Cond)
+        if: matrix.group == 'Windows' && steps.cache-rust.outputs.cache-hit != 'true'
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends mingw-w64
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: Carbon.Core/Carbon.Native
+
+      - name: Carbon.Native Toolchain (Cond)
+        if: steps.cache-rust.outputs.cache-hit != 'true'
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
       - name: Build Native (Standard) (Cond)
+        if: steps.cache-rust.outputs.cache-hit != 'true' && (contains(needs.configure.outputs.native_mode, 'standard') || contains(needs.configure.outputs.native_mode, 'both'))
         working-directory: Carbon.Core/Carbon.Native
         shell: bash
-        if: contains(needs.configure.outputs.native_mode, 'standard') || contains(needs.configure.outputs.native_mode, 'both')
         run: cargo build -r --target ${{ matrix.target }}
 
       - name: Build Native (Prod) (Cond)
+        if: steps.cache-rust.outputs.cache-hit != 'true' && (contains(needs.configure.outputs.native_mode, 'prod') || contains(needs.configure.outputs.native_mode, 'both'))
         working-directory: Carbon.Core/Carbon.Native
         shell: bash
-        if: contains(needs.configure.outputs.native_mode, 'prod') || contains(needs.configure.outputs.native_mode, 'both')
         run: cargo build --profile prod --target ${{ matrix.target }}
+
+      - name: Pre-build Carbon Runner
+        shell: bash
+        run: |
+          dotnet build Carbon.Core/Carbon.Tools/Carbon.Runner -c Release -o ./runner-bin
 
       - name: Carbon Bootstrap CS
         shell: bash
-        run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
+        run: dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/bootstrap.cs
 
       - name: Carbon Update CS
         shell: bash
         env:
           UPDATE_ARG: ${{ needs.configure.outputs.update_arg }}
-        run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs $UPDATE_ARG
+        run: dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/update.cs $UPDATE_ARG
 
       - name: Carbon Build
         shell: bash
@@ -283,22 +289,22 @@ jobs:
         run: |
           # Debug Build
           if [[ "$MODE" == "debug" || "$MODE" == "full" ]]; then
-            dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs Debug$ARG $DEFINE $TAG -noclean
+            dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/build.cs Debug$ARG $DEFINE $TAG -noclean
           fi
-
+          
           # Release Build
           if [[ "$MODE" == "release" || "$MODE" == "full" ]]; then
-            dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs Release$ARG $DEFINE $TAG -noclean
+            dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/build.cs Release$ARG $DEFINE $TAG -noclean
           fi
-
+          
           # Minimal is always built
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs Minimal$ARG $DEFINE $TAG -noclean
+          dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/build.cs Minimal$ARG $DEFINE $TAG -noclean
 
       - name: Carbon Nuget Publish (Cond)
         if: needs.configure.outputs.run_nuget == 'true' && matrix.group == 'Linux' && github.event_name != 'pull_request'
         shell: bash
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/nuget.cs ${{ secrets.NUGET_API }} ${{ steps.step1.outputs.version }}
+          dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/nuget.cs ${{ secrets.NUGET_API }} ${{ steps.step1.outputs.version }}
 
       - name: Register Version Tag (Cond)
         if: needs.configure.outputs.create_git_tag == 'true' && matrix.group == 'Linux' && github.event_name != 'pull_request'
@@ -322,7 +328,7 @@ jobs:
             Release/*.info
 
   release:
-    name: Release
+    name: Release (${{ needs.configure.outputs.release_name }}) (${{ needs.configure.outputs.tag_name }})
     if: github.event_name != 'pull_request'
     needs: [ "configure", "build" ]
     runs-on: ubuntu-latest
