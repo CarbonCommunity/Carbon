@@ -68,6 +68,7 @@ jobs:
           dotnet-version: |
             8.0.x
             9.0.x
+            10.0.x
 
       - name: Carbon.Native Toolchain
         uses: dtolnay/rust-toolchain@stable
