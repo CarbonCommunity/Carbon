@@ -317,6 +317,7 @@ jobs:
 
   release:
     name: Release
+    if: github.event_name != 'pull_request'
     needs: [ "configure", "build" ]
     runs-on: ubuntu-latest
     permissions:
