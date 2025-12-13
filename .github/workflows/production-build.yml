@@ -5,186 +5,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Production Build
-    runs-on: ubuntu-latest
-    container: rust:bullseye
-    continue-on-error: false
+  call-common:
+    uses: ./.github/workflows/common-core-build.yml
+    name: Call Common Build
+    permissions:
+      contents: write
+    with:
+      # noinspection UndefinedParamsPresent
+      GIT_BRANCH: production
+      # noinspection UndefinedParamsPresent
+      RELEASE_BODY: |
+        This is a release build of Carbon based on the `production` branch.
+        This build is targeted at the general public.
 
-    outputs:
-      date: ${{ steps.step1.outputs.date }}
-      clock: ${{ steps.step1.outputs.clock }}
-      tag: ${{ steps.step1.outputs.tag }}
-      ref: ${{ steps.step1.outputs.ref }}
-      version: ${{ steps.step1.outputs.version }}
-
-    steps:
-      - name: Configure Git
-        shell: bash
-        run: |
-          git config --global fetch.parallel 0
-          git config --global submodule.fetchJobs 0
-          
-      - name: Git Clone
-        uses: actions/checkout@v3
-        with:
-          ref: production
-          token: ${{ secrets.PAT_ALL_REPO }}
-          submodules: recursive
-
-      - name: Environment Setup
-        id: step1
-        shell: bash
-        run: |
-          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-          echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
-          echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
-          echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=2.0.$(curl -s -L 'https://api.carbonmod.gg/version?id=production&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
-          git config --global --add safe.directory /__w/Carbon/Carbon
-
-      - name: Rust Setup
-        shell: bash
-        run: |
-          apt update
-          apt install -y mingw-w64
-
-          rustup install stable
-          rustup default stable
-          rustup target add x86_64-pc-windows-gnu
-          rustup component add rust-std --target x86_64-pc-windows-gnu
-          rustup show
-          rustc --print sysroot
-
-          which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
-          x86_64-w64-mingw32-dlltool --version
-
-      - name: Setup .NET 8 SDK
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: 8.0.406
-      
-      - name: Setup .NET 9 SDK
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: 9.0.203
-
-      - name: Carbon.Native Toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Carbon.Native Build (Linux)
-        uses: ClementTsang/cargo-action@v0.0.3
-        with:
-          command: build
-          args: -r --target x86_64-unknown-linux-gnu
-          directory: Carbon.Core/Carbon.Native
-
-      - name: Carbon.Native Build (Windows)
-        uses: ClementTsang/cargo-action@v0.0.3
-        with:
-          command: build
-          args: -r --target x86_64-pc-windows-gnu
-          directory: Carbon.Core/Carbon.Native
-
-      - name: Carbon.Native Build (Linux) (PROD)
-        uses: ClementTsang/cargo-action@v0.0.3
-        with:
-          command: build
-          args: --profile prod --target x86_64-unknown-linux-gnu
-          directory: Carbon.Core/Carbon.Native
-          
-      - name: Carbon.Native Build (Windows) (PROD)
-        uses: ClementTsang/cargo-action@v0.0.3
-        with:
-          command: build
-          args: --profile prod --target x86_64-pc-windows-gnu
-          directory: Carbon.Core/Carbon.Native
-          
-      - name: Carbon Bootstrap
-        shell: bash
-        run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs
-
-      - name: Carbon Build
-        shell: bash
-        run: |
-          export VERSION=${{ steps.step1.outputs.version }}
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs Release PROD production_build
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs Minimal PROD production_build
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs ReleaseUnix PROD production_build
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs MinimalUnix PROD production_build
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/nuget.cs ${{ secrets.NUGET_API }} ${{ steps.step1.outputs.version }}
-
-      - name: Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: |
-            Release/Carbon.Linux.Release.tar.gz
-            Release/Carbon.Linux.Release.info
-            Release/Carbon.Linux.Minimal.tar.gz
-            Release/Carbon.Linux.Minimal.info
-            Release/Carbon.Windows.Release.zip
-            Release/Carbon.Windows.Release.info
-            Release/Carbon.Windows.Minimal.zip
-            Release/Carbon.Windows.Minimal.info
-            
-      - name: 🏷️ Register version tag
-        shell: bash
-        run: |
-          export VERSION=${{ steps.step1.outputs.version }}
-          git tag "$VERSION" "$GITHUB_SHA"
-          git push origin "$VERSION"
-
-  release-on-commit:
-    name: Production Release
-    needs: ["build"]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 🗑️ Delete existing release tag
-        uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
-        with:
-          delete_release: true
-          tag_name: production_build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 💤 Sleep for 5 seconds
-        run: sleep 5s
-        shell: bash
-
-      - name: ⬇️ Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: Release
-
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: Release
-        
-      - name: 🏷️ Update release tag
-        uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
-        with:
-          draft: false
-          prerelease: false
-          tag_name: production_build
-          name: "Production Build — v${{ needs.build.outputs.version }}"
-          body: |
-            This is a release build of Carbon based on the `production` branch.
-            This build is targeted at the general public.
-
-            ### How to install
-            1. Download the `Carbon.[Windows|Linux].Release` archive from the attachments below.
-            2. Unzip the archive to the root of your Rust Dedicated Server.
-            3. Restart the server and enjoy.
-          files: |
-            Release/build/Carbon.Linux.Release.info
-            Release/build/Carbon.Linux.Release.tar.gz
-            Release/build/Carbon.Linux.Minimal.info
-            Release/build/Carbon.Linux.Minimal.tar.gz 
-            Release/build/Carbon.Windows.Release.info
-            Release/build/Carbon.Windows.Release.zip     
-            Release/build/Carbon.Windows.Minimal.info
-            Release/build/Carbon.Windows.Minimal.zip
+        ### How to install
+        1. Download the `Carbon.[Windows|Linux].Release` archive from the attachments below.
+        2. Unzip the archive to the root of your Rust Dedicated Server.
+        3. Restart the server and enjoy.
+    secrets:
+      PAT_ALL_REPO: ${{ secrets.PAT_ALL_REPO }}
+      VERSIONS_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
+      NUGET_API: ${{ secrets.NUGET_API }}

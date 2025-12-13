@@ -16,14 +16,14 @@ on:
         default: 'develop'
         type: choice
         options:
-        - develop
-        - preview
-        - production
-        - rust_beta/release
-        - rust_beta/staging
-        - rust_beta/aux01
-        - rust_beta/aux02
-        - rust_beta/aux03
+          - develop
+          - preview
+          - production
+          - rust_beta/release
+          - rust_beta/staging
+          - rust_beta/aux01
+          - rust_beta/aux02
+          - rust_beta/aux03
 
       rust_branch:
         description: 'Rust Branch'
@@ -31,19 +31,19 @@ on:
         default: 'public'
         type: choice
         options:
-        - public
-        - release
-        - staging
-        - aux01
-        - aux02
-        - aux03
+          - public
+          - release
+          - staging
+          - aux01
+          - aux02
+          - aux03
 
       debug:
         description: 'Debug Hooks'
         required: true
         default: 'true'
         type: boolean
-        
+
       release:
         description: 'Release Hooks'
         required: true
@@ -55,7 +55,7 @@ on:
         required: false
         default: ''
         type: string
-        
+
 env:
   FTP_PWD: ${{ secrets.FTP_PWD }}
   DISCORD_HOOK_WH: ${{ secrets.DISCORD_HOOK_WH }}
@@ -71,144 +71,144 @@ jobs:
     name: Hooks Build
     runs-on: windows-latest
     continue-on-error: false
-    
+
     steps:
-    - name: Configure Git
-      shell: bash
-      run: |
-        git config --global fetch.parallel 0
-        git config --global submodule.fetchJobs 0
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global fetch.parallel 0
+          git config --global submodule.fetchJobs 0
+
+      - name: Git Clone
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.carbon_branch }}
+          token: ${{ secrets.PAT_ALL_REPO }}
+          submodules: recursive
+
+      - name: Setup .NET 8 & 9 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          cache: true
+          cache-dependency-path: 'Carbon.Core/**/*.csproj'
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: 🔨 Built Carbon Hooks on Windows
+        shell: cmd
+        run: |
+          set OXIDE_HOOKS=https://api.carbonmod.gg/oxide/%RUST_BRANCH%.opj
           
-    - name: Git Clone
-      uses: actions/checkout@v3
-      with:
-        ref: ${{ inputs.carbon_branch }}
-        token: ${{ secrets.PAT_ALL_REPO }}
-        submodules: recursive
-
-    - name: Setup .NET 8 SDK
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 8.0.406
-
-    - name: Setup .NET 9 SDK
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 9.0.203
-
-    - name: 🔨 Built Carbon Hooks on Windows
-      shell: cmd
-      run: |            
-        set OXIDE_HOOKS=https://api.carbonmod.gg/oxide/%RUST_BRANCH%.opj
-
-        if NOT "%OXIDE_HOOKS_OVERRIDE%" EQU "" (
-            set OXIDE_HOOKS=%OXIDE_HOOKS_OVERRIDE%
-        )
-        
-        set ROOT=%GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
-        
-        if %DEBUG_BUILD% EQU true (
-            cd %ROOT%
-            echo Debug build is enabled.
-            call build.bat Debug %RUST_BRANCH% %PROTOCOL% %OXIDE_HOOKS%
-        ) else (
-            echo Debug build is disabled.
-        )
-
-        if %RELEASE_BUILD% EQU true (
-            cd %ROOT%
-            echo Release build is enabled.
-            call build.bat Release %RUST_BRANCH% %PROTOCOL% %OXIDE_HOOKS%
-        ) else (
-            echo Release build is disabled.
-        )
-
-        cd %ROOT%
-        call discord.bat %RUST_BRANCH% %PROTOCOL%
-        
-    - name: ⬆️ Artifacts - Upload
-      uses: actions/upload-artifact@v4
-      with:
-        name: FTP Output
-        path: |
-          Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/*
+          if NOT "%OXIDE_HOOKS_OVERRIDE%" EQU "" (
+              set OXIDE_HOOKS=%OXIDE_HOOKS_OVERRIDE%
+          )
           
-    - name: ⬆️ FTP - Upload Debug (Carbon.Hooks.Community)
-      uses: tomasbkk/action-ftp-upload@v1.0
-      if: ${{ inputs.debug }}
-      with:
-        user: redist@carbonmod.gg
-        password: ${{ secrets.FTP_PWD }}
-        host: ${{ secrets.FTP_IP }}
-        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
-        dest: "hooks/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+          set ROOT=%GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
+          
+          if %DEBUG_BUILD% EQU true (
+              cd %ROOT%
+              echo Debug build is enabled.
+              call build.bat Debug %RUST_BRANCH% %PROTOCOL% %OXIDE_HOOKS%
+          ) else (
+              echo Debug build is disabled.
+          )
+          
+          if %RELEASE_BUILD% EQU true (
+              cd %ROOT%
+              echo Release build is enabled.
+              call build.bat Release %RUST_BRANCH% %PROTOCOL% %OXIDE_HOOKS%
+          ) else (
+              echo Release build is disabled.
+          )
+          
+          cd %ROOT%
+          call discord.bat %RUST_BRANCH% %PROTOCOL%
 
-    - name: ⬆️ FTP - Upload DebugUnix (Carbon.Hooks.Community)
-      uses: tomasbkk/action-ftp-upload@v1.0
-      if: ${{ inputs.debug }}
-      with:
-        user: redist@carbonmod.gg
-        password: ${{ secrets.FTP_PWD }}
-        host: ${{ secrets.FTP_IP }}
-        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
-        dest: "hooks/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
-        
-    - name: ⬆️ FTP - Upload Debug (Carbon.Hooks.Oxide)
-      uses: tomasbkk/action-ftp-upload@v1.0
-      if: ${{ inputs.debug }}
-      with:
-        user: redist@carbonmod.gg
-        password: ${{ secrets.FTP_PWD }}
-        host: ${{ secrets.FTP_IP }}
-        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
-        dest: "hooks/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+      - name: ⬆️ Artifacts - Upload
+        uses: actions/upload-artifact@v5
+        with:
+          name: FTP Output
+          path: |
+            Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/*
 
-    - name: ⬆️ FTP - Upload DebugUnix (Carbon.Hooks.Oxide)
-      uses: tomasbkk/action-ftp-upload@v1.0
-      if: ${{ inputs.debug }}
-      with:
-        user: redist@carbonmod.gg
-        password: ${{ secrets.FTP_PWD }}
-        host: ${{ secrets.FTP_IP }}
-        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
-        dest: "hooks/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+      - name: ⬆️ FTP - Upload Debug (Carbon.Hooks.Community)
+        uses: tomasbkk/action-ftp-upload@v1.0
+        if: ${{ inputs.debug }}
+        with:
+          user: redist@carbonmod.gg
+          password: ${{ secrets.FTP_PWD }}
+          host: ${{ secrets.FTP_IP }}
+          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+          dest: "hooks/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
 
-    - name: ⬆️ FTP - Upload Release (Carbon.Hooks.Community)
-      uses: tomasbkk/action-ftp-upload@v1.0
-      if: ${{ inputs.release }}
-      with:
-        user: redist@carbonmod.gg
-        password: ${{ secrets.FTP_PWD }}
-        host: ${{ secrets.FTP_IP }}
-        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
-        dest: "hooks/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+      - name: ⬆️ FTP - Upload DebugUnix (Carbon.Hooks.Community)
+        uses: tomasbkk/action-ftp-upload@v1.0
+        if: ${{ inputs.debug }}
+        with:
+          user: redist@carbonmod.gg
+          password: ${{ secrets.FTP_PWD }}
+          host: ${{ secrets.FTP_IP }}
+          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+          dest: "hooks/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
 
-    - name: ⬆️ FTP - Upload ReleaseUnix (Carbon.Hooks.Community)
-      uses: tomasbkk/action-ftp-upload@v1.0
-      if: ${{ inputs.release }}
-      with:
-        user: redist@carbonmod.gg
-        password: ${{ secrets.FTP_PWD }}
-        host: ${{ secrets.FTP_IP }}
-        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
-        dest: "hooks/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
-        
-    - name: ⬆️ FTP - Upload Release (Carbon.Hooks.Oxide)
-      uses: tomasbkk/action-ftp-upload@v1.0
-      if: ${{ inputs.release }}
-      with:
-        user: redist@carbonmod.gg
-        password: ${{ secrets.FTP_PWD }}
-        host: ${{ secrets.FTP_IP }}
-        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
-        dest: "hooks/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+      - name: ⬆️ FTP - Upload Debug (Carbon.Hooks.Oxide)
+        uses: tomasbkk/action-ftp-upload@v1.0
+        if: ${{ inputs.debug }}
+        with:
+          user: redist@carbonmod.gg
+          password: ${{ secrets.FTP_PWD }}
+          host: ${{ secrets.FTP_IP }}
+          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+          dest: "hooks/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
-    - name: ⬆️ FTP - Upload ReleaseUnix (Carbon.Hooks.Oxide)
-      uses: tomasbkk/action-ftp-upload@v1.0
-      if: ${{ inputs.release }}
-      with:
-        user: redist@carbonmod.gg
-        password: ${{ secrets.FTP_PWD }}
-        host: ${{ secrets.FTP_IP }}
-        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
-        dest: "hooks/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+      - name: ⬆️ FTP - Upload DebugUnix (Carbon.Hooks.Oxide)
+        uses: tomasbkk/action-ftp-upload@v1.0
+        if: ${{ inputs.debug }}
+        with:
+          user: redist@carbonmod.gg
+          password: ${{ secrets.FTP_PWD }}
+          host: ${{ secrets.FTP_IP }}
+          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+          dest: "hooks/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+
+      - name: ⬆️ FTP - Upload Release (Carbon.Hooks.Community)
+        uses: tomasbkk/action-ftp-upload@v1.0
+        if: ${{ inputs.release }}
+        with:
+          user: redist@carbonmod.gg
+          password: ${{ secrets.FTP_PWD }}
+          host: ${{ secrets.FTP_IP }}
+          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+          dest: "hooks/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+
+      - name: ⬆️ FTP - Upload ReleaseUnix (Carbon.Hooks.Community)
+        uses: tomasbkk/action-ftp-upload@v1.0
+        if: ${{ inputs.release }}
+        with:
+          user: redist@carbonmod.gg
+          password: ${{ secrets.FTP_PWD }}
+          host: ${{ secrets.FTP_IP }}
+          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+          dest: "hooks/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+
+      - name: ⬆️ FTP - Upload Release (Carbon.Hooks.Oxide)
+        uses: tomasbkk/action-ftp-upload@v1.0
+        if: ${{ inputs.release }}
+        with:
+          user: redist@carbonmod.gg
+          password: ${{ secrets.FTP_PWD }}
+          host: ${{ secrets.FTP_IP }}
+          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+          dest: "hooks/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+
+      - name: ⬆️ FTP - Upload ReleaseUnix (Carbon.Hooks.Oxide)
+        uses: tomasbkk/action-ftp-upload@v1.0
+        if: ${{ inputs.release }}
+        with:
+          user: redist@carbonmod.gg
+          password: ${{ secrets.FTP_PWD }}
+          host: ${{ secrets.FTP_IP }}
+          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+          dest: "hooks/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
