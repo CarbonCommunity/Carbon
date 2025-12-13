@@ -361,7 +361,7 @@ jobs:
         working-directory: Release
 
       - name: 🏷️ Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
         with:
           draft: false
           prerelease: ${{ needs.configure.outputs.prerelease }}
