@@ -2,8 +2,10 @@ var branch = GetArg(1, "release");
 
 Warn($"Branch: {branch}");
 
-DownloadRustFiles("windows");
-DownloadRustFiles("linux");
+System.Threading.Tasks.Task.WaitAll(
+    System.Threading.Tasks.Task.Run(() => DownloadRustFiles("windows")),
+    System.Threading.Tasks.Task.Run(() => DownloadRustFiles("linux"))
+);
 
 void DownloadRustFiles(string platform)
 {
