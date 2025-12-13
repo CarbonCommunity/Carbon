@@ -186,6 +186,7 @@ jobs:
 
     outputs:
       version: ${{ steps.step1.outputs.version }}
+      commit_sha: ${{ steps.step1.outputs.commit_sha }}
 
     steps:
       - name: Configure Git
@@ -193,6 +194,7 @@ jobs:
         run: |
           git config --global fetch.parallel 0
           git config --global submodule.fetchJobs 0
+          git config --global --add safe.directory "*"
 
       - name: Git Clone
         uses: actions/checkout@v6
@@ -214,10 +216,12 @@ jobs:
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           
+          REAL_SHA=$(git rev-parse HEAD)
+          echo "commit_sha=$REAL_SHA" >> $GITHUB_OUTPUT
+          echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          
           VER_SUFFIX=$(curl -s -L "https://api.carbonmod.gg/version?id=$API&token=$TOKEN")
           echo "version=$MAJOR.$VER_SUFFIX" >> $GITHUB_OUTPUT
-          
-          git config --global --add safe.directory "*"
 
       - name: Install MinGW (Windows Build Only) (Cond)
         if: matrix.group == 'Windows'
@@ -302,8 +306,10 @@ jobs:
         env:
           VERSION: ${{ steps.step1.outputs.version }}
           SUFFIX: ${{ needs.configure.outputs.git_tag_suffix }}
+          COMMIT_SHA: ${{ steps.step1.outputs.commit_sha }}
         run: |
-          git tag "$VERSION$SUFFIX" "$GITHUB_SHA"
+          # If there is already the same tag, it will fail
+          git tag "$VERSION$SUFFIX" "$COMMIT_SHA"
           git push origin "$VERSION$SUFFIX"
 
       - name: Artifacts
@@ -353,6 +359,7 @@ jobs:
           draft: false
           prerelease: ${{ needs.configure.outputs.prerelease }}
           tag_name: ${{ needs.configure.outputs.tag_name }}
+          target_commitish: ${{ needs.build.outputs.commit_sha }}
           name: "${{ needs.configure.outputs.release_name }} Build — v${{ needs.build.outputs.version }}"
           body: ${{ inputs.RELEASE_BODY }}
           files: |
