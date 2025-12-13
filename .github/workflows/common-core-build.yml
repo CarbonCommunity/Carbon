@@ -19,7 +19,7 @@ on:
 
 jobs:
   configure:
-    name: Configure Build
+    name: Configure Build (${{ inputs.GIT_BRANCH }})
     runs-on: ubuntu-latest
     outputs:
       api_id: ${{ steps.config.outputs.api_id }}
@@ -328,7 +328,7 @@ jobs:
             Release/*.info
 
   release:
-    name: Release
+    name: Release (${{ needs.configure.outputs.release_name }}) (${{ needs.configure.outputs.tag_name }})
     if: github.event_name != 'pull_request'
     needs: [ "configure", "build" ]
     runs-on: ubuntu-latest
