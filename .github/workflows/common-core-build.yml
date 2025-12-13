@@ -291,13 +291,13 @@ jobs:
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs Minimal$ARG $DEFINE $TAG -noclean
 
       - name: Carbon Nuget Publish (Cond)
-        if: needs.configure.outputs.run_nuget == 'true' && matrix.group == 'Linux'
+        if: needs.configure.outputs.run_nuget == 'true' && matrix.group == 'Linux' && github.event_name != 'pull_request'
         shell: bash
         run: |
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/nuget.cs ${{ secrets.NUGET_API }} ${{ steps.step1.outputs.version }}
 
       - name: Register Version Tag (Cond)
-        if: needs.configure.outputs.create_git_tag == 'true' && matrix.group == 'Linux'
+        if: needs.configure.outputs.create_git_tag == 'true' && matrix.group == 'Linux' && github.event_name != 'pull_request'
         shell: bash
         env:
           VERSION: ${{ steps.step1.outputs.version }}
