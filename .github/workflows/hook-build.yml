@@ -7,7 +7,7 @@ on:
       protocol:
         description: 'Carbon Protocol'
         required: true
-        default: '2025.MM.DD.0'
+        default: '2026.MM.DD.0'
         type: string
 
       carbon_branch:
@@ -86,7 +86,7 @@ jobs:
           token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
 
-      - name: Setup .NET 8 & 9 SDK
+      - name: Setup .NET 8, 9 & 10 SDK
         uses: actions/setup-dotnet@v5
         with:
           cache: true
