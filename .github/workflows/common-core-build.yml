@@ -212,7 +212,7 @@ jobs:
           VER_SUFFIX=$(curl -s -L "https://api.carbonmod.gg/version?id=$API&token=$TOKEN")
           echo "version=$MAJOR.$VER_SUFFIX" >> $GITHUB_OUTPUT
 
-      - name: Setup .NET 8 & 9 SDK
+      - name: Setup .NET 8, 9 & 10 SDK
         uses: actions/setup-dotnet@v5
         with:
           cache: true
