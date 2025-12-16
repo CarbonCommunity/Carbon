@@ -34,8 +34,13 @@ jobs:
       prerelease: ${{ steps.config.outputs.prerelease }}
       major_ver: ${{ steps.config.outputs.major_ver }}
       release_name: ${{ steps.config.outputs.release_name }}
+      version: ${{ steps.config-iden.outputs.version }}
+      date: ${{ steps.config-iden.outputs.date }}
+      clock: ${{ steps.config-iden.outputs.clock }}
+      tag: ${{ steps.config-iden.outputs.tag }}
     steps:
-      - id: config
+      - name: Configure Build
+        id: config
         shell: bash
         run: |
           REF="${{ inputs.GIT_BRANCH }}"
@@ -157,6 +162,21 @@ jobs:
           echo "major_ver=$MAJOR_VER" >> $GITHUB_OUTPUT
           echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
 
+      - name: Configure Identity
+        id: config-iden
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.VERSIONS_TOKEN }}
+          API: ${{ steps.config.outputs.api_id }}
+          MAJOR: ${{ steps.config.outputs.major_ver }}
+        run: |
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
+          echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
+          
+          VER_SUFFIX=$(curl -s -L "https://api.carbonmod.gg/version?id=$API&token=$TOKEN")
+          echo "version=$MAJOR.$VER_SUFFIX" >> $GITHUB_OUTPUT
+
   build:
     name: Build
     needs: configure
@@ -197,20 +217,20 @@ jobs:
         id: step1
         shell: bash
         env:
-          MAJOR: ${{ needs.configure.outputs.major_ver }}
-          API: ${{ needs.configure.outputs.api_id }}
-          TOKEN: ${{ secrets.VERSIONS_TOKEN }}
+          DATE: ${{ needs.configure.outputs.date }}
+          CLOCK: ${{ needs.configure.outputs.clock }}
+          TAG: ${{ needs.configure.outputs.tag }}
+          VERSION: ${{ needs.configure.outputs.version }}
         run: |
-          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-          echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
-          echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+          echo "clock=$CLOCK" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           
           REAL_SHA=$(git rev-parse HEAD)
           echo "commit_sha=$REAL_SHA" >> $GITHUB_OUTPUT
-          echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           
-          VER_SUFFIX=$(curl -s -L "https://api.carbonmod.gg/version?id=$API&token=$TOKEN")
-          echo "version=$MAJOR.$VER_SUFFIX" >> $GITHUB_OUTPUT
+          echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Setup .NET 8, 9 & 10 SDK
         uses: actions/setup-dotnet@v5
