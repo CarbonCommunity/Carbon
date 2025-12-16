@@ -1,0 +1,110 @@
+﻿name: Carbon Test Runner
+on:
+  workflow_call:
+    inputs:
+      IDENTIFIER:
+        required: true
+        type: string
+
+jobs:
+  configure:
+    name: Configure Test (${{ inputs.IDENTIFIER }})
+    runs-on: ubuntu-latest
+    outputs:
+      download_id: ${{ steps.config.outputs.download_id }}
+      rust_branch: ${{ steps.config.outputs.rust_branch }}
+      build_config: ${{ steps.config.outputs.build_config }}
+    steps:
+      - id: config
+        shell: bash
+        run: |
+          REF="${{ inputs.IDENTIFIER }}"
+          
+          BUILD_CONFIG="Debug"
+          RUST_BRANCH="public"
+
+          case "$REF" in
+            "develop")
+              DOWNLOAD_ID="edge_build"
+              ;;
+            "preview")
+              DOWNLOAD_ID="preview_build"
+              ;;
+            "qa")
+              DOWNLOAD_ID="qa_build"
+              RUST_BRANCH="staging"
+              ;;
+            "production")
+              DOWNLOAD_ID="production_build"
+              BUILD_CONFIG="Release"
+              ;;
+            "rust_beta/aux01")
+              DOWNLOAD_ID="rustbeta_aux01_build"
+              RUST_BRANCH="aux01-staging"
+              ;;
+            "rust_beta/aux02")
+              DOWNLOAD_ID="rustbeta_aux02_build"
+              RUST_BRANCH="aux02"
+              ;;
+            "rust_beta/aux03")
+              DOWNLOAD_ID="rustbeta_aux03_build"
+              RUST_BRANCH="aux03"
+              ;;
+            "rust_beta/staging")
+              DOWNLOAD_ID="rustbeta_staging_build"
+              RUST_BRANCH="staging"
+              ;;
+            "rust_beta/release")
+              DOWNLOAD_ID="rustbeta_release_build"
+              RUST_BRANCH="release"
+              ;;
+            *)
+              echo "Unknown branch ref: $REF"
+              exit 1
+              ;;
+          esac
+
+          echo "download_id=$DOWNLOAD_ID" >> $GITHUB_OUTPUT
+          echo "rust_branch=$RUST_BRANCH" >> $GITHUB_OUTPUT
+          echo "build_config=$BUILD_CONFIG" >> $GITHUB_OUTPUT
+
+  test:
+    name: Test Runner
+    needs: configure
+    runs-on: ubuntu-latest
+    continue-on-error: false
+
+    steps:
+      - name: Git Clone
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          cache: true
+          cache-dependency-path: 'Carbon.Core/Carbon.TestRunner/**/*.csproj'
+          dotnet-version: |
+            10.0.x
+
+      - name: DotNet Restore
+        shell: bash
+        run: |
+          dotnet restore Carbon.Core/Carbon.TestRunner
+
+      - name: DotNet Build
+        shell: bash
+        run: |
+          dotnet build Carbon.Core/Carbon.TestRunner -c Release
+
+      - name: Run
+        shell: bash
+        env:
+          WorkingDir: TestRunner
+          BranchName: ${{ needs.configure.outputs.rust_branch }}
+          CarbonDownloadZipUrl: https://github.com/CarbonCommunity/Carbon/releases/download/${{ needs.configure.outputs.download_id }}/Carbon.Linux.${{ needs.configure.outputs.build_config }}.tar.gz
+          ForDebug__SkipRustServerIfPresent: false
+          ForDebug__NoRustServerRun: false
+        run: |
+          dotnet run --project Carbon.Core/Carbon.TestRunner -c Release --no-build
