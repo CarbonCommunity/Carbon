@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Carbon.TestRunner.Services;
+namespace Carbon.Test.Services;
 
 internal class TestServerRunner
 {
@@ -30,7 +30,7 @@ internal class TestServerRunner
 			            $"-app.port 1- " +
 			            $"-aimanager.nav_disable 1 " +
 			            $"-disable-server-occlusion -disable-server-occlusion-rocks -disableconsolelog -skipload -noconsole " +
-			            $"+server.level \"CraggyIsland\" -insercure " +
+			            $"+server.level \"CraggyIsland\" -insecure " +
 			            $"-testrunner-identifier {identifier} " +
 			            $"-logfile -",
 			RedirectStandardOutput = true,

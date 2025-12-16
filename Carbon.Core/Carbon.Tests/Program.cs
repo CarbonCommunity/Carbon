@@ -1,9 +1,9 @@
-﻿using Carbon.TestRunner.Services;
+﻿using Carbon.Test.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Carbon.TestRunner;
+namespace Carbon.Test;
 
 internal abstract class Program
 {

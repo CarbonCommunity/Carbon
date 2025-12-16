@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
-namespace Carbon.TestRunner.Services;
+namespace Carbon.Test.Services;
 
 internal class ProcessLifetimeManager : IDisposable
 {

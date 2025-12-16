@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Carbon.TestRunner;
+namespace Carbon.Test;
 
 internal static class Utils
 {

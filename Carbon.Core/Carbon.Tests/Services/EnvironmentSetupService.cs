@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Carbon.TestRunner.Services;
+namespace Carbon.Test.Services;
 
 internal class EnvironmentSetupService
 {

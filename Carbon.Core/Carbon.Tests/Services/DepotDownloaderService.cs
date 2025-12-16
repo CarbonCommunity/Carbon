@@ -3,7 +3,7 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 
-namespace Carbon.TestRunner.Services;
+namespace Carbon.Test.Services;
 
 internal class DepotDownloaderService
 {
