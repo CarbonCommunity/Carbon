@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -45,27 +46,26 @@ internal class TestServerRunner
 			return true;
 		}
 
-		string[] directVars = ["DOORSTOP_ENABLED", "DOORSTOP_TARGET_ASSEMBLY", "TERM"];
-		foreach (var key in directVars)
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			var val = Environment.GetEnvironmentVariable(key);
-			if (!string.IsNullOrEmpty(val))
+			var rustDirAbsolute = Path.GetFullPath(paths.RustDirectory);
+
+			var envKeys = new Dictionary<string, string>
+			{
+				{ "TERM", "xterm" },
+				{ "DOORSTOP_ENABLED", "1" },
+				{ "DOORSTOP_TARGET_ASSEMBLY", Path.Combine(rustDirAbsolute, "carbon/managed/Carbon.Preloader.dll") },
+				{ "LD_PRELOAD", Path.Combine(rustDirAbsolute, "libdoorstop.so") },
+				{ "LD_LIBRARY_PATH", $"{rustDirAbsolute}:{Path.Combine(rustDirAbsolute, "RustDedicated_Data/Plugins/x86_64")}" },
+			};
+
+			foreach (var (key, val) in envKeys)
 			{
 				startInfo.EnvironmentVariables[key] = val;
 			}
 		}
 
-		var ldPreload = Environment.GetEnvironmentVariable("RUST_LD_PRELOAD");
-		if (!string.IsNullOrEmpty(ldPreload))
-		{
-			startInfo.EnvironmentVariables["LD_PRELOAD"] = ldPreload;
-		}
-
-		var ldLibPath = Environment.GetEnvironmentVariable("RUST_LD_LIBRARY_PATH");
-		if (!string.IsNullOrEmpty(ldLibPath))
-		{
-			startInfo.EnvironmentVariables["LD_LIBRARY_PATH"] = ldLibPath;
-		}
+		_logger.LogInformation("Starting Rust server process");
 
 		var result = await _processRunner.RunAsync("RustDedicated", startInfo, 600_000);
 		var stdOut = result.StandardOutput;
