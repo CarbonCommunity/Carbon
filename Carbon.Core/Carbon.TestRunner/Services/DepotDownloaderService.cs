@@ -65,7 +65,7 @@ internal class DepotDownloaderService
 			return;
 		}
 
-		_logger.LogInformation("DepotDownloader not found, downloading from {Link}...", DepotDownloaderExecutableLink);
+		_logger.LogInformation("DepotDownloader not found, downloading from {Link} ...", DepotDownloaderExecutableLink);
 
 		await using var memoryStream = new MemoryStream();
 		var response = await _httpClient.GetAsync(DepotDownloaderExecutableLink);

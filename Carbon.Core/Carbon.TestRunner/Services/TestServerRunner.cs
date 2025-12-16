@@ -45,6 +45,28 @@ internal class TestServerRunner
 			return true;
 		}
 
+		string[] directVars = ["DOORSTOP_ENABLED", "DOORSTOP_TARGET_ASSEMBLY", "TERM"];
+		foreach (var key in directVars)
+		{
+			var val = Environment.GetEnvironmentVariable(key);
+			if (!string.IsNullOrEmpty(val))
+			{
+				startInfo.EnvironmentVariables[key] = val;
+			}
+		}
+
+		var ldPreload = Environment.GetEnvironmentVariable("RUST_LD_PRELOAD");
+		if (!string.IsNullOrEmpty(ldPreload))
+		{
+			startInfo.EnvironmentVariables["LD_PRELOAD"] = ldPreload;
+		}
+
+		var ldLibPath = Environment.GetEnvironmentVariable("RUST_LD_LIBRARY_PATH");
+		if (!string.IsNullOrEmpty(ldLibPath))
+		{
+			startInfo.EnvironmentVariables["LD_LIBRARY_PATH"] = ldLibPath;
+		}
+
 		var result = await _processRunner.RunAsync("RustDedicated", startInfo, 600_000);
 		var stdOut = result.StandardOutput;
 
@@ -59,6 +81,8 @@ internal class TestServerRunner
 			_logger.LogError("Tester process failed some tests");
 			return false;
 		}
+
+		_logger.LogInformation("No failed tests detected.");
 
 		return true;
 	}

@@ -1,4 +1,5 @@
-﻿name: Carbon Test Runner
+﻿name: Common Test Runner
+
 on:
   workflow_call:
     inputs:
@@ -96,9 +97,9 @@ jobs:
       - name: DotNet Build
         shell: bash
         run: |
-          dotnet build Carbon.Core/Carbon.TestRunner -c Release
+          dotnet build Carbon.Core/Carbon.TestRunner -c Release --no-restore
 
-      - name: Run
+      - name: Run Tests
         shell: bash
         env:
           WorkingDir: TestRunner
@@ -106,5 +107,11 @@ jobs:
           CarbonDownloadZipUrl: https://github.com/CarbonCommunity/Carbon/releases/download/${{ needs.configure.outputs.download_id }}/Carbon.Linux.${{ needs.configure.outputs.build_config }}.tar.gz
           ForDebug__SkipRustServerIfPresent: false
           ForDebug__NoRustServerRun: false
+          ENV_BASE_DIR: ${{ github.workspace }}/TestRunner/RustInstance
+          TERM: xterm
+          DOORSTOP_ENABLED: 1
+          DOORSTOP_TARGET_ASSEMBLY: ${{ github.workspace }}/TestRunner/RustInstance/carbon/managed/Carbon.Preloader.dll
+          RUST_LD_PRELOAD: ${{ github.workspace }}/TestRunner/RustInstance/libdoorstop.so
+          RUST_LD_LIBRARY_PATH: ${{ github.workspace }}/TestRunner/RustInstance:${{ github.workspace }}/TestRunner/RustInstance/RustDedicated_Data/Plugins/x86_64
         run: |
           dotnet run --project Carbon.Core/Carbon.TestRunner -c Release --no-build
