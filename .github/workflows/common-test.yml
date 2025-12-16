@@ -6,6 +6,9 @@ on:
       IDENTIFIER:
         required: true
         type: string
+    secrets:
+      PAT_ALL_REPO:
+        required: true
 
 jobs:
   configure:
