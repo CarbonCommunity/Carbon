@@ -9,7 +9,7 @@ namespace Carbon.TestRunner.Services;
 internal class EnvironmentSetupService
 {
 	private readonly AppSettings _appSettings;
-	private readonly ForDebugSettings forDebugSettings;
+	private readonly ForDebugSettings _forDebugSettings;
 	private readonly DepotDownloaderService _depotDownloaderService;
 	private readonly ILogger<EnvironmentSetupService> _logger;
 	private readonly string _workingDirectory;
@@ -29,7 +29,7 @@ internal class EnvironmentSetupService
 	)
 	{
 		_appSettings = appSettings.Value;
-		forDebugSettings = forDebugOptions.Value;
+		_forDebugSettings = forDebugOptions.Value;
 		_depotDownloaderService = depotDownloaderService;
 		_logger = logger;
 		_workingDirectory = PrepareWorkingDirectory();
@@ -58,7 +58,7 @@ internal class EnvironmentSetupService
 		var rustInstancePath = Path.Combine(_workingDirectory, RustInstanceFolder);
 		var rustDedicatedExe = Path.Combine(rustInstancePath, RustDedicatedExecutable);
 
-		if (File.Exists(rustDedicatedExe) && forDebugSettings.SkipRustServerIfPresent)
+		if (File.Exists(rustDedicatedExe) && _forDebugSettings.SkipRustServerIfPresent)
 		{
 			_logger.LogInformation("Found RustDedicated executable and skipping download based on configuration.");
 			return rustInstancePath;
@@ -75,6 +75,8 @@ internal class EnvironmentSetupService
 
 	private async Task PrepareCarbonAsync(string rustDir, string carbonUrl)
 	{
+		_logger.LogInformation("Downloading Carbon from {CarbonUrl}", carbonUrl);
+
 		await using var memoryStream = new MemoryStream();
 		var response = await _httpClient.GetAsync(carbonUrl);
 		response.EnsureSuccessStatusCode();
@@ -83,6 +85,8 @@ internal class EnvironmentSetupService
 		memoryStream.Position = 0;
 
 		Directory.CreateDirectory(rustDir);
+
+		_logger.LogInformation("Unpacking archive into {RustDir}", rustDir);
 
 		if (carbonUrl.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
 		{
