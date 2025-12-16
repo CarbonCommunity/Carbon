@@ -60,7 +60,7 @@ jobs:
         with:
           workspaces: Carbon.Core/Carbon.Native
 
-      - name: Setup .NET 8 & 9 SDK
+      - name: Setup .NET 8, 9 & 10 SDK
         uses: actions/setup-dotnet@v5
         with:
           cache: true
