@@ -19,7 +19,7 @@ internal class TestServerRunner
 
 	public async Task<bool> RunTesterServerAsync(ServerPaths paths)
 	{
-		var identity = DateTime.UtcNow.Millisecond;
+		var identifier = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
 		var startInfo = new ProcessStartInfo
 		{
@@ -30,7 +30,7 @@ internal class TestServerRunner
 			            $"-aimanager.nav_disable 1 " +
 			            $"-disable-server-occlusion -disable-server-occlusion-rocks -disableconsolelog -skipload -noconsole " +
 			            $"+server.seed 1337 +server.worldsize 1000 -insercure " +
-			            $"-testrunner-identifier {identity} " +
+			            $"-testrunner-identifier {identifier} " +
 			            $"-logfile -",
 			RedirectStandardOutput = true,
 			RedirectStandardError = true,
@@ -48,13 +48,13 @@ internal class TestServerRunner
 		var result = await _processRunner.RunAsync("RustDedicated", startInfo, 600_000);
 		var stdOut = result.StandardOutput;
 
-		if (!stdOut.Contains($"{identity} ENDED"))
+		if (!stdOut.Contains($"{identifier} ENDED"))
 		{
 			_logger.LogError("Tester process did not output final signal `ENDED`");
 			return false;
 		}
 
-		if (stdOut.Contains($"{identity} cancelled due to fatal status"))
+		if (stdOut.Contains($"{identifier} cancelled due to fatal status"))
 		{
 			_logger.LogError("Tester process failed some tests");
 			return false;
