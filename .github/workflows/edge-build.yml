@@ -6,6 +6,9 @@ on:
   push:
     branches:
       - develop
+    paths-ignore:
+      - .github/**/*
+      - Carbon.Core/Carbon.TestRunner/**/*
 
 jobs:
   call-common:
