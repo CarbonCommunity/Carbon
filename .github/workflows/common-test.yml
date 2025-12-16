@@ -79,6 +79,7 @@ jobs:
       - name: Git Clone
         uses: actions/checkout@v6
         with:
+          token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
 
       - name: Setup .NET 10 SDK
