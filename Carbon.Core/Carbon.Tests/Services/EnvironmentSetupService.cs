@@ -36,7 +36,7 @@ internal class EnvironmentSetupService
 		_httpClient = httpClient;
 	}
 
-	public async Task<ServerPaths> PrepareEnvironmentAsync(ServerSettings settings)
+	public async ValueTask<ServerPaths> PrepareEnvironmentAsync(ServerSettings settings)
 	{
 		_logger.LogInformation("Preparing environment in working directory: {WorkingDirectory}", _workingDirectory);
 
@@ -44,7 +44,7 @@ internal class EnvironmentSetupService
 		_logger.LogInformation("Using Rust server directory: {RustDirectory}", rustDir);
 
 		await PrepareCarbonAsync(rustDir, _appSettings.CarbonDownloadZipUrl);
-		await CopyPluginsAsync(rustDir);
+		await CopyCarbonWorkspaceAsync(rustDir);
 		await PrepareRustConfigFilesAsync(rustDir, "thetester");
 
 		var rustExePath = Path.Combine(rustDir, RustDedicatedExecutable);
@@ -53,7 +53,7 @@ internal class EnvironmentSetupService
 		return new ServerPaths(rustDir, rustExePath);
 	}
 
-	private async Task<string> PrepareServerAsync(int appId, string branch)
+	private async ValueTask<string> PrepareServerAsync(int appId, string branch)
 	{
 		var rustInstancePath = Path.Combine(_workingDirectory, RustInstanceFolder);
 		var rustDedicatedExe = Path.Combine(rustInstancePath, RustDedicatedExecutable);
@@ -73,7 +73,7 @@ internal class EnvironmentSetupService
 		return rustInstancePath;
 	}
 
-	private async Task PrepareCarbonAsync(string rustDir, string carbonUrl)
+	private async ValueTask PrepareCarbonAsync(string rustDir, string carbonUrl)
 	{
 		_logger.LogInformation("Downloading Carbon from {CarbonUrl}", carbonUrl);
 
@@ -106,31 +106,22 @@ internal class EnvironmentSetupService
 		}
 	}
 
-	private static Task CopyPluginsAsync(string rustDir)
+	private ValueTask CopyCarbonWorkspaceAsync(string rustDir)
 	{
 		var runningDir = AppContext.BaseDirectory;
-		var copyPluginsDir = Path.Combine(runningDir, "Static", "plugins");
+		var copyPluginsDir = Path.Combine(runningDir, "Static", "carbon");
 
 		if (!Directory.Exists(copyPluginsDir))
 		{
 			throw new FileNotFoundException($"Didn't find path {copyPluginsDir}");
 		}
 
-		var rustPluginsDir = Path.Combine(rustDir, "carbon", "plugins");
-		Directory.CreateDirectory(rustPluginsDir);
-
-		var copyPluginsDirInfo = new DirectoryInfo(copyPluginsDir);
-
-		foreach (var fileInfo in copyPluginsDirInfo.GetFiles())
-		{
-			var target = Path.Combine(rustPluginsDir, fileInfo.Name);
-			fileInfo.CopyTo(target, true);
-		}
-
-		return Task.CompletedTask;
+		var rustPluginsDir = Path.Combine(rustDir, "carbon");
+		Utils.Copy(copyPluginsDir, rustPluginsDir);
+		return ValueTask.CompletedTask;
 	}
 
-	private static Task PrepareRustConfigFilesAsync(string rustDir, string serverIdentity)
+	private static ValueTask PrepareRustConfigFilesAsync(string rustDir, string serverIdentity)
 	{
 		var runningDir = AppContext.BaseDirectory;
 		var copyCfgFile = Path.Combine(runningDir, "Static", "server.cfg");
@@ -148,7 +139,7 @@ internal class EnvironmentSetupService
 
 		File.Copy(copyCfgFile, targetCfgFile, true);
 
-		return Task.CompletedTask;
+		return ValueTask.CompletedTask;
 	}
 
 	private string PrepareWorkingDirectory()

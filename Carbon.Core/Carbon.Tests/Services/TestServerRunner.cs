@@ -30,7 +30,7 @@ internal class TestServerRunner
 			            $"-app.port 1- " +
 			            $"-aimanager.nav_disable 1 " +
 			            $"-disable-server-occlusion -disable-server-occlusion-rocks -disableconsolelog -skipload -noconsole " +
-			            $"+server.level \"CraggyIsland\" +server.seed 1337 +server.worldsize 1000 -insercure " +
+			            $"+server.level \"CraggyIsland\" -insercure " +
 			            $"-testrunner-identifier {identifier} " +
 			            $"-logfile -",
 			RedirectStandardOutput = true,
@@ -70,9 +70,9 @@ internal class TestServerRunner
 		var result = await _processRunner.RunAsync("RustDedicated", startInfo, 600_000);
 		var stdOut = result.StandardOutput;
 
-		if (!stdOut.Contains($"{identifier} ENDED"))
+		if (result.ExitCode != 0)
 		{
-			_logger.LogError("Tester process did not output final signal `ENDED`");
+			_logger.LogError($"Tester process did not exit with positive code[{result.ExitCode}]");
 			return false;
 		}
 

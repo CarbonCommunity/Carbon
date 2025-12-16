@@ -1,0 +1,13 @@
+{
+  "DeveloperMode": true,
+  "Analytics": {
+    "Enabled": false
+  },
+  "SelfUpdating": {
+    "Enabled": true,
+    "HookUpdates": true,
+  },
+  "Misc": {
+    "ShowConsoleInfo": false
+  }
+}
