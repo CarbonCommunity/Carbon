@@ -81,9 +81,6 @@ jobs:
     steps:
       - name: Git Clone
         uses: actions/checkout@v6
-        with:
-          token: ${{ secrets.PAT_ALL_REPO }}
-          submodules: recursive
 
       - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v5
@@ -111,11 +108,5 @@ jobs:
           CarbonDownloadZipUrl: https://github.com/CarbonCommunity/Carbon/releases/download/${{ needs.configure.outputs.download_id }}/Carbon.Linux.${{ needs.configure.outputs.build_config }}.tar.gz
           ForDebug__SkipRustServerIfPresent: false
           ForDebug__NoRustServerRun: false
-          ENV_BASE_DIR: ${{ github.workspace }}/TestRunner/RustInstance
-          TERM: xterm
-          DOORSTOP_ENABLED: 1
-          DOORSTOP_TARGET_ASSEMBLY: ${{ github.workspace }}/TestRunner/RustInstance/carbon/managed/Carbon.Preloader.dll
-          RUST_LD_PRELOAD: ${{ github.workspace }}/TestRunner/RustInstance/libdoorstop.so
-          RUST_LD_LIBRARY_PATH: ${{ github.workspace }}/TestRunner/RustInstance:${{ github.workspace }}/TestRunner/RustInstance/RustDedicated_Data/Plugins/x86_64
         run: |
           dotnet run --project Carbon.Core/Carbon.TestRunner -c Release --no-build
