@@ -29,7 +29,7 @@ internal class TestServerRunner
 			            $"-app.port 1- " +
 			            $"-aimanager.nav_disable 1 " +
 			            $"-disable-server-occlusion -disable-server-occlusion-rocks -disableconsolelog -skipload -noconsole " +
-			            $"+server.seed 1337 +server.worldsize 1000 -insercure " +
+			            $"+server.level \"CraggyIsland\" +server.seed 1337 +server.worldsize 1000 -insercure " +
 			            $"-testrunner-identifier {identifier} " +
 			            $"-logfile -",
 			RedirectStandardOutput = true,
