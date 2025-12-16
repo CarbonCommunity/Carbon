@@ -6,9 +6,12 @@ on:
   push:
     branches:
       - develop
+    
     paths-ignore:
-      - .github/**/*
-      - Carbon.Core/Carbon.TestRunner/**/*
+      - ".github/**/*"
+      - "**/*.md"
+      - "Carbon.Core/Carbon.TestRunner/**/*"
+      - ".gitignore"
 
 jobs:
   call-common:
