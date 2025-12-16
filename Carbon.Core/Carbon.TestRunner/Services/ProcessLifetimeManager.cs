@@ -24,14 +24,12 @@ internal class ProcessLifetimeManager : IDisposable
 		}
 
 		_runningProcesses.TryAdd(process.Id, process);
-		_logger.LogInformation("Process {ProcessId} ({ProcessName}) registered for cleanup.", process.Id, process.ProcessName);
 	}
 
 	public void UnregisterProcess(Process process)
 	{
 		if (_runningProcesses.TryRemove(process.Id, out _))
 		{
-			_logger.LogInformation("Process {ProcessId} ({ProcessName}) unregistered.", process.Id, process.ProcessName);
 		}
 	}
 
