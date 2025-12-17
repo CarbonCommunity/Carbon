@@ -22,10 +22,10 @@ internal class ForDebugSettings
 	public bool SkipCarbonIfPresent { get; init; }
 	public bool NoRustServerRun { get; init; }
 
-	public ForDebugSettings(bool? skipRustServerIfPresent, bool? skipCarbonIfPresent, bool? noRustServerRun)
+	public ForDebugSettings(bool skipRustServerIfPresent = false, bool skipCarbonIfPresent = false, bool noRustServerRun = false)
 	{
-		SkipRustServerIfPresent = skipRustServerIfPresent ?? throw new ArgumentException(null, nameof(skipRustServerIfPresent));
-		SkipCarbonIfPresent = skipCarbonIfPresent ?? throw new ArgumentException(null, nameof(skipCarbonIfPresent));
-		NoRustServerRun = noRustServerRun ?? throw new ArgumentException(null, nameof(noRustServerRun));
+		SkipRustServerIfPresent = skipRustServerIfPresent;
+		SkipCarbonIfPresent = skipCarbonIfPresent;
+		NoRustServerRun = noRustServerRun;
 	}
 }

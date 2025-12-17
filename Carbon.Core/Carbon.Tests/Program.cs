@@ -16,6 +16,7 @@ internal abstract class Program
 		var appSettings = config.Get<AppSettings>()
 		                  ?? throw new Exception("App settings configuration missing");
 		var debugSettings = config.GetSection(ForDebugSettings.SectionName).Get<ForDebugSettings>()
+		                    ?? new ForDebugSettings()
 		                    ?? throw new Exception("Debug options are missing");
 
 		var httpClient = new HttpClient();
