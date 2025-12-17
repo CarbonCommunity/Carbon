@@ -19,11 +19,13 @@ internal class ForDebugSettings
 	public const string SectionName = "ForDebug";
 
 	public bool SkipRustServerIfPresent { get; init; }
+	public bool SkipCarbonIfPresent { get; init; }
 	public bool NoRustServerRun { get; init; }
 
-	public ForDebugSettings(bool? skipRustServerIfPresent, bool? noRustServerRun)
+	public ForDebugSettings(bool? skipRustServerIfPresent, bool? skipCarbonIfPresent, bool? noRustServerRun)
 	{
 		SkipRustServerIfPresent = skipRustServerIfPresent ?? throw new ArgumentException(null, nameof(skipRustServerIfPresent));
+		SkipCarbonIfPresent = skipCarbonIfPresent ?? throw new ArgumentException(null, nameof(skipCarbonIfPresent));
 		NoRustServerRun = noRustServerRun ?? throw new ArgumentException(null, nameof(noRustServerRun));
 	}
 }

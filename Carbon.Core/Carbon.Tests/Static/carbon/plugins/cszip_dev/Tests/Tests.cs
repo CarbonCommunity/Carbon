@@ -65,16 +65,16 @@ public partial class Tests : CarbonPlugin
 		[Integrations.Test(Channel = 5)]
 		public void quit(Integrations.Test test)
 		{
-			test.Log("Quitting");
+			test.Log($"Quitting - {Integrations.ExitCode}");
 			ToggleAllHookDebugging(false);
 
 			Rust.Application.isQuitting = true;
 			Network.Net.sv?.Stop(nameof (quit));
-			UnityEngine.Application.Quit(Environment.ExitCode);
-#if !UNIX
-			ExitProcess((uint)Environment.ExitCode);
+			UnityEngine.Application.Quit((int)Integrations.ExitCode);
+#if WIN
+			ExitProcess((uint)Integrations.ExitCode);
 #else
-			exit(Environment.ExitCode);
+			exit((int)Integrations.ExitCode);
 #endif
 		}
 	}
