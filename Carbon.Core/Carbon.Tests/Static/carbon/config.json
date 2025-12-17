@@ -1,0 +1,21 @@
+{
+  "DeveloperMode": true,
+  "Analytics": {
+    "Enabled": false
+  },
+  "SelfUpdating": {
+    "Enabled": true,
+    "HookUpdates": true
+  },
+  "Logging": {
+    "LogSplitSize": 2.5,
+    "LogSeverity": 3,
+    "LogFileMode": 2,
+    "LogVerbosity": 6,
+    "CommandSuggestions": true,
+    "ReducedLogging": false
+  },
+  "Misc": {
+    "ShowConsoleInfo": false
+  }
+}
