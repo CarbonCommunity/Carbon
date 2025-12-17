@@ -10,7 +10,7 @@ on:
     paths-ignore:
       - ".github/**/*"
       - "**/*.md"
-      - "Carbon.Core/Carbon.TestRunner/**/*"
+      - "Carbon.Core/Carbon.Tests/**/*"
       - ".gitignore"
 
 jobs:
