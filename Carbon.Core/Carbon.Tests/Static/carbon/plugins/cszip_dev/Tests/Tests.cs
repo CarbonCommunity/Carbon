@@ -26,12 +26,12 @@ public partial class Tests : CarbonPlugin
 			Integrations.EnqueueBed(Integrations.Get(type.Name, type, Activator.CreateInstance(type)));
 		}
 
-		Integrations.EnqueueBed(Integrations.Get(nameof(Cleanup), typeof(Cleanup), new Cleanup()));
+		Integrations.EnqueueBed(Integrations.Get(nameof(Cleanup), typeof(Cleanup), new Cleanup(), channel: 5));
 
 		Logger.Log(string.Empty);
 
 		Integrations.Run(delay: 0.1f, -1);
-		Integrations.OnFatalFailure += OnFatalFailure;
+		Integrations.OnFatalTestFailure += OnFatalFailure;
 	}
 
 	private void OnFatalFailure()
@@ -62,7 +62,7 @@ public partial class Tests : CarbonPlugin
 
 	private class Cleanup
 	{
-		[Integrations.Test]
+		[Integrations.Test(Channel = 5)]
 		public void quit(Integrations.Test test)
 		{
 			test.Log("Quitting");
