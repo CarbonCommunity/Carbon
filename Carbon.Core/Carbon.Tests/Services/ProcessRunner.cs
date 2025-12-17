@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace Carbon.Test.Services;
+namespace Carbon.Tests.Services;
 
 internal class ProcessRunner
 {

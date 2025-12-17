@@ -3,18 +3,18 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Carbon.Test.Services;
+namespace Carbon.Tests.Services;
 
 internal class TestServerRunner
 {
 	private readonly ProcessRunner _processRunner;
-	private readonly ForDebugSettings forDebugSettings;
+	private readonly ForDebugSettings _forDebugSettings;
 	private readonly ILogger<TestServerRunner> _logger;
 
 	public TestServerRunner(ProcessRunner processRunner, IOptions<ForDebugSettings> forDebugOptions, ILogger<TestServerRunner> logger)
 	{
 		_processRunner = processRunner;
-		forDebugSettings = forDebugOptions.Value;
+		_forDebugSettings = forDebugOptions.Value;
 		_logger = logger;
 	}
 
@@ -37,7 +37,7 @@ internal class TestServerRunner
 			WorkingDirectory = paths.RustDirectory,
 		};
 
-		if (forDebugSettings.NoRustServerRun)
+		if (_forDebugSettings.NoRustServerRun)
 		{
 			_logger.LogInformation("Skipped rust server run based on configuration");
 			return true;
@@ -68,11 +68,11 @@ internal class TestServerRunner
 
 		if (result.ExitCode != 0)
 		{
-			_logger.LogError($"Tester process did not exit with positive code - exit code {result.ExitCode}");
+			_logger.LogError("Tester process did not exit with positive code - exit code {ResultExitCode}", result.ExitCode);
 			return false;
 		}
 
-		_logger.LogInformation($"No failed tests detected - exit code {result.ExitCode}");
+		_logger.LogInformation("No failed tests detected - exit code {ResultExitCode}", result.ExitCode);
 
 		return true;
 	}

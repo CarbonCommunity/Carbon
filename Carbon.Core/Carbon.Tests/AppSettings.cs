@@ -1,4 +1,4 @@
-﻿namespace Carbon.Test;
+﻿namespace Carbon.Tests;
 
 internal class AppSettings
 {
