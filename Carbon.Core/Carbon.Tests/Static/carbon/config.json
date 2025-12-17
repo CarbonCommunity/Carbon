@@ -9,9 +9,9 @@
   },
   "Logging": {
     "LogSplitSize": 2.5,
-    "LogSeverity": 2,
+    "LogSeverity": 3,
     "LogFileMode": 2,
-    "LogVerbosity": 0,
+    "LogVerbosity": 6,
     "CommandSuggestions": true,
     "ReducedLogging": false
   },
