@@ -86,19 +86,19 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           cache: true
-          cache-dependency-path: 'Carbon.Core/Carbon.TestRunner/**/*.csproj'
+          cache-dependency-path: 'Carbon.Core/Carbon.Tests/**/*.csproj'
           dotnet-version: |
             10.0.x
 
       - name: DotNet Restore
         shell: bash
         run: |
-          dotnet restore Carbon.Core/Carbon.TestRunner
+          dotnet restore Carbon.Core/Carbon.Tests
 
       - name: DotNet Build
         shell: bash
         run: |
-          dotnet build Carbon.Core/Carbon.TestRunner -c Release --no-restore
+          dotnet build Carbon.Core/Carbon.Tests -c Release --no-restore
 
       - name: Run Tests
         shell: bash
@@ -106,7 +106,5 @@ jobs:
           WorkingDir: TestRunner
           BranchName: ${{ needs.configure.outputs.rust_branch }}
           CarbonDownloadZipUrl: https://github.com/CarbonCommunity/Carbon/releases/download/${{ needs.configure.outputs.download_id }}/Carbon.Linux.${{ needs.configure.outputs.build_config }}.tar.gz
-          ForDebug__SkipRustServerIfPresent: false
-          ForDebug__NoRustServerRun: false
         run: |
-          dotnet run --project Carbon.Core/Carbon.TestRunner -c Release --no-build
+          dotnet run --project Carbon.Core/Carbon.Tests -c Release --no-build
