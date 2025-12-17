@@ -47,6 +47,7 @@ internal class EnvironmentSetupService
 		{
 			await PrepareCarbonAsync(rustDir, _appSettings.CarbonDownloadZipUrl);
 		}
+
 		await CopyCarbonWorkspaceAsync(rustDir);
 		await PrepareRustConfigFilesAsync(rustDir, "thetester");
 

@@ -12,7 +12,10 @@ internal static class Utils
 		}
 	}
 
-	public static Dictionary<string, string> Copy(string folder, string destination, bool subdirectories = true, bool overwrite = true, SearchOption option = SearchOption.AllDirectories)
+	public static Dictionary<string, string> Copy(
+		string folder, string destination, bool subdirectories = true, bool overwrite = true,
+		SearchOption option = SearchOption.AllDirectories
+	)
 	{
 		if (!string.IsNullOrEmpty(folder) && !string.IsNullOrEmpty(destination))
 		{
