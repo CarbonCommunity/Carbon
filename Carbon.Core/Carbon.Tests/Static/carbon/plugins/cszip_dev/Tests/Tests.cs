@@ -68,14 +68,13 @@ public partial class Tests : CarbonPlugin
 			test.Log("Quitting");
 			ToggleAllHookDebugging(false);
 
-			var exitCode = Environment.ExitCode;
 			Rust.Application.isQuitting = true;
 			Network.Net.sv?.Stop(nameof (quit));
-			UnityEngine.Application.Quit(exitCode);
+			UnityEngine.Application.Quit(Environment.ExitCode);
 #if !UNIX
-			ExitProcess((uint)exitCode);
+			ExitProcess((uint)Environment.ExitCode);
 #else
-			exit(exitCode);
+			exit(Environment.ExitCode);
 #endif
 		}
 	}
