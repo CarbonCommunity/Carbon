@@ -43,9 +43,13 @@ internal class EnvironmentSetupService
 		var rustDir = await PrepareServerAsync(settings.AppId, settings.Branch);
 		_logger.LogInformation("Using Rust server directory: {RustDirectory}", rustDir);
 
-		if (!_forDebugSettings.SkipCarbonIfPresent && Directory.Exists(Path.Combine(rustDir, "carbon")))
+		if (!_forDebugSettings.SkipCarbonIfPresent)
 		{
 			await PrepareCarbonAsync(rustDir, _appSettings.CarbonDownloadZipUrl);
+		}
+		else
+		{
+			_logger.LogInformation("Skipped carbon installation due to debug setting");
 		}
 
 		await CopyCarbonWorkspaceAsync(rustDir);
