@@ -20,8 +20,6 @@ internal class TestServerRunner
 
 	public async Task<bool> RunTesterServerAsync(ServerPaths paths)
 	{
-		var identifier = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
 		var startInfo = new ProcessStartInfo
 		{
 			FileName = paths.RustExecutable,
@@ -31,7 +29,6 @@ internal class TestServerRunner
 			            $"-aimanager.nav_disable 1 " +
 			            $"-disable-server-occlusion -disable-server-occlusion-rocks -disableconsolelog -skipload -noconsole " +
 			            $"+server.level \"CraggyIsland\" -insecure " +
-			            $"-testrunner-identifier {identifier} " +
 			            $"-logfile -",
 			RedirectStandardOutput = true,
 			RedirectStandardError = true,
@@ -68,21 +65,14 @@ internal class TestServerRunner
 		_logger.LogInformation("Starting Rust server process");
 
 		var result = await _processRunner.RunAsync("RustDedicated", startInfo, 600_000);
-		var stdOut = result.StandardOutput;
 
 		if (result.ExitCode != 0)
 		{
-			_logger.LogError($"Tester process did not exit with positive code[{result.ExitCode}]");
+			_logger.LogError($"Tester process did not exit with positive code - exit code {result.ExitCode}");
 			return false;
 		}
 
-		if (stdOut.Contains($"{identifier} cancelled due to fatal status"))
-		{
-			_logger.LogError("Tester process failed some tests");
-			return false;
-		}
-
-		_logger.LogInformation("No failed tests detected.");
+		_logger.LogInformation($"No failed tests detected - exit code {result.ExitCode}");
 
 		return true;
 	}

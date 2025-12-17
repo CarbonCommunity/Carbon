@@ -1,7 +1,7 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Carbon.Core;
 using Carbon.Test;
 
@@ -18,6 +18,7 @@ public partial class Tests : CarbonPlugin
 
 		ToggleAllHookDebugging(false);
 	}
+
 	private void OnServerInitialized()
 	{
 		foreach(var type in HookableType.GetNestedTypes(BindingFlags.Public))
@@ -30,7 +31,15 @@ public partial class Tests : CarbonPlugin
 		Logger.Log(string.Empty);
 
 		Integrations.Run(delay: 0.1f, -1);
+		Integrations.OnFatalFailure += OnFatalFailure;
 	}
+
+	private void OnFatalFailure()
+	{
+		Integrations.EnqueueBed(Integrations.Get(nameof(Cleanup), typeof(Cleanup), new Cleanup(), channel: 5));
+		Integrations.Run(delay: 0.1f, 5);
+	}
+
 	private static void ToggleAllHookDebugging(bool wants)
 	{
 		foreach (var plugin in ModLoader.Packages.SelectMany(package => package.Plugins))
@@ -43,20 +52,31 @@ public partial class Tests : CarbonPlugin
 		}
 	}
 
+#if !UNIX
+	[DllImport("kernel32.dll")]
+	private static extern void ExitProcess(uint uExitCode);
+#else
+    [DllImport("libc")]
+    private static extern void exit(int status);
+#endif
+
 	private class Cleanup
 	{
 		[Integrations.Test]
 		public void quit(Integrations.Test test)
 		{
 			test.Log("Quitting");
-			Logger.Log(string.Empty);
 			ToggleAllHookDebugging(false);
 
-			SingletonComponent<ServerMgr>.Instance?.Shutdown();
+			var exitCode = Environment.ExitCode;
 			Rust.Application.isQuitting = true;
 			Network.Net.sv?.Stop(nameof (quit));
-			Process.GetCurrentProcess().Kill();
-			Rust.Application.Quit();
+			UnityEngine.Application.Quit(exitCode);
+#if !UNIX
+			ExitProcess((uint)exitCode);
+#else
+			exit(exitCode);
+#endif
 		}
 	}
 }
