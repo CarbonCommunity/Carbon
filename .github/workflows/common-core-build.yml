@@ -244,50 +244,30 @@ jobs:
             9.0.x
             10.0.x
 
-      - name: Get Carbon.Native Hash
-        id: rust-hash
-        shell: bash
-        run: |
-          HASH=$(git rev-parse HEAD:Carbon.Core/Carbon.Native)
-          echo "hash=$HASH" >> $GITHUB_OUTPUT
-
-      - name: Restore/Save Rust Target
-        id: cache-rust-target
-        uses: actions/cache@v5
-        with:
-          path: Carbon.Core/Carbon.Native/target
-          key: v1-rust-target-${{ matrix.target }}-${{ needs.configure.outputs.native_mode }}-${{ needs.configure.outputs.update_arg }}-${{ steps.rust-hash.outputs.hash }}
-          restore-keys: |
-            v1-rust-target-${{ matrix.target }}-${{ needs.configure.outputs.native_mode }}-${{ needs.configure.outputs.update_arg }}-
-
       - name: Cache Rust Dependencies
-        if: steps.cache-rust-target.outputs.cache-hit != 'true'
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: Carbon.Core/Carbon.Native
           shared-key: "deps-${{ needs.configure.outputs.native_mode }}-${{ needs.configure.outputs.update_arg }}"
-          cache-targets: "false"
-          save-if: ${{ steps.cache-rust-target.outputs.cache-hit != 'true' }}
 
       - name: Install MinGW (Windows) (Cond)
-        if: matrix.group == 'Windows' && steps.cache-rust-target.outputs.cache-hit != 'true'
+        if: matrix.group == 'Windows'
         shell: bash
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends mingw-w64
 
-      - name: Carbon.Native Toolchain (Cond)
-        if: steps.cache-rust-target.outputs.cache-hit != 'true'
+      - name: Carbon.Native Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
       - name: Build Native (Standard) (Cond)
-        if: steps.cache-rust-target.outputs.cache-hit != 'true' && (contains(needs.configure.outputs.native_mode, 'standard') || contains(needs.configure.outputs.native_mode, 'both'))
+        if: (contains(needs.configure.outputs.native_mode, 'standard') || contains(needs.configure.outputs.native_mode, 'both'))
         working-directory: Carbon.Core/Carbon.Native
         shell: bash
         run: cargo build -r --target ${{ matrix.target }}
 
       - name: Build Native (Prod) (Cond)
-        if: steps.cache-rust-target.outputs.cache-hit != 'true' && (contains(needs.configure.outputs.native_mode, 'prod') || contains(needs.configure.outputs.native_mode, 'both'))
+        if: (contains(needs.configure.outputs.native_mode, 'prod') || contains(needs.configure.outputs.native_mode, 'both'))
         working-directory: Carbon.Core/Carbon.Native
         shell: bash
         run: cargo build --profile prod --target ${{ matrix.target }}
