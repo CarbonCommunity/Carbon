@@ -43,7 +43,7 @@ internal class EnvironmentSetupService
 		var rustDir = await PrepareServerAsync(settings.AppId, settings.Branch);
 		_logger.LogInformation("Using Rust server directory: {RustDirectory}", rustDir);
 
-		if (!_forDebugSettings.SkipCarbonIfPresent)
+		if (!_forDebugSettings.SkipCarbonIfPresent || !Directory.Exists(Path.Combine(rustDir, "carbon")))
 		{
 			await PrepareCarbonAsync(rustDir, _appSettings.CarbonDownloadZipUrl);
 		}
@@ -117,15 +117,15 @@ internal class EnvironmentSetupService
 	private ValueTask CopyCarbonWorkspaceAsync(string rustDir)
 	{
 		var runningDir = AppContext.BaseDirectory;
-		var copyPluginsDir = Path.Combine(runningDir, "Static", "carbon");
+		var copyCarbonDir = Path.Combine(runningDir, "Static", "carbon");
 
-		if (!Directory.Exists(copyPluginsDir))
+		if (!Directory.Exists(copyCarbonDir))
 		{
-			throw new FileNotFoundException($"Didn't find path {copyPluginsDir}");
+			throw new FileNotFoundException($"Didn't find path {copyCarbonDir}");
 		}
 
-		var rustPluginsDir = Path.Combine(rustDir, "carbon");
-		Utils.Copy(copyPluginsDir, rustPluginsDir);
+		var targetCarbonDir = Path.Combine(rustDir, "carbon");
+		Utils.Copy(copyCarbonDir, targetCarbonDir);
 		return ValueTask.CompletedTask;
 	}
 
