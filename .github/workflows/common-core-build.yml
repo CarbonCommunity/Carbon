@@ -256,15 +256,16 @@ jobs:
         uses: actions/cache@v5
         with:
           path: Carbon.Core/Carbon.Native/target
-          key: v1-rust-target-${{ matrix.target }}-${{ needs.configure.outputs.native_mode }}-${{ steps.rust-hash.outputs.hash }}
+          key: v1-rust-target-${{ matrix.target }}-${{ needs.configure.outputs.native_mode }}-${{ needs.configure.outputs.update_arg }}-${{ steps.rust-hash.outputs.hash }}
           restore-keys: |
-            v1-rust-target-${{ matrix.target }}-${{ needs.configure.outputs.native_mode }}-
+            v1-rust-target-${{ matrix.target }}-${{ needs.configure.outputs.native_mode }}-${{ needs.configure.outputs.update_arg }}-
 
       - name: Cache Rust Dependencies
         if: steps.cache-rust-target.outputs.cache-hit != 'true'
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: Carbon.Core/Carbon.Native
+          shared-key: "deps-${{ needs.configure.outputs.native_mode }}-${{ needs.configure.outputs.update_arg }}"
           cache-targets: "false"
           save-if: ${{ steps.cache-rust-target.outputs.cache-hit != 'true' }}
 
