@@ -12,7 +12,7 @@ on:
 
 jobs:
   configure:
-    name: Configure Test (${{ inputs.IDENTIFIER }})
+    name: Configure Tests (${{ inputs.IDENTIFIER }})
     runs-on: ubuntu-latest
     outputs:
       download_id: ${{ steps.config.outputs.download_id }}
@@ -72,11 +72,20 @@ jobs:
           echo "rust_branch=$RUST_BRANCH" >> $GITHUB_OUTPUT
           echo "build_config=$BUILD_CONFIG" >> $GITHUB_OUTPUT
 
-  test:
-    name: Test Runner
+  tests:
+    name: Tests
     needs: configure
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.target }}
     continue-on-error: false
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: Linux
+            target: ubuntu-latest
+          - group: Windows
+            target: windows-latest
 
     steps:
       - name: Git Clone
@@ -105,6 +114,6 @@ jobs:
         env:
           WorkingDir: TestRunner
           BranchName: ${{ needs.configure.outputs.rust_branch }}
-          CarbonDownloadZipUrl: https://github.com/CarbonCommunity/Carbon/releases/download/${{ needs.configure.outputs.download_id }}/Carbon.Linux.${{ needs.configure.outputs.build_config }}.tar.gz
+          CarbonDownloadZipUrl: https://github.com/CarbonCommunity/Carbon/releases/download/${{ needs.configure.outputs.download_id }}/Carbon.${{ matrix.group }}.${{ needs.configure.outputs.build_config }}.${{ matrix.group == 'Linux' && 'tar.gz' || 'zip' }}
         run: |
           dotnet run --project Carbon.Core/Carbon.Tests -c Release --no-build
