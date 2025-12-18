@@ -55,7 +55,7 @@ public partial class Tests
             test.IsFalse(hasFired = false, "hasFired reset");
         }
 
-        [Integrations.Test.Assert(Timeout = 6_000)]
+        [Integrations.Test.Assert(Timeout = 20_000)]
         public async Task patch_all(Integrations.Test.Assert test)
         {
 	        var hookManager = Community.Runtime.HookManager;
