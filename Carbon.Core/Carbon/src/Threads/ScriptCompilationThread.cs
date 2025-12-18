@@ -538,7 +538,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
 
 				Carbon.Generator.InternalCallHook.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
-					pdbFilename, ClassList, Defines.GetScriptDebugFolder());
+					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
 
