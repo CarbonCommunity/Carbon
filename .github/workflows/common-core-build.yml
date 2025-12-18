@@ -268,7 +268,8 @@ jobs:
         with:
           workspaces: Carbon.Core/Carbon.Native
 
-      - name: Carbon.Native Toolchain
+      - name: Carbon.Native Toolchain (Cond)
+        if: steps.cache-rust.outputs.cache-hit != 'true'
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
