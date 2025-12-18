@@ -181,6 +181,7 @@ jobs:
     name: Build
     needs: configure
     runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
     continue-on-error: false
 
     strategy:
@@ -190,6 +191,7 @@ jobs:
           - group: Linux
             target: x86_64-unknown-linux-gnu
             build_arg: Unix
+            container: "rust:bullseye"
           - group: Windows
             target: x86_64-pc-windows-gnu
             build_arg: ""

@@ -54,6 +54,9 @@ internal class TestServerRunner
 				{ "DOORSTOP_TARGET_ASSEMBLY", Path.Combine(rustDirAbsolute, "carbon/managed/Carbon.Preloader.dll") },
 				{ "LD_PRELOAD", Path.Combine(rustDirAbsolute, "libdoorstop.so") },
 				{ "LD_LIBRARY_PATH", $"{rustDirAbsolute}:{Path.Combine(rustDirAbsolute, "RustDedicated_Data/Plugins/x86_64")}" },
+				// { "DOORSTOP_MONO_DEBUG_ENABLED", "1" },
+				// { "DOORSTOP_MONO_DEBUG_ADDRESS", "127.0.0.1:5337" },
+				// { "DOORSTOP_MONO_DEBUG_SUSPEND", "1" },
 			};
 
 			foreach (var (key, val) in envKeys)
