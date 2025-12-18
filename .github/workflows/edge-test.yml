@@ -10,7 +10,4 @@ jobs:
     name: Call Common Test
     with:
       # noinspection UndefinedParamsPresent
-      IDENTIFIER: develop
-    secrets:
-      PAT_ALL_REPO: ${{ secrets.PAT_ALL_REPO }}
-
+      build_identifier: develop
