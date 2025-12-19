@@ -68,8 +68,10 @@ internal class TestServerRunner
 		_logger.LogInformation("Starting Rust server process");
 
 		ProcessResult result;
-		using (new StopWatchGroupLog("TestServerRunner RunTesterServer - Running Server Process"))
+		using (new TimedGroupLog("TestServerRunner RunTesterServer - Running Server Process"))
+		{
 			result = await _processRunner.RunAsync("RustDedicated", startInfo, 600_000);
+		}
 
 		if (result.ExitCode != 0)
 		{

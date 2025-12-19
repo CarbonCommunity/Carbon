@@ -85,7 +85,7 @@ internal class EnvironmentSetupService
 	{
 		_logger.LogInformation("Downloading Carbon from {CarbonUrl}", carbonUrl);
 
-		using (new StopWatchGroupLog("EnvironmentSetupService PrepareCarbon - Downloading and Unpacking Carbon"))
+		using (new TimedGroupLog("EnvironmentSetupService PrepareCarbon - Downloading and Unpacking Carbon"))
 		{
 			await using var memoryStream = new MemoryStream();
 			var response = await _httpClient.GetAsync(carbonUrl);

@@ -48,8 +48,10 @@ internal class DepotDownloaderService
 		};
 
 		ProcessResult result;
-		using (new StopWatchGroupLog("DepotDownloader RunDownload - Downloading Server"))
+		using (new TimedGroupLog("DepotDownloader RunDownload - Downloading Server"))
+		{
 			result = await _processRunner.RunAsync("DepotDownloader", processStartInfo, 600_000);
+		}
 
 		if (result.ExitCode != 0)
 		{
@@ -69,7 +71,7 @@ internal class DepotDownloaderService
 
 		_logger.LogInformation("DepotDownloader not found, downloading from {Link} ...", DepotDownloaderExecutableLink);
 
-		using (new StopWatchGroupLog("DepotDownloader EnsureDepotDownloaderExists - Downloading it"))
+		using (new TimedGroupLog("DepotDownloader EnsureDepotDownloaderExists - Downloading it"))
 		{
 			await using var memoryStream = new MemoryStream();
 			var response = await _httpClient.GetAsync(DepotDownloaderExecutableLink);
