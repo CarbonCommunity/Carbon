@@ -81,7 +81,7 @@ jobs:
               API_ID="qa"
               BUILD_DEFINE="QA"
               TAG_NAME="qa_build"
-              UPDATE_ARG="staging"
+              UPDATE_ARG="release"
               NATIVE_MODE="both"
               CS_MODE="full"
               MAJOR_VER="2.9"
