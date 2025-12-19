@@ -47,7 +47,9 @@ internal class DepotDownloaderService
 			WorkingDirectory = workingDirectory,
 		};
 
-		var result = await _processRunner.RunAsync("DepotDownloader", processStartInfo, 600_000);
+		ProcessResult result;
+		using (new StopWatchGroupLog("DepotDownloader RunDownload - Downloading Server"))
+			result = await _processRunner.RunAsync("DepotDownloader", processStartInfo, 600_000);
 
 		if (result.ExitCode != 0)
 		{
@@ -67,22 +69,25 @@ internal class DepotDownloaderService
 
 		_logger.LogInformation("DepotDownloader not found, downloading from {Link} ...", DepotDownloaderExecutableLink);
 
-		await using var memoryStream = new MemoryStream();
-		var response = await _httpClient.GetAsync(DepotDownloaderExecutableLink);
-		response.EnsureSuccessStatusCode();
-		await response.Content.CopyToAsync(memoryStream);
+		using (new StopWatchGroupLog("DepotDownloader EnsureDepotDownloaderExists - Downloading it"))
+		{
+			await using var memoryStream = new MemoryStream();
+			var response = await _httpClient.GetAsync(DepotDownloaderExecutableLink);
+			response.EnsureSuccessStatusCode();
+			await response.Content.CopyToAsync(memoryStream);
 
-		memoryStream.Position = 0;
+			memoryStream.Position = 0;
 
-		await using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read);
-		var entry = archive.Entries.FirstOrDefault(e => e.Name.Equals(DepotDownloaderExecutable, StringComparison.OrdinalIgnoreCase)) ??
-		            throw new FileNotFoundException($"Could not find '{DepotDownloaderExecutable}' in the downloaded archive");
+			await using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read);
+			var entry = archive.Entries.FirstOrDefault(e => e.Name.Equals(DepotDownloaderExecutable, StringComparison.OrdinalIgnoreCase)) ??
+			            throw new FileNotFoundException($"Could not find '{DepotDownloaderExecutable}' in the downloaded archive");
 
-		await entry.ExtractToFileAsync(executablePath);
+			await entry.ExtractToFileAsync(executablePath);
 
-		Utils.MakeExecutableExecutable(executablePath);
+			Utils.MakeExecutableExecutable(executablePath);
 
-		_logger.LogInformation("DepotDownloader download and extraction complete");
+			_logger.LogInformation("DepotDownloader download and extraction complete");
+		}
 	}
 }
 
