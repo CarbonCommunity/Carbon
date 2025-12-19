@@ -53,7 +53,6 @@ internal static class Utils
 
 		return retDictionary;
 	}
-
 }
 
 public struct TimedGroupLog : IDisposable
