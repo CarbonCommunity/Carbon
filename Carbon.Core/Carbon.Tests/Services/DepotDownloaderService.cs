@@ -29,7 +29,7 @@ internal class DepotDownloaderService
 		var filesToDownloadFile = Path.Combine(workingDirectory, "filelist.txt");
 
 		const string regex =
-			"""regex:^(?!.*/StreamingAssets/).*$""";
+			"""regex:^(?!.*/StreamingAssets/)(?!.*items/.*\.json$).*$""";
 
 		await File.WriteAllTextAsync(filesToDownloadFile, regex);
 
