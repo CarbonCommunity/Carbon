@@ -1,4 +1,4 @@
-﻿name: Integration Tests
+﻿name: Common Test
 
 on:
   workflow_call:
