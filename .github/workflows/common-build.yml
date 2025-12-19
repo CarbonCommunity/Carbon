@@ -310,7 +310,7 @@ jobs:
           dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/build.cs Minimal$ARG $DEFINE $TAG -noclean
 
       - name: Carbon Nuget Publish (Cond)
-        if: needs.configure.outputs.run_nuget == 'true' && matrix.group == 'Linux' && github.event_name != 'pull_request'
+        if: needs.configure.outputs.run_nuget == 'true' && matrix.group == 'Windows' && github.event_name != 'pull_request'
         shell: bash
         run: |
           dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/nuget.cs ${{ secrets.NUGET_API }} ${{ steps.step1.outputs.version }}
