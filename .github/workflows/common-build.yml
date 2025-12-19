@@ -1,4 +1,4 @@
-﻿name: Common Core Build
+﻿name: Common Build
 
 on:
   workflow_call:
@@ -19,7 +19,7 @@ on:
 
 jobs:
   configure:
-    name: Configure Build (${{ inputs.GIT_BRANCH }})
+    name: Setup (${{ inputs.GIT_BRANCH }})
     runs-on: ubuntu-latest
     outputs:
       api_id: ${{ steps.config.outputs.api_id }}
