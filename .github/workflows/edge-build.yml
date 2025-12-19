@@ -6,6 +6,12 @@ on:
   push:
     branches:
       - develop
+    
+    paths-ignore:
+      - ".github/**/*"
+      - "**/*.md"
+      - "Carbon.Core/Carbon.Tests/**/*"
+      - ".gitignore"
 
 jobs:
   call-common:
@@ -34,3 +40,10 @@ jobs:
     secrets:
       PAT_ALL_REPO: ${{ secrets.PAT_ALL_REPO }}
       VERSIONS_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
+
+  call-tests:
+    uses: ./.github/workflows/common-test.yml
+    needs: call-common
+    name: Call Common Tests
+    with:
+      build_identifier: 'develop'
