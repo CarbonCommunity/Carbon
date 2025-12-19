@@ -523,11 +523,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					trees.Add(tree);
 				}
 
-				foreach (var name in root.Usings.Select(element => element.Name.ToString())
-					         .Where(name => !Usings.Contains(name)))
-				{
-					Usings.Add(name);
-				}
+				Usings.AddRange(root.Usings.Select(x => x.ToString()));
 			}
 
 			if (!containsInternalCallHookOverride)
@@ -538,7 +534,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
 
 				Carbon.Generator.InternalCallHook.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
-					pdbFilename, ClassList);
+					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
 

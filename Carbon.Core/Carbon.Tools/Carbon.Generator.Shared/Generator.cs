@@ -316,7 +316,9 @@ public class InternalCallHook
 		#endregion
 	}
 
-	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null)
+	public static void GeneratePartial(
+		CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName,
+		List<ClassDeclarationSyntax> classes = null, string? debugOutputPath = null, List<string> usingsList = null)
 	{
 		Generate(input, out _, out var method, out var isPartial, classList: classes);
 
@@ -339,7 +341,10 @@ public class InternalCallHook
 		}
 
 		var @class = classes[0];
-		var usings = input.Usings;
+		var usings = input.Usings.Select(x => x.ToString())
+			.Concat(usingsList ?? [])
+			.Distinct()
+			.ToList();
 		var subUsings = @namespace!.Usings;
 
 		var source = @$"{string.Join("\n", usings.Select(x => x.ToString()))}
