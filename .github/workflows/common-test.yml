@@ -1,4 +1,4 @@
-﻿name: Common Tests Runner
+﻿name: Integration Tests
 
 on:
   workflow_call:
@@ -27,7 +27,7 @@ on:
 
 jobs:
   configure:
-    name: Configure Tests (${{ inputs.build_identifier }})
+    name: Setup (${{ inputs.build_identifier }})
     runs-on: ubuntu-latest
     outputs:
       download_id: ${{ steps.config.outputs.download_id }}

@@ -8,8 +8,8 @@ on:
 
 jobs:
   call-common:
-    uses: ./.github/workflows/common-core-build.yml
-    name: Call Common Build
+    uses: ./.github/workflows/common-build.yml
+    name: Build
     permissions:
       contents: write
     with:
@@ -37,6 +37,6 @@ jobs:
   call-tests:
     uses: ./.github/workflows/common-test.yml
     needs: call-common
-    name: Call Common Tests
+    name: Tests
     with:
       build_identifier: 'rust_beta/staging'
