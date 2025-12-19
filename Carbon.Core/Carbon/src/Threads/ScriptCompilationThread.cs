@@ -523,11 +523,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					trees.Add(tree);
 				}
 
-				foreach (var name in root.Usings.Select(element => element.Name.ToString())
-					         .Where(name => !Usings.Contains(name)))
-				{
-					Usings.Add(name);
-				}
+				Usings.AddRange(root.Usings.Select(x => x.ToString()));
 			}
 
 			if (!containsInternalCallHookOverride)
