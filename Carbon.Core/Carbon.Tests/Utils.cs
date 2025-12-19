@@ -55,7 +55,7 @@ internal static class Utils
 	}
 }
 
-public struct TimedGroupLog : IDisposable
+public readonly struct TimedGroupLog : IDisposable
 {
 	private readonly string _name;
 	private readonly Stopwatch _stopwatch;
@@ -88,6 +88,5 @@ public struct TimedGroupLog : IDisposable
 	public void Dispose()
 	{
 		Stop();
-		GC.SuppressFinalize(this);
 	}
 }
