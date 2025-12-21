@@ -1,6 +1,5 @@
-var home = Home;
-
-Git.SetQuiet(true);
+            var locker = new object();
+			var home = Home;
 
 var tasks = new System.Collections.Generic.List<Task>();
 var commits = new System.Collections.Generic.List<(
@@ -8,7 +7,8 @@ var commits = new System.Collections.Generic.List<(
     string sha, 
     string date,
     string author,
-    string message
+    string message,
+    int changeset
     )>();
 using var stream = new System.IO.MemoryStream();
 {
@@ -40,6 +40,7 @@ using var stream = new System.IO.MemoryStream();
             writer.Write(commit.date);
             writer.Write(commit.author);
             writer.Write(commit.message);
+            writer.Write(commit.changeset);
         }
         
         System.IO.File.WriteAllBytes("git_out.dat", stream.ToArray());
@@ -58,7 +59,7 @@ void ProcessRepository(string repo, string workspace)
         git.Run("fetch", "--all", "--prune");
 
         var origin = git.RunOutput("remote", "get-url", "--push", "--all", "origin");
-        var output = git.RunOutput("log", "--all", "--date=iso-strict", "--format=%H%x1f%ad%x1f%an%x1f%s");
+        var output = git.RunOutput("log", "--all", "--reverse", "--date=iso-strict", "--format=%H%x1f%ad%x1f%an%x1f%s");
 
         var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var count = 0;
@@ -71,7 +72,10 @@ void ProcessRepository(string repo, string workspace)
                 var date = parts[1];
                 var author = parts[2];
                 var message = parts[3];
-                commits.Add((repo, sha, date, author, message));
+                lock (locker)
+                {
+                    commits.Add((repo, sha, date, author, message, i));
+                }
                 count++;
             }
         }
