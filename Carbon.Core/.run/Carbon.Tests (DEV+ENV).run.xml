@@ -1,16 +1,16 @@
 ﻿<component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Carbon.Tests (DEV+ENV)" type="DotNetProject" factoryName=".NET Project">
-    <option name="EXE_PATH" value="$PROJECT_DIR$/bin/Debug/net10.0/Carbon.Tests" />
+    <option name="EXE_PATH" value="$PROJECT_DIR$/Carbon.Tests/bin/Debug/net10.0/Carbon.Tests" />
     <option name="PROGRAM_PARAMETERS" value="" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/bin/Debug/net10.0" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Carbon.Tests/bin/Debug/net10.0" />
     <option name="PASS_PARENT_ENVS" value="1" />
-    <option name="ENV_FILE_PATHS" value="$PROJECT_DIR$/.env" />
+    <option name="ENV_FILE_PATHS" value="$PROJECT_DIR$/Carbon.Tests/.env" />
     <option name="REDIRECT_INPUT_PATH" value="" />
     <option name="MIXED_MODE_DEBUG" value="0" />
     <option name="USE_MONO" value="0" />
     <option name="RUNTIME_ARGUMENTS" value="" />
     <option name="AUTO_ATTACH_CHILDREN" value="0" />
-    <option name="PROJECT_PATH" value="$PROJECT_DIR$/Carbon.Tests.csproj" />
+    <option name="PROJECT_PATH" value="$PROJECT_DIR$/Carbon.Tests/Carbon.Tests.csproj" />
     <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
     <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
     <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
