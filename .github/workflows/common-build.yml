@@ -81,7 +81,7 @@ jobs:
               API_ID="qa"
               BUILD_DEFINE="QA"
               TAG_NAME="qa_build"
-              UPDATE_ARG="staging"
+              UPDATE_ARG="release"
               NATIVE_MODE="both"
               CS_MODE="full"
               MAJOR_VER="2.9"
@@ -181,7 +181,6 @@ jobs:
     name: Build
     needs: configure
     runs-on: ubuntu-latest
-    container: ${{ matrix.container }}
     continue-on-error: false
 
     strategy:
@@ -191,7 +190,6 @@ jobs:
           - group: Linux
             target: x86_64-unknown-linux-gnu
             build_arg: Unix
-            container: "rust:bullseye"
           - group: Windows
             target: x86_64-pc-windows-gnu
             build_arg: ""
@@ -228,57 +226,142 @@ jobs:
           echo "clock=$CLOCK" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
+
           REAL_SHA=$(git rev-parse HEAD)
           echo "commit_sha=$REAL_SHA" >> $GITHUB_OUTPUT
-          
+
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Setup .NET 8, 9 & 10 SDK
+      - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v5
         with:
-          cache: true
-          cache-dependency-path: 'Carbon.Core/**/*.csproj'
           dotnet-version: |
-            8.0.x
-            9.0.x
             10.0.x
 
-      - name: Cache Rust Dependencies
-        uses: Swatinem/rust-cache@v2
+      - name: Generate Rust Hash
+        id: rust-hash
+        shell: bash
+        run: |
+          echo "hash=${{ hashFiles('Carbon.Core/Carbon.Native/src/**', 'Carbon.Core/Carbon.Native/Cargo.toml', 'Carbon.Core/Carbon.Native/Cargo.lock', 'Carbon.Core/Carbon.Native/build.rs') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache Native Binaries
+        id: cache-native
+        uses: actions/cache@v5
         with:
-          workspaces: Carbon.Core/Carbon.Native
-          shared-key: "deps-${{ needs.configure.outputs.native_mode }}-${{ needs.configure.outputs.update_arg }}"
+          path: |
+            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/release/*.so
+            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/release/*.dll
+            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/prod/*.so
+            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/prod/*.dll
+          key: native-${{ matrix.target }}-${{ needs.configure.outputs.native_mode }}-${{ steps.rust-hash.outputs.hash }}
+
+      - name: Setup Zig (Linux) (Cond)
+        if: steps.cache-native.outputs.cache-hit != 'true' && matrix.group == 'Linux'
+        uses: mlugg/setup-zig@v2
+
+      - name: Install Zig Build (Linux) (Cond)
+        if: steps.cache-native.outputs.cache-hit != 'true' && matrix.group == 'Linux'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
 
       - name: Install MinGW (Windows) (Cond)
+        # todo skip on cache hit
         if: matrix.group == 'Windows'
         shell: bash
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends mingw-w64
 
-      - name: Carbon.Native Toolchain
+      - name: Carbon.Native Toolchain (Cond)
+        if: steps.cache-native.outputs.cache-hit != 'true'
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
       - name: Build Native (Standard) (Cond)
-        if: (contains(needs.configure.outputs.native_mode, 'standard') || contains(needs.configure.outputs.native_mode, 'both'))
+        if: steps.cache-native.outputs.cache-hit != 'true' && (contains(needs.configure.outputs.native_mode, 'standard') || contains(needs.configure.outputs.native_mode, 'both'))
         working-directory: Carbon.Core/Carbon.Native
-        shell: bash
-        run: cargo build -r --target ${{ matrix.target }}
-
-      - name: Build Native (Prod) (Cond)
-        if: (contains(needs.configure.outputs.native_mode, 'prod') || contains(needs.configure.outputs.native_mode, 'both'))
-        working-directory: Carbon.Core/Carbon.Native
-        shell: bash
-        run: cargo build --profile prod --target ${{ matrix.target }}
-
-      - name: Pre-build Carbon Runner
         shell: bash
         run: |
-          dotnet build Carbon.Core/Carbon.Tools/Carbon.Runner -c Release -o ./runner-bin
+          if [[ "${{ matrix.group }}" == "Linux" ]]; then
+            cargo zigbuild -r --target ${{ matrix.target }}.2.17
+          else
+            cargo build -r --target ${{ matrix.target }}
+          fi
+
+      - name: Build Native (Prod) (Cond)
+        if: steps.cache-native.outputs.cache-hit != 'true' && (contains(needs.configure.outputs.native_mode, 'prod') || contains(needs.configure.outputs.native_mode, 'both'))
+        working-directory: Carbon.Core/Carbon.Native
+        shell: bash
+        run: |
+          if [[ "${{ matrix.group }}" == "Linux" ]]; then
+            cargo zigbuild --profile prod --target ${{ matrix.target }}.2.17
+          else
+            cargo build --profile prod --target ${{ matrix.target }}
+          fi
+
+      - name: Verify Native Linking & Symbols
+        # todo skip on cache hit
+        shell: bash
+        run: |
+          if [[ "${{ needs.configure.outputs.native_mode }}" == *"prod"* ]]; then
+             TARGET_DIR="Carbon.Core/Carbon.Native/target/${{ matrix.target }}/prod"
+          else
+             TARGET_DIR="Carbon.Core/Carbon.Native/target/${{ matrix.target }}/release"
+          fi
+
+          echo "Searching in: $TARGET_DIR"
+
+          if [[ "${{ matrix.group }}" == "Windows" ]]; then
+            BIN_PATH=$(find "$TARGET_DIR" -maxdepth 1 -name "*.dll" | head -n 1)
+          
+            if [ -z "$BIN_PATH" ]; then
+              echo "::error::No .dll found in $TARGET_DIR"
+              ls -R Carbon.Core/Carbon.Native/target/
+              exit 1
+            fi
+            echo "Found Binary: $BIN_PATH"
+
+            IMPORTS=$(x86_64-w64-mingw32-objdump -p "$BIN_PATH" | grep "DLL Name" || true)
+            if echo "$IMPORTS" | grep -iE "libgcc|libstdc++|libwinpthread"; then
+              echo "::error::Windows Binary is NOT statically linked! Found forbidden dependencies."
+              echo "$IMPORTS" | grep -iE "libgcc|libstdc++|libwinpthread"
+              exit 1
+            fi
+          
+            SYMBOLS=$(x86_64-w64-mingw32-nm -g "$BIN_PATH" | grep " T " || true)
+          
+          else
+            BIN_PATH=$(find "$TARGET_DIR" -maxdepth 1 -name "*.so" | head -n 1)
+
+            if [ -z "$BIN_PATH" ]; then
+              echo "::error::No .so found in $TARGET_DIR"
+              ls -R Carbon.Core/Carbon.Native/target/
+              exit 1
+            fi
+            echo "Found Binary: $BIN_PATH"
+          
+            GLIBC_REFS=$(objdump -T "$BIN_PATH" | grep "GLIBC_" | sort -uV)
+          
+            if echo "$GLIBC_REFS" | grep -qE "GLIBC_2\.(1[8-9]|[2-9][0-9])"; then
+               echo "::error::Linux Binary linked against too new GLIBC (2.18+)! Zig target override failed."
+               echo "$GLIBC_REFS"
+               exit 1
+            fi
+
+            SYMBOLS=$(nm -gD "$BIN_PATH" | grep " T " || true)
+          fi
+
+          if [ -z "$SYMBOLS" ]; then
+             echo "::error::No exported symbols found in $BIN_PATH! Binary is useless."
+             exit 1
+          fi
+          
+          echo "Binary Verification Passed: Statically linked and exports $(echo "$SYMBOLS" | wc -l) functions."
+
+      - name: Pre-build Carbon Runner
+        run: dotnet build Carbon.Core/Carbon.Tools/Carbon.Runner -c Release -o ./runner-bin
 
       - name: Carbon Bootstrap CS
-        shell: bash
         run: dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/bootstrap.cs
 
       - name: Carbon Update CS
@@ -310,7 +393,7 @@ jobs:
           dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/build.cs Minimal$ARG $DEFINE $TAG -noclean
 
       - name: Carbon Nuget Publish (Cond)
-        if: needs.configure.outputs.run_nuget == 'true' && matrix.group == 'Linux' && github.event_name != 'pull_request'
+        if: needs.configure.outputs.run_nuget == 'true' && matrix.group == 'Windows' && github.event_name != 'pull_request'
         shell: bash
         run: |
           dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/nuget.cs ${{ secrets.NUGET_API }} ${{ steps.step1.outputs.version }}
