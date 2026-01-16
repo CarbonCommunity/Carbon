@@ -86,14 +86,10 @@ jobs:
           token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
 
-      - name: Setup .NET 8, 9 & 10 SDK
+      - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v5
         with:
-          cache: true
-          cache-dependency-path: 'Carbon.Core/**/*.csproj'
           dotnet-version: |
-            8.0.x
-            9.0.x
             10.0.x
 
       - name: 🔨 Built Carbon Hooks on Windows
