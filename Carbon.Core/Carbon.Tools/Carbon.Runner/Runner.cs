@@ -57,6 +57,7 @@ public class InternalRunner
 	internal static string Build(string source, bool shouldExit)
 	{
 		return $@"using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
