@@ -58,6 +58,7 @@ resharper_braces_for_for = required
 resharper_braces_for_foreach = required
 resharper_braces_for_ifelse = required
 resharper_braces_for_while = required
+resharper_braces_for_using = required
 resharper_cpp_indent_style = space
 resharper_csharp_indent_style = tab
 resharper_csharp_insert_final_newline = true
