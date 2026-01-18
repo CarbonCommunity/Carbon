@@ -21,8 +21,4 @@
         </None>
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Static\carbon\"/>
-    </ItemGroup>
-
 </Project>
