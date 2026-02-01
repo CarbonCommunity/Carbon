@@ -16,7 +16,7 @@ public partial class Tests
 		private const string EdgePermOne = "sqlmigrationtest.edge.one";
 		private const string EdgePermTwo = "sqlmigrationtest.edge.two";
 
-		[Integrations.Test.Assert()]
+		[Integrations.Test.Assert]
 		public void migration_and_sql_behavior(Integrations.Test.Assert test)
 		{
 			var permission = singleton.permission;
@@ -72,7 +72,7 @@ public partial class Tests
 
 			test.IsTrue(permission.CreateGroup(ParentGroupId, ParentGroupId, 0), $"permission.CreateGroup(\"{ParentGroupId}\")");
 			test.IsTrue(permission.CreateGroup(ChildGroupId, ChildGroupId, 0), $"permission.CreateGroup(\"{ChildGroupId}\")");
-			test.IsTrue(permission.SetGroupParent(ChildGroupId, ParentGroupId), "sql set group parent");
+			test.IsTrue(permission.SetGroupParent(ChildGroupId, ParentGroupId.ToUpperInvariant()), "sql set group parent (mixed-case parent)");
 			permission.GrantGroupPermission(ParentGroupId, EdgePermOne, singleton);
 			permission.AddUserGroup(UserId, ChildGroupId, addIfNotExisting: true);
 			test.IsTrue(permission.UserHasPermission(UserId, EdgePermOne), "sql parent group permission inheritance");
@@ -85,12 +85,47 @@ public partial class Tests
 			test.IsTrue(permission.GroupHasPermission(GroupIdTwo, EdgePermOne), "sql wildcard group perm persists to db");
 			test.IsTrue(permission.GroupHasPermission(GroupIdTwo, EdgePermTwo), "sql wildcard group perm persists to db");
 
+			test.IsTrue(permission.GrantGroupPermission(GroupIdTwo, GroupPerm, singleton), "sql can grant additional group perm");
+			test.IsTrue(permission.GroupHasPermission(GroupIdTwo, GroupPerm), "sql group has additional perm");
+			test.IsTrue(permission.RevokeGroupPermission(GroupIdTwo, "sqlmigrationtest.edge.*"), "sql wildcard group perm revoke (prefix*)");
+			test.IsFalse(permission.GroupHasPermission(GroupIdTwo, EdgePermOne), "sql wildcard group perm revoke removes edge one");
+			test.IsFalse(permission.GroupHasPermission(GroupIdTwo, EdgePermTwo), "sql wildcard group perm revoke removes edge two");
+			test.IsTrue(permission.GroupHasPermission(GroupIdTwo, GroupPerm), "sql wildcard group perm revoke keeps other perms");
+			permission.groupdata.Clear();
+			permission.GetType().GetMethod("LoadGroups")?.Invoke(permission, null);
+			test.IsFalse(permission.GroupHasPermission(GroupIdTwo, EdgePermOne), "sql wildcard group perm revoke persisted (edge one)");
+			test.IsFalse(permission.GroupHasPermission(GroupIdTwo, EdgePermTwo), "sql wildcard group perm revoke persisted (edge two)");
+			test.IsTrue(permission.GroupHasPermission(GroupIdTwo, GroupPerm), "sql wildcard group perm revoke persisted (other perm)");
+			test.IsTrue(permission.RevokeGroupPermission(GroupIdTwo, "*"), "sql wildcard group perm revoke (*)");
+			test.IsFalse(permission.GroupHasPermission(GroupIdTwo, GroupPerm), "sql wildcard group perm revoke (*) removes remaining perms");
+
+			permission.GrantGroupPermission(GroupIdTwo, "sqlmigrationtest.edge.*", singleton);
+			permission.groupdata.Clear();
+			permission.GetType().GetMethod("LoadGroups")?.Invoke(permission, null);
+			test.IsTrue(permission.GroupHasPermission(GroupIdTwo, EdgePermTwo), "sql wildcard group perm restored after revoke tests");
+
 			permission.UpdateNickname(UserId, "SqlMigrationTestNick");
 			permission.userdata.Remove(UserId);
 			test.IsTrue(permission.UserExists("SqlMigrationTestNick"), "sql UserExists resolves nickname");
 			permission.userdata.Remove(UserId);
 			var reloadedAfterNickname = permission.GetUserData(UserId);
 			test.IsTrue(reloadedAfterNickname.Groups.Count > 0, "sql UpdateNickname keeps groups in db");
+			test.IsTrue(permission.UserHasPermission(UserId, UserPerm), "sql UpdateNickname keeps perms in db (CommitUser does not cascade)");
+
+			permission.userdata.Remove(UserId);
+			test.IsTrue(permission.UserExists(UserId, out var outData) && outData != null, "sql UserExists(out data) queries db");
+
+			const string UserEdgePermOne = "sqlmigrationtest.useredge.one";
+			const string UserEdgePermTwo = "sqlmigrationtest.useredge.two";
+			permission.RegisterPermission(UserEdgePermOne, singleton);
+			permission.RegisterPermission(UserEdgePermTwo, singleton);
+			test.IsTrue(permission.GrantUserPermission(UserId, "sqlmigrationtest.useredge.*", singleton), "sql wildcard user perm grant (prefix*)");
+			test.IsTrue(permission.UserHasPermission(UserId, UserEdgePermOne), "sql wildcard user perm grants useredge one");
+			test.IsTrue(permission.UserHasPermission(UserId, UserEdgePermTwo), "sql wildcard user perm grants useredge two");
+			test.IsTrue(permission.RevokeUserPermission(UserId, "sqlmigrationtest.useredge.*"), "sql wildcard user perm revoke (prefix*)");
+			permission.userdata.Remove(UserId);
+			test.IsFalse(permission.GetUserData(UserId).Perms.Contains(UserEdgePermOne), "sql wildcard user perm revoke persisted (useredge one)");
+			test.IsFalse(permission.GetUserData(UserId).Perms.Contains(UserEdgePermTwo), "sql wildcard user perm revoke persisted (useredge two)");
 
 			permission.userdata.Remove(UserId);
 			var sqlReloadedBeforeProto = permission.GetUserData(UserId);
