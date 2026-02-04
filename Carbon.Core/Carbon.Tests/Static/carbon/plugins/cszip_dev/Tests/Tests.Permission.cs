@@ -9,6 +9,8 @@ public partial class Tests
 	{
 		public const string userId = "76561198158946080";
 		public const string groupId = "integrationtestgroup";
+		public const string nickname = "IntegrationTestNick";
+		public const string nicknamePerm = "integrationtest.nickperm";
 
 		public UserData user;
 		public GroupData group;
@@ -27,6 +29,15 @@ public partial class Tests
 
 			user = singleton.permission.GetUserData(userId, addIfNotExisting: true);
 			test.IsNotNull(user, "user");
+
+			singleton.permission.RegisterPermission(nicknamePerm, singleton);
+			singleton.permission.UpdateNickname(userId, nickname);
+			test.IsTrue(singleton.permission.UserExists(nickname), $"singleton.permission.UserExists(\"{nickname}\")");
+			test.IsTrue(singleton.permission.FindUser(nickname).Key == userId, $"singleton.permission.FindUser(\"{nickname}\").Key == userId");
+			singleton.server.Command($"c.grant user {nickname} {nicknamePerm}");
+			test.IsTrue(singleton.permission.UserHasPermission(userId, nicknamePerm), $"singleton.permission.UserHasPermission(\"{userId}\", \"{nicknamePerm}\")");
+			singleton.server.Command($"c.revoke user {nickname} {nicknamePerm}");
+			test.IsFalse(singleton.permission.UserHasPermission(userId, nicknamePerm), $"singleton.permission.UserHasPermission(\"{userId}\", \"{nicknamePerm}\") after revoke");
 		}
 
 		[Integrations.Test.Assert]
