@@ -38,6 +38,7 @@ internal class EnvironmentSetupService
 
 	public async ValueTask<ServerPaths> PrepareEnvironmentAsync(ServerSettings settings)
 	{
+		const string rustIdentity = "thetester";
 		_logger.LogInformation("Preparing environment in working directory: {WorkingDirectory}", _workingDirectory);
 
 		var rustDir = await PrepareServerAsync(settings.AppId, settings.Branch);
@@ -53,12 +54,41 @@ internal class EnvironmentSetupService
 		}
 
 		await CopyCarbonWorkspaceAsync(rustDir);
-		await PrepareRustConfigFilesAsync(rustDir, "thetester");
+		await CleanupServerState(rustDir, rustIdentity);
+		await PrepareRustConfigFilesAsync(rustDir, rustIdentity);
 
 		var rustExePath = Path.Combine(rustDir, RustDedicatedExecutable);
 		_logger.LogInformation("Using Rust executable: {RustExecutable}", rustExePath);
 
 		return new ServerPaths(rustDir, rustExePath);
+	}
+
+	private ValueTask CleanupServerState(string rustDir, string serverIdentity)
+	{
+		string[] paths =
+		[
+			Path.Combine(rustDir, "server", serverIdentity),
+			Path.Combine(rustDir, "carbon", "data"),
+		];
+
+		foreach (var path in paths)
+		{
+			if (!Path.Exists(path))
+			{
+				continue;
+			}
+
+			_logger.LogInformation("Cleaning up old files in {Folder}", path);
+
+			var dirInfo = new DirectoryInfo(path);
+			foreach (var fileInfo in dirInfo.GetFiles())
+			{
+				_logger.LogInformation("Deleting {FileName}", fileInfo.Name);
+				fileInfo.Delete();
+			}
+		}
+
+		return ValueTask.CompletedTask;
 	}
 
 	private async ValueTask<string> PrepareServerAsync(int appId, string branch)

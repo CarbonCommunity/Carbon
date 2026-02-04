@@ -104,9 +104,17 @@ public partial class Tests
 			permission.GetType().GetMethod("LoadGroups")?.Invoke(permission, null);
 			test.IsTrue(permission.GroupHasPermission(GroupIdTwo, EdgePermTwo), "sql wildcard group perm restored after revoke tests");
 
+			permission.GetUserData(UserId, addIfNotExisting: true);
 			permission.UpdateNickname(UserId, "SqlMigrationTestNick");
+			test.IsNotNull(permission.GetUserData("SqlMigrationTestNick"), "sql GetUserData(nickname) does not throw");
 			permission.userdata.Remove(UserId);
 			test.IsTrue(permission.UserExists("SqlMigrationTestNick"), "sql UserExists resolves nickname");
+
+			const string NickCmdPerm = "sqlmigrationtest.nickcmdperm";
+			permission.RegisterPermission(NickCmdPerm, singleton);
+			singleton.server.Command($"c.grant user SqlMigrationTestNick {NickCmdPerm}");
+			test.IsTrue(permission.UserHasPermission(UserId, NickCmdPerm), "sql c.grant user <nickname> <perm> works");
+
 			permission.userdata.Remove(UserId);
 			var reloadedAfterNickname = permission.GetUserData(UserId);
 			test.IsTrue(reloadedAfterNickname.Groups.Count > 0, "sql UpdateNickname keeps groups in db");
@@ -136,6 +144,8 @@ public partial class Tests
 			permission = singleton.permission;
 			test.IsTrue(permission.GetType().Name == "Permission", "permission switched to protobuf");
 			test.IsTrue(permission.UserExists(UserId), "protobuf user exists after migration");
+			test.IsTrue(permission.UserExists("SqlMigrationTestNick"), "protobuf UserExists resolves nickname after migration");
+			test.IsTrue(permission.FindUser("SqlMigrationTestNick").Key == UserId, "protobuf FindUser resolves nickname after migration");
 			test.Log($"proto child group count: {permission.GetUserData(UserId).Groups.Count}");
 			test.Log($"proto child group parent: '{permission.GetGroupParent(ChildGroupId)}'");
 			test.Log($"proto parent group perms: {permission.GetGroupPermissions(ParentGroupId, true).Length}");
