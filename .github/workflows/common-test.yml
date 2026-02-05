@@ -40,7 +40,7 @@ jobs:
           REF="${{ inputs.build_identifier }}"
           
           BUILD_CONFIG="Debug"
-          RUST_BRANCH="public"
+          RUST_BRANCH="staging"
 
           case "$REF" in
             "develop")

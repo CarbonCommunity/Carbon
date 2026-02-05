@@ -266,8 +266,7 @@ jobs:
           tool: cargo-zigbuild
 
       - name: Install MinGW (Windows) (Cond)
-        # todo skip on cache hit
-        if: matrix.group == 'Windows'
+        if: matrix.group == 'Windows' && steps.cache-native.outputs.cache-hit != 'true'
         shell: bash
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends mingw-w64
 
@@ -300,7 +299,7 @@ jobs:
           fi
 
       - name: Verify Native Linking & Symbols
-        # todo skip on cache hit
+        if: matrix.group == 'Linux' || (matrix.group == 'Windows' && steps.cache-native.outputs.cache-hit != 'true')
         shell: bash
         run: |
           if [[ "${{ needs.configure.outputs.native_mode }}" == *"prod"* ]]; then

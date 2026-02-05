@@ -204,7 +204,10 @@ public class HookEx : IDisposable, IHook
 	{
 		try
 		{
-			if (!IsInstalled) return true;
+			if (!IsInstalled)
+			{
+				return true;
+			}
 			_runtime.HarmonyHandler.UnpatchAll(Identifier);
 			_runtime.Status = HookState.Inactive;
 			return true;
