@@ -297,14 +297,18 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 					// Not installed but has subs, install
 					case true when !isInstalled:
 						if (!hook.ApplyPatch())
-							throw new ApplicationException($"A general error occured while installing '{hook}'");
+						{
+							return;
+						}
 						_installed.Add(hook);
 						break;
 
 					// Installed but no subs found, uninstall
 					case false when isInstalled:
 						if (!hook.RemovePatch())
-							throw new ApplicationException($"A general error occured while uninstalling '{hook}'");
+						{
+							return;
+						}
 						_installed.Remove(hook);
 
 						if (hook.HasDependencies())

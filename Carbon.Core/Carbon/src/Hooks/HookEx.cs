@@ -214,7 +214,9 @@ public class HookEx : IDisposable, IHook
 		}
 		catch (System.Exception e)
 		{
+#if DEBUG
 			Logger.Error($"Error while unpatching hook '{HookFullName}[{Identifier}]'", e);
+#endif
 			_runtime.LastError = e.Message;
 			return false;
 		}
