@@ -15,29 +15,33 @@ public class InternalCallHook
 {
 	public static List<AssemblyDefinition> Assemblies = new();
 
-	internal static ConcurrentDictionary<string, int> InheritanceCache = new();
+	public static ConcurrentDictionary<string, int> InheritanceCache = new();
 
-	private static TypeDefinition? FindTypeInAssemblies(string fullName)
+	public static TypeDefinition? FindTypeInAssemblies(string fullName)
 	{
-		foreach (var assembly in Assemblies)
+		for (int i = 0; i < Assemblies.Count; i++)
 		{
+			var assembly = Assemblies[i];
 			var type = assembly.MainModule.GetType(fullName);
 			if (type != null)
 			{
 				return type;
 			}
 
-			type = assembly.MainModule.Types.FirstOrDefault(t => t.FullName == fullName);
-			if (type != null)
+			for (int a = 0; a < assembly.MainModule.Types.Count; a++)
 			{
-				return type;
+				type = assembly.MainModule.Types[a];
+				if (type.FullName == fullName || type.Name == fullName)
+				{
+					return type;
+				}
 			}
 		}
 
 		return null;
 	}
 
-	private static int GetInheritanceDepth(TypeDefinition type)
+	public static int GetInheritanceDepth(TypeDefinition type)
 	{
 		if (InheritanceCache.TryGetValue(type.FullName, out int depth))
 		{
@@ -63,13 +67,14 @@ public class InternalCallHook
 	{
 		var totalDepth = 0;
 
-		foreach (var param in method.ParameterList.Parameters)
+		for (int i = 0; i < method.ParameterList.Parameters.Count; i++)
 		{
-			var typeName = param.Type?.ToString();
-			if (typeName == null)
+			var param = method.ParameterList.Parameters[i];
+			if (param.Type == null)
+			{
 				continue;
-
-			var type = FindTypeInAssemblies(typeName);
+			}
+			var type = FindTypeInAssemblies(param.Type.ToString());
 			if (type != null)
 			{
 				totalDepth += GetInheritanceDepth(type);
@@ -195,14 +200,14 @@ public class InternalCallHook
 
 			var orderedGroup = group.Value
 				.Select(m => (Method: m, Score: GetMethodParameterDepthScore(m)))
-				.OrderByDescending(x => x.Score)
-				.Select(x => x.Method);
+				.OrderByDescending(x => x.Score);
 			var i = -1;
-			foreach (var method in orderedGroup)
+			foreach (var g in orderedGroup)
 			{
 				i++;
 
 				var parameterIndex = -1;
+				var method = g.Method;
 				var conditional = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => ((IdentifierNameSyntax)x.Name).Identifier.Text == "Conditional"))?.FirstOrDefault()?.ArgumentList?.Arguments[0].ToString().Replace("\"", string.Empty);
 				var methodName = method.Identifier.ValueText;
 				var parameters0 = method.ParameterList.Parameters.Select(x =>
