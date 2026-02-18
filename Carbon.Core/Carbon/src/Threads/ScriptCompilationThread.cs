@@ -207,7 +207,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				_injectReference(id, item, references, _libraryDirectories);
 			}
-			catch (Exception ex)
+			catch (System.Exception ex)
 			{
 				Logger.Debug(id, $"Error loading common reference '{item}': {ex}", 4);
 			}
@@ -224,7 +224,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				references.Add(processedReference);
 				_referenceCache[name] = processedReference;
 			}
-			catch (Exception ex)
+			catch (System.Exception ex)
 			{
 				Logger.Debug(id, $"Error loading module reference '{item}': {ex}", 4);
 			}
@@ -236,7 +236,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				_injectExtensionReference(Path.GetFileName(item.Value.Key), references);
 			}
-			catch (Exception ex)
+			catch (System.Exception ex)
 			{
 				Logger.Debug(id, $"Error loading extension reference '{item}': {ex}", 4);
 			}
@@ -432,10 +432,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 			Exceptions.Clear();
 			Warnings.Clear();
 
-			var trees = Pool.Get<List<SyntaxTree>>();
-			var conditionals = Pool.Get<List<string>>();
+			var trees = Facepunch.Pool.Get<List<SyntaxTree>>();
+			var conditionals = Facepunch.Pool.Get<List<string>>();
 
-			_stopwatch = Pool.Get<Stopwatch>();
+			_stopwatch = Facepunch.Pool.Get<Stopwatch>();
 
 			try
 			{
@@ -504,7 +504,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				tree = tree.WithRootAndOptions(root, parseOptions);
 
-				if (InternalCallHook.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
+				if (Carbon.Generator.InternalCallHook.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
 					var @class = ClassList[0];
 
@@ -523,7 +523,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 					trees.Add(tree);
 				}
 
-				Usings.AddRange(root.Usings.Select(x => x.ToString()));
+				foreach (var name in root.Usings.Select(element => element.Name.ToString())
+					         .Where(name => !Usings.Contains(name)))
+				{
+					Usings.Add(name);
+				}
 			}
 
 			if (!containsInternalCallHookOverride)
@@ -533,8 +537,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 				var completeBody = CSharpSyntaxTree.ParseText(
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
 
-				InternalCallHook.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
-					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings);
+				Carbon.Generator.InternalCallHook.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
+					pdbFilename, ClassList);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
 
@@ -571,8 +575,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				var emit = compilation.Emit(dllStream, options: _emitOptions);
 
-				var errors = Pool.Get<List<string>>();
-				var warnings = Pool.Get<List<string>>();
+				var errors = Facepunch.Pool.Get<List<string>>();
+				var warnings = Facepunch.Pool.Get<List<string>>();
 
 				foreach (var error in emit.Diagnostics)
 				{
@@ -608,8 +612,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					}
 				}
 
-				Pool.FreeUnmanaged(ref errors);
-				Pool.FreeUnmanaged(ref warnings);
+				Facepunch.Pool.FreeUnmanaged(ref errors);
+				Facepunch.Pool.FreeUnmanaged(ref warnings);
 
 				if (emit.Success)
 				{
@@ -643,12 +647,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			references.Clear();
 			references = null;
-			Pool.FreeUnmanaged(ref conditionals);
-			Pool.FreeUnmanaged(ref trees);
+			Facepunch.Pool.FreeUnmanaged(ref conditionals);
+			Facepunch.Pool.FreeUnmanaged(ref trees);
 
 			CompileTime = _stopwatch.Elapsed;
 			_stopwatch.Reset();
-			Pool.FreeUnsafe(ref _stopwatch);
+			Facepunch.Pool.FreeUnsafe(ref _stopwatch);
 
 			if (Assembly == null) return;
 

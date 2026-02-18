@@ -126,26 +126,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		{
 			// I don't like this, patching stuff that may not be used but for the
 			// sake of time I will let it go for now but this needs to be reviewed.
-			for(int i = 0; i < _patches.Count; i++)
-			{
-				var hook = _patches[i];
-				if (!hook.IsInstalled && !hook.HasDependencies())
-				{
-					Subscribe(hook.Identifier, "Carbon.Patch");
-				}
-			}
+			foreach (HookEx hook in _patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
+				Subscribe(hook.Identifier, "Carbon.Patch");
 		}
 
 		if (_staticHooks.Count > 0)
 		{
-			for(int i = 0; i < _staticHooks.Count; i++)
-			{
-				var hook = _staticHooks[i];
-				if (!hook.IsInstalled)
-				{
-					Subscribe(hook.Identifier, "Carbon.Static");
-				}
-			}
+			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
+				Subscribe(hook.Identifier, "Carbon.Static");
 
 			FullFramePatch = true;
 
@@ -167,17 +155,15 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			Logger.Log("Stopping hook processor...");
 		}
 
-		for(int i = 0; i < _installed.Count; i++)
+		foreach (HookEx item in _installed.AsEnumerable().Reverse())
 		{
-			var item = _installed[i];
 			if (!item.RemovePatch())
 			{
 				Logger.Warn($" Failed uninstalling patch: {item.HookFullName}[{item.Identifier}]");
 				continue;
 			}
 
-			_installed.RemoveAt(i);
-			i--;
+			_installed.Remove(item);
 		}
 
 		if (!_doReload) return;
@@ -267,6 +253,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		}
 
 		var limit = FullFramePatch ? int.MaxValue : PatchLimitPerCycle;
+		var count = _workQueue.Count;
 
 		while (_workQueue.Count > 0 && limit-- > 0)
 		{
@@ -297,34 +284,15 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 					// Not installed but has subs, install
 					case true when !isInstalled:
 						if (!hook.ApplyPatch())
-						{
-							return;
-						}
+							throw new ApplicationException($"A general error occured while installing '{hook}'");
 						_installed.Add(hook);
 						break;
 
 					// Installed but no subs found, uninstall
 					case false when isInstalled:
 						if (!hook.RemovePatch())
-						{
-							return;
-						}
+							throw new ApplicationException($"A general error occured while uninstalling '{hook}'");
 						_installed.Remove(hook);
-
-						if (hook.HasDependencies())
-						{
-							for (int i = 0; i < hook.Dependencies.Length; i++)
-							{
-								var dependantHooks = GetHookByName(hook.Dependencies[i]);
-								foreach (var dependantHook in dependantHooks)
-								{
-									if (dependantHook != null && dependantHook.IsInstalled)
-									{
-										dependantHook.RemovePatch();
-									}
-								}
-							}
-						}
 						break;
 				}
 			}

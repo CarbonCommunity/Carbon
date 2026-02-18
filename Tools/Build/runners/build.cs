@@ -6,8 +6,6 @@ var cargoTarget = target.Equals("Debug") || target.Equals("DebugUnix") || target
 var isUnix = target.Contains("Unix");
 var noArchive = HasArg("-noarchive");
 
-var noClean = HasArg("-noclean");
-
 Run(Path(Home, "Tools", "Build", "runners", "git.cs"), tag);
 
 Warn($"Tag: {tag}");
@@ -16,18 +14,13 @@ Warn($"Defines: {defines ?? "N/A"}");
 Warn($"Version: {version ?? "N/A"}");
 Warn($"Cargo Target: {cargoTarget}");
 
-if (!noClean)
-{
-	Directories.Delete(Path(Home, "Release", ".tmp", target));
-	Files.Delete(Path(Home, "Release", $"Carbon.{target}.tar.gz"));
-}
+Directories.Delete(Path(Home, "Release", ".tmp", target));
+Files.Delete(Path(Home, "Release", $"Carbon.{target}.tar.gz"));
 
 DotNet.ExitOnError(true);
-if (!noClean)
-{
-	DotNet.Run("clean", PathEnquotes(Home, "Carbon.Core"), "--configuration", target);
-}
-DotNet.Run("build", PathEnquotes(Home, "Carbon.Core"), "--configuration", target,
+DotNet.Run("restore", PathEnquotes(Home, "Carbon.Core"));
+DotNet.Run("clean", PathEnquotes(Home, "Carbon.Core"), "--configuration", target);
+DotNet.Run("build", PathEnquotes(Home, "Carbon.Core"), "--configuration", target, "--no-restore",
 	$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"");
 
 Files.Copy(Path(Home, "Tools", "Helpers", "Carbon.targets"), Path(Home, "Release", ".tmp", target, "Carbon.targets"));

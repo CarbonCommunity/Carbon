@@ -15,33 +15,29 @@ public class InternalCallHook
 {
 	public static List<AssemblyDefinition> Assemblies = new();
 
-	public static ConcurrentDictionary<string, int> InheritanceCache = new();
+	internal static ConcurrentDictionary<string, int> InheritanceCache = new();
 
-	public static TypeDefinition? FindTypeInAssemblies(string fullName)
+	private static TypeDefinition? FindTypeInAssemblies(string fullName)
 	{
-		for (int i = 0; i < Assemblies.Count; i++)
+		foreach (var assembly in Assemblies)
 		{
-			var assembly = Assemblies[i];
 			var type = assembly.MainModule.GetType(fullName);
 			if (type != null)
 			{
 				return type;
 			}
 
-			for (int a = 0; a < assembly.MainModule.Types.Count; a++)
+			type = assembly.MainModule.Types.FirstOrDefault(t => t.FullName == fullName);
+			if (type != null)
 			{
-				type = assembly.MainModule.Types[a];
-				if (type.FullName == fullName || type.Name == fullName)
-				{
-					return type;
-				}
+				return type;
 			}
 		}
 
 		return null;
 	}
 
-	public static int GetInheritanceDepth(TypeDefinition type)
+	private static int GetInheritanceDepth(TypeDefinition type)
 	{
 		if (InheritanceCache.TryGetValue(type.FullName, out int depth))
 		{
@@ -67,14 +63,13 @@ public class InternalCallHook
 	{
 		var totalDepth = 0;
 
-		for (int i = 0; i < method.ParameterList.Parameters.Count; i++)
+		foreach (var param in method.ParameterList.Parameters)
 		{
-			var param = method.ParameterList.Parameters[i];
-			if (param.Type == null)
-			{
+			var typeName = param.Type?.ToString();
+			if (typeName == null)
 				continue;
-			}
-			var type = FindTypeInAssemblies(param.Type.ToString());
+
+			var type = FindTypeInAssemblies(typeName);
 			if (type != null)
 			{
 				totalDepth += GetInheritanceDepth(type);
@@ -200,14 +195,14 @@ public class InternalCallHook
 
 			var orderedGroup = group.Value
 				.Select(m => (Method: m, Score: GetMethodParameterDepthScore(m)))
-				.OrderByDescending(x => x.Score);
+				.OrderByDescending(x => x.Score)
+				.Select(x => x.Method);
 			var i = -1;
-			foreach (var g in orderedGroup)
+			foreach (var method in orderedGroup)
 			{
 				i++;
 
 				var parameterIndex = -1;
-				var method = g.Method;
 				var conditional = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => ((IdentifierNameSyntax)x.Name).Identifier.Text == "Conditional"))?.FirstOrDefault()?.ArgumentList?.Arguments[0].ToString().Replace("\"", string.Empty);
 				var methodName = method.Identifier.ValueText;
 				var parameters0 = method.ParameterList.Parameters.Select(x =>
@@ -321,9 +316,7 @@ public class InternalCallHook
 		#endregion
 	}
 
-	public static void GeneratePartial(
-		CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName,
-		List<ClassDeclarationSyntax> classes = null, string? debugOutputPath = null, List<string> usingsList = null)
+	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null)
 	{
 		Generate(input, out _, out var method, out var isPartial, classList: classes);
 
@@ -346,10 +339,7 @@ public class InternalCallHook
 		}
 
 		var @class = classes[0];
-		var usings = input.Usings.Select(x => x.ToString())
-			.Concat(usingsList ?? [])
-			.Distinct()
-			.ToList();
+		var usings = input.Usings;
 		var subUsings = @namespace!.Usings;
 
 		var source = @$"{string.Join("\n", usings.Select(x => x.ToString()))}

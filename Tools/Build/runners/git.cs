@@ -4,6 +4,18 @@ Warn($"Local Tag: {localTag}");
 var temp = Path(Home, "Carbon.Core", ".tmp");
 Directories.Create(temp);
 
+Git.Run("fetch", "--tags");
+Git.SetQuiet(true);
+
+var tags = (Git.RunOutput("tag", "-l")).Split('\n');
+foreach(var tag in tags)
+{
+	Git.Run("tag", "-d", tag);
+}
+
+Git.SetQuiet(false);
+Git.Run("fetch", "--tags");
+
 Files.Create(Path(temp, ".gitbranch"), Git.RunOutput("branch", "--show-current"));
 Files.Create(Path(temp, ".gitchs"), Git.RunOutput("rev-parse", "--short", "HEAD"));
 Files.Create(Path(temp, ".gitchl"), Git.RunOutput("rev-parse", "--long", "HEAD"));

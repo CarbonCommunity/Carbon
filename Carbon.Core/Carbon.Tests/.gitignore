@@ -1,7 +1,0 @@
-﻿.env
-.env.*
-*.env
-!.env.example
-
-.dev
-.idea

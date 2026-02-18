@@ -2,21 +2,5 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/../../.." vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Components/Carbon.Bootstrap" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Components/Carbon.Common" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Components/Carbon.Compat" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Components/Carbon.Modules" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Components/Carbon.Preloader" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Components/Carbon.SDK" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Components/Carbon.Startup" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Components/Carbon.Test" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Hooks/Carbon.Hooks.Base" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Hooks/Carbon.Hooks.Community" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Hooks/Carbon.Hooks.Internal" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Hooks/Carbon.Hooks.Oxide" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Native" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.Profiler" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../Carbon.UniTask" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../../Tools/DepotDownloader" vcs="Git" />
   </component>
 </project>

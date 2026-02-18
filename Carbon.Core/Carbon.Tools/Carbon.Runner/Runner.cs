@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 
-#pragma warning disable CS8618
-
 namespace Carbon.Runner;
 
 public class InternalRunner
@@ -31,9 +29,13 @@ public class InternalRunner
 
 	public bool HasArgs(int minArgs) => Args.Length >= minArgs;
 	public bool HasArg(string arg) => Args.Contains(arg, StringComparer.OrdinalIgnoreCase);
-	public string GetArg(int index, string defaultValue = "")
+	public string GetArg(int index, string? defaultValue = null)
 	{
-		return index >= Args.Length ? defaultValue : Args[index];
+		if (index >= Args.Length)
+		{
+			return defaultValue;
+		}
+		return Args[index];
 	}
 	public static void Write(object message, ConsoleColor color)
 	{
@@ -57,7 +59,6 @@ public class InternalRunner
 	internal static string Build(string source, bool shouldExit)
 	{
 		return $@"using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
