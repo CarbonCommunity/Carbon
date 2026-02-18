@@ -1,0 +1,465 @@
+﻿name: Common Build
+
+on:
+  workflow_call:
+    inputs:
+      GIT_BRANCH:
+        required: true
+        type: string
+      RELEASE_BODY:
+        required: true
+        type: string
+    secrets:
+      PAT_ALL_REPO:
+        required: true
+      VERSIONS_TOKEN:
+        required: true
+      NUGET_API:
+        required: false
+
+jobs:
+  configure:
+    name: Setup (${{ inputs.GIT_BRANCH }})
+    runs-on: ubuntu-latest
+    outputs:
+      api_id: ${{ steps.config.outputs.api_id }}
+      update_arg: ${{ steps.config.outputs.update_arg }}
+      build_define: ${{ steps.config.outputs.build_define }}
+      tag_name: ${{ steps.config.outputs.tag_name }}
+      native_mode: ${{ steps.config.outputs.native_mode }}
+      cs_mode: ${{ steps.config.outputs.cs_mode }}
+      run_nuget: ${{ steps.config.outputs.run_nuget }}
+      create_git_tag: ${{ steps.config.outputs.create_git_tag }}
+      git_tag_suffix: ${{ steps.config.outputs.git_tag_suffix }}
+      prerelease: ${{ steps.config.outputs.prerelease }}
+      major_ver: ${{ steps.config.outputs.major_ver }}
+      release_name: ${{ steps.config.outputs.release_name }}
+      version: ${{ steps.config-iden.outputs.version }}
+      date: ${{ steps.config-iden.outputs.date }}
+      clock: ${{ steps.config-iden.outputs.clock }}
+      tag: ${{ steps.config-iden.outputs.tag }}
+    steps:
+      - name: Configure Build
+        id: config
+        shell: bash
+        run: |
+          REF="${{ inputs.GIT_BRANCH }}"
+          
+          # Defaults
+          API_ID="edge"
+          UPDATE_ARG=""
+          BUILD_DEFINE="EDGE"
+          TAG_NAME="edge_build"
+          
+          # Native Mode: "standard", "prod", "both"
+          NATIVE_MODE="standard"
+          # CS Mode: "debug", "release", "full" (Debug+Release)
+          CS_MODE="debug"
+          RUN_NUGET="false"
+          CREATE_GIT_TAG="false"
+          GIT_TAG_SUFFIX=""
+          PRERELEASE="true"
+          MAJOR_VER="2.1"
+          RELEASE_NAME="Edge"
+
+          case "$REF" in
+            "develop")
+              API_ID="edge"
+              BUILD_DEFINE="EDGE"
+              TAG_NAME="edge_build"
+              MAJOR_VER="2.1"
+              RELEASE_NAME="Edge"
+              ;;
+            "preview")
+              API_ID="preview"
+              BUILD_DEFINE="PREVIEW"
+              TAG_NAME="preview_build"
+              MAJOR_VER="2.2"
+              RELEASE_NAME="Preview"
+              ;;
+            "qa")
+              API_ID="qa"
+              BUILD_DEFINE="QA"
+              TAG_NAME="qa_build"
+              UPDATE_ARG="release"
+              NATIVE_MODE="both"
+              CS_MODE="full"
+              MAJOR_VER="2.9"
+              RELEASE_NAME="QA"
+              ;;
+            "production")
+              API_ID="production"
+              BUILD_DEFINE="PROD"
+              TAG_NAME="production_build"
+              NATIVE_MODE="both"
+              CS_MODE="release"
+              RUN_NUGET="true"
+              CREATE_GIT_TAG="true"
+              PRERELEASE="false"
+              MAJOR_VER="2.0"
+              RELEASE_NAME="Production"
+              ;;
+            "rust_beta/aux01")
+              API_ID="aux01"
+              BUILD_DEFINE="RUST_AUX01"
+              TAG_NAME="rustbeta_aux01_build"
+              UPDATE_ARG="aux01-staging"
+              MAJOR_VER="2.5"
+              RELEASE_NAME="Rust (Aux01)"
+              ;;
+            "rust_beta/aux02")
+              API_ID="aux02"
+              BUILD_DEFINE="RUST_AUX02"
+              TAG_NAME="rustbeta_aux02_build"
+              UPDATE_ARG="aux02"
+              MAJOR_VER="2.6"
+              RELEASE_NAME="Rust (Aux02)"
+              ;;
+            "rust_beta/aux03")
+              API_ID="aux03"
+              BUILD_DEFINE="RUST_AUX03"
+              TAG_NAME="rustbeta_aux03_build"
+              UPDATE_ARG="aux03"
+              MAJOR_VER="2.7"
+              RELEASE_NAME="Rust (Aux03)"
+              ;;
+            "rust_beta/staging")
+              API_ID="staging"
+              BUILD_DEFINE="RUST_STAGING"
+              TAG_NAME="rustbeta_staging_build"
+              UPDATE_ARG="staging"
+              MAJOR_VER="2.3"
+              RELEASE_NAME="Rust (Staging)"
+              ;;
+            "rust_beta/release")
+              API_ID="release"
+              BUILD_DEFINE="RUST_RELEASE"
+              TAG_NAME="rustbeta_release_build"
+              UPDATE_ARG="release"
+              NATIVE_MODE="both"
+              CS_MODE="full"
+              CREATE_GIT_TAG="true"
+              GIT_TAG_SUFFIX="-beta"
+              MAJOR_VER="2.4"
+              RELEASE_NAME="Rust (Release)"
+              ;;
+            *)
+              echo "Unknown branch ref: $REF"
+              exit 1
+              ;;
+          esac
+
+          echo "api_id=$API_ID" >> $GITHUB_OUTPUT
+          echo "update_arg=$UPDATE_ARG" >> $GITHUB_OUTPUT
+          echo "build_define=$BUILD_DEFINE" >> $GITHUB_OUTPUT
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "native_mode=$NATIVE_MODE" >> $GITHUB_OUTPUT
+          echo "cs_mode=$CS_MODE" >> $GITHUB_OUTPUT
+          echo "run_nuget=$RUN_NUGET" >> $GITHUB_OUTPUT
+          echo "create_git_tag=$CREATE_GIT_TAG" >> $GITHUB_OUTPUT
+          echo "git_tag_suffix=$GIT_TAG_SUFFIX" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
+          echo "major_ver=$MAJOR_VER" >> $GITHUB_OUTPUT
+          echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Configure Identity
+        id: config-iden
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.VERSIONS_TOKEN }}
+          API: ${{ steps.config.outputs.api_id }}
+          MAJOR: ${{ steps.config.outputs.major_ver }}
+        run: |
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
+          echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
+          
+          VER_SUFFIX=$(curl -s -L "https://api.carbonmod.gg/version?id=$API&token=$TOKEN")
+          echo "version=$MAJOR.$VER_SUFFIX" >> $GITHUB_OUTPUT
+
+  build:
+    name: Build
+    needs: configure
+    runs-on: ubuntu-latest
+    continue-on-error: false
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: Linux
+            target: x86_64-unknown-linux-gnu
+            build_arg: Unix
+          - group: Windows
+            target: x86_64-pc-windows-gnu
+            build_arg: ""
+
+    outputs:
+      version: ${{ steps.step1.outputs.version }}
+      commit_sha: ${{ steps.step1.outputs.commit_sha }}
+
+    steps:
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global fetch.parallel 0
+          git config --global submodule.fetchJobs 0
+          git config --global --add safe.directory "*"
+
+      - name: Git Clone
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.GIT_BRANCH }}
+          token: ${{ secrets.PAT_ALL_REPO }}
+          submodules: recursive
+
+      - name: Environment Setup
+        id: step1
+        shell: bash
+        env:
+          DATE: ${{ needs.configure.outputs.date }}
+          CLOCK: ${{ needs.configure.outputs.clock }}
+          TAG: ${{ needs.configure.outputs.tag }}
+          VERSION: ${{ needs.configure.outputs.version }}
+        run: |
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+          echo "clock=$CLOCK" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          REAL_SHA=$(git rev-parse HEAD)
+          echo "commit_sha=$REAL_SHA" >> $GITHUB_OUTPUT
+
+          echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            10.0.x
+
+      - name: Generate Rust Hash
+        id: rust-hash
+        shell: bash
+        run: |
+          echo "hash=${{ hashFiles('Carbon.Core/Carbon.Native/src/**', 'Carbon.Core/Carbon.Native/Cargo.toml', 'Carbon.Core/Carbon.Native/Cargo.lock', 'Carbon.Core/Carbon.Native/build.rs') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache Native Binaries
+        id: cache-native
+        uses: actions/cache@v5
+        with:
+          path: |
+            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/release/*.so
+            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/release/*.dll
+            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/prod/*.so
+            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/prod/*.dll
+          key: native-${{ matrix.target }}-${{ needs.configure.outputs.native_mode }}-${{ steps.rust-hash.outputs.hash }}
+
+      - name: Setup Zig (Linux) (Cond)
+        if: steps.cache-native.outputs.cache-hit != 'true' && matrix.group == 'Linux'
+        uses: mlugg/setup-zig@v2
+
+      - name: Install Zig Build (Linux) (Cond)
+        if: steps.cache-native.outputs.cache-hit != 'true' && matrix.group == 'Linux'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
+
+      - name: Install MinGW (Windows) (Cond)
+        if: matrix.group == 'Windows' && steps.cache-native.outputs.cache-hit != 'true'
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends mingw-w64
+
+      - name: Carbon.Native Toolchain (Cond)
+        if: steps.cache-native.outputs.cache-hit != 'true'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build Native (Standard) (Cond)
+        if: steps.cache-native.outputs.cache-hit != 'true' && (contains(needs.configure.outputs.native_mode, 'standard') || contains(needs.configure.outputs.native_mode, 'both'))
+        working-directory: Carbon.Core/Carbon.Native
+        shell: bash
+        run: |
+          if [[ "${{ matrix.group }}" == "Linux" ]]; then
+            cargo zigbuild -r --target ${{ matrix.target }}.2.17
+          else
+            cargo build -r --target ${{ matrix.target }}
+          fi
+
+      - name: Build Native (Prod) (Cond)
+        if: steps.cache-native.outputs.cache-hit != 'true' && (contains(needs.configure.outputs.native_mode, 'prod') || contains(needs.configure.outputs.native_mode, 'both'))
+        working-directory: Carbon.Core/Carbon.Native
+        shell: bash
+        run: |
+          if [[ "${{ matrix.group }}" == "Linux" ]]; then
+            cargo zigbuild --profile prod --target ${{ matrix.target }}.2.17
+          else
+            cargo build --profile prod --target ${{ matrix.target }}
+          fi
+
+      - name: Verify Native Linking & Symbols
+        if: matrix.group == 'Linux' || (matrix.group == 'Windows' && steps.cache-native.outputs.cache-hit != 'true')
+        shell: bash
+        run: |
+          if [[ "${{ needs.configure.outputs.native_mode }}" == *"prod"* ]]; then
+             TARGET_DIR="Carbon.Core/Carbon.Native/target/${{ matrix.target }}/prod"
+          else
+             TARGET_DIR="Carbon.Core/Carbon.Native/target/${{ matrix.target }}/release"
+          fi
+
+          echo "Searching in: $TARGET_DIR"
+
+          if [[ "${{ matrix.group }}" == "Windows" ]]; then
+            BIN_PATH=$(find "$TARGET_DIR" -maxdepth 1 -name "*.dll" | head -n 1)
+          
+            if [ -z "$BIN_PATH" ]; then
+              echo "::error::No .dll found in $TARGET_DIR"
+              ls -R Carbon.Core/Carbon.Native/target/
+              exit 1
+            fi
+            echo "Found Binary: $BIN_PATH"
+
+            IMPORTS=$(x86_64-w64-mingw32-objdump -p "$BIN_PATH" | grep "DLL Name" || true)
+            if echo "$IMPORTS" | grep -iE "libgcc|libstdc++|libwinpthread"; then
+              echo "::error::Windows Binary is NOT statically linked! Found forbidden dependencies."
+              echo "$IMPORTS" | grep -iE "libgcc|libstdc++|libwinpthread"
+              exit 1
+            fi
+          
+            SYMBOLS=$(x86_64-w64-mingw32-nm -g "$BIN_PATH" | grep " T " || true)
+          
+          else
+            BIN_PATH=$(find "$TARGET_DIR" -maxdepth 1 -name "*.so" | head -n 1)
+
+            if [ -z "$BIN_PATH" ]; then
+              echo "::error::No .so found in $TARGET_DIR"
+              ls -R Carbon.Core/Carbon.Native/target/
+              exit 1
+            fi
+            echo "Found Binary: $BIN_PATH"
+          
+            GLIBC_REFS=$(objdump -T "$BIN_PATH" | grep "GLIBC_" | sort -uV)
+          
+            if echo "$GLIBC_REFS" | grep -qE "GLIBC_2\.(1[8-9]|[2-9][0-9])"; then
+               echo "::error::Linux Binary linked against too new GLIBC (2.18+)! Zig target override failed."
+               echo "$GLIBC_REFS"
+               exit 1
+            fi
+
+            SYMBOLS=$(nm -gD "$BIN_PATH" | grep " T " || true)
+          fi
+
+          if [ -z "$SYMBOLS" ]; then
+             echo "::error::No exported symbols found in $BIN_PATH! Binary is useless."
+             exit 1
+          fi
+          
+          echo "Binary Verification Passed: Statically linked and exports $(echo "$SYMBOLS" | wc -l) functions."
+
+      - name: Pre-build Carbon Runner
+        run: dotnet build Carbon.Core/Carbon.Tools/Carbon.Runner -c Release -o ./runner-bin
+
+      - name: Carbon Bootstrap CS
+        run: dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/bootstrap.cs
+
+      - name: Carbon Update CS
+        shell: bash
+        env:
+          UPDATE_ARG: ${{ needs.configure.outputs.update_arg }}
+        run: dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/update.cs $UPDATE_ARG
+
+      - name: Carbon Build
+        shell: bash
+        env:
+          VERSION: ${{ steps.step1.outputs.version }}
+          DEFINE: ${{ needs.configure.outputs.build_define }}
+          TAG: ${{ needs.configure.outputs.tag_name }}
+          ARG: ${{ matrix.build_arg }}
+          MODE: ${{ needs.configure.outputs.cs_mode }}
+        run: |
+          # Debug Build
+          if [[ "$MODE" == "debug" || "$MODE" == "full" ]]; then
+            dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/build.cs Debug$ARG $DEFINE $TAG -noclean
+          fi
+          
+          # Release Build
+          if [[ "$MODE" == "release" || "$MODE" == "full" ]]; then
+            dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/build.cs Release$ARG $DEFINE $TAG -noclean
+          fi
+          
+          # Minimal is always built
+          dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/build.cs Minimal$ARG $DEFINE $TAG -noclean
+
+      - name: Carbon Nuget Publish (Cond)
+        if: needs.configure.outputs.run_nuget == 'true' && matrix.group == 'Windows' && github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/nuget.cs ${{ secrets.NUGET_API }} ${{ steps.step1.outputs.version }}
+
+      - name: Register Version Tag (Cond)
+        if: needs.configure.outputs.create_git_tag == 'true' && matrix.group == 'Linux' && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          VERSION: ${{ steps.step1.outputs.version }}
+          SUFFIX: ${{ needs.configure.outputs.git_tag_suffix }}
+          COMMIT_SHA: ${{ steps.step1.outputs.commit_sha }}
+        run: |
+          # If there is already the same tag, it will fail
+          git tag "$VERSION$SUFFIX" "$COMMIT_SHA"
+          git push origin "$VERSION$SUFFIX"
+
+      - name: Artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: build-${{ matrix.group }}
+          path: |
+            Release/*.tar.gz
+            Release/*.zip
+            Release/*.info
+
+  release:
+    name: Release (${{ needs.configure.outputs.release_name }}) (${{ needs.configure.outputs.tag_name }})
+    if: github.event_name != 'pull_request'
+    needs: [ "configure", "build" ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Git Clone
+        uses: actions/checkout@v6
+
+      - name: 🗑️ Delete existing release tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.configure.outputs.tag_name }}
+        run: |
+          gh release delete $TAG --cleanup-tag --yes || echo "Release/Tag not found, nothing to delete"
+
+      - name: 💤 Sleep for 5 seconds
+        run: sleep 5s
+        shell: bash
+
+      - name: ⬇️ Download artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: Release
+          merge-multiple: true
+
+      - name: Display structure
+        run: ls -R
+        working-directory: Release
+
+      - name: 🏷️ Create Release
+        uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
+        with:
+          draft: false
+          prerelease: ${{ needs.configure.outputs.prerelease }}
+          tag_name: ${{ needs.configure.outputs.tag_name }}
+          target_commitish: ${{ needs.build.outputs.commit_sha }}
+          name: "${{ needs.configure.outputs.release_name }} Build — v${{ needs.build.outputs.version }}"
+          body: ${{ inputs.RELEASE_BODY }}
+          files: |
+            Release/*.tar.gz
+            Release/*.zip
+            Release/*.info
