@@ -180,8 +180,9 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			if (hookInstance != null && hookInstance.IsValid())
 			{
-				foreach (var cachedHook in hookInstance.Hooks)
+				for(int i = 0; i < hookInstance.Hooks.Count; i++)
 				{
+					var cachedHook = hookInstance.Hooks[i];
 					try
 					{
 						if (cachedHook.IsAsync)
