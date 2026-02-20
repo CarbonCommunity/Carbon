@@ -93,7 +93,8 @@ public class HookCallerInternal : HookCallerCommon
 			return null;
 		}
 
-		hookable.BuildHookCache(flags);
+		if (!hookable.HasBuiltHookCache)
+			hookable.BuildHookCache(flags);
 
 		CachedHookInstance hookInstance = default;
 
