@@ -15,8 +15,8 @@
 				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
 				<!-- We want to override corelib to have the new lang features -->
-				<WarningsNotAsErrors>CS1685</WarningsNotAsErrors>
-				<NoWarn>CS1685;CS7035;CS1522;CS0618;CS0162;NU1702;NU1701;MSB3245;MSB3277;MSB3026</NoWarn>
+				<WarningsNotAsErrors>CS1685;CS1573</WarningsNotAsErrors>
+				<NoWarn>CS1685;CS7035;CS1522;CS0618;CS0162;CS1591;CS1573;CS1712;CS1572;NU1702;NU1701;MSB3245;MSB3277;MSB3026</NoWarn>
 
 				<!-- -->
 				<ConfigurationNormalized>Release</ConfigurationNormalized>
@@ -31,8 +31,8 @@
 				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
 				<!-- We want to override corelib to have the new lang features -->
-				<WarningsNotAsErrors>CS1685</WarningsNotAsErrors>
-				<NoWarn>CS1685;CS7035;CS1522;CS0618;CS0162;NU1702;NU1701;MSB3245;MSB3277;MSB3026</NoWarn>
+				<WarningsNotAsErrors>CS1685;CS1573</WarningsNotAsErrors>
+				<NoWarn>CS1685;CS7035;CS1522;CS0618;CS0162;CS1591;CS1573;CS1712;CS1572;NU1702;NU1701;MSB3245;MSB3277;MSB3026</NoWarn>
 
 				<!-- -->
 				<ConfigurationNormalized>Minimal</ConfigurationNormalized>
@@ -46,9 +46,10 @@
 				<DefineConstants>DEBUG;UNITY_ASSERTIONS;$(DefineConstants)</DefineConstants>
 				<Optimize>false</Optimize>
 				<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+				<GenerateDocumentationFile>true</GenerateDocumentationFile>
 
 				<!-- We want to override corelib to have the new lang features -->
-				<NoWarn>CS1685;CS7035;CS1522;CS0618;CS0162;NU1702;NU1701;MSB3245;MSB3277;MSB3026</NoWarn>
+				<NoWarn>CS1685;CS7035;CS1522;CS0618;CS0162;CS1591;CS1573;CS1712;CS1572;NU1702;NU1701;MSB3245;MSB3277;MSB3026</NoWarn>
 
 				<!-- -->
 				<ConfigurationNormalized>Debug</ConfigurationNormalized>

@@ -26,6 +26,7 @@
 	<Target Name="RenameAssembly" AfterTargets="PostBuildEvent" Condition="'$(TargetName).dll' != '$(Product).dll'">
 		<Message Text="[$(AssemblyName)] Rename the build artifact from '$(OutputPath)$(TargetName).dll' to '$(OutputPath)$(Product).dll'" Importance="high" />
 		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)$(Product).dll" />
+		<Copy SourceFiles="$(OutputPath)$(TargetName).xml" DestinationFiles="$(OutputPath)$(Product).xml" />
 	</Target>
 
 	<!--
@@ -78,6 +79,7 @@
 	<Target Name="Release" AfterTargets="Build" DependsOnTargets="PrepareRelease">
 		<ItemGroup>
 			<FilesToCopy Include="$(OutputPath)**\*.dll" Exclude="$(OutputPath)$(Product).dll" />
+			<FilesToCopy Include="$(OutputPath)**\*.xml" Exclude="$(OutputPath)$(Product).xml" />
 		</ItemGroup>
 
 		<Message Text="[$(AssemblyName)] Copy files to release folder" Importance="high" />
@@ -85,6 +87,7 @@
 
 		<ItemGroup>
 			<FilesToClean Include="$(c_lib)\Carbon*.dll" />
+			<FilesToClean Include="$(c_lib)\Carbon*.xml" />
 			<FilesToClean Include="$(c_lib)\*.pdb" />
 		</ItemGroup>
 

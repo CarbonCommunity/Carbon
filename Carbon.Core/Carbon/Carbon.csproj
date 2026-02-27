@@ -4,6 +4,7 @@
 		<OutputType>Library</OutputType>
 		<Title>Carbon</Title>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageId>Carbon</PackageId>
 		<IsPackable>true</IsPackable>
 		<NuspecFile>..\.nuspec</NuspecFile>
@@ -22,5 +23,6 @@
 
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+		<Copy Condition="$(Configuration.Contains('Debug'))" SourceFiles="$(OutputPath)$(Product).xml" DestinationFolder="$(c_managed)" />
 	</Target>
 </Project>
