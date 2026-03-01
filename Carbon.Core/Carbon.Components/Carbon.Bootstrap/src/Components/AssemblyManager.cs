@@ -168,8 +168,6 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"System",
 
 		"Carbon",
-		"Carbon.Common",
-		"Carbon.SDK",
 		"Carbon.Test",
 		"Carbon.Startup",
 		"Carbon.Profiler",
