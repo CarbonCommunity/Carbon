@@ -83,7 +83,7 @@
 		</ItemGroup>
 
 		<Message Text="[$(AssemblyName)] Copy files to release folder" Importance="high" />
-		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" />
+		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" UseHardlinksIfPossible="true" />
 
 		<ItemGroup>
 			<FilesToClean Include="$(c_lib)\Carbon*.dll" />
@@ -96,6 +96,7 @@
 		</ItemGroup>
 		<Copy SourceFiles="@(FilesToCopy)"
 					DestinationFolder="$(c_lib)\%(RecursiveDir)"
+					UseHardlinksIfPossible="true"
 					SkipUnchangedFiles="true"
 					OverwriteReadOnlyFiles="true" />
 
