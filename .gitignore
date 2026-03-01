@@ -19,7 +19,7 @@
 */.idea/*
 
 # Code gen
-Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Build.cs
+src/Carbon.Components/Carbon.Common/src/Carbon/Build.cs
 [Gg]enerated/
 [Tt]ools/Runtime
 

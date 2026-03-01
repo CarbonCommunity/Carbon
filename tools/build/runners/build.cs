@@ -34,16 +34,16 @@ if (!noClean)
 DotNet.ExitOnError(true);
 if (!noClean)
 {
-	DotNet.Run("clean", PathEnquotes(Home, "src"), "--configuration", target, "--verbosity", buildVerbosity);
+	DotNet.Run("clean", PathEnquotes(Home, "src"), "--configuration", target);
 }
 if (noRestore)
 {
-	DotNet.Run("build", PathEnquotes(Home, "src"), "--configuration", target, "--verbosity", buildVerbosity, "--no-restore",
+	DotNet.Run("build", PathEnquotes(Home, "src"), "--configuration", target, "--no-restore",
 		$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"");
 }
 else
 {
-	DotNet.Run("build", PathEnquotes(Home, "src"), "--configuration", target, "--verbosity", buildVerbosity,
+	DotNet.Run("build", PathEnquotes(Home, "src"), "--configuration", target,
 		$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"");
 }
 

@@ -3,7 +3,6 @@
 		<Product>Carbon.Common</Product>
 		<OutputType>Library</OutputType>
 		<ImplicitUsings>true</ImplicitUsings>
-		<PackageId>$(AssemblyName)</PackageId>
 	</PropertyGroup>
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
@@ -64,12 +63,11 @@
 		</When>
 	</Choose>
 
-	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec" Condition="Exists('$(SolutionDir).tmp\.gitbranch')">
+	<Target Name="GitMetadata" BeforeTargets="PrepareForBuild" Condition="Exists('$(SolutionDir).tmp\.gitbranch')">
 		<WriteLinesToFile File="$(MSBuildProjectDirectory)\src\Carbon\Build.cs" Overwrite="true" Lines="$(BuildMetadataCode)" />
 	</Target>
 
-	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
-		<WriteLinesToFile File="$(MSBuildProjectDirectory)\src\Carbon\test.cs" Overwrite="true" Lines="$(BuildMetadataCode)" />
+	<Target Name="CustomRelease" AfterTargets="Clean" DependsOnTargets="PrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 		<Copy Condition="$(Configuration.Contains('Debug'))" SourceFiles="$(OutputPath)$(Product).xml" DestinationFolder="$(c_managed)" />
 	</Target>

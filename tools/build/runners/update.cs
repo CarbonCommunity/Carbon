@@ -2,7 +2,7 @@ var branch = GetArg(1, "release");
 
 Warn($"Branch: {branch}");
 
-DotNet.Run("build", PathEnquotes(Home, "tools", "DepotDownloader", "DepotDownloader"));
+DotNet.Run("build", PathEnquotes(Home, "tools", "depot", "DepotDownloader"));
 DotNet.Run("build", PathEnquotes(Home, "src", "Carbon.Tools", "Carbon.Publicizer"));
 DotNet.Run("build", PathEnquotes(Home, "src", "Carbon.Tools", "Carbon.Generator"));
 
@@ -14,7 +14,7 @@ System.Threading.Tasks.Task.WaitAll(
 void DownloadRustFiles(string platform)
 {
 	Log($"Downloading {platform} Rust files..");
-	DotNet.Run("run", "--no-build", "--project", PathEnquotes(Home, "tools", "DepotDownloader", "DepotDownloader"),
+	DotNet.Run("run", "--no-build", "--project", PathEnquotes(Home, "tools", "depot", "DepotDownloader"),
 		"-os", platform, 
 		"-validate", 
 		"-app 258550",

@@ -31,3 +31,6 @@
 [submodule "src/Carbon.Hooks/Carbon.Hooks.Internal"]
 	path = src/Carbon.Hooks/Carbon.Hooks.Internal
 	url = https://github.com/CarbonCommunity/Carbon.Hooks.git
+[submodule "tools/depot"]
+	path = tools/depot
+	url = https://github.com/CarbonCommunity/Carbon.Depot.git
