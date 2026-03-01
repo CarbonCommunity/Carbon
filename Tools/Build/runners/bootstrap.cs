@@ -1,7 +1,7 @@
 Log(Home);
 
-Git.Run("config", "--global", "--add", "safe.directory", "'*'");
-Git.Run("config", "--local", "--add", "safe.directory", "'*'");
+Git.Run("config", "--global", "--add", "safe.directory", "*");
+Git.Run("config", "--local", "--add", "safe.directory", "*");
 
 Warn("Git Setup");
 {
