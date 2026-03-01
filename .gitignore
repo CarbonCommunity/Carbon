@@ -29,6 +29,9 @@ Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Build.cs
 # Project release folder
 [Rr]elease/
 
+# Rust managed files
+[Rr]ust/
+
 # msbuild stuff
 .tmp
 .gittag
