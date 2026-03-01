@@ -6,7 +6,9 @@ var cargoTarget = target.Equals("Debug") || target.Equals("DebugUnix") || target
 var isUnix = target.Contains("Unix");
 var noArchive = HasArg("-noarchive");
 
-var noClean = HasArg("-noclean");
+var noClean = !HasArg("-clean");
+var noRestore = !HasArg("-restore");
+var buildVerbosity = "minimal";
 
 Run(Path(Home, "Tools", "Build", "runners", "git.cs"), tag);
 
@@ -15,6 +17,9 @@ Warn($"Target: {target}");
 Warn($"Defines: {defines ?? "N/A"}");
 Warn($"Version: {version ?? "N/A"}");
 Warn($"Cargo Target: {cargoTarget}");
+Warn($"Clean: {(noClean ? "Skip" : "Run")}");
+Warn($"Restore: {(noRestore ? "Skip" : "Run")}");
+Warn($"Verbosity: {buildVerbosity}");
 
 if (!noClean)
 {
@@ -25,10 +30,18 @@ if (!noClean)
 DotNet.ExitOnError(true);
 if (!noClean)
 {
-	DotNet.Run("clean", PathEnquotes(Home, "Carbon.Core"), "--configuration", target);
+	DotNet.Run("clean", PathEnquotes(Home, "Carbon.Core"), "--configuration", target, "--verbosity", buildVerbosity);
 }
-DotNet.Run("build", PathEnquotes(Home, "Carbon.Core"), "--configuration", target,
-	$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"");
+if (noRestore)
+{
+	DotNet.Run("build", PathEnquotes(Home, "Carbon.Core"), "--configuration", target, "--verbosity", buildVerbosity, "--no-restore",
+		$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"");
+}
+else
+{
+	DotNet.Run("build", PathEnquotes(Home, "Carbon.Core"), "--configuration", target, "--verbosity", buildVerbosity,
+		$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"");
+}
 
 Files.Copy(Path(Home, "Tools", "Helpers", "Carbon.targets"), Path(Home, "Release", ".tmp", target, "Carbon.targets"));
 
