@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 
-BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
+set -euo pipefail
 
-"${BASE}/build.sh" Release
-"${BASE}/build.sh" ReleaseUnix
+BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)"
+ROOT="$(realpath "${BASE}/../../../")"
+NATIVE_DIR="${ROOT}/Carbon.Core/Carbon.Native"
 
-HOME=$(pwd)
-ROOT=$(dirname "$(dirname "$(dirname "$HOME")")")
+cd "${NATIVE_DIR}"
 
-cd "$ROOT/Carbon.Core/Carbon.Native" || exit
+rustup target add x86_64-unknown-linux-gnu
+rustup target add x86_64-pc-windows-gnu
 
-cargo build
+if command -v cross >/dev/null 2>&1; then
+  cross build -r --target x86_64-unknown-linux-gnu
+  cross build -r --target x86_64-pc-windows-gnu
+else
+  cargo build -r --target x86_64-unknown-linux-gnu
+  cargo build -r --target x86_64-pc-windows-gnu
+fi
