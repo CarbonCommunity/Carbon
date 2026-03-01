@@ -3,6 +3,7 @@
 		<Product>Carbon.Common</Product>
 		<OutputType>Library</OutputType>
 		<ImplicitUsings>true</ImplicitUsings>
+		<PackageId>$(AssemblyName)</PackageId>
 	</PropertyGroup>
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
@@ -24,7 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -68,6 +69,7 @@
 	</Target>
 
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\src\Carbon\test.cs" Overwrite="true" Lines="$(BuildMetadataCode)" />
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 		<Copy Condition="$(Configuration.Contains('Debug'))" SourceFiles="$(OutputPath)$(Product).xml" DestinationFolder="$(c_managed)" />
 	</Target>

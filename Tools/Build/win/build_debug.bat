@@ -3,5 +3,5 @@
 set ROOT=%cd%
 cd ../../..
 
-dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs Debug EDGE edge_build
+dotnet run --project src/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs Debug EDGE edge_build
 cd %ROOT%

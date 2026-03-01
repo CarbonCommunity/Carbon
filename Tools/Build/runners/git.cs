@@ -1,7 +1,7 @@
 var localTag = GetArg(0);
 Warn($"Local Tag: {localTag}");
 
-var temp = Path(Home, "Carbon.Core", ".tmp");
+var temp = Path(Home, "src", ".tmp");
 Directories.Create(temp);
 
 Files.Create(Path(temp, ".gitbranch"), Git.RunOutput("branch", "--show-current"));

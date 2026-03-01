@@ -3,7 +3,7 @@
 set HOME=%cd%
 set ROOT=%HOME%\..\..\..
 
-cd %ROOT%\Carbon.Core\Carbon.Native
+cd %ROOT%\src\Carbon.Native
 
 podman machine start
 rustup target add x86_64-unknown-linux-gnu

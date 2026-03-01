@@ -14,7 +14,7 @@ if (HasArg("-restore"))
 }
 var buildVerbosity = "minimal";
 
-Run(Path(Home, "Tools", "Build", "runners", "git.cs"), tag);
+Run(Path(Home, "tools", "Build", "runners", "git.cs"), tag);
 
 Warn($"Tag: {tag}");
 Warn($"Target: {target}");
@@ -27,54 +27,54 @@ Warn($"Verbosity: {buildVerbosity}");
 
 if (!noClean)
 {
-	Directories.Delete(Path(Home, "Release", ".tmp", target));
-	Files.Delete(Path(Home, "Release", $"Carbon.{target}.tar.gz"));
+	Directories.Delete(Path(Home, "release", ".tmp", target));
+	Files.Delete(Path(Home, "release", $"Carbon.{target}.tar.gz"));
 }
 
 DotNet.ExitOnError(true);
 if (!noClean)
 {
-	DotNet.Run("clean", PathEnquotes(Home, "Carbon.Core"), "--configuration", target, "--verbosity", buildVerbosity);
+	DotNet.Run("clean", PathEnquotes(Home, "src"), "--configuration", target, "--verbosity", buildVerbosity);
 }
 if (noRestore)
 {
-	DotNet.Run("build", PathEnquotes(Home, "Carbon.Core"), "--configuration", target, "--verbosity", buildVerbosity, "--no-restore",
+	DotNet.Run("build", PathEnquotes(Home, "src"), "--configuration", target, "--verbosity", buildVerbosity, "--no-restore",
 		$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"");
 }
 else
 {
-	DotNet.Run("build", PathEnquotes(Home, "Carbon.Core"), "--configuration", target, "--verbosity", buildVerbosity,
+	DotNet.Run("build", PathEnquotes(Home, "src"), "--configuration", target, "--verbosity", buildVerbosity,
 		$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"");
 }
 
-Files.Copy(Path(Home, "Tools", "Helpers", "Carbon.targets"), Path(Home, "Release", ".tmp", target, "Carbon.targets"));
+Files.Copy(Path(Home, "tools", "Helpers", "Carbon.targets"), Path(Home, "release", ".tmp", target, "Carbon.targets"));
 
 var tos = isUnix ? "Linux" : "Windows";
 var finalTarget = target.Replace("Unix", string.Empty);
 
-Files.DeleteContains(Path(Home, "Release", ".tmp", target, "carbon", "managed", "lib"), "carbon");
-Directories.Delete(Path(Home, "Release", ".tmp", target, "profiler"));
+Files.DeleteContains(Path(Home, "release", ".tmp", target, "carbon", "managed", "lib"), "carbon");
+Directories.Delete(Path(Home, "release", ".tmp", target, "profiler"));
 
 if (isUnix)
 {
-	Files.Copy(Path(Home, "Tools", "Helpers", "carbon.sh"), Path(Home, "Release", ".tmp", target));
-	Files.Copy(Path(Home, "Tools", "Helpers", "environment.sh"), Path(Home, "Release", ".tmp", target, "carbon", "tools"));
-	Files.Copy(Path(Home, "Tools", "UnityDoorstop", "linux", "x64", "libdoorstop.so"), Path(Home, "Release", ".tmp", target));
-	Files.Copy(Path(Home, "Carbon.Core", "Carbon.Native", "target", "x86_64-unknown-linux-gnu", cargoTarget, "libCarbonNative.so"), Path(Home, "Release", ".tmp", target, "carbon", "native"), optional: true);
+	Files.Copy(Path(Home, "tools", "Helpers", "carbon.sh"), Path(Home, "release", ".tmp", target));
+	Files.Copy(Path(Home, "tools", "Helpers", "environment.sh"), Path(Home, "release", ".tmp", target, "carbon", "tools"));
+	Files.Copy(Path(Home, "tools", "UnityDoorstop", "linux", "x64", "libdoorstop.so"), Path(Home, "releasev", ".tmp", target));
+	Files.Copy(Path(Home, "src", "Carbon.Native", "target", "x86_64-unknown-linux-gnu", cargoTarget, "libCarbonNative.so"), Path(Home, "release", ".tmp", target, "carbon", "native"), optional: true);
 
 	if (!noArchive)
 	{
-		Archive.Tar(Path(Home, "Release", ".tmp", target), Path(Home, "Release", $"Carbon.{tos}.{finalTarget}.tar.gz"));
+		Archive.Tar(Path(Home, "release", ".tmp", target), Path(Home, "release", $"Carbon.{tos}.{finalTarget}.tar.gz"));
 	}
 }
 else
 {
-	Files.Copy(Path(Home, "Tools", "Helpers", "doorstop_config.ini"), Path(Home, "Release", ".tmp", target));
-	Files.Copy(Path(Home, "Tools", "UnityDoorstop", "windows", "x64", "doorstop.dll"), Path(Home, "Release", ".tmp", target, "winhttp.dll"));
-	Files.Copy(Path(Home, "Carbon.Core", "Carbon.Native", "target", "x86_64-pc-windows-gnu", cargoTarget, "CarbonNative.dll"), Path(Home, "Release", ".tmp", target, "carbon", "native"), optional: true);
+	Files.Copy(Path(Home, "tools", "Helpers", "doorstop_config.ini"), Path(Home, "release", ".tmp", target));
+	Files.Copy(Path(Home, "tools", "UnityDoorstop", "windows", "x64", "doorstop.dll"), Path(Home, "release", ".tmp", target, "winhttp.dll"));
+	Files.Copy(Path(Home, "src", "Carbon.Native", "target", "x86_64-pc-windows-gnu", cargoTarget, "CarbonNative.dll"), Path(Home, "release", ".tmp", target, "carbon", "native"), optional: true);
 
 	if (!noArchive)
 	{
-		Archive.Zip(Path(Home, "Release", ".tmp", target), Path(Home, "Release", $"Carbon.{tos}.{finalTarget}.zip"));
+		Archive.Zip(Path(Home, "release", ".tmp", target), Path(Home, "release", $"Carbon.{tos}.{finalTarget}.zip"));
 	}
 }

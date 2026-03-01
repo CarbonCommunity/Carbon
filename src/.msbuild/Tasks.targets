@@ -34,7 +34,7 @@
 	-->
 	<Target Name="CleanupRustManaged" AfterTargets="PostBuildEvent">
 		<ItemGroup>
-			<RustManaged Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\*.dll" Exclude="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\0Harmony.dll" />
+			<RustManaged Include="$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\*.dll" Exclude="$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\0Harmony.dll" />
 		</ItemGroup>
 
 		<Message Text="[$(AssemblyName)] Removing rust managed libs" Importance="high" />
@@ -47,7 +47,7 @@
 	<Target Name="PrepareRelease" AfterTargets="PostBuildEvent">
 		<Message Text="[$(AssemblyName)] Preparing the release folder ($(OperatingSystem))" Importance="high" />
 		<PropertyGroup>
-			<CarbonBaseDir>$(SolutionDir)..\Release\.tmp\$(Configuration)</CarbonBaseDir>
+			<CarbonBaseDir>$(SolutionDir)..\release\.tmp\$(Configuration)</CarbonBaseDir>
 
 			<c_profiler>$(CarbonBaseDir)\profiler</c_profiler>
 
@@ -101,7 +101,7 @@
 					OverwriteReadOnlyFiles="true" />
 
 	</Target>
-
+	
 	<!--
 		Outputs the build info to a file
 	-->
@@ -138,6 +138,6 @@
 }
 			</InfoContents>
 		</PropertyGroup>
-		<WriteLinesToFile File="$(SolutionDir)\..\Release\Carbon.$(OperatingSystemCapitalized).$(ConfigurationNormalized).info" Overwrite="true" Lines="$(InfoContents)" Condition="$(Product.Contains('Carbon.SDK'))" />
+		<WriteLinesToFile File="$(SolutionDir)\..\release\Carbon.$(OperatingSystemCapitalized).$(ConfigurationNormalized).info" Overwrite="true" Lines="$(InfoContents)" Condition="$(Product.Contains('Carbon.SDK'))" />
 	</Target>
 </Project>

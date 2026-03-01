@@ -12,7 +12,7 @@ Warn("Git Setup");
 
 Warn("Building Submodules");
 {	
-	DotNet.Run("restore", PathEnquotes(Home, "Tools", "DepotDownloader"));
-	DotNet.Run("clean", PathEnquotes(Home, "Tools", "DepotDownloader"));
-	DotNet.Run("build", PathEnquotes(Home, "Tools", "DepotDownloader"), "--no-restore", "--no-incremental");
+	DotNet.Run("restore", PathEnquotes(Home, "tools", "DepotDownloader"));
+	DotNet.Run("clean", PathEnquotes(Home, "tools", "DepotDownloader"));
+	DotNet.Run("build", PathEnquotes(Home, "tools", "DepotDownloader"), "--no-restore", "--no-incremental");
 }
