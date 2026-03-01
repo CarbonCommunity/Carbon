@@ -462,6 +462,18 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 	{
 		return GetImage(keyOrUrl).ToString();
 	}
+	public void SendImage(BasePlayer player, string name)
+	{
+		var image = GetImage(name);
+		if (image == default) return;
+
+		byte[] array = FileStorage.server.Get(image, FileStorage.Type.png, new NetworkableId(_protoData.Identifier));
+
+		if (array == null)
+			return;
+
+		CommunityEntity.ServerInstance.ClientRPC(RpcTarget.Player("CL_ReceiveFilePng", player), image, (uint)array.Length, array);
+	}
 	public bool HasImage(string keyOrUrl)
 	{
 		return FileStorage.server.Get(GetImage(keyOrUrl), FileStorage.Type.png, new NetworkableId(_protoData.Identifier)) != null;
