@@ -7,7 +7,11 @@ var isUnix = target.Contains("Unix");
 var noArchive = HasArg("-noarchive");
 
 var noClean = !HasArg("-clean");
-var noRestore = !HasArg("-restore");
+var noRestore = HasArg("-norestore");
+if (HasArg("-restore"))
+{
+	noRestore = false;
+}
 var buildVerbosity = "minimal";
 
 Run(Path(Home, "Tools", "Build", "runners", "git.cs"), tag);
