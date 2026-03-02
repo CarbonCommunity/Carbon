@@ -14,7 +14,7 @@ if (HasArg("-restore"))
 }
 var buildVerbosity = "minimal";
 
-Run(Path(Home, "tools", "Build", "runners", "git.cs"), tag);
+Run(Path(Home, "tools", "build", "runners", "git.cs"), tag);
 
 var temp = Path(Home, "src", ".tmp");
 System.IO.File.WriteAllText(Path(Home, "src", "Carbon.Components", "Carbon.Common", "src", "Carbon", "Build.cs"),
