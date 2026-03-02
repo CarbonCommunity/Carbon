@@ -4,7 +4,7 @@ set -euo pipefail
 
 BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)"
 ROOT="$(realpath "${BASE}/../../../")"
-NATIVE_DIR="${ROOT}/Carbon.Core/Carbon.Native"
+NATIVE_DIR="${ROOT}/src/Carbon.Native"
 
 cd "${NATIVE_DIR}"
 

@@ -13,4 +13,4 @@ fi
 RUNNER_FILE="$1"
 shift
 
-(cd "${ROOT}" && dotnet run --project "${ROOT}/Carbon.Core/Carbon.Tools/Carbon.Runner" "${RUNNER_FILE}" "$@")
+(cd "${ROOT}" && dotnet run --project "${ROOT}/src/Carbon.Tools/Carbon.Runner" "${RUNNER_FILE}" "$@")
