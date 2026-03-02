@@ -14,16 +14,19 @@ if (HasArg("-restore"))
 }
 var buildVerbosity = "minimal";
 
+Run(Path(Home, "tools", "Build", "runners", "git.cs"), tag);
+
+var temp = Path(Home, "src", ".tmp");
 System.IO.File.WriteAllText(Path(Home, "src", "Carbon.Components", "Carbon.Common", "src", "Carbon", "Build.cs"),
 	System.IO.File.ReadAllText(Path(Home, "src", "Carbon.Components", "Carbon.Common", "src", "Carbon", "Build.cs.template"))
-		.Replace("[GIT_BRANCH]", Git.RunOutput("branch", "--show-current").Trim())
-		.Replace("[GIT_AUTHOR]", Git.RunOutput("show", "-s", "--format=\"%an\"", "HEAD").Trim())
-		.Replace("[GIT_COMMENT]", Git.RunOutput("log -1", "--pretty=\"%B\"", "HEAD").Trim())
-		.Replace("[GIT_DATE]", Git.RunOutput("log -1", "--format=\"%ci\"", "HEAD").Trim())
-		.Replace("[GIT_TAG]", string.IsNullOrEmpty(tag) ? Git.RunOutput("describe", "--tags") : tag)
-		.Replace("[GIT_HASH_SHORT]", Git.RunOutput("rev-parse", "--short", "HEAD").Trim())
-		.Replace("[GIT_HASH_LONG]", Git.RunOutput("rev-parse", "--long", "HEAD").Replace("--long", null).Trim())
-		.Replace("[GIT_URL]", Git.RunOutput("remote", "get-url", "origin").Replace(".git", null).Trim() + "/commit/" + Git.RunOutput("rev-parse", "--long", "HEAD").Replace("--long", null).Trim()));
+		.Replace("[GIT_BRANCH]", System.IO.File.ReadAllText(Path(temp, ".gitbranch")))
+		.Replace("[GIT_AUTHOR]", System.IO.File.ReadAllText(Path(temp, ".gitauthor")))
+		.Replace("[GIT_COMMENT]", System.IO.File.ReadAllText(Path(temp, ".gitcomment")))
+		.Replace("[GIT_DATE]", System.IO.File.ReadAllText(Path(temp, ".gitdate")))
+		.Replace("[GIT_TAG]", string.IsNullOrEmpty(tag) ? System.IO.File.ReadAllText(Path(temp, ".gittag")) : tag)
+		.Replace("[GIT_HASH_SHORT]", System.IO.File.ReadAllText(Path(temp, ".gitchs")))
+		.Replace("[GIT_HASH_LONG]", System.IO.File.ReadAllText(Path(temp, ".gitchl")))
+		.Replace("[GIT_URL]", System.IO.File.ReadAllText(Path(temp, ".giturl")) + "/commit/" + System.IO.File.ReadAllText(Path(temp, ".gitchl"))));
 
 Warn($"Tag: {tag}");
 Warn($"Target: {target}");

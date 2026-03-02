@@ -34,7 +34,7 @@
 		<ProjectReference Include="..\..\Carbon.Profiler\Carbon.Profiler.csproj" />
 	</ItemGroup>
 
-	<Target Name="CustomRelease" AfterTargets="Clean" DependsOnTargets="PrepareRelease">
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 		<Copy Condition="$(Configuration.Contains('Debug'))" SourceFiles="$(OutputPath)$(Product).xml" DestinationFolder="$(c_managed)" />
 	</Target>
