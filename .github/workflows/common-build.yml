@@ -242,17 +242,17 @@ jobs:
         id: rust-hash
         shell: bash
         run: |
-          echo "hash=${{ hashFiles('Carbon.Core/Carbon.Native/src/**', 'Carbon.Core/Carbon.Native/Cargo.toml', 'Carbon.Core/Carbon.Native/Cargo.lock', 'Carbon.Core/Carbon.Native/build.rs') }}" >> $GITHUB_OUTPUT
+          echo "hash=${{ hashFiles('src/Carbon.Native/src/**', 'src/Carbon.Native/Cargo.toml', 'src/Carbon.Native/Cargo.lock', 'src/Carbon.Native/build.rs') }}" >> $GITHUB_OUTPUT
 
       - name: Cache Native Binaries
         id: cache-native
         uses: actions/cache@v5
         with:
           path: |
-            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/release/*.so
-            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/release/*.dll
-            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/prod/*.so
-            Carbon.Core/Carbon.Native/target/${{ matrix.target }}/prod/*.dll
+            src/Carbon.Native/target/${{ matrix.target }}/release/*.so
+            src/Carbon.Native/target/${{ matrix.target }}/release/*.dll
+            src/Carbon.Native/target/${{ matrix.target }}/prod/*.so
+            src/Carbon.Native/target/${{ matrix.target }}/prod/*.dll
           key: native-${{ matrix.target }}-${{ needs.configure.outputs.native_mode }}-${{ steps.rust-hash.outputs.hash }}
 
       - name: Setup Zig (Linux) (Cond)
@@ -278,7 +278,7 @@ jobs:
 
       - name: Build Native (Standard) (Cond)
         if: steps.cache-native.outputs.cache-hit != 'true' && (contains(needs.configure.outputs.native_mode, 'standard') || contains(needs.configure.outputs.native_mode, 'both'))
-        working-directory: Carbon.Core/Carbon.Native
+        working-directory: src/Carbon.Native
         shell: bash
         run: |
           if [[ "${{ matrix.group }}" == "Linux" ]]; then
@@ -289,7 +289,7 @@ jobs:
 
       - name: Build Native (Prod) (Cond)
         if: steps.cache-native.outputs.cache-hit != 'true' && (contains(needs.configure.outputs.native_mode, 'prod') || contains(needs.configure.outputs.native_mode, 'both'))
-        working-directory: Carbon.Core/Carbon.Native
+        working-directory: src/Carbon.Native
         shell: bash
         run: |
           if [[ "${{ matrix.group }}" == "Linux" ]]; then
@@ -303,9 +303,9 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ needs.configure.outputs.native_mode }}" == *"prod"* ]]; then
-             TARGET_DIR="Carbon.Core/Carbon.Native/target/${{ matrix.target }}/prod"
+             TARGET_DIR="src/Carbon.Native/target/${{ matrix.target }}/prod"
           else
-             TARGET_DIR="Carbon.Core/Carbon.Native/target/${{ matrix.target }}/release"
+             TARGET_DIR="src/Carbon.Native/target/${{ matrix.target }}/release"
           fi
 
           echo "Searching in: $TARGET_DIR"
@@ -315,7 +315,7 @@ jobs:
           
             if [ -z "$BIN_PATH" ]; then
               echo "::error::No .dll found in $TARGET_DIR"
-              ls -R Carbon.Core/Carbon.Native/target/
+              ls -R src/Carbon.Native/target/
               exit 1
             fi
             echo "Found Binary: $BIN_PATH"
@@ -334,7 +334,7 @@ jobs:
 
             if [ -z "$BIN_PATH" ]; then
               echo "::error::No .so found in $TARGET_DIR"
-              ls -R Carbon.Core/Carbon.Native/target/
+              ls -R src/Carbon.Native/target/
               exit 1
             fi
             echo "Found Binary: $BIN_PATH"
@@ -358,7 +358,7 @@ jobs:
           echo "Binary Verification Passed: Statically linked and exports $(echo "$SYMBOLS" | wc -l) functions."
 
       - name: Pre-build Carbon Runner
-        run: dotnet build Carbon.Core/Carbon.Tools/Carbon.Runner -c Release -o ./runner-bin
+        run: dotnet build src/Carbon.Tools/Carbon.Runner -c Release -o ./runner-bin
 
       - name: Carbon Bootstrap CS
         run: dotnet ./runner-bin/Carbon.Runner.dll Tools/Build/runners/bootstrap.cs
