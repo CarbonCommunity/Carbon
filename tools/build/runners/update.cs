@@ -19,7 +19,7 @@ void DownloadRustFiles(string platform)
 		"-validate", 
 		"-app 258550",
 		"-branch", branch, 
-		"-filelist", PathEnquotes(Home, "tools", "Helpers", "258550_refs.txt"),
+		"-filelist", PathEnquotes(Home, "tools", "belpers", "258550_refs.txt"),
 		"-dir", PathEnquotes(Home, "rust", platform));
 		
 	var hash = Files.Hash(Path(Home, "rust", platform, "RustDedicated_Data", "Managed", "Assembly-CSharp.dll")).ToString();
