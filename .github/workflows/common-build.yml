@@ -414,9 +414,9 @@ jobs:
         with:
           name: build-${{ matrix.group }}
           path: |
-            Release/*.tar.gz
-            Release/*.zip
-            Release/*.info
+            release/*.tar.gz
+            release/*.zip
+            release/*.info
 
   release:
     name: Release (${{ needs.configure.outputs.release_name }}) (${{ needs.configure.outputs.tag_name }})
@@ -443,12 +443,12 @@ jobs:
       - name: ⬇️ Download artifacts
         uses: actions/download-artifact@v6
         with:
-          path: Release
+          path: release
           merge-multiple: true
 
       - name: Display structure
         run: ls -R
-        working-directory: Release
+        working-directory: release
 
       - name: 🏷️ Create Release
         uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
@@ -460,6 +460,6 @@ jobs:
           name: "${{ needs.configure.outputs.release_name }} Build — v${{ needs.build.outputs.version }}"
           body: ${{ inputs.RELEASE_BODY }}
           files: |
-            Release/*.tar.gz
-            Release/*.zip
-            Release/*.info
+            release/*.tar.gz
+            release/*.zip
+            release/*.info
