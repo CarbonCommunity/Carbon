@@ -127,12 +127,12 @@ jobs:
       - name: ⬇️ Download artifacts
         uses: actions/download-artifact@v6
         with:
-          path: Release
+          path: release
           merge-multiple: true
 
       - name: Display structure
         run: ls -R
-        working-directory: Release
+        working-directory: release
 
       - name: 🏷️ Create Release
         uses: softprops/action-gh-release@v2
@@ -150,5 +150,5 @@ jobs:
             2. Unzip the archive to the HarmonyMods directory of your Rust Dedicated Server.
             3. Start the server and enjoy, or run `harmony.load Carbon.Profiler`.
           files: |
-            Release/Carbon.Windows.Profiler.zip
-            Release/Carbon.Linux.Profiler.tar.gz
+            release/Carbon.Windows.Profiler.zip
+            release/Carbon.Linux.Profiler.tar.gz
