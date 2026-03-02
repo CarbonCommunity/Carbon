@@ -15,19 +15,15 @@ using var stream = new System.IO.MemoryStream();
     using var writer = new System.IO.BinaryWriter(stream);
     {
         ProcessRepository("Carbon", Path(home));
-        ProcessRepository("Carbon.Bootstrap", Path(home, "Carbon.Core", "Carbon.Components", "Carbon.Bootstrap"));
-        ProcessRepository("Carbon.Common", Path(home, "Carbon.Core", "Carbon.Components", "Carbon.Common"));
-        ProcessRepository("Carbon.Compat", Path(home, "Carbon.Core", "Carbon.Components", "Carbon.Compat"));
-        ProcessRepository("Carbon.Modules", Path(home, "Carbon.Core", "Carbon.Components", "Carbon.Modules"));
-        ProcessRepository("Carbon.Preloader", Path(home, "Carbon.Core", "Carbon.Components", "Carbon.Preloader"));
-        ProcessRepository("Carbon.SDK", Path(home, "Carbon.Core", "Carbon.Components", "Carbon.SDK"));
-        ProcessRepository("Carbon.Startup", Path(home, "Carbon.Core", "Carbon.Components", "Carbon.Startup"));
-        ProcessRepository("Carbon.Test", Path(home, "Carbon.Core", "Carbon.Components", "Carbon.Test"));
-        ProcessRepository("Carbon.Native", Path(home, "Carbon.Core", "Carbon.Native"));
-        ProcessRepository("Carbon.Profiler", Path(home, "Carbon.Core", "Carbon.Profiler"));
-        ProcessRepository("Carbon.UniTask", Path(home, "Carbon.Core", "Carbon.UniTask"));
-        ProcessRepository("Carbon.Hooks.Base", Path(home, "Carbon.Core", "Carbon.Hooks", "Carbon.Hooks.Base"));
-        ProcessRepository("Carbon.Hooks.Community", Path(home, "Carbon.Core", "Carbon.Hooks", "Carbon.Hooks.Community"));
+        ProcessRepository("Carbon.Modules", Path(home, "src", "Carbon.Components", "Carbon.Modules"));
+        ProcessRepository("Carbon.Preloader", Path(home, "src", "Carbon.Components", "Carbon.Preloader"));
+        ProcessRepository("Carbon.Startup", Path(home, "src", "Carbon.Components", "Carbon.Startup"));
+        ProcessRepository("Carbon.Test", Path(home, "src", "Carbon.Components", "Carbon.Test"));
+        ProcessRepository("Carbon.Native", Path(home, "src", "Carbon.Native"));
+        ProcessRepository("Carbon.Profiler", Path(home, "src", "Carbon.Profiler"));
+        ProcessRepository("Carbon.UniTask", Path(home, "src", "Carbon.UniTask"));
+        ProcessRepository("Carbon.Hooks.Base", Path(home, "src", "Carbon.Hooks", "Carbon.Hooks.Base"));
+        ProcessRepository("Carbon.Hooks.Community", Path(home, "src", "Carbon.Hooks", "Carbon.Hooks.Community"));
 
         Task.WaitAll(tasks);
         

@@ -34,39 +34,6 @@
 		<ProjectReference Include="..\..\Carbon.Profiler\Carbon.Profiler.csproj" />
 	</ItemGroup>
 
-	<Choose>
-		<When Condition="Exists('$(SolutionDir).tmp\.gitbranch')">
-			<PropertyGroup>
-				<GitCommitBranch>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitbranch').Trim())</GitCommitBranch>
-				<GitCommitHashLong>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitchl').Replace("--long", "").Trim())</GitCommitHashLong>
-				<GitCommitHashShort>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitchs').Trim())</GitCommitHashShort>
-				<GitCommitUrl>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.giturl').Trim().Replace('.git', ''))/commit/$(GitCommitHashLong.Trim())</GitCommitUrl>
-				<GitCommitAuthor>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitauthor').Trim())</GitCommitAuthor>
-				<GitCommitComment>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitcomment').Replace('"', '""').Trim())</GitCommitComment>
-				<GitCommitTag>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gittag').Trim())</GitCommitTag>
-				<GitCommitDate>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitdate').Trim())</GitCommitDate>
-				<GitCommitChanges>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitchanges').Replace("	", " ").Trim())</GitCommitChanges>
-				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)-$(GitCommitBranch)-$(GitCommitHashShort)</InformationalVersion>
-
-				<BuildMetadataCode>
-					$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\src\Carbon\Build.cs.template')
-					.Replace('[GIT_BRANCH]', '$(GitCommitBranch)')
-					.Replace('[GIT_AUTHOR]', '$(GitCommitAuthor)')
-					.Replace('[GIT_COMMENT]', '$(GitCommitComment)')
-					.Replace('[GIT_DATE]', '$(GitCommitDate)')
-					.Replace('[GIT_URL]', '$(GitCommitUrl)')
-					.Replace('[GIT_TAG]', '$(GitCommitTag)')
-					.Replace('[GIT_HASH_SHORT]', '$(GitCommitHashShort)')
-					.Replace('[GIT_HASH_LONG]', '$(GitCommitHashLong)'))
-				</BuildMetadataCode>
-			</PropertyGroup>
-		</When>
-	</Choose>
-
-	<Target Name="GitMetadata" BeforeTargets="PrepareForBuild" Condition="Exists('$(SolutionDir).tmp\.gitbranch')">
-		<WriteLinesToFile File="$(MSBuildProjectDirectory)\src\Carbon\Build.cs" Overwrite="true" Lines="$(BuildMetadataCode)" />
-	</Target>
-
 	<Target Name="CustomRelease" AfterTargets="Clean" DependsOnTargets="PrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 		<Copy Condition="$(Configuration.Contains('Debug'))" SourceFiles="$(OutputPath)$(Product).xml" DestinationFolder="$(c_managed)" />
