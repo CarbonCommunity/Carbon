@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Carbon.Common</Product>
+		<OutputType>Library</OutputType>
+		<ImplicitUsings>true</ImplicitUsings>
+	</PropertyGroup>
+
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+
+	<Import Project="..\..\Carbon.Tools\Carbon.Generator.Shared\Carbon.Generator.Shared.projitems" Label="Shared" />
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
+
+	<ItemGroup>
+		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
+		<PackageReference Include="MySqlConnector" Version="2.3.7" />
+		<PackageReference Include="MySql.Data" Version="8.0.32.1" />
+		<PackageReference Include="protobuf-net.Core" Version="3.2.46" />
+		<PackageReference Include="protobuf-net" Version="3.2.46" />
+		<PackageReference Include="QRCoder" Version="1.6.0" />
+		<PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
+		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
+		<PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Carbon.Polyfills\Carbon.Polyfills.csproj" />
+		<ProjectReference Include="..\..\Carbon.UniTask\src\Carbon.UniTask.csproj" />
+		<ProjectReference Include="..\Carbon.Test\Carbon.Test.csproj" />
+		<ProjectReference Include="..\..\Carbon.Profiler\Carbon.Profiler.csproj" />
+	</ItemGroup>
+
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+		<Copy Condition="$(Configuration.Contains('Debug'))" SourceFiles="$(OutputPath)$(Product).xml" DestinationFolder="$(c_managed)" />
+	</Target>
+</Project>

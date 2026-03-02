@@ -60,7 +60,7 @@ jobs:
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: Carbon.Core/Carbon.Native
+          workspaces: src/Carbon.Native
 
       - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v5
@@ -74,7 +74,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build Native
-        working-directory: Carbon.Core/Carbon.Native
+        working-directory: src/Carbon.Native
         shell: bash
         run: |
           cargo build -r --target ${{ matrix.target }}
@@ -82,19 +82,19 @@ jobs:
       - name: Carbon Bootstrap CS
         shell: bash
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
+          dotnet run --project src/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
 
       - name: Carbon Update CS
         shell: bash
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs
+          dotnet run --project src/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs
 
       - name: Profiler Build
         shell: bash
         env:
           VERSION: ${{ steps.step1.outputs.version }}
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs Debug${{ matrix.build_arg }} HARMONYMOD profiler_build
+          dotnet run --project src/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs Debug${{ matrix.build_arg }} HARMONYMOD profiler_build
 
       - name: Artifacts
         uses: actions/upload-artifact@v5
@@ -127,12 +127,12 @@ jobs:
       - name: ⬇️ Download artifacts
         uses: actions/download-artifact@v6
         with:
-          path: Release
+          path: release
           merge-multiple: true
 
       - name: Display structure
         run: ls -R
-        working-directory: Release
+        working-directory: release
 
       - name: 🏷️ Create Release
         uses: softprops/action-gh-release@v2
@@ -150,5 +150,5 @@ jobs:
             2. Unzip the archive to the HarmonyMods directory of your Rust Dedicated Server.
             3. Start the server and enjoy, or run `harmony.load Carbon.Profiler`.
           files: |
-            Release/Carbon.Windows.Profiler.zip
-            Release/Carbon.Linux.Profiler.tar.gz
+            release/Carbon.Windows.Profiler.zip
+            release/Carbon.Linux.Profiler.tar.gz

@@ -117,12 +117,12 @@ jobs:
       - name: DotNet Restore
         shell: bash
         run: |
-          dotnet restore Carbon.Core/Carbon.Tests
+          dotnet restore src/Carbon.Tests
 
       - name: DotNet Build
         shell: bash
         run: |
-          dotnet build Carbon.Core/Carbon.Tests -c Release --no-restore
+          dotnet build src/Carbon.Tests -c Release --no-restore
 
       - name: Run Tests
         shell: bash
@@ -131,4 +131,4 @@ jobs:
           BranchName: ${{ needs.configure.outputs.rust_branch }}
           CarbonDownloadZipUrl: https://github.com/CarbonCommunity/Carbon/releases/download/${{ needs.configure.outputs.download_id }}/Carbon.${{ matrix.group }}.${{ needs.configure.outputs.build_config }}.${{ matrix.group == 'Linux' && 'tar.gz' || 'zip' }}
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tests -c Release --no-build
+          dotnet run --project src/Carbon.Tests -c Release --no-build

@@ -101,7 +101,7 @@ jobs:
               set OXIDE_HOOKS=%OXIDE_HOOKS_OVERRIDE%
           )
           
-          set ROOT=%GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
+          set ROOT=%GITHUB_WORKSPACE%\src\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
           
           if %DEBUG_BUILD% EQU true (
               cd %ROOT%
@@ -127,7 +127,7 @@ jobs:
         with:
           name: FTP Output
           path: |
-            Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/*
+            src/Carbon.Hooks/Carbon.Hooks.Internal/FTP/*
 
       - name: ⬆️ FTP - Upload Debug (Carbon.Hooks.Community)
         uses: tomasbkk/action-ftp-upload@v1.0
@@ -136,7 +136,7 @@ jobs:
           user: redist@carbonmod.gg
           password: ${{ secrets.FTP_PWD }}
           host: ${{ secrets.FTP_IP }}
-          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+          src: "src/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
           dest: "hooks/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
 
       - name: ⬆️ FTP - Upload DebugUnix (Carbon.Hooks.Community)
@@ -146,7 +146,7 @@ jobs:
           user: redist@carbonmod.gg
           password: ${{ secrets.FTP_PWD }}
           host: ${{ secrets.FTP_IP }}
-          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+          src: "src/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
           dest: "hooks/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
 
       - name: ⬆️ FTP - Upload Debug (Carbon.Hooks.Oxide)
@@ -156,7 +156,7 @@ jobs:
           user: redist@carbonmod.gg
           password: ${{ secrets.FTP_PWD }}
           host: ${{ secrets.FTP_IP }}
-          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+          src: "src/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
           dest: "hooks/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
       - name: ⬆️ FTP - Upload DebugUnix (Carbon.Hooks.Oxide)
@@ -166,7 +166,7 @@ jobs:
           user: redist@carbonmod.gg
           password: ${{ secrets.FTP_PWD }}
           host: ${{ secrets.FTP_IP }}
-          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+          src: "src/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
           dest: "hooks/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
       - name: ⬆️ FTP - Upload Release (Carbon.Hooks.Community)
@@ -176,7 +176,7 @@ jobs:
           user: redist@carbonmod.gg
           password: ${{ secrets.FTP_PWD }}
           host: ${{ secrets.FTP_IP }}
-          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+          src: "src/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
           dest: "hooks/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
 
       - name: ⬆️ FTP - Upload ReleaseUnix (Carbon.Hooks.Community)
@@ -186,7 +186,7 @@ jobs:
           user: redist@carbonmod.gg
           password: ${{ secrets.FTP_PWD }}
           host: ${{ secrets.FTP_IP }}
-          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+          src: "src/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
           dest: "hooks/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
 
       - name: ⬆️ FTP - Upload Release (Carbon.Hooks.Oxide)
@@ -196,7 +196,7 @@ jobs:
           user: redist@carbonmod.gg
           password: ${{ secrets.FTP_PWD }}
           host: ${{ secrets.FTP_IP }}
-          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+          src: "src/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
           dest: "hooks/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
       - name: ⬆️ FTP - Upload ReleaseUnix (Carbon.Hooks.Oxide)
@@ -206,5 +206,5 @@ jobs:
           user: redist@carbonmod.gg
           password: ${{ secrets.FTP_PWD }}
           host: ${{ secrets.FTP_IP }}
-          src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+          src: "src/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
           dest: "hooks/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
