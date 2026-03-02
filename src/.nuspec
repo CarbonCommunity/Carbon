@@ -18,10 +18,10 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="..\Release\.tmp\Release\carbon\managed\Carbon.Common.dll" target="lib\net48\Carbon.Common.dll" />
-    <file src="..\Release\.tmp\Release\carbon\managed\Carbon.SDK.dll" target="lib\net48\Carbon.SDK.dll" />
-    <file src="..\Release\.tmp\Release\carbon\managed\Carbon.Profiler.dll" target="lib\net48\Carbon.Profiler.dll" />
-    <file src="..\Release\.tmp\Release\carbon\managed\Carbon.Test.dll" target="lib\net48\Carbon.Test.dll" />
+    <file src="..\release\.tmp\Release\carbon\managed\Carbon.Common.dll" target="lib\net48\Carbon.Common.dll" />
+    <file src="..\release\.tmp\Release\carbon\managed\Carbon.SDK.dll" target="lib\net48\Carbon.SDK.dll" />
+    <file src="..\release\.tmp\Release\carbon\managed\Carbon.Profiler.dll" target="lib\net48\Carbon.Profiler.dll" />
+    <file src="..\release\.tmp\Release\carbon\managed\Carbon.Test.dll" target="lib\net48\Carbon.Test.dll" />
     <file src="..\NuGet-ICON.png" target="NuGet-ICON.png" />
     <file src="..\NuGet-README.md" target="NuGet-README.md" />
   </files>
