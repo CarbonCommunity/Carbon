@@ -96,12 +96,15 @@ public partial class CorePlugin
 		// OnServerCommand
 		return HookCaller.CallStaticHook(2535152661, arg) != null ? Cache.True : null;
 	}
-	public static object IOnPlayerChat(ulong playerId, string playerName, string message, Chat.ChatChannel channel, BasePlayer basePlayer)
+	public static object IOnPlayerChat(ulong playerId, string playerName, ref string message, Chat.ChatChannel channel, BasePlayer basePlayer)
 	{
 		if (string.IsNullOrEmpty(message) || message.Equals("text"))
 		{
 			return Cache.True;
 		}
+
+		message = message.EscapeRichText();
+
 		if (basePlayer == null || !basePlayer.IsConnected)
 		{
 			// OnPlayerOfflineChat
