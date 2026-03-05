@@ -1,0 +1,29 @@
+namespace Carbon;
+
+using System;
+using System.Linq;
+
+public class Build
+{
+	public static bool IsDebug =>
+#if DEBUG
+		true;
+#else
+		false;
+#endif
+
+	public class Git
+	{
+		public static readonly string Branch = @"[GIT_BRANCH]";
+
+		public static readonly string Author = @"[GIT_AUTHOR]";
+		public static readonly string Comment = @"[GIT_COMMENT]";
+		public static readonly string Date = @"[GIT_DATE]";
+
+		public static readonly string Tag = @"[GIT_TAG]";
+		public static readonly string HashShort = @"[GIT_HASH_SHORT]";
+		public static readonly string HashLong = @"[GIT_HASH_LONG]";
+
+		public static readonly string Url = @"[GIT_URL]";
+	}
+}

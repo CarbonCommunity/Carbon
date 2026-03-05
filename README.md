@@ -36,7 +36,7 @@ Join our official [Discord server][discord] for support, more frequent developme
 
 ## ⚙️ Development
 To help us and work with us on the project, or get started with Carbon's structure, follow this for understanding how it works.
-The project is split in various essential and mostly independent [components](https://github.com/CarbonCommunity/Carbon/tree/develop/Carbon.Core/Carbon.Components), making it easier to organise and follow.
+The project is split in various essential and mostly independent [components](https://github.com/CarbonCommunity/Carbon/tree/develop/src/Carbon.Components), making it easier to organise and follow.
 
 ### Getting Started
 Upon cloning Carbon, all you need to execute is [`setup.bat`](https://github.com/CarbonCommunity/Carbon/blob/develop/setup.bat) to initialize the entire project and its dependencies.
@@ -79,7 +79,7 @@ Carbon's hooks are managed in a separate location:
 - [Carbon.Hooks.Oxide](https://github.com/CarbonCommunity/Carbon.Hooks.Oxide/tree/develop): Oxide compatibility package, primarily utilized for internal use whenever going through the automatic patch code generation process.
 
 ### Building
-To locally build Carbon from scratch, execute the [`build.bat`](https://github.com/CarbonCommunity/Carbon/tree/develop/Tools/Build/win) file, and find the results in the root of Carbon, under `./Release`.
+To locally build Carbon from scratch, execute the [`build.bat`](https://github.com/CarbonCommunity/Carbon/tree/develop/tools/build/win) file, and find the results in the root of Carbon, under `./Release`.
 
 ## :heart: Sponsor
 

@@ -1,60 +1,36 @@
-[submodule "Carbon.Core/Carbon.Components/Carbon.Compat"]
-	path = Carbon.Core/Carbon.Components/Carbon.Compat
-	url = https://github.com/CarbonCommunity/Carbon.Compat.git
-	branch = .
-[submodule "Carbon.Core/Carbon.Components/Carbon.Modules"]
-	path = Carbon.Core/Carbon.Components/Carbon.Modules
+[submodule "src/Carbon.Components/Carbon.Modules"]
+	path = src/Carbon.Components/Carbon.Modules
 	url = https://github.com/CarbonCommunity/Carbon.Modules.git
-	branch = .
-[submodule "Carbon.Core/Carbon.Components/Carbon.Preloader"]
-	path = Carbon.Core/Carbon.Components/Carbon.Preloader
+[submodule "src/Carbon.Components/Carbon.Preloader"]
+	path = src/Carbon.Components/Carbon.Preloader
 	url = https://github.com/CarbonCommunity/Carbon.Preloader.git
-	branch = .
-[submodule "Carbon.Core/Carbon.Components/Carbon.Bootstrap"]
-	path = Carbon.Core/Carbon.Components/Carbon.Bootstrap
-	url = https://github.com/CarbonCommunity/Carbon.Bootstrap.git
-	branch = .
-[submodule "Carbon.Core/Carbon.Components/Carbon.Common"]
-	path = Carbon.Core/Carbon.Components/Carbon.Common
-	url = https://github.com/CarbonCommunity/Carbon.Common.git
-	branch = .
-[submodule "Carbon.Core/Carbon.Components/Carbon.SDK"]
-	path = Carbon.Core/Carbon.Components/Carbon.SDK
-	url = https://github.com/CarbonCommunity/Carbon.SDK.git
-	branch = .
-[submodule "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base"]
-	path = Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base
-	url = https://github.com/CarbonCommunity/Carbon.Hooks.Base.git
-	branch = .
-[submodule "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide"]
-	path = Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide
-	url = https://github.com/CarbonCommunity/Carbon.Hooks.Oxide.git
-	branch = .
-[submodule "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community"]
-	path = Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community
-	url = https://github.com/CarbonCommunity/Carbon.Hooks.Community.git
-	branch = .
-[submodule "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal"]
-	path = Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal
-	url = https://github.com/CarbonCommunity/Carbon.Hooks.git
-	branch = main
-[submodule "Carbon.Core/Carbon.Native"]
-	path = Carbon.Core/Carbon.Native
-	url = https://github.com/CarbonCommunity/Carbon.Native.git
-	branch = .
-[submodule "Carbon.Core/Carbon.Components/Carbon.Test"]
-	path = Carbon.Core/Carbon.Components/Carbon.Test
-	url = https://github.com/CarbonCommunity/Carbon.Test.git
-	branch = .
-[submodule "Tools/DepotDownloader"]
-	path = Tools/DepotDownloader
-	url = https://github.com/CarbonCommunity/Carbon.Depot.git
-[submodule "Carbon.Core/Carbon.Components/Carbon.Startup"]
-	path = Carbon.Core/Carbon.Components/Carbon.Startup
+[submodule "src/Carbon.Components/Carbon.Startup"]
+	path = src/Carbon.Components/Carbon.Startup
 	url = https://github.com/CarbonCommunity/Carbon.Startup.git
-[submodule "Carbon.Core/Carbon.Profiler"]
-	path = Carbon.Core/Carbon.Profiler
+[submodule "src/Carbon.Components/Carbon.Test"]
+	path = src/Carbon.Components/Carbon.Test
+	url = https://github.com/CarbonCommunity/Carbon.Test.git
+[submodule "src/Carbon.Hooks/Carbon.Hooks.Base"]
+	path = src/Carbon.Hooks/Carbon.Hooks.Base
+	url = https://github.com/CarbonCommunity/Carbon.Hooks.Base.git
+[submodule "src/Carbon.Hooks/Carbon.Hooks.Community"]
+	path = src/Carbon.Hooks/Carbon.Hooks.Community
+	url = https://github.com/CarbonCommunity/Carbon.Hooks.Community.git
+[submodule "src/Carbon.Hooks/Carbon.Hooks.Oxide"]
+	path = src/Carbon.Hooks/Carbon.Hooks.Oxide
+	url = https://github.com/CarbonCommunity/Carbon.Hooks.Oxide.git
+[submodule "src/Carbon.Native"]
+	path = src/Carbon.Native
+	url = https://github.com/CarbonCommunity/Carbon.Native.git
+[submodule "src/Carbon.Profiler"]
+	path = src/Carbon.Profiler
 	url = https://github.com/CarbonCommunity/Carbon.Profiler.git
-[submodule "Carbon.Core/Carbon.UniTask"]
-	path = Carbon.Core/Carbon.UniTask
+[submodule "src/Carbon.UniTask"]
+	path = src/Carbon.UniTask
 	url = https://github.com/CarbonCommunity/Carbon.UniTask.git
+[submodule "src/Carbon.Hooks/Carbon.Hooks.Internal"]
+	path = src/Carbon.Hooks/Carbon.Hooks.Internal
+	url = https://github.com/CarbonCommunity/Carbon.Hooks.git
+[submodule "tools/depot"]
+	path = tools/depot
+	url = https://github.com/CarbonCommunity/Carbon.Depot.git
