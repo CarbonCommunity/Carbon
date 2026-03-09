@@ -8,7 +8,7 @@ Files.Create(Path(temp, ".gitbranch"), Git.RunOutput("branch", "--show-current")
 Files.Create(Path(temp, ".gitchs"), Git.RunOutput("rev-parse", "--short", "HEAD").Trim());
 Files.Create(Path(temp, ".gitchl"), Git.RunOutput("rev-parse", "--long", "HEAD").Replace("--long", null).Trim());
 Files.Create(Path(temp, ".gitauthor"), Git.RunOutput("show", "-s", "--format=\"%an\"", "HEAD").Trim());
-Files.Create(Path(temp, ".gitcomment"), Git.RunOutput("log -1", "--pretty=\"%B\"", "HEAD").Trim());
+Files.Create(Path(temp, ".gitcomment"), Git.RunOutput("log -1", "--pretty=\"%B\"", "HEAD").Replace("\"", "\"\"").Trim());
 Files.Create(Path(temp, ".gitdate"), Git.RunOutput("log -1", "--format=\"%ci\"", "HEAD").Trim());
 
 if(string.IsNullOrEmpty(localTag))

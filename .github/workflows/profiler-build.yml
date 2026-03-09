@@ -82,19 +82,19 @@ jobs:
       - name: Carbon Bootstrap CS
         shell: bash
         run: |
-          dotnet run --project src/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
+          dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/bootstrap.cs
 
       - name: Carbon Update CS
         shell: bash
         run: |
-          dotnet run --project src/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs
+          dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/update.cs
 
       - name: Profiler Build
         shell: bash
         env:
           VERSION: ${{ steps.step1.outputs.version }}
         run: |
-          dotnet run --project src/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs Debug${{ matrix.build_arg }} HARMONYMOD profiler_build
+          dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/profiler.cs Debug${{ matrix.build_arg }} HARMONYMOD profiler_build
 
       - name: Artifacts
         uses: actions/upload-artifact@v5
