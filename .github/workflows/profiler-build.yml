@@ -8,19 +8,33 @@ jobs:
   build:
     name: Profiler Build
     runs-on: ubuntu-latest
-    container: rust:bullseye
+    container: ${{ matrix.container }}
     continue-on-error: false
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: Linux
+            target: x86_64-unknown-linux-gnu
+            build_arg: Unix
+            container: "rust:bullseye"
+          - group: Windows
+            target: x86_64-pc-windows-gnu
+            build_arg: ""
+
     outputs:
-      date: ${{ steps.step1.outputs.date }}
-      clock: ${{ steps.step1.outputs.clock }}
-      tag: ${{ steps.step1.outputs.tag }}
-      ref: ${{ steps.step1.outputs.ref }}
       version: ${{ steps.step1.outputs.version }}
 
     steps:
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global fetch.parallel 0
+          git config --global submodule.fetchJobs 0
+
       - name: Git Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           ref: develop
           token: ${{ secrets.PAT_ALL_REPO }}
@@ -35,101 +49,93 @@ jobs:
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "version=2.8.$(curl -s -L 'https://api.carbonmod.gg/version?id=profiler&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
-          git config --global --add safe.directory /__w/Carbon/Carbon
+          git config --global --add safe.directory "*"
 
-      - name: Rust Setup
-        shell: bash
+      - name: Install MinGW (Windows Build Only)
+        if: matrix.group == 'Windows'
         run: |
-          apt update
-          apt install -y mingw-w64
+          sudo apt-get update
+          sudo apt-get install -y mingw-w64
 
-          rustup install stable
-          rustup default stable
-          rustup target add x86_64-pc-windows-gnu
-          rustup component add rust-std --target x86_64-pc-windows-gnu
-          rustup show
-          rustc --print sysroot
-
-          which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
-          x86_64-w64-mingw32-dlltool --version
-
-      - name: Setup .NET 8 SDK
-        uses: actions/setup-dotnet@v2
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
         with:
-          dotnet-version: 8.0.406
-      
-      - name: Setup .NET 9 SDK
-        uses: actions/setup-dotnet@v2
+          workspaces: src/Carbon.Native
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 9.0.203
+          dotnet-version: |
+            10.0.x
 
       - name: Carbon.Native Toolchain
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Carbon.Native Build (Linux)
-        uses: ClementTsang/cargo-action@v0.0.3
         with:
-          command: build
-          args: -r --target x86_64-unknown-linux-gnu
-          directory: Carbon.Core/Carbon.Native
+          targets: ${{ matrix.target }}
 
-      - name: Carbon.Native Build (Windows)
-        uses: ClementTsang/cargo-action@v0.0.3
-        with:
-          command: build
-          args: -r --target x86_64-pc-windows-gnu
-          directory: Carbon.Core/Carbon.Native
-
-      - name: Carbon Bootstrap
+      - name: Build Native
+        working-directory: src/Carbon.Native
         shell: bash
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs
+          cargo build -r --target ${{ matrix.target }}
+
+      - name: Carbon Bootstrap CS
+        shell: bash
+        run: |
+          dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/bootstrap.cs
+
+      - name: Carbon Update CS
+        shell: bash
+        run: |
+          dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/update.cs
 
       - name: Profiler Build
         shell: bash
+        env:
+          VERSION: ${{ steps.step1.outputs.version }}
         run: |
-          export VERSION=${{ steps.step1.outputs.version }}
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs Debug HARMONYMOD profiler_build
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs DebugUnix HARMONYMOD profiler_build
+          dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/profiler.cs Debug${{ matrix.build_arg }} HARMONYMOD profiler_build
 
       - name: Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: build
+          name: build-${{ matrix.group }}
           path: |
             Release/Carbon.Linux.Profiler.tar.gz
             Release/Carbon.Windows.Profiler.zip
 
   release-on-commit:
     name: Profiler Release
-    needs: ["build"]
+    needs: [ "build" ]
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
     steps:
+      - name: Git Clone
+        uses: actions/checkout@v6
+
       - name: 🗑️ Delete existing release tag
-        uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
-        with:
-          delete_release: true
-          tag_name: profiler_build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete profiler_build --cleanup-tag --yes || echo "Release/Tag not found, nothing to delete"
 
       - name: 💤 Sleep for 5 seconds
         run: sleep 5s
         shell: bash
 
       - name: ⬇️ Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
-          path: Release
+          path: release
+          merge-multiple: true
 
-      - name: Display structure of downloaded files
+      - name: Display structure
         run: ls -R
-        working-directory: Release
+        working-directory: release
 
-      - name: 🏷️ Update release tag
-        uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
+      - name: 🏷️ Create Release
+        uses: softprops/action-gh-release@v2
         with:
           draft: false
           prerelease: true
@@ -144,5 +150,5 @@ jobs:
             2. Unzip the archive to the HarmonyMods directory of your Rust Dedicated Server.
             3. Start the server and enjoy, or run `harmony.load Carbon.Profiler`.
           files: |
-            Release/build/Carbon.Windows.Profiler.zip     
-            Release/build/Carbon.Linux.Profiler.tar.gz
+            release/Carbon.Windows.Profiler.zip
+            release/Carbon.Linux.Profiler.tar.gz

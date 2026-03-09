@@ -1,9 +1,11 @@
 @echo off
 
-set SUPERROOT="%cd%\Tools\Build\win"
+setlocal
+set "SUPERROOT=%~dp0Tools\Build\win"
 
-cd %SUPERROOT%
+pushd "%SUPERROOT%"
 call bootstrap.bat
-
-cd %SUPERROOT%
 call build_debug_noarchive.bat
+popd
+
+endlocal

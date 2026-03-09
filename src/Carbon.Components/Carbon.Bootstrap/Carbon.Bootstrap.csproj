@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Carbon.Bootstrap</Product>
+		<OutputType>Library</OutputType>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	</PropertyGroup>
+
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
+
+	<ItemGroup>
+		<PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.7.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Carbon.Compat\Carbon.Compat.csproj" />
+		<ProjectReference Include="..\Carbon.Common\Carbon.Common.csproj" />
+	</ItemGroup>
+
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+		<Copy Condition="$(Configuration.Contains('Debug'))" SourceFiles="$(OutputPath)$(Product).xml" DestinationFolder="$(c_managed)" />
+	</Target>
+</Project>

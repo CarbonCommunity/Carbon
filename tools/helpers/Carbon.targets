@@ -1,0 +1,45 @@
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <NoStandardLibraries>true</NoStandardLibraries>
+        <NoStdLib>true</NoStdLib>
+        <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+        <NoCompilerStandardLib>true</NoCompilerStandardLib>
+        <RustServerRootPath>$(MSBuildThisFileDirectory)</RustServerRootPath>
+        <RustPatchedManagedPath>$(RustServerRootPath)carbon/developer/patched_assemblies</RustPatchedManagedPath>
+        <RustServerManagedPath>$(RustServerRootPath)RustDedicated_Data/Managed</RustServerManagedPath>
+        <CarbonManagedPath>$(RustServerRootPath)carbon/managed</CarbonManagedPath>
+        <CarbonManagedLibPath>$(CarbonManagedPath)/lib</CarbonManagedLibPath>
+    </PropertyGroup>
+    <ItemGroup>
+		<Reference Include="$(RustServerManagedPath)/*">
+          <Private>false</Private>
+        </Reference>
+        <Reference Include="$(RustPatchedManagedPath)/*">
+          <Private>false</Private>
+        </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.SDK.dll">
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.Test.dll">
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.Startup.dll">
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.UniTask.dll">
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.Profiler.dll">
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.Common.dll">
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.Polyfills.dll">
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.dll">
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+</Project>
