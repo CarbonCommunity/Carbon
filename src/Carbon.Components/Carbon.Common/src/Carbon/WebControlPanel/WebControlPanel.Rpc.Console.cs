@@ -45,8 +45,9 @@ public static partial class WebControlPanel
 			return;
 		}
 		using var connections = Pool.Get<PooledList<BridgeConnection>>();
-		foreach (var connection in server.Connections.Values)
+		for (int i = 0; i < server.ConnectionsList.Count; i++)
 		{
+			var connection = server.ConnectionsList[i];
 			if (connection.Reference is not Account account || !account.Permissions.console_view)
 			{
 				continue;
