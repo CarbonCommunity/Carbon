@@ -1816,7 +1816,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var rows = tab.Columns[column];
 		Tab.Option option = row == -1 ? rows.pinnedOption : rows[row];
 
-		if (args.Count() > 0 && args.ElementAt(0) == "tooltip")
+		if (args.Count() > 0 && ((string)args[0]) == "tooltip")
 		{
 			if (ap.Tooltip != option) ap.Tooltip = option;
 			else ap.Tooltip = null;
