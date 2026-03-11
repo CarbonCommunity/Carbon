@@ -14,7 +14,7 @@ public class Command : IDisposable
 	{
 		foreach (var prefix in Prefixes)
 		{
-			if (!prefix.Value.Equals(command, StringComparison.OrdinalIgnoreCase))
+			if (!prefix.Value.StartsWith(command, StringComparison.OrdinalIgnoreCase))
 			{
 				continue;
 			}
