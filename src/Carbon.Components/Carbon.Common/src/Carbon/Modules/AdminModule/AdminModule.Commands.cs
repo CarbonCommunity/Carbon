@@ -1,4 +1,6 @@
-﻿namespace Carbon.Modules;
+﻿using Carbon.Generator;
+
+namespace Carbon.Modules;
 
 public partial class AdminModule
 {
@@ -24,8 +26,19 @@ public partial class AdminModule
 	{
 		var player = args.Player();
 
-		if (CallColumnRow(player, args.GetInt(0), args.GetInt(1), args.Args.Skip(2).Any() ? args.Args.Skip(2) : Array.Empty<string>()))
+		var array = Array.Empty<object>();
+		if (args.Args.Length - 2 > 0)
+		{
+			array = HookCaller.Caller.AllocateBuffer(args.Args.Length - 2);
+		}
+
+		if (CallColumnRow(player, args.GetInt(0), args.GetInt(1), array))
 			Draw(player);
+
+		if (array.Length > 0)
+		{
+			HookCaller.Caller.ReturnBuffer(array);
+		}
 	}
 
 	[Conditional("!MINIMAL")]

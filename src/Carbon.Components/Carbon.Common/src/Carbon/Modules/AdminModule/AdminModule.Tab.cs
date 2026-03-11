@@ -150,7 +150,7 @@ public partial class AdminModule
 
 			return AddRow(column, option, hidden);
 		}
-		public Tab AddInput(int column, string name, Func<PlayerSession, string> placeholder, int characterLimit, bool readOnly, Action<PlayerSession, IEnumerable<string>> callback = null, string tooltip = null, bool hidden = false)
+		public Tab AddInput(int column, string name, Func<PlayerSession, string> placeholder, int characterLimit, bool readOnly, Action<PlayerSession, object[]> callback = null, string tooltip = null, bool hidden = false)
 		{
 			var option = Pool.Get<OptionInput>();
 			option.Name = name;
@@ -162,7 +162,7 @@ public partial class AdminModule
 
 			return AddRow(column, option, hidden);
 		}
-		public Tab AddInput(int column, string name, Func<PlayerSession, string> placeholder, Action<PlayerSession, IEnumerable<string>> callback = null, string tooltip = null, bool hidden = false)
+		public Tab AddInput(int column, string name, Func<PlayerSession, string> placeholder, Action<PlayerSession, object[]> callback = null, string tooltip = null, bool hidden = false)
 		{
 			return AddInput(column, name, placeholder, 0, callback == null, callback, tooltip, hidden);
 		}
@@ -244,7 +244,7 @@ public partial class AdminModule
 
 			return AddRow(column, option);
 		}
-		public Tab AddChart(int column, string name, TextAnchor nameAlign, int nameSize, IEnumerable<Components.Graphics.Chart.Layer> layers, IEnumerable<string> verticalLabels, IEnumerable<string> horizontalLabels, Components.Graphics.Chart.ChartSettings settings, bool responsive = true)
+		public Tab AddChart(int column, string name, TextAnchor nameAlign, int nameSize, Components.Graphics.Chart.Layer[] layers, string[] verticalLabels, IEnumerable<string> horizontalLabels, Components.Graphics.Chart.ChartSettings settings, bool responsive = true)
 		{
 			var chartIndex = Columns[column].Count;
 
@@ -384,10 +384,10 @@ public partial class AdminModule
 			public Func<PlayerSession, string> Placeholder;
 			public int CharacterLimit;
 			public bool ReadOnly;
-			public Action<PlayerSession, IEnumerable<string>> Callback;
+			public Action<PlayerSession, object[]> Callback;
 
 			public OptionInput() { }
-			public OptionInput(string name, Func<PlayerSession, string> placeholder, int characterLimit, bool readOnly, Action<PlayerSession, IEnumerable<string>> args, string tooltip = null, bool hidden = false) : base(name, tooltip, hidden)
+			public OptionInput(string name, Func<PlayerSession, string> placeholder, int characterLimit, bool readOnly, Action<PlayerSession, object[]> args, string tooltip = null, bool hidden = false) : base(name, tooltip, hidden)
 			{
 				Placeholder = ap => { try { return placeholder?.Invoke(ap); } catch (Exception ex) { Logger.Error($"Failed OptionInput.Placeholder callback ({name}): {ex.Message}"); return string.Empty; } };
 				Callback = (ap, args2) => { try { args?.Invoke(ap, args2); } catch (Exception ex) { Logger.Error($"Failed OptionInput.Callback callback ({name}): {ex.Message}"); } };
@@ -659,13 +659,13 @@ public partial class AdminModule
 
 			public bool IsEmpty()
 			{
-				return !Chart.Layers.Any();
+				return Chart.Layers.Length == 0;
 			}
 
 			public OptionChart() { }
 
-			public void Setup(string name, TextAnchor nameAlign, int nameSize, IEnumerable<Components.Graphics.Chart.Layer> layers,
-				IEnumerable<string> verticalLabels, IEnumerable<string> horizontalLabels,
+			public void Setup(string name, TextAnchor nameAlign, int nameSize, Components.Graphics.Chart.Layer[] layers,
+				string[] verticalLabels, IEnumerable<string> horizontalLabels,
 				Components.Graphics.Chart.ChartSettings settings, bool responsive)
 			{
 				Name = name;
@@ -680,7 +680,7 @@ public partial class AdminModule
 				rect.X = xOffset;
 				rect.Y = 100;
 
-				Chart = Components.Graphics.Chart.Create(name, width, 600, settings, rect, layers, verticalLabels.ToArray(),
+				Chart = Components.Graphics.Chart.Create(name, width, 600, settings, rect, layers, verticalLabels,
 					horizontalLabels.ToArray(), System.Drawing.Brushes.White, System.Drawing.Color.Transparent);
 
 				GetIdentifier();
