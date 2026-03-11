@@ -66,7 +66,7 @@ public partial class AdminModule
 				tab.AddInput(0, Singleton.GetPhrase("hostname", ap.Player.UserIDString),
 					ap => $"{ConVar.Server.hostname}", (ap2, args) =>
 					{
-						var str = args.ToString(" ");
+						var str = args.Select(x => x as string).ToString(" ");
 
 						tab.CreateDialog("Are you sure you want to update the host name?", ap =>
 						{
@@ -76,7 +76,7 @@ public partial class AdminModule
 				tab.AddInput(0, Singleton.GetPhrase("maxplayers", ap.Player.UserIDString),
 					ap => $"{ConVar.Server.maxplayers}", (ap2, args) =>
 					{
-						var val = args.ToString(" ").ToInt();
+						var val = ((string)args[0]).ToInt();
 
 						tab.CreateDialog("Are you sure you want to update the maximum players that can join the server?", ap =>
 						{
@@ -123,7 +123,7 @@ public partial class AdminModule
 						tab.AddInputButton(0, Singleton.GetPhrase("execservercmd", ap.Player.UserIDString), 0.2f,
 							new Tab.OptionInput(null, null, 0, false, (ap, args) =>
 							{
-								var command = args.ToString(" ");
+								var command = ((string)args[0]);
 
 								if (string.IsNullOrEmpty(command))
 								{
@@ -208,12 +208,12 @@ public partial class AdminModule
 						tab.AddInput(1, Singleton.GetPhrase("quickactions_name", ap.Player.UserIDString), ap => ap.GetStorage(tab, "carbontabbtnname", string.Empty),
 							(ap, args) =>
 							{
-								ap.SetStorage(tab, "carbontabbtnname", args.ToString(" "));
+								ap.SetStorage(tab, "carbontabbtnname", ((string)args[0]));
 							}, tooltip: Singleton.GetPhrase("quickactions_name_help", ap.Player.UserIDString));
 						tab.AddInput(1, Singleton.GetPhrase("quickactions_command", ap.Player.UserIDString), ap => ap.GetStorage(tab, "carbontabbtncmd", string.Empty),
 							(ap, args) =>
 							{
-								ap.SetStorage(tab, "carbontabbtncmd", args.ToString(" "));
+								ap.SetStorage(tab, "carbontabbtncmd", ((string)args[0]));
 							}, tooltip: Singleton.GetPhrase("quickactions_command_help", ap.Player.UserIDString));
 						tab.AddToggle(1, Singleton.GetPhrase("quickactions_user", ap.Player.UserIDString),
 							ap =>
@@ -298,10 +298,10 @@ public partial class AdminModule
 				}
 				tab.AddName(1, Singleton.GetPhrase("misc", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 				{
-					tab.AddInput(1, Singleton.GetPhrase("serverlang", ap.Player.UserIDString), ap => Config.Language, (ap, args) => { Config.Language = args.ToString(" "); Community.Runtime.SaveConfig(); });
+					tab.AddInput(1, Singleton.GetPhrase("serverlang", ap.Player.UserIDString), ap => Config.Language, (ap, args) => { Config.Language = ((string)args[0]); Community.Runtime.SaveConfig(); });
 					tab.AddInput(1, Singleton.GetPhrase("webreqip", ap.Player.UserIDString), ap => Config.WebRequestIp, (ap, args) =>
 					{
-						var ip = args.ToString(" ");
+						var ip = ((string)args[0]);
 
 						if (string.IsNullOrEmpty(ip) || (IPAddress.TryParse(ip, out _) && ip.Contains(".")))
 						{
@@ -332,9 +332,9 @@ public partial class AdminModule
 #endif
 
 				tab.AddName(1, Singleton.GetPhrase("permissions", ap.Player.UserIDString), TextAnchor.MiddleLeft);
-				tab.AddInput(1, Singleton.GetPhrase("playerdefgroup", ap.Player.UserIDString), ap => Config.Permissions.PlayerDefaultGroup, (ap, args) => { Config.Permissions.PlayerDefaultGroup = args.ToString(string.Empty); if (string.IsNullOrEmpty(Config.Permissions.PlayerDefaultGroup)) Config.Permissions.PlayerDefaultGroup = "default"; Community.Runtime.SaveConfig(); });
-				tab.AddInput(1, Singleton.GetPhrase("admindefgroup", ap.Player.UserIDString), ap => Config.Permissions.AdminDefaultGroup, (ap, args) => { Config.Permissions.AdminDefaultGroup = args.ToString(string.Empty); if (string.IsNullOrEmpty(Config.Permissions.AdminDefaultGroup)) Config.Permissions.AdminDefaultGroup = "admin"; Community.Runtime.SaveConfig(); });
-				tab.AddInput(1, Singleton.GetPhrase("moderatordefgroup", ap.Player.UserIDString), ap => Config.Permissions.ModeratorDefaultGroup, (ap, args) => { Config.Permissions.ModeratorDefaultGroup = args.ToString(string.Empty); if (string.IsNullOrEmpty(Config.Permissions.ModeratorDefaultGroup)) Config.Permissions.ModeratorDefaultGroup = "moderator"; Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, Singleton.GetPhrase("playerdefgroup", ap.Player.UserIDString), ap => Config.Permissions.PlayerDefaultGroup, (ap, args) => { Config.Permissions.PlayerDefaultGroup = ((string)args[0]); if (string.IsNullOrEmpty(Config.Permissions.PlayerDefaultGroup)) Config.Permissions.PlayerDefaultGroup = "default"; Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, Singleton.GetPhrase("admindefgroup", ap.Player.UserIDString), ap => Config.Permissions.AdminDefaultGroup, (ap, args) => { Config.Permissions.AdminDefaultGroup = ((string)args[0]); if (string.IsNullOrEmpty(Config.Permissions.AdminDefaultGroup)) Config.Permissions.AdminDefaultGroup = "admin"; Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, Singleton.GetPhrase("moderatordefgroup", ap.Player.UserIDString), ap => Config.Permissions.ModeratorDefaultGroup, (ap, args) => { Config.Permissions.ModeratorDefaultGroup = ((string)args[0]); if (string.IsNullOrEmpty(Config.Permissions.ModeratorDefaultGroup)) Config.Permissions.ModeratorDefaultGroup = "moderator"; Community.Runtime.SaveConfig(); });
 
 				tab.AddName(1, Singleton.GetPhrase("conditionals", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 
@@ -347,7 +347,7 @@ public partial class AdminModule
 						new Tab.OptionInput(null, ap => symbol, 0, false,
 							(ap, args) =>
 							{
-								Config.Compiler.ConditionalCompilationSymbols[index] = args.ToString(string.Empty).ToUpper().Trim();
+								Config.Compiler.ConditionalCompilationSymbols[index] = ((string)args[0]).ToUpper().Trim();
 								Refresh(tab, ap);
 								Community.Runtime.SaveConfig();
 							}),
@@ -363,7 +363,7 @@ public partial class AdminModule
 					new Tab.OptionInput(null, ap => ap.GetStorage<string>(tab, "conditional"), 0, false,
 						(ap, args) =>
 						{
-							ap.SetStorage(tab, "conditional", args.ToString(string.Empty).ToUpper().Trim());
+							ap.SetStorage(tab, "conditional", ((string)args[0]).ToUpper().Trim());
 						}),
 					new Tab.OptionButton("+", ap =>
 					{
@@ -378,7 +378,7 @@ public partial class AdminModule
 					}, ap => Tab.OptionButton.Types.Selected));
 
 				tab.AddName(1, Singleton.GetPhrase("debugging", ap.Player.UserIDString), TextAnchor.MiddleLeft);
-				tab.AddInput(1, Singleton.GetPhrase("scriptdebugorigin", ap.Player.UserIDString), ap => Config.Debugging.ScriptDebuggingOrigin, (ap, args) => { Config.Debugging.ScriptDebuggingOrigin = args.ToString(string.Empty); Community.Runtime.SaveConfig(); }, Singleton.GetPhrase("scriptdebugorigin_help", ap.Player.UserIDString));
+				tab.AddInput(1, Singleton.GetPhrase("scriptdebugorigin", ap.Player.UserIDString), ap => Config.Debugging.ScriptDebuggingOrigin, (ap, args) => { Config.Debugging.ScriptDebuggingOrigin = ((string)args[0]); Community.Runtime.SaveConfig(); }, Singleton.GetPhrase("scriptdebugorigin_help", ap.Player.UserIDString));
 			}
 		}
 	}

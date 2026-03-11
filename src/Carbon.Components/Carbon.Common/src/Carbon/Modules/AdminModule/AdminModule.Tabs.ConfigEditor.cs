@@ -155,17 +155,17 @@ public partial class AdminModule
 									Community.Runtime.Core.NextFrame(() => Singleton.SetTab(ap.Player, Make(Entry.ToString(), OnCancel, OnSave, OnSaveAndReload), false));
 								}, tooltip: $"The color value of the '{name.Trim()}' property.");
 							}
-							else AddInput(column, name, ap => usableToken.ToObject<string>(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ")); });
+							else AddInput(column, name, ap => usableToken.ToObject<string>(), (ap, args) => { usableToken.Replace(usableToken = args.Select(x => x as string).ToString(" ")); });
 							Array.Clear(valueSplit, 0, valueSplit.Length);
 							valueSplit = null;
 							break;
 
 						case JTokenType.Integer:
-							AddInput(column, name, ap => usableToken?.ToObject<long>().ToString(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToLong()); }, tooltip: $"The integer/long value of the '{name.Trim()}' property.");
+							AddInput(column, name, ap => usableToken?.ToObject<long>().ToString(), (ap, args) => { usableToken.Replace(usableToken = ((string)args[0]).ToLong()); }, tooltip: $"The integer/long value of the '{name.Trim()}' property.");
 							break;
 
 						case JTokenType.Float:
-							AddInput(column, name, ap => usableToken?.ToObject<float>().ToString(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToFloat()); }, tooltip: $"The float value of the '{name.Trim()}' property.");
+							AddInput(column, name, ap => usableToken?.ToObject<float>().ToString(), (ap, args) => { usableToken.Replace(usableToken = ((string)args[0]).ToFloat()); }, tooltip: $"The float value of the '{name.Trim()}' property.");
 							break;
 
 						case JTokenType.Boolean:
@@ -292,7 +292,7 @@ public partial class AdminModule
 				}
 				else if (array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
 
-				AddInput(subColumn, "Property Name", ap => ap.GetStorage(this, "jsonprop", "New Property"), (ap, args) => { ap.SetStorage(this, "jsonprop", newPropertyName = args.ToString(" ")); });
+				AddInput(subColumn, "Property Name", ap => ap.GetStorage(this, "jsonprop", "New Property"), (ap, args) => { ap.SetStorage(this, "jsonprop", newPropertyName = args.Select(x => x as string).ToString(" ")); });
 				AddButtonArray(subColumn,
 					new OptionButton("Add Label", ap => { if (sample == null) array.Add(sample = JObject.Parse("{ }")); if (!(sample as IDictionary<string, JToken>).ContainsKey(newPropertyName)) { sample.Add(newPropertyName, string.Empty); _drawArray(name, array, level, column, ap); } }),
 					new OptionButton("Add Toggle", ap => { if (sample == null) array.Add(sample = JObject.Parse("{ }")); if (!(sample as IDictionary<string, JToken>).ContainsKey(newPropertyName)) { sample.Add(newPropertyName, false); _drawArray(name, array, level, column, ap); } }),
