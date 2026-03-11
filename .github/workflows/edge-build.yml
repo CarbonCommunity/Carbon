@@ -1,5 +1,7 @@
 name: Edge Build
-concurrency: build-edge
+concurrency:
+  group: build-edge
+  cancel-in-progress: true
 
 on:
   workflow_dispatch:
