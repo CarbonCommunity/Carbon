@@ -15,7 +15,7 @@ public partial class CorePlugin
 
 		try
 		{
-			var fullString = message[1..];
+			var fullString = message[prefix.Value.Length..];
 
 			if (string.IsNullOrEmpty(fullString))
 			{
