@@ -15,16 +15,106 @@ public partial class CorePlugin
 
 		try
 		{
-			var fullString = message[prefix.Value.Length..];
-
-			if (string.IsNullOrEmpty(fullString))
+			var messageWithoutPrefixSpan = message.AsSpan()[prefix.Value.Length..];
+			if (messageWithoutPrefixSpan.IsEmpty)
 			{
 				return Cache.False;
 			}
 
-			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
-			var command = split.Length > 0 ? split[0].Trim() : string.Empty;
-			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString[(command.Length + 1)..]) : _emptyStringArray;
+			var command = string.Empty;
+			var args = _emptyStringArray;
+
+			// message = /cp      arg arg aarrrg arg   arg
+			// command = cp
+			// args    = Facepunch.Extend.StringExtensions.SplitQuotesStrings("arg arg aarrrg arg   arg")
+
+			// message = /cp
+			// command = cp
+			// args    = []
+
+			// message = /
+			// return: false
+
+			{
+				var cmdSpacings = ConsoleArgEx.CommandSpacing;
+				var foundOtherChar = false;
+				var leftSpacingIdx = -1;
+				var rightSpacingIdx = -1;
+
+				for (var i = 0; i < messageWithoutPrefixSpan.Length; i++)
+				{
+					var ch = messageWithoutPrefixSpan[i];
+
+					var isChCommandSpacing = false;
+
+					for (var j = 0; j < cmdSpacings.Length; j++)
+					{
+						var cmdSpacing = cmdSpacings[j];
+						if (ch == cmdSpacing)
+						{
+							isChCommandSpacing = true;
+							break;
+						}
+					}
+
+					if (isChCommandSpacing)
+					{
+						if (foundOtherChar)
+						{
+							rightSpacingIdx = i;
+							break;
+						}
+						else
+						{
+							leftSpacingIdx = i;
+						}
+					}
+					else if (!foundOtherChar)
+					{
+						foundOtherChar = true;
+					}
+				}
+
+				if (!foundOtherChar)
+				{
+					return Cache.False;
+				}
+
+				var commandStart = leftSpacingIdx + 1;
+				var commandEnd = rightSpacingIdx == -1 ? messageWithoutPrefixSpan.Length : rightSpacingIdx;
+				command = messageWithoutPrefixSpan[commandStart..commandEnd].ToString();
+
+				if (rightSpacingIdx != -1)
+				{
+					var argsStart = -1;
+
+					for (var i = commandEnd; i < messageWithoutPrefixSpan.Length; i++)
+					{
+						var ch = messageWithoutPrefixSpan[i];
+						var isChCommandSpacing = false;
+
+						for (var j = 0; j < cmdSpacings.Length; j++)
+						{
+							if (ch == cmdSpacings[j])
+							{
+								isChCommandSpacing = true;
+								break;
+							}
+						}
+
+						if (!isChCommandSpacing)
+						{
+							argsStart = i;
+							break;
+						}
+					}
+
+					if (argsStart != -1)
+					{
+						args = Facepunch.Extend.StringExtensions.SplitQuotesStrings(messageWithoutPrefixSpan[argsStart..].ToString());
+					}
+				}
+			}
 
 			// OnUserCommand
 			if (HookCaller.CallStaticHook(2198880635, player, command, args) != null)
