@@ -1874,7 +1874,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								break;
 
 							default:
-								switch (args.ElementAt(1))
+								switch (args[1])
 								{
 									case "--":
 										page.CurrentPage = 0;
@@ -1974,11 +1974,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				var layerIndex = ((string)args[1]).ToInt();
 
-				switch (args.ElementAt(0))
+				switch (args[0])
 				{
 					case "layer":
 					{
-						var oldIdentifier = args.ElementAt(2);
+						var oldIdentifier = args[2];
 						var newIdentifier = string.Empty;
 
 						using var cui = new CUI(Handler);
