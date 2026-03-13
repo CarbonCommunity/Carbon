@@ -35,6 +35,8 @@ public static partial class WebControlPanel
 			serverInfo.ip = config.BridgeServer.Ip;
 			serverInfo.messages = serverMessages;
 			serverInfo.context = nameof(WebControlPanel);
+			serverInfo.maxConnections = config.BridgeServer.MaxConnections;
+			serverInfo.maxConnectionsPerIp = config.BridgeServer.MaxConnectionsPerIp;
 			(server ??= new Server()).Start(serverInfo);
 			if (Community.IsServerInitialized && !MAPINFO_CACHE.IsValid())
 			{
