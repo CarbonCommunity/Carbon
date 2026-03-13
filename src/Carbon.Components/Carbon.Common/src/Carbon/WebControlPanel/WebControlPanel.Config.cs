@@ -30,7 +30,12 @@ public static partial class WebControlPanel
 		server?.Shutdown();
 		if (config.ShouldStartServer())
 		{
-			(server ??= new Server()).Start(config.BridgeServer.Port, config.BridgeServer.Ip, serverMessages, context: nameof(WebControlPanel));
+			BridgeServerInfo serverInfo = default;
+			serverInfo.port = config.BridgeServer.Port;
+			serverInfo.ip = config.BridgeServer.Ip;
+			serverInfo.messages = serverMessages;
+			serverInfo.context = nameof(WebControlPanel);
+			(server ??= new Server()).Start(serverInfo);
 			if (Community.IsServerInitialized && !MAPINFO_CACHE.IsValid())
 			{
 				MAPINFO_CACHE = MapInfo.Get(config.Panel.MapImageScale);

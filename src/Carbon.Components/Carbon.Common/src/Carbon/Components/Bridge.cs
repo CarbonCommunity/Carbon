@@ -88,6 +88,17 @@ public class DefaultBridgeMessages : BridgeMessages
 	}
 }
 
+public struct BridgeServerInfo
+{
+	public int port;
+	public string ip;
+	public string password;
+	public string context;
+	public BridgeMessages messages;
+	public int maxConnections;
+	public int maxConnectionsPerIp;
+}
+
 /// <summary>
 /// At its core, it uses Fleck (AKA Facepunch RCon's listener). It's entirely independent to Rust's RCon system, it just uses the core components at base (connection and memory management, etc.).
 /// </summary>
@@ -103,31 +114,27 @@ public abstract class BridgeServer
 	private string _context;
 	private bool _isConnected;
 
-	public void Start(int port, string ip = null, BridgeMessages messages = null, string context = "Generic")
+	public void Start(BridgeServerInfo serverInfo)
 	{
-		Start(port, null, ip, messages, context);
-	}
-	public void Start(int port, string password, string ip = null, BridgeMessages messages = null, string context = "Generic")
-	{
-		_context = context;
-		if (!OnPasswordValidate(password))
+		_context = serverInfo.context;
+		if (!OnPasswordValidate(serverInfo.password))
 		{
 			return;
 		}
 
-		SetMessages(messages);
+		SetMessages(serverInfo.messages);
 
 		var listener = Listener = new Listener();
-		if (!string.IsNullOrEmpty(ip))
+		if (!string.IsNullOrEmpty(serverInfo.ip))
 		{
-			listener.Address = ip;
+			listener.Address = serverInfo.ip;
 		}
 
-		listener.Password = Vault.ApplyReplacement(password) ?? password;
-		listener.Port = port;
+		listener.Password = Vault.ApplyReplacement(serverInfo.password) ?? serverInfo.password;
+		listener.Port = serverInfo.port;
 		try
 		{
-			listener.Start();
+			listener.Start(serverInfo.maxConnections, serverInfo.maxConnectionsPerIp);
 			listener.server._config = socket =>
 			{
 				lock (listener.clients)
@@ -187,13 +194,13 @@ public abstract class BridgeServer
 					}
 				}
 			};
-			Logger.Log($"Started Carbon.Bridge on port {port} ({_context})");
+			Logger.Log($"Started Carbon.Bridge on port {serverInfo.port} ({_context})");
 			_isConnected = true;
 			OnServerConnected();
 		}
 		catch(Exception ex)
 		{
-			Logger.Error($"Failed to start Carbon.Bridge on port {port} ({_context})", ex);
+			Logger.Error($"Failed to start Carbon.Bridge on port {serverInfo.port} ({_context})", ex);
 			Shutdown();
 		}
 	}
