@@ -2061,7 +2061,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}
 					case "layershadow":
 					{
-						var oldIdentifier = args.ElementAt(2);
+						var oldIdentifier = args[2];
 						var newIdentifier = string.Empty;
 
 						using var cui = new CUI(Handler);
@@ -2092,14 +2092,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 						else
 						{
-							var layer = chart.Chart.Layers.ElementAt(layerIndex);
+							var layer = chart.Chart.Layers[layerIndex];
 
-							layer.LayerSettings.Shadows++;
-
-							if (layer.LayerSettings.Shadows > 4)
-							{
-								layer.LayerSettings.Shadows = 0;
-							}
+							layer.LayerSettings.Shadows = layer.LayerSettings.Shadows == 1 ? 0 : 1;
 
 							newIdentifier = chart.GetIdentifier(reset: true);
 							pColor = layer.LayerSettings.Color;
