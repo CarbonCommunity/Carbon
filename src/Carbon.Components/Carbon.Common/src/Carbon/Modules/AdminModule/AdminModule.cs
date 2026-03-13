@@ -1816,7 +1816,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var rows = tab.Columns[column];
 		Tab.Option option = row == -1 ? rows.pinnedOption : rows[row];
 
-		if (args.Count() > 0 && ((string)args[0]) == "tooltip")
+		if (args.Length > 0 && ((string)args[0]) == "tooltip")
 		{
 			if (ap.Tooltip != option) ap.Tooltip = option;
 			else ap.Tooltip = null;
@@ -1874,7 +1874,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								break;
 
 							default:
-								switch (args.ElementAt(1))
+								switch (args[1])
 								{
 									case "--":
 										page.CurrentPage = 0;
@@ -1941,8 +1941,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								if(args.Length - 1 > 0)
 								{
 									array = HookCaller.Caller.AllocateBuffer(args.Length - 1);
+									for (int i = 1; i < args.Length; i++)
+									{
+										array[i - 1] = args[i];
+									}
 								}
-								var enumerable = args.Skip(1);
 								inputButton.Input.Callback?.Invoke(ap, array);
 								if(array.Length > 0)
 								{
@@ -1971,11 +1974,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				var layerIndex = ((string)args[1]).ToInt();
 
-				switch (args.ElementAt(0))
+				switch (args[0])
 				{
 					case "layer":
 					{
-						var oldIdentifier = args.ElementAt(2);
+						var oldIdentifier = args[2];
 						var newIdentifier = string.Empty;
 
 						using var cui = new CUI(Handler);
@@ -2058,7 +2061,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}
 					case "layershadow":
 					{
-						var oldIdentifier = args.ElementAt(2);
+						var oldIdentifier = args[2];
 						var newIdentifier = string.Empty;
 
 						using var cui = new CUI(Handler);
@@ -2089,14 +2092,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 						else
 						{
-							var layer = chart.Chart.Layers.ElementAt(layerIndex);
+							var layer = chart.Chart.Layers[layerIndex];
 
-							layer.LayerSettings.Shadows++;
-
-							if (layer.LayerSettings.Shadows > 4)
-							{
-								layer.LayerSettings.Shadows = 0;
-							}
+							layer.LayerSettings.Shadows = layer.LayerSettings.Shadows == 1 ? 0 : 1;
 
 							newIdentifier = chart.GetIdentifier(reset: true);
 							pColor = layer.LayerSettings.Color;
