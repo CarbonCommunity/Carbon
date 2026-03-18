@@ -245,12 +245,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		PluginsTab.ServerOwner.Save();
 	}
 
-	public override void Reload()
-	{
-		base.Reload();
-		OnEnabled(true);
-	}
-
 	public override Dictionary<string, Dictionary<string, string>> GetDefaultPhrases()
 	{
 		return new Dictionary<string, Dictionary<string, string>>
