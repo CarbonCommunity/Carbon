@@ -47,7 +47,7 @@ on:
       release:
         description: 'Release Hooks'
         required: true
-        default: 'false'
+        default: 'true'
         type: boolean
 
       oxide_hooks_override:
