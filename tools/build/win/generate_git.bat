@@ -1,7 +1,4 @@
-@echo OFF
+@echo off
 
-set ROOT=%cd%
-cd ../../..
-
-dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/git_feedback.cs
-cd %ROOT%
+call "%~dp0_runner.bat" tools/build/runners/git_feedback.cs %*
+exit /b %ERRORLEVEL%
