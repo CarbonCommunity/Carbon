@@ -358,7 +358,7 @@ jobs:
           echo "Binary Verification Passed: Statically linked and exports $(echo "$SYMBOLS" | wc -l) functions."
 
       - name: Pre-build Carbon Runner
-        run: dotnet build src/Carbon.Tools/Carbon.Runner -c Release -o ./runner-bin
+        run: dotnet build src/Carbon.Tools/Carbon.Runner -c Debug -o ./runner-bin
 
       - name: Carbon Bootstrap CS
         run: dotnet ./runner-bin/Carbon.Runner.dll tools/build/runners/bootstrap.cs
