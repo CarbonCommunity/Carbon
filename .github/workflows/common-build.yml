@@ -410,7 +410,7 @@ jobs:
           git push origin "$VERSION$SUFFIX"
 
       - name: Artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: build-${{ matrix.group }}
           path: |
