@@ -133,6 +133,7 @@ public partial class Community
 			ForceEnsurePublicizedAssembly("Facepunch.Ping.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Facepunch.Unity.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Facepunch.Rcon.dll", ref needsSave);
+			ForceEnsurePublicizedAssembly("Fleck.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Rust.Localization.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Rust.Clans.Local.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Rust.FileSystem.dll", ref needsSave);
