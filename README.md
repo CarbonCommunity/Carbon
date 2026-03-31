@@ -87,7 +87,7 @@ If you would like to [sponsor][patreon] the project the best way is to use [Patr
 
 We would like to thank everyone who sponsors us.
 
-[hooks]: https://docs.carbonmod.gg/docs/core/hooks
+[hooks]: https://carbonmod.gg/references/hooks/
 [discord]: https://discord.gg/carbonmod
 [documentation]: https://docs.carbonmod.gg/
 [patreon]: https://patreon.com/CarbonMod
