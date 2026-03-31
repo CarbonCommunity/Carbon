@@ -29,7 +29,7 @@ We also provide a [quick start script][quick-start] to get your server running i
 ## :blue_book: Documentation
 For more in-depth Carbon documentation, from builds and deployment, check [here][documentation].
 Find all currently available hooks [here][hooks].
-If you are a developer take a look at our [Wiki page][wiki].
+If you are a developer take a look at our [Developer Documentation][developer-doc].
 
 ## :question: Support
 Join our official [Discord server][discord] for support, more frequent development info, discussions and future plans.
@@ -93,3 +93,4 @@ We would like to thank everyone who sponsors us.
 [patreon]: https://patreon.com/CarbonMod
 [production]: https://github.com/CarbonCommunity/Carbon.Core/releases/tag/production_build
 [quick-start]: https://github.com/CarbonCommunity/Carbon.QuickStart
+[developer-doc]: https://carbonmod.gg/devs/creating-your-project
