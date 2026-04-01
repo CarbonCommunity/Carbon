@@ -58,7 +58,7 @@ public partial class CorePlugin
 #if MINIMAL
 					$" Minimal" +
 #endif
-				$" {analytics.Version}/{analytics.Platform}/{analytics.Protocol} [{Build.Git.Branch}] [{Build.Git.Tag}] on Rust {BuildInfo.Current.Build.Number}/{Rust.Protocol.printable} ({BuildInfo.Current.BuildDate}) [{BuildInfo.Current.Scm.ChangeId}]");
+				$" {analytics.Version}/{analytics.Platform}/{analytics.Protocol} [{Build.Git.Branch}] [{Build.Git.Tag}] on Rust {BuildInfo.Current.Build.Number}/{Rust.Protocol.printable} ({BuildInfo.Current.BuildDate}) {BuildInfo.Current.Scm.ChangeId}");
 		}
 		else
 		{
@@ -66,7 +66,7 @@ public partial class CorePlugin
 #if MINIMAL
 					$" Minimal" +
 #endif
-				$" <color=#d14419>{analytics.Version}/{analytics.Platform}/{analytics.Protocol}</color> [{Build.Git.Branch}] [{Build.Git.Tag}] on Rust <color=#d14419>{BuildInfo.Current.Build.Number}/{Rust.Protocol.printable}</color> ({BuildInfo.Current.BuildDate}) [{BuildInfo.Current.Scm.ChangeId}].");
+				$" <color=#d14419>{analytics.Version}/{analytics.Platform}/{analytics.Protocol}</color> [{Build.Git.Branch}] [{Build.Git.Tag}] on Rust <color=#d14419>{BuildInfo.Current.Build.Number}/{Rust.Protocol.printable}</color> ({BuildInfo.Current.BuildDate}) {BuildInfo.Current.Scm.ChangeId}.");
 
 		}
 	}

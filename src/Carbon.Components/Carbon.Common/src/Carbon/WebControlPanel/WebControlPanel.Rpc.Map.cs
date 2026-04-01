@@ -88,7 +88,7 @@ public static partial class WebControlPanel
 			info.imageWidth = width;
 			info.imageHeight = height;
 			info.worldSize = World.Size;
-			Logger.Warn($"Processed WebControlPanel map ({width}x{height} at scale {scale:0.0})");
+			Logger.Warn($"Processed WebControlPanel map");
 			return info;
 		}
 

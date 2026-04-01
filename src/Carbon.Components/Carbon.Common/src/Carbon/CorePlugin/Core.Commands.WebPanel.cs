@@ -40,9 +40,10 @@ public partial class CorePlugin
 		}
 
 		using var table = new StringTable("id", "address", "account");
-		foreach (var connection in WebControlPanel.server.Connections)
+		for(int i = 0; i < WebControlPanel.server.ConnectionsList.Count; i++)
 		{
-			table.AddRow($"{connection.Key}", $"{connection.Value.Socket.ConnectionInfo.ClientIpAddress}:{connection.Value.Socket.ConnectionInfo.ClientPort}", connection.Value.Reference is not WebControlPanel.Account account ? "N/A" : account.Name);
+			var connection = WebControlPanel.server.Connections[i];
+			table.AddRow($"{connection.Id}", $"{connection.Socket.ConnectionInfo.ClientIpAddress}:{connection.Socket.ConnectionInfo.ClientPort}", connection.Reference is not WebControlPanel.Account account ? "N/A" : account.Name);
 		}
 		arg.ReplyWith(table.ToStringMinimal());
 	}

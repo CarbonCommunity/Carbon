@@ -88,6 +88,17 @@ public class DefaultBridgeMessages : BridgeMessages
 	}
 }
 
+public struct BridgeServerInfo
+{
+	public int port;
+	public string ip;
+	public string password;
+	public string context;
+	public BridgeMessages messages;
+	public int maxConnections;
+	public int maxConnectionsPerIp;
+}
+
 /// <summary>
 /// At its core, it uses Fleck (AKA Facepunch RCon's listener). It's entirely independent to Rust's RCon system, it just uses the core components at base (connection and memory management, etc.).
 /// </summary>
@@ -98,35 +109,32 @@ public abstract class BridgeServer
 	public Action<BridgeConnection> OnClosedConnection;
 	public BridgeMessages Messages;
 	public readonly Dictionary<int, BridgeConnection> Connections = [];
+	public readonly ListHashSet<BridgeConnection> ConnectionsList = [];
 
 	private string _context;
 	private bool _isConnected;
 
-	public void Start(int port, string ip = null, BridgeMessages messages = null, string context = "Generic")
+	public void Start(BridgeServerInfo serverInfo)
 	{
-		Start(port, null, ip, messages, context);
-	}
-	public void Start(int port, string password, string ip = null, BridgeMessages messages = null, string context = "Generic")
-	{
-		_context = context;
-		if (!OnPasswordValidate(password))
+		_context = serverInfo.context;
+		if (!OnPasswordValidate(serverInfo.password))
 		{
 			return;
 		}
 
-		SetMessages(messages);
+		SetMessages(serverInfo.messages);
 
 		var listener = Listener = new Listener();
-		if (!string.IsNullOrEmpty(ip))
+		if (!string.IsNullOrEmpty(serverInfo.ip))
 		{
-			listener.Address = ip;
+			listener.Address = serverInfo.ip;
 		}
 
-		listener.Password = Vault.ApplyReplacement(password) ?? password;
-		listener.Port = port;
+		listener.Password = Vault.ApplyReplacement(serverInfo.password) ?? serverInfo.password;
+		listener.Port = serverInfo.port;
 		try
 		{
-			listener.Start();
+			listener.Start(serverInfo.maxConnections, serverInfo.maxConnectionsPerIp);
 			listener.server._config = socket =>
 			{
 				lock (listener.clients)
@@ -138,11 +146,12 @@ public abstract class BridgeServer
 					else
 					{
 						var connectionId = Interlocked.Increment(ref listener.nextClientId);
-						var bridgeConnection = Pool.Get<BridgeConnection>().Init(socket, Messages);
+						var bridgeConnection = Pool.Get<BridgeConnection>().Init(connectionId, socket, Messages);
 						socket.OnOpen = () =>
 						{
 							listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
 							Connections[connectionId] = bridgeConnection;
+							ConnectionsList.Add(bridgeConnection);
 							OnNewConnection?.Invoke(bridgeConnection);
 							OnBridgeConnection(bridgeConnection);
 						};
@@ -155,6 +164,7 @@ public abstract class BridgeServer
 								OnBridgeDisconnection(bridgeConnection);
 								Pool.Free(ref bridgeConnection);
 								Connections.Remove(connectionId);
+								ConnectionsList.Remove(bridgeConnection);
 							}
 
 							OnClosedConnection?.Invoke(bridgeConnection);
@@ -184,25 +194,29 @@ public abstract class BridgeServer
 					}
 				}
 			};
-			Logger.Log($"Started Carbon.Bridge on port {port} ({_context})");
+			Logger.Log($"Started Carbon.Bridge on port {serverInfo.port} ({_context})");
 			_isConnected = true;
 			OnServerConnected();
 		}
 		catch(Exception ex)
 		{
-			Logger.Error($"Failed to start Carbon.Bridge on port {port} ({_context})", ex);
+			Logger.Error($"Failed to start Carbon.Bridge on port {serverInfo.port} ({_context})", ex);
 			Shutdown();
 		}
 	}
 	public void Shutdown()
 	{
 		using var connections = Pool.Get<PooledList<BridgeConnection>>();
-		connections.AddRange(Connections.Values);
+		for (int i = 0; i < ConnectionsList.Count; i++)
+		{
+			connections.Add(ConnectionsList[i]);
+		}
 		for (int i = 0; i < connections.Count; i++)
 		{
 			connections[i]?.Socket?.Close();
 		}
 		Connections.Clear();
+		ConnectionsList.Clear();
 		if (Listener != null)
 		{
 			Logger.Log($"Stopped Carbon.Bridge on port {Listener.Port} ({_context})");
@@ -236,9 +250,9 @@ public abstract class BridgeServer
 	public void SetMessages(BridgeMessages messages)
 	{
 		Messages = messages ?? new DefaultBridgeMessages();
-		foreach(var connection in Connections.Values)
+		for(int i = 0; i < ConnectionsList.Count; i++)
 		{
-			connection.Messages = Messages;
+			ConnectionsList[i].Messages = Messages;
 		}
 	}
 }
@@ -345,12 +359,14 @@ public sealed class BridgeClient
 /// </summary>
 public sealed class BridgeConnection : Pool.IPooled
 {
+	public int Id;
 	public IWebSocketConnection Socket;
 	public BridgeMessages Messages;
 	public object Reference;
 
-	public BridgeConnection Init(IWebSocketConnection connection, BridgeMessages messages)
+	public BridgeConnection Init(int id, IWebSocketConnection connection, BridgeMessages messages)
 	{
+		this.Id = id;
 		this.Socket = connection;
 		this.Messages = messages;
 		return this;
@@ -367,6 +383,7 @@ public sealed class BridgeConnection : Pool.IPooled
 
 	public void EnterPool()
 	{
+		Id = 0;
 		Messages = null;
 		Socket = null;
 	}

@@ -43,7 +43,7 @@ public partial class AdminModule
 
 			tab.AddInput(0, "Search", ap => searchInput, (ap, args) =>
 			{
-				ap.SetStorage(tab, "search", args.ToString(" "));
+				ap.SetStorage(tab, "search", args.Select(x => x as string).ToString(" "));
 				Draw(tab, ap);
 			});
 
