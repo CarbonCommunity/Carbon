@@ -331,7 +331,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	public bool HasAccess(BasePlayer player, string access)
 	{
-		if ((player != null && player.IsConnected && player.Connection.authLevel == 2))
+		if (player.IsValid() && player.IsConnected && player.Connection.authLevel >= 2)
 		{
 			return true;
 		}
