@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using API.Logger;
-using Cysharp.Threading.Tasks;
 using ILogger = API.Logger.ILogger;
 
 namespace Carbon;
@@ -20,10 +19,6 @@ public sealed class Logger : ILogger
 
 	public static void InitTaskExceptions()
 	{
-		UniTaskScheduler.UnobservedTaskException += ex =>
-		{
-			Error($"Unobserved task exception [UniTask|GC]", ex);
-		};
 		TaskScheduler.UnobservedTaskException += (_, args) =>
 		{
 			args.SetObserved();

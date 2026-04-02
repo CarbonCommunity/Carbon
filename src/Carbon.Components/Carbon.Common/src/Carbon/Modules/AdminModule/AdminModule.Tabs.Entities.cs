@@ -80,7 +80,7 @@ public partial class AdminModule
 			}
 
 			tab.AddInputButton(0, "Search Entity", 0.3f,
-				new Tab.OptionInput(null, ap => ap.GetStorage(tab, "filter", string.Empty), 0, false, (ap, args) => { ap.SetStorage(tab, "filter", args.ToString(" ")); DrawEntities(tab, ap); }),
+				new Tab.OptionInput(null, ap => ap.GetStorage(tab, "filter", string.Empty), 0, false, (ap, args) => { ap.SetStorage(tab, "filter", args.Select(x => x as string).ToString(" ")); DrawEntities(tab, ap); }),
 				new Tab.OptionButton($"Refresh", ap => { DrawEntities(tab, ap); }));
 
 			var isMulti = ap3.GetStorage(tab, "multi", false);
@@ -248,7 +248,7 @@ public partial class AdminModule
 					tab.AddInputButton(column, "Owner", 0.3f,
 						new Tab.OptionInput(null, ap => $"{entity.OwnerID}", 0, !Singleton.HasAccess(ap3.Player, "entities.owner_change"), (ap, args) =>
 						{
-							var id = args.ToString(string.Empty).ToUlong();
+							var id = ((string)args[0]).ToUlong();
 							DoAll<BaseEntity>(e => e.OwnerID = id);
 
 							DrawEntities(tab, ap);
@@ -266,9 +266,9 @@ public partial class AdminModule
 
 				tab.AddInput(column, "Prefab", ap => multiSelection ? MultiselectionReplacement : $"{entity.PrefabName}", null);
 				tab.AddInput(column, "Flags", ap => multiSelection ? MultiselectionReplacement : entity.flags == 0 ? "None" : $"{entity.flags}", null);
-				tab.AddInput(column, "Skin", ap => multiSelection ? MultiselectionReplacement : entity.skinID.ToString(), callback: (session, enumerable) =>
+				tab.AddInput(column, "Skin", ap => multiSelection ? MultiselectionReplacement : entity.skinID.ToString(), callback: (session, args) =>
 				{
-					entity.skinID = enumerable.ToString(" ").ToUlong();
+					entity.skinID = ((string)args[0]).ToUlong();
 					entity.SendNetworkUpdate();
 				});
 				tab.AddButton(column, "Edit Flags", ap => { DrawEntitySettings(tab, 0, ap); DrawEntityFlags(tab, ap, 1); });
@@ -510,14 +510,6 @@ public partial class AdminModule
 										: Tab.OptionButton.Types.None));
 						}
 
-						tab.AddInput(column, "PM", null, (ap, args) =>
-						{
-							DoAll<BasePlayer>(e =>
-							{
-								e.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}");
-							});
-						});
-
 						if (!multiSelection && ap3 != null && Singleton.HasAccess(ap3.Player, "entities.blind_players"))
 						{
 							if (!PlayersTab.BlindedPlayers.Contains(player))
@@ -562,7 +554,7 @@ public partial class AdminModule
 						case CCTV_RC cctv:
 							{
 								tab.AddName(column, "CCTV", TextAnchor.MiddleLeft);
-								tab.AddInput(column, "Identifier", ap => multiSelection ? MultiselectionReplacement : cctv.GetIdentifier(), (ap, args) => { cctv.UpdateIdentifier(args.ToString(""), true); });
+								tab.AddInput(column, "Identifier", ap => multiSelection ? MultiselectionReplacement : cctv.GetIdentifier(), (ap, args) => { cctv.UpdateIdentifier(((string)args[0]), true); });
 								if (!multiSelection)
 								{
 									tab.AddButton(column, "View CCTV", ap =>
@@ -592,7 +584,7 @@ public partial class AdminModule
 								tab.AddName(column, "Code Lock", TextAnchor.MiddleLeft);
 								tab.AddInput(column, "Code", ap => multiSelection ? MultiselectionReplacement : codeLock.code, (ap, args) =>
 								{
-									var code = args.ToString(" ");
+									var code = ((string)args[0]);
 
 									foreach (var character in code)
 										if (char.IsLetter(character)) return;

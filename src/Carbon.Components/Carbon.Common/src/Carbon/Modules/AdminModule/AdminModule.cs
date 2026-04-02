@@ -146,8 +146,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (!initialized) return;
 
-		foreach (var command in ConfigInstance.OpenCommands)
+		for(int i = 0; i < ConfigInstance.OpenCommands.Length; i++)
 		{
+			var command = ConfigInstance.OpenCommands[i];
 			var action = new Action<BasePlayer, string, string[]>((player, cmd, args) =>
 			{
 				if (!CanAccess(player))
@@ -195,9 +196,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Community.Runtime.Core.cmd.AddConsoleCommand(command, this, action, silent: true);
 		}
 
-		foreach (var perm in AdminPermissions)
+		for(int i = 0; i < AdminPermissions.Length; i++)
 		{
-			Permissions.RegisterPermission($"adminmodule.{perm}", this);
+			Permissions.RegisterPermission($"adminmodule.{AdminPermissions[i]}", this);
 		}
 
 		ImageDatabase.Queue(true, DataInstance.BackgroundImage);
@@ -208,9 +209,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			Community.Runtime.Core.NextTick(() =>
 			{
-				foreach (var player in BasePlayer.activePlayerList)
+				for(int i = 0; i < BasePlayer.activePlayerList.Count; i++)
 				{
-					Close(player);
+					Close(BasePlayer.activePlayerList[i]);
 				}
 			});
 		}
@@ -242,12 +243,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		base.Save();
 
 		PluginsTab.ServerOwner.Save();
-	}
-
-	public override void Reload()
-	{
-		base.Reload();
-		OnEnabled(true);
 	}
 
 	public override Dictionary<string, Dictionary<string, string>> GetDefaultPhrases()
@@ -336,7 +331,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	public bool HasAccess(BasePlayer player, string access)
 	{
-		if ((player != null && player.IsConnected && player.Connection.authLevel == 2))
+		if (player.IsValid() && player.IsConnected && player.Connection.authLevel >= 2)
 		{
 			return true;
 		}
@@ -367,6 +362,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (player == null)
 		{
 			return false;
+		}
+
+		if (player.IsDeveloper)
+		{
+			return true;
 		}
 
 		// CanAccessAdminModule
@@ -1141,8 +1141,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var labelIndex = 0;
 
-			foreach (var label in chart.Chart.verticalLabels)
+			for(int i = 0; i < chart.Chart.verticalLabels.Length; i++)
 			{
+				var label = chart.Chart.verticalLabels[i];
 				var labelOffset = labelIndex.Scale(0, labelCount - 1, 0, 150);
 
 				cui.CreateText(container, vLabelPanel, "1 1 1 0.9", label, 7,
@@ -1164,8 +1165,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		CreateLayerButton("All", System.Drawing.Color.BlanchedAlmond, chart.Chart.Layers.All(x => x.Disabled), !chart.Chart.Layers.All(x => x.LayerSettings.Shadows == 0));
 
-		foreach (var layer in chart.Chart.Layers)
+		for(int i = 0; i < chart.Chart.Layers.Length; i++)
 		{
+			var layer = chart.Chart.Layers[i];
 			CreateLayerButton(layer.Name, layer.LayerSettings.Color, !layer.Disabled, layer.LayerSettings.Shadows > 0);
 		}
 
@@ -1710,17 +1712,19 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (insert != null) Tabs.Insert(insert.Value, tab);
 			else Tabs.Add(tab);
 		}
-
-		Puts($"Registered tab '{tab.Name}'");
 	}
 	public void UnregisterTab(string id)
 	{
-		var tab = Tabs.FirstOrDefault(x => x.Id == id);
-		tab?.Dispose();
-
-		Tabs.RemoveAll(x => x.Id == id);
-
-		if (tab != null) Puts($"Unregistered tab '{tab.Name}'");
+		for (int i = 0; i < Tabs.Count; i++)
+		{
+			var tab = Tabs[i];
+			if (tab.Id == id)
+			{
+				tab.Dispose();
+				Tabs.RemoveAt(i);
+				i--;
+			}
+		}
 	}
 	public void UnregisterAllTabs()
 	{
@@ -1773,22 +1777,34 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	public Tab GetTab(BasePlayer player)
 	{
-		if (Tabs.Count == 0) return null;
-
+		if (Tabs.Count == 0)
+		{
+			return null;
+		}
 		var ap = GetPlayerSession(player);
-		if (ap.SelectedTab == null) return null;
-
+		if (ap.SelectedTab == null)
+		{
+			return null;
+		}
 		return ap.SelectedTab;
 	}
 	public Tab FindTab(string id)
 	{
-		return Tabs.FirstOrDefault(x => x.Id == id);
+		for (int i = 0; i < Tabs.Count; i++)
+		{
+			var tab = Tabs[i];
+			if (tab.Id == id)
+			{
+				return tab;
+			}
+		}
+		return null;
 	}
 	public bool HasTab(string id)
 	{
 		return FindTab(id) != null;
 	}
-	public bool CallColumnRow(BasePlayer player, int column, int row, IEnumerable<string> args)
+	public bool CallColumnRow(BasePlayer player, int column, int row, object[] args)
 	{
 		var ap = GetPlayerSession(player);
 		var tab = GetTab(player);
@@ -1799,7 +1815,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var rows = tab.Columns[column];
 		Tab.Option option = row == -1 ? rows.pinnedOption : rows[row];
 
-		if (args.Count() > 0 && args.ElementAt(0) == "tooltip")
+		if (args.Length > 0 && ((string)args[0]) == "tooltip")
 		{
 			if (ap.Tooltip != option) ap.Tooltip = option;
 			else ap.Tooltip = null;
@@ -1836,7 +1852,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 
 			case Tab.OptionEnum @enum:
-				@enum.Callback?.Invoke(ap, args.ElementAt(0).ToBool());
+				@enum.Callback?.Invoke(ap, ((string)args[0]).ToBool());
 				return @enum.Callback != null;
 
 			case Tab.OptionToggle toggle:
@@ -1845,19 +1861,19 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			case Tab.OptionDropdown dropdown:
 				var page = ap._selectedDropdownPage;
-				switch (args.ElementAt(0).ToBool())
+				switch (((string)args[0]).ToBool())
 				{
 					case true:
-						switch (args.ElementAt(1))
+						switch (args[1])
 						{
 							case "call":
 								ap._selectedDropdown = null;
-								dropdown.Callback?.Invoke(ap, args.ElementAt(2).ToInt());
+								dropdown.Callback?.Invoke(ap, ((string)args[2]).ToInt());
 								page.CurrentPage = 0;
 								break;
 
 							default:
-								switch (args.ElementAt(1))
+								switch (args[1])
 								{
 									case "--":
 										page.CurrentPage = 0;
@@ -1868,7 +1884,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 										break;
 
 									default:
-										page.CurrentPage += args.ElementAt(1).ToInt();
+										page.CurrentPage += ((string)args[1]).ToInt();
 										break;
 								}
 
@@ -1896,16 +1912,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 
 			case Tab.OptionRange range:
-				range.Callback?.Invoke(ap, args.ElementAt(0).ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
+				range.Callback?.Invoke(ap, ((string)args[0]).ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
 				return range.Callback != null;
 
 			case Tab.OptionButtonArray array:
-				var callback = array.Buttons[args.ElementAt(0).ToInt()].Callback;
+				var callback = array.Buttons[((string)args[0]).ToInt()].Callback;
 				callback?.Invoke(ap);
 				return callback != null;
 
 			case Tab.OptionInputButton inputButton:
-				switch (args.ElementAt(0))
+				switch (args[0])
 				{
 					case "input":
 					{
@@ -1920,8 +1936,20 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 							if (!inputButton.Input.ReadOnly)
 							{
-								var enumerable = args.Skip(1);
-								inputButton.Input.Callback?.Invoke(ap, enumerable.Count() == 0 ? EmptyElement : enumerable);
+								var array = Array.Empty<object>();
+								if(args.Length - 1 > 0)
+								{
+									array = HookCaller.Caller.AllocateBuffer(args.Length - 1);
+									for (int i = 1; i < args.Length; i++)
+									{
+										array[i - 1] = args[i];
+									}
+								}
+								inputButton.Input.Callback?.Invoke(ap, array);
+								if(array.Length > 0)
+								{
+									HookCaller.Caller.ReturnBuffer(array);
+								}
 							}
 
 							return inputButton.Input.Callback != null;
@@ -1943,13 +1971,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			case Tab.OptionChart chart:
 			{
-				var layerIndex = args.ElementAt(1).ToInt();
+				var layerIndex = ((string)args[1]).ToInt();
 
-				switch (args.ElementAt(0))
+				switch (args[0])
 				{
 					case "layer":
 					{
-						var oldIdentifier = args.ElementAt(2);
+						var oldIdentifier = args[2];
 						var newIdentifier = string.Empty;
 
 						using var cui = new CUI(Handler);
@@ -1963,9 +1991,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							var allDisabled = chart.Chart.Layers.All(x => x.Disabled);
 
-							foreach (var chartLayer in chart.Chart.Layers)
+							for(int i = 0; i < chart.Chart.Layers.Length; i++)
 							{
-								chartLayer.Disabled = !allDisabled;
+								chart.Chart.Layers[i].Disabled = !allDisabled;
 							}
 
 							newIdentifier = chart.GetIdentifier(reset: true);
@@ -1973,7 +2001,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 						else
 						{
-							var layer = chart.Chart.Layers.ElementAt(layerIndex);
+							var layer = chart.Chart.Layers[layerIndex];
 							layer.ToggleDisabled();
 
 							newIdentifier = chart.GetIdentifier(reset: true);
@@ -1985,7 +2013,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						var sColor = System.Drawing.Color.FromArgb((int)(pColor.R * 1.5f).Clamp(0, 255), (int)(pColor.G * 1.5f).Clamp(0, 255), (int)(pColor.B * 1.5f).Clamp(0, 255));
 						var rustSColor = $"{sColor.R / 255f} {sColor.G / 255f} {sColor.B / 255f} 1";
 
-						var mainCommand = args.Skip(3).ToString(" ");
+						var mainCommand = args.Select(x => x as string).Skip(3).ToString(" ");
 
 						pool.Add(cui.UpdatePanel($"{oldIdentifier}_loading", "0 0 0 0.2", xMin: 0.01f, xMax: 0.99f, yMin: 0.01f, yMax: 0.99f, blur: true));
 						pool.Add(cui.UpdateText($"{oldIdentifier}_loadingtxt", "1 1 1 0.5", "Please wait...", 10, xMin: 0.01f, xMax: 0.99f, yMin: 0.01f, yMax: 0.99f));
@@ -2032,7 +2060,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}
 					case "layershadow":
 					{
-						var oldIdentifier = args.ElementAt(2);
+						var oldIdentifier = args[2];
 						var newIdentifier = string.Empty;
 
 						using var cui = new CUI(Handler);
@@ -2045,8 +2073,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							var allOff = chart.Chart.Layers.All(x => x.LayerSettings.Shadows == 0);
 
-							foreach (var chartLayer in chart.Chart.Layers)
+							for (int i = 0; i < chart.Chart.Layers.Length; i++)
 							{
+								var chartLayer = chart.Chart.Layers[i];
 								if (allOff)
 								{
 									chartLayer.LayerSettings.Shadows = 1;
@@ -2062,14 +2091,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 						else
 						{
-							var layer = chart.Chart.Layers.ElementAt(layerIndex);
+							var layer = chart.Chart.Layers[layerIndex];
 
-							layer.LayerSettings.Shadows++;
-
-							if (layer.LayerSettings.Shadows > 4)
-							{
-								layer.LayerSettings.Shadows = 0;
-							}
+							layer.LayerSettings.Shadows = layer.LayerSettings.Shadows == 1 ? 0 : 1;
 
 							newIdentifier = chart.GetIdentifier(reset: true);
 							pColor = layer.LayerSettings.Color;
@@ -2079,7 +2103,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						var sColor = System.Drawing.Color.FromArgb((int)(pColor.R * 1.5f).Clamp(0, 255), (int)(pColor.G * 1.5f).Clamp(0, 255), (int)(pColor.B * 1.5f).Clamp(0, 255));
 						var rustSColor = $"{sColor.R / 255f} {sColor.G / 255f} {sColor.B / 255f} 1";
 
-						var mainCommand = args.Skip(3).ToString(" ");
+						var mainCommand = args.Select(x => x as string).Skip(3).ToString(" ");
 
 						pool.Add(cui.UpdatePanel($"{oldIdentifier}_loading", "0 0 0 0.2", xMin: 0.01f, xMax: 0.99f, yMin: 0.01f, yMax: 0.99f, blur: true));
 						pool.Add(cui.UpdateText($"{oldIdentifier}_loadingtxt", "1 1 1 0.5", "Please wait...", 10, xMin: 0.01f, xMax: 0.99f, yMin: 0.01f, yMax: 0.99f));
@@ -2145,8 +2169,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		PluginsTab.GetVendor(PluginsTab.VendorTypes.Codefling)?.Refresh();
 		PluginsTab.GetVendor(PluginsTab.VendorTypes.uMod)?.Refresh();
 
-		foreach (var player in BasePlayer.activePlayerList)
+		for (int i = 0; i < BasePlayer.activePlayerList.Count; i++)
 		{
+			var player = BasePlayer.activePlayerList[i];
 			var ap = Singleton.GetPlayerSession(player);
 
 			if (ap.IsInMenu && Singleton.GetTab(player).Id == "plugins")

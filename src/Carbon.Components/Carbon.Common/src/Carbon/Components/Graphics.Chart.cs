@@ -17,7 +17,7 @@ public struct Chart
 	public string Name;
 	public ChartSettings Settings;
 	public ChartRect Rect;
-	public IEnumerable<Layer> Layers;
+	public Layer[] Layers;
 
 	internal int width;
 	internal int height;
@@ -30,7 +30,7 @@ public struct Chart
 	internal byte[] image;
 
 	public static Chart Create(string name, int width, int height, ChartSettings settings, ChartRect rect,
-		IEnumerable<Layer> layers, string[] verticalLabels, string[] horizontalLabels, Brush textColor, Color background)
+		Layer[] layers, string[] verticalLabels, string[] horizontalLabels, Brush textColor, Color background)
 	{
 		Chart chart = default;
 

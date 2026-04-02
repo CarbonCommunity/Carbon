@@ -162,7 +162,7 @@ public partial class CorePlugin
 			content: $"namespace Carbon.Plugins;\n\n" +
 			         $"[Info(\"{name}\", \"{author}\", \"1.0\")]\n" +
 			         $"[Description(\"{description}\")]\n" +
-			         $"public class {sanitizedName} : CarbonPlugin\n" +
+			         $"public partial class {sanitizedName} : CarbonPlugin\n" +
 			         $"{{\n" +
 			         $"\tprivate void OnServerInitialized()\n" +
 			         $"\t{{\n" +

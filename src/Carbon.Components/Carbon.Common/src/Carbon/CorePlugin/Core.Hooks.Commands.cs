@@ -15,16 +15,10 @@ public partial class CorePlugin
 
 		try
 		{
-			var fullString = message[1..];
-
-			if (string.IsNullOrEmpty(fullString))
+			if (!ConsoleArgEx.TryParseCommand(message.AsSpan()[prefix.Value.Length..], out var command, out var args))
 			{
 				return Cache.False;
 			}
-
-			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
-			var command = split.Length > 0 ? split[0].Trim() : string.Empty;
-			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString[(command.Length + 1)..]) : _emptyStringArray;
 
 			// OnUserCommand
 			if (HookCaller.CallStaticHook(2198880635, player, command, args) != null)
@@ -89,6 +83,7 @@ public partial class CorePlugin
 
 		return Cache.False;
 	}
+
 	internal static object IOnServerCommand(ConsoleSystem.Arg arg)
 	{
 		if (arg != null && arg.cmd != null && arg.Player() != null && arg.cmd.FullName == "chat.say") return null;

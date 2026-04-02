@@ -36,7 +36,7 @@ public partial class AdminModule
 
 			tab.AddInput(0, "Search", ap => ap?.GetStorage<string>(tab, "playerfilter"), (ap2, args) =>
 			{
-				ap2.SetStorage(tab, "playerfilter", args.ToString(" "));
+				ap2.SetStorage(tab, "playerfilter", args.Select(x => x as string).ToString(" "));
 				RefreshPlayers(tab, ap2);
 			});
 
@@ -91,7 +91,7 @@ public partial class AdminModule
 			tab.AddName(column, $"Player Information", TextAnchor.MiddleLeft);
 			tab.AddInput(column, "Name", _ => player.displayName, (_, args) =>
 			{
-				player.AsIPlayer().Rename(args.ToString(" "));
+				player.AsIPlayer().Rename(args.Select(x => x as string).ToString(" "));
 			});
 			tab.AddInput(column, "Steam ID", _ => player.UserIDString, null);
 			tab.AddInput(column, "Net ID", _ => $"{player.net?.ID}", null);
@@ -289,11 +289,6 @@ public partial class AdminModule
 					EntitiesTab.DrawEntitySettings(tab, 1, ap2);
 				});
 			}
-
-			tab.AddInput(column, "PM", null, (ap, args) =>
-			{
-				PrivateMessagePlayer(ap.Player, player, args.ToString(" "));
-			});
 
 			if (Singleton.HasAccess(aap.Player, "entities.blind_players"))
 			{

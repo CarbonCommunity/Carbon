@@ -173,7 +173,6 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"Carbon.Test",
 		"Carbon.Startup",
 		"Carbon.Profiler",
-		"Carbon.UniTask",
 		"Carbon.Polyfills",
 
 		"MySql.Data",
@@ -209,6 +208,11 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"Facepunch.UnityEngine",
 		"Facepunch.Nexus",
 		"Facepunch.Ping",
+		"UniTask",
+		"UniTask.Addressables",
+		"UniTask.DOTween",
+		"UniTask.Linq",
+		"UniTask.TextMeshPro",
 
 		"Rust.Data",
 		"Rust.FileSystem",

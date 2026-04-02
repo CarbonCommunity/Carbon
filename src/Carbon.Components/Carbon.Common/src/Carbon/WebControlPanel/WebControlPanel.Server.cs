@@ -109,6 +109,8 @@ public static partial class WebControlPanel
 	{
 		public string Ip = "localhost";
 		public int Port;
+		public int MaxConnections = 500;
+		public int MaxConnectionsPerIp = 5;
 	}
 
 	public class PanelConfig

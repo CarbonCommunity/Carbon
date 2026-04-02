@@ -20,7 +20,7 @@ public static partial class WebControlPanel
 #if MINIMAL
 			$" Minimal" +
 #endif
-		    $" {analytics.Version}/{analytics.Platform}/{analytics.Protocol} [{Build.Git.Branch}] [{Build.Git.Tag}] on Rust {BuildInfo.Current.Build.Number}/{Rust.Protocol.printable} ({BuildInfo.Current.BuildDate}) [{BuildInfo.Current.Scm.ChangeId}]");
+		    $" {analytics.Version}/{analytics.Platform}/{analytics.Protocol} [{Build.Git.Branch}] [{Build.Git.Tag}] on Rust {BuildInfo.Current.Build.Number}/{Rust.Protocol.printable} ({BuildInfo.Current.BuildDate}) {BuildInfo.Current.Scm.ChangeId}");
 	}
 
 	[WebCall]
