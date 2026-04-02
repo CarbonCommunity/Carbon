@@ -1,7 +1,10 @@
-@echo OFF
+@echo off
 
-set ROOT=%cd%
-cd ../../..
+set "BRANCH=%~1"
+set "OUTPUT=%~2"
 
-dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/patcher_setup.cs release "xx"
-cd %ROOT%
+if not defined BRANCH set "BRANCH=release"
+if not defined OUTPUT set "OUTPUT=xx"
+
+call "%~dp0_runner.bat" tools/build/runners/patcher_setup.cs "%BRANCH%" "%OUTPUT%"
+exit /b %ERRORLEVEL%

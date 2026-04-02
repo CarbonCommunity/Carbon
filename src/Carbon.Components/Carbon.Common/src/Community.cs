@@ -1,5 +1,4 @@
 ﻿using API.Events;
-using Cysharp.Threading.Tasks;
 using Application = UnityEngine.Application;
 
 namespace Carbon;
@@ -108,7 +107,6 @@ public partial class Community
 	public virtual void Initialize()
 	{
 		StoredModifiers.Init();
-		UniTaskInjector.Inject(SynchronizationContext.Current, Thread.CurrentThread.ManagedThreadId, injectTimings: InjectPlayerLoopTimings.Minimum);
 	}
 	public virtual void Uninitialize()
 	{

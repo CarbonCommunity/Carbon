@@ -71,6 +71,7 @@ public class Config
 		Singleton.ForceEnsurePublicizedAssembly("Facepunch.Ping.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Facepunch.Unity.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Facepunch.Rcon.dll");
+		Singleton.ForceEnsurePublicizedAssembly("Fleck.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Rust.Localization.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Rust.Clans.Local.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Rust.FileSystem.dll");

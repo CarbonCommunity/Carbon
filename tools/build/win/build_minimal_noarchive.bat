@@ -1,7 +1,4 @@
-@echo OFF
+@echo off
 
-set ROOT=%cd%
-cd ../../..
-
-dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/build.cs Minimal MINIMAL edge_build -noarchive -norestore
-cd %ROOT%
+call "%~dp0build.bat" Minimal MINIMAL edge_build -noarchive %*
+exit /b %ERRORLEVEL%
