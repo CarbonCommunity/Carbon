@@ -13,27 +13,53 @@ public class HookCallerCommon
 	public readonly Dictionary<int, HookArgPool> _argumentBuffer = [];
 	public readonly Dictionary<uint, DateTime> _lastDeprecatedWarningAt = [];
 
-	public readonly struct HookArgPool
+	public class HookArgPool
 	{
 		public static readonly int BufferSize = 256;
 
 		private readonly int length;
-		private readonly Queue<object[]> pool;
+		private readonly Stack<object[]> pool;
+		private readonly object syncRoot = new();
+
+		private int rentedExtra;
+		private int rented;
+		private int returned;
+
+		public int RentedExtra => rentedExtra;
+		public int Rented => rented;
+		public int Returned => returned;
+		public int Length => length;
+		public int Count => pool.Count;
 
 		public HookArgPool(int length)
 		{
 			this.length = length;
-			pool = new Queue<object[]>(BufferSize);
+			this.rented = 0;
+			this.returned = 0;
+			this.rentedExtra = 0;
+			pool = new Stack<object[]>(BufferSize);
 
 			for (int i = 0; i < BufferSize; i++)
 			{
-				this.pool.Enqueue(new object[length]);
+				this.pool.Push(new object[length]);
 			}
 		}
 
 		public object[] Rent()
 		{
-			return pool.Count > 0 ? pool.Dequeue() : new object[length];
+			lock (syncRoot)
+			{
+				if (pool.Count > 0)
+				{
+					rented++;
+					return pool.Pop();
+				}
+				else
+				{
+					rentedExtra++;
+					return new object[length];
+				}
+			}
 		}
 		public void Return(object[] array)
 		{
@@ -42,7 +68,11 @@ public class HookCallerCommon
 				array[i] = default;
 			}
 
-			pool.Enqueue(array);
+			lock (syncRoot)
+			{
+				returned++;
+				pool.Push(array);
+			}
 		}
 	}
 
@@ -565,8 +595,8 @@ public static class HookCaller
 		buffer[2] = arg3;
 		buffer[3] = arg4;
 		buffer[4] = arg5;
-		buffer[6] = arg6;
-		buffer[7] = arg7;
+		buffer[5] = arg6;
+		buffer[6] = arg7;
 
 		var result = Caller.CallDeprecatedHook(plugin, oldHookId, newHookId, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
@@ -917,7 +947,6 @@ public static class HookCaller
 		buffer[9] = arg10;
 		buffer[10] = arg11;
 		buffer[11] = arg12;
-		buffer[12] = arg13;
 		buffer[12] = arg13;
 
 		var result = Caller.CallDeprecatedHook(plugin, oldHookId, newHookId, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
