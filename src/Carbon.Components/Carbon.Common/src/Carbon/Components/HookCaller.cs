@@ -13,7 +13,7 @@ public class HookCallerCommon
 	public readonly Dictionary<int, HookArgPool> _argumentBuffer = [];
 	public readonly Dictionary<uint, DateTime> _lastDeprecatedWarningAt = [];
 
-	public readonly struct HookArgPool
+	public class HookArgPool
 	{
 		public static readonly int BufferSize = 256;
 
@@ -21,9 +21,22 @@ public class HookCallerCommon
 		private readonly Stack<object[]> pool;
 		private readonly object syncRoot = new();
 
+		private int rentedExtra;
+		private int rented;
+		private int returned;
+
+		public int RentedExtra => rentedExtra;
+		public int Rented => rented;
+		public int Returned => returned;
+		public int Length => length;
+		public int Count => pool.Count;
+
 		public HookArgPool(int length)
 		{
 			this.length = length;
+			this.rented = 0;
+			this.returned = 0;
+			this.rentedExtra = 0;
 			pool = new Stack<object[]>(BufferSize);
 
 			for (int i = 0; i < BufferSize; i++)
@@ -36,7 +49,16 @@ public class HookCallerCommon
 		{
 			lock (syncRoot)
 			{
-				return pool.Count > 0 ? pool.Pop() : new object[length];
+				if (pool.Count > 0)
+				{
+					rented++;
+					return pool.Pop();
+				}
+				else
+				{
+					rentedExtra++;
+					return new object[length];
+				}
 			}
 		}
 		public void Return(object[] array)
@@ -48,6 +70,7 @@ public class HookCallerCommon
 
 			lock (syncRoot)
 			{
+				returned++;
 				pool.Push(array);
 			}
 		}
