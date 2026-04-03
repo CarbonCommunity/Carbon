@@ -18,22 +18,26 @@ public class HookCallerCommon
 		public static readonly int BufferSize = 256;
 
 		private readonly int length;
-		private readonly Queue<object[]> pool;
+		private readonly Stack<object[]> pool;
+		private readonly object syncRoot = new();
 
 		public HookArgPool(int length)
 		{
 			this.length = length;
-			pool = new Queue<object[]>(BufferSize);
+			pool = new Stack<object[]>(BufferSize);
 
 			for (int i = 0; i < BufferSize; i++)
 			{
-				this.pool.Enqueue(new object[length]);
+				this.pool.Push(new object[length]);
 			}
 		}
 
 		public object[] Rent()
 		{
-			return pool.Count > 0 ? pool.Dequeue() : new object[length];
+			lock (syncRoot)
+			{
+				return pool.Count > 0 ? pool.Pop() : new object[length];
+			}
 		}
 		public void Return(object[] array)
 		{
@@ -42,7 +46,10 @@ public class HookCallerCommon
 				array[i] = default;
 			}
 
-			pool.Enqueue(array);
+			lock (syncRoot)
+			{
+				pool.Push(array);
+			}
 		}
 	}
 
