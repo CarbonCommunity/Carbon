@@ -572,8 +572,8 @@ public static class HookCaller
 		buffer[2] = arg3;
 		buffer[3] = arg4;
 		buffer[4] = arg5;
-		buffer[6] = arg6;
-		buffer[7] = arg7;
+		buffer[5] = arg6;
+		buffer[6] = arg7;
 
 		var result = Caller.CallDeprecatedHook(plugin, oldHookId, newHookId, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
@@ -924,7 +924,6 @@ public static class HookCaller
 		buffer[9] = arg10;
 		buffer[10] = arg11;
 		buffer[11] = arg12;
-		buffer[12] = arg13;
 		buffer[12] = arg13;
 
 		var result = Caller.CallDeprecatedHook(plugin, oldHookId, newHookId, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
