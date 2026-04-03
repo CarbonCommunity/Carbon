@@ -23,7 +23,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 #endif
 
 #if !MINIMAL
-	public override bool ForceEnabled => true;
 	public override bool EnabledByDefault => true;
 
 	internal static AdminModule Singleton { get; set; }
