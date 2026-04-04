@@ -4,15 +4,6 @@
 [submodule "src/Carbon.Components/Carbon.Startup"]
 	path = src/Carbon.Components/Carbon.Startup
 	url = https://github.com/CarbonCommunity/Carbon.Startup.git
-[submodule "src/Carbon.Hooks/Carbon.Hooks.Base"]
-	path = src/Carbon.Hooks/Carbon.Hooks.Base
-	url = https://github.com/CarbonCommunity/Carbon.Hooks.Base.git
-[submodule "src/Carbon.Hooks/Carbon.Hooks.Community"]
-	path = src/Carbon.Hooks/Carbon.Hooks.Community
-	url = https://github.com/CarbonCommunity/Carbon.Hooks.Community.git
-[submodule "src/Carbon.Hooks/Carbon.Hooks.Oxide"]
-	path = src/Carbon.Hooks/Carbon.Hooks.Oxide
-	url = https://github.com/CarbonCommunity/Carbon.Hooks.Oxide.git
 [submodule "src/Carbon.Native"]
 	path = src/Carbon.Native
 	url = https://github.com/CarbonCommunity/Carbon.Native.git
