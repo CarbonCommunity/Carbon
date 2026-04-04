@@ -1,6 +1,3 @@
-[submodule "src/Carbon.Components/Carbon.Modules"]
-	path = src/Carbon.Components/Carbon.Modules
-	url = https://github.com/CarbonCommunity/Carbon.Modules.git
 [submodule "src/Carbon.Components/Carbon.Preloader"]
 	path = src/Carbon.Components/Carbon.Preloader
 	url = https://github.com/CarbonCommunity/Carbon.Preloader.git
