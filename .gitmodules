@@ -4,9 +4,6 @@
 [submodule "src/Carbon.Components/Carbon.Startup"]
 	path = src/Carbon.Components/Carbon.Startup
 	url = https://github.com/CarbonCommunity/Carbon.Startup.git
-[submodule "src/Carbon.Components/Carbon.Test"]
-	path = src/Carbon.Components/Carbon.Test
-	url = https://github.com/CarbonCommunity/Carbon.Test.git
 [submodule "src/Carbon.Hooks/Carbon.Hooks.Base"]
 	path = src/Carbon.Hooks/Carbon.Hooks.Base
 	url = https://github.com/CarbonCommunity/Carbon.Hooks.Base.git
