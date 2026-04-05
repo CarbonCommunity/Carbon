@@ -4,7 +4,6 @@ Warn($"Branch: {branch}");
 
 DotNet.Run("build", PathEnquotes(Home, "tools", "depot", "DepotDownloader"));
 DotNet.Run("build", PathEnquotes(Home, "src", "Carbon.Tools", "Carbon.Publicizer"));
-DotNet.Run("build", PathEnquotes(Home, "src", "Carbon.Tools", "Carbon.Generator"));
 
 System.Threading.Tasks.Task.WaitAll(
     System.Threading.Tasks.Task.Run(() => DownloadRustFiles("windows")),
@@ -29,18 +28,3 @@ void DownloadRustFiles(string platform)
 	DotNet.Run("run", "--no-build", "--project", PathEnquotes(Home, "src", "Carbon.Tools", "Carbon.Publicizer"), 
 		PathEnquotes(Home, "rust", platform, "RustDedicated_Data", "Managed"));
 }
-
-DotNet.Run("run", "--no-build", "--project", PathEnquotes(Home, "src", "Carbon.Tools", "Carbon.Generator"),
-				  "--plugininput", PathEnquotes(Home, "src", "Carbon.Components", "Carbon.Common", "src", "Carbon", "CorePlugin"),
-				  "--rust", PathEnquotes(Home, "rust", "windows", "RustDedicated_Data", "Managed"));
-
-var modules = new System.Collections.Generic.List<string>();
-modules.AddRange(Directories.Get(Path(Home, "src", "Carbon.Components", "Carbon.Common", "src", "Carbon", "Modules")));
-modules.AddRange(Directories.Get(Path(Home, "src", "Carbon.Components", "Carbon.Modules", "src")));
-
-var modulePaths = string.Join(";", modules);
-DotNet.Run("run", "--no-build", "--project", PathEnquotes(Home, "src", "Carbon.Tools", "Carbon.Generator"),
-	"--plugininput", $"\"{modulePaths}\"",
-	"--pluginnamespace", "Carbon.Modules",
-	"--basename", "module",
-	"--rust", PathEnquotes(Home, "rust", "windows", "RustDedicated_Data", "Managed"));

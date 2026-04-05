@@ -1,5 +1,3 @@
-﻿using Carbon.Generator;
-
 namespace Carbon.Modules;
 
 public partial class AdminModule

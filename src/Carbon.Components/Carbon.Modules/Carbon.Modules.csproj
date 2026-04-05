@@ -11,6 +11,7 @@
 	<ItemGroup>
 		<Reference Include="$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Tools\Carbon.SourceGenerators\Carbon.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<Target Condition="'$(Configuration)' != 'Minimal' And '$(Configuration)' != 'MinimalUnix'" Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
