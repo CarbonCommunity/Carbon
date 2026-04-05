@@ -14,7 +14,7 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 {
 	private const string BaseModuleType = "Carbon.Base.BaseModule";
 	private const string CarbonPluginType = "Carbon.Plugins.CarbonPlugin";
-	private const string HookMethodAttributeType = "Oxide.Core.Plugins.HookMethodAttribute";
+	private const string HookMethodAttributeName = "HookMethodAttribute";
 	private const string ConditionalAttributeType = "Carbon.ConditionalAttribute";
 
 	private static readonly SymbolDisplayFormat TypeFormat = new(
@@ -150,7 +150,7 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 				!method.IsImplicitlyDeclared &&
 				!method.IsStatic &&
 				method.TypeParameters.Length == 0 &&
-				(method.DeclaredAccessibility != Accessibility.Public || HasAttribute(method, HookMethodAttributeType)) &&
+				(method.DeclaredAccessibility != Accessibility.Public || HasHookMethodAttribute(method)) &&
 				method.Name != "InternalCallHook")
 			.OrderBy(static method => ResolveHookName(method), StringComparer.Ordinal)
 			.ThenBy(static method => method.Name, StringComparer.Ordinal)
@@ -185,9 +185,14 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 		return method.GetAttributes().Any(attribute => attribute.AttributeClass?.ToDisplayString() == fullyQualifiedAttributeType);
 	}
 
+	private static bool HasHookMethodAttribute(IMethodSymbol method)
+	{
+		return method.GetAttributes().Any(static attribute => attribute.AttributeClass?.Name == HookMethodAttributeName);
+	}
+
 	private static string ResolveHookName(IMethodSymbol method)
 	{
-		var attribute = method.GetAttributes().FirstOrDefault(attribute => attribute.AttributeClass?.ToDisplayString() == HookMethodAttributeType);
+		var attribute = method.GetAttributes().FirstOrDefault(static attribute => attribute.AttributeClass?.Name == HookMethodAttributeName);
 		if (attribute == null)
 		{
 			return method.Name;
