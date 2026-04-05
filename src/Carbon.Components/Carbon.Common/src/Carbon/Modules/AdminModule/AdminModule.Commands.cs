@@ -30,6 +30,10 @@ public partial class AdminModule
 		if (args.Args.Length - 2 > 0)
 		{
 			array = HookCaller.Caller.AllocateBuffer(args.Args.Length - 2);
+			for (int i = 2; i < args.Args.Length; i++)
+			{
+				array[i - 2] = args.Args[i];
+			}
 		}
 
 		if (CallColumnRow(player, args.GetInt(0), args.GetInt(1), array))

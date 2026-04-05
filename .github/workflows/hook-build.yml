@@ -86,6 +86,13 @@ jobs:
           token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
 
+      - name: Git Clone (Carbon.Hooks)
+        uses: actions/checkout@v6
+        with:
+          repository: CarbonCommunity/Carbon.Hooks
+          token: ${{ secrets.PAT_ALL_REPO }}
+          path: src/Carbon.Hooks/Carbon.Hooks.Internal
+
       - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v5
         with:
@@ -96,11 +103,11 @@ jobs:
         shell: cmd
         run: |
           set OXIDE_HOOKS=https://api.carbonmod.gg/oxide/%RUST_BRANCH%.opj
-          
+
           if NOT "%OXIDE_HOOKS_OVERRIDE%" EQU "" (
               set OXIDE_HOOKS=%OXIDE_HOOKS_OVERRIDE%
           )
-          
+
           set ROOT=%GITHUB_WORKSPACE%\src\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
           
           if %DEBUG_BUILD% EQU true (

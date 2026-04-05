@@ -51,7 +51,7 @@ jobs:
               ;;
             "qa")
               DOWNLOAD_ID="qa_build"
-              RUST_BRANCH="staging"
+              RUST_BRANCH="release"
               ;;
             "production")
               DOWNLOAD_ID="production_build"

@@ -1,7 +1,4 @@
-@echo OFF
+@echo off
 
-set ROOT=%cd%
-cd ../../..
-
-dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/build.cs Debug EDGE edge_build -noarchive -norestore
-cd %ROOT%
+call "%~dp0build.bat" Debug EDGE edge_build -noarchive %*
+exit /b %ERRORLEVEL%
