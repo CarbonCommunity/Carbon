@@ -231,13 +231,18 @@ public static class InternalCallHookEmitter
 			return string.Empty;
 		}
 
-		value = value.Trim();
+		value = value.Trim().TrimEnd(';');
+		if (value.StartsWith("global ", StringComparison.Ordinal))
+		{
+			value = value.Substring("global ".Length).TrimStart();
+		}
+
 		if (value.StartsWith("using ", StringComparison.Ordinal))
 		{
 			value = value.Substring("using ".Length);
 		}
 
-		return value.Trim().TrimEnd(';');
+		return value.Trim();
 	}
 
 	private static void AppendLine(StringBuilder builder, int indent, string line)
