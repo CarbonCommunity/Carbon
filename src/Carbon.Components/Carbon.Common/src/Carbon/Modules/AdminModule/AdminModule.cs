@@ -200,6 +200,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Permissions.RegisterPermission($"adminmodule.{AdminPermissions[i]}", this);
 		}
 
+		ImageDatabase ??= BaseModule.GetModule<ImageDatabaseModule>();
 		ImageDatabase.Queue(true, DataInstance.BackgroundImage);
 	}
 	public override void OnDisabled(bool initialized)
@@ -229,6 +230,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		base.Load();
 
 		ConfigInstance.MinimumAuthLevel = ConfigInstance.MinimumAuthLevel.Clamp(0, 3);
+		ConfigInstance.MaximumAuthLevel = ConfigInstance.MaximumAuthLevel.Clamp(0, 3);
 
 		if (Community.IsServerInitialized) GenerateTabs();
 
@@ -330,7 +332,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	public bool HasAccess(BasePlayer player, string access)
 	{
-		if (player.IsValid() && player.IsConnected && player.Connection.authLevel >= 2)
+		if (player.IsValid() && player.IsConnected && player.Connection.authLevel >= ConfigInstance.MinimumAuthLevel && player.Connection.authLevel <= ConfigInstance.MaximumAuthLevel)
 		{
 			return true;
 		}
@@ -363,11 +365,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			return false;
 		}
 
-		if (player.IsDeveloper)
-		{
-			return true;
-		}
-
 		// CanAccessAdminModule
 		if (HookCaller.CallStaticHook(3266674522, player) is bool result)
 		{
@@ -376,13 +373,18 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		var authLevel = player.Connection.authLevel;
 		var minLevel = ConfigInstance.MinimumAuthLevel;
-		var hasAccess = authLevel >= minLevel;
+		var maxLevel = ConfigInstance.MaximumAuthLevel;
+		var hasAccess = authLevel >= minLevel && authLevel <= maxLevel;
 
 		if (!hasAccess)
 		{
 			if (authLevel == 0)
 			{
 				player.ChatMessage($"Your auth level is not high enough to use this feature.");
+			}
+			else if(authLevel > maxLevel)
+			{
+				player.ChatMessage($"Your auth level is above the maximum level required to use this feature. Please adjust the maximum level required in your config or give yourself auth level {maxLevel}.");
 			}
 			else if (authLevel < minLevel && authLevel > 0)
 			{
@@ -2393,6 +2395,7 @@ public class AdminConfig
 	[JsonProperty("OpenCommands")]
 	public string[] OpenCommands = ["cp", "cpanel"];
 	public int MinimumAuthLevel = 2;
+	public int MaximumAuthLevel = 2;
 	public bool SpectatingInfoOverlay = true;
 	public bool SpectatingEndTeleportBack = false;
 	public List<ActionButton> QuickActions = new();
