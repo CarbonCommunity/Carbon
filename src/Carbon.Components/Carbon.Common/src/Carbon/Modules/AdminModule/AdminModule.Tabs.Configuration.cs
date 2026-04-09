@@ -193,9 +193,6 @@ public partial class AdminModule
 						ap => AdminModule.Tab.OptionButton.Types.Selected);
 
 					tab.AddName(0, "Configuration");
-					tab.AddDropdown(0, "Minimum Auth-Level", ap => Singleton.ConfigInstance.MinimumAuthLevel,
-						(ap, index) => Singleton.ConfigInstance.MinimumAuthLevel = index, AuthLevels);
-
 					tab.AddName(0, "Tabs");
 					for (int i = 0; i < Singleton.Tabs.Count; i++)
 					{
