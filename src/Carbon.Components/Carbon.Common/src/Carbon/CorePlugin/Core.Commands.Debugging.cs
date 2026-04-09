@@ -28,4 +28,17 @@ public partial class CorePlugin
 
 		arg.ReplyWith($"All plugin and module hook cache has been reset.");
 	}
+
+	[ConsoleCommand("printhookpool", "Print currently allocated hook argument pool memory")]
+	[AuthLevel(2)]
+	private void PrintHookPool(ConsoleSystem.Arg arg)
+	{
+		using var table = new StringTable("arg_count", "rented", "rented_extra", "returned", "stack_count", "max_size");
+		foreach(var argument in HookCaller.Caller._argumentBuffer)
+		{
+			var value = argument.Value;
+			table.AddRow(argument.Key, value.Rented, value.RentedExtra, value.Returned, value.Count, HookCallerCommon.HookArgPool.BufferSize);
+		}
+		arg.ReplyWith(table.Write(StringTable.FormatTypes.None));
+	}
 }
