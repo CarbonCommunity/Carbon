@@ -17,6 +17,17 @@
 	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
 
 	<ItemGroup>
+		<None Include="$(SolutionDir)\.msbuild\Protocol.props" Link="msbuild\Protocol.props" />
+		<None Include="$(SolutionDir)\.msbuild\AssemblyName.props" Link="msbuild\AssemblyName.props" />
+		<None Include="$(SolutionDir)\.msbuild\Common.props" Link="msbuild\Common.props" />
+		<None Include="$(SolutionDir)\.msbuild\Configurations.props" Link="msbuild\Configurations.props" />
+		<None Include="$(SolutionDir)\.msbuild\Metadata.props" Link="msbuild\Metadata.props" />
+		<None Include="$(SolutionDir)\.msbuild\References.props" Link="msbuild\References.props" />
+		<None Include="$(SolutionDir)\.msbuild\ReferencesRust.props" Link="msbuild\ReferencesRust.props" />
+		<None Include="$(SolutionDir)\.msbuild\Tasks.targets" Link="msbuild\Tasks.targets" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Startup\Carbon.Startup.csproj" Private="false" />
 	</ItemGroup>
