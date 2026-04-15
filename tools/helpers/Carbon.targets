@@ -11,11 +11,11 @@
         <CarbonManagedLibPath>$(CarbonManagedPath)/lib</CarbonManagedLibPath>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="$(RustServerManagedPath)/*">
-            <Private>false</Private>
+		<Reference Include="$(RustServerManagedPath)/*">
+          <Private>false</Private>
         </Reference>
         <Reference Include="$(RustPatchedManagedPath)/*">
-            <Private>false</Private>
+          <Private>false</Private>
         </Reference>
         <Reference Include="$(CarbonManagedPath)/Carbon.SDK.dll">
             <Private>false</Private>
@@ -35,12 +35,11 @@
         <Reference Include="$(CarbonManagedPath)/Carbon.Common.dll">
             <Private>false</Private>
         </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.Polyfills.dll">
+            <Private>false</Private>
+        </Reference>
         <Reference Include="$(CarbonManagedPath)/Carbon.dll">
             <Private>false</Private>
         </Reference>
-        <PackageReference Include="PolySharp" Version="1.15.0">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
     </ItemGroup>
 </Project>
