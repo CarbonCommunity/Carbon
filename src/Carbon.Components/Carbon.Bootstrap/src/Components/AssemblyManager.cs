@@ -173,6 +173,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"Carbon.Test",
 		"Carbon.Startup",
 		"Carbon.Profiler",
+		"Carbon.Polyfills",
 
 		"MySql.Data",
 		"MySqlConnector",
