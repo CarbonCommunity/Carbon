@@ -51,6 +51,12 @@
       <BuildType Solution="Minimal|*" Project="Debug" />
       <BuildType Solution="ReleaseUnix|*" Project="Debug" />
     </Project>
+    <Project Path="Carbon.UnitTests/Carbon.UnitTests.csproj">
+      <BuildType Solution="DebugUnix|*" Project="Debug" />
+      <BuildType Solution="MinimalUnix|*" Project="Debug" />
+      <BuildType Solution="Minimal|*" Project="Debug" />
+      <BuildType Solution="ReleaseUnix|*" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/Tools/">
     <Project Path="Carbon.Profiler/Carbon.Profiler.csproj">

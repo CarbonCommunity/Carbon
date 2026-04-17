@@ -6,6 +6,7 @@ internal class AppSettings
 	public required string BranchName { get; init; }
 	public required string CarbonDownloadZipUrl { get; init; }
 
+	[System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 	public AppSettings(string workingDir, string branchName, string carbonDownloadZipUrl)
 	{
 		WorkingDir = workingDir ?? throw new ArgumentException(null, nameof(workingDir));
