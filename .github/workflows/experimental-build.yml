@@ -1,19 +1,21 @@
-name: Edge Build
+name: Experimental Build
 concurrency:
-  group: build-edge
+  group: build-experimental
   cancel-in-progress: true
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - develop
-    
-    paths-ignore:
-      - ".github/**/*"
-      - "**/*.md"
-      - "src/Carbon.Tests/**/*"
-      - ".gitignore"
+    inputs:
+      UPDATE_ARG:
+        description: 'Rust server branch'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - public
+          - release
+          - staging
+          - aux01
 
 jobs:
   call-common:
@@ -23,11 +25,13 @@ jobs:
       contents: write
     with:
       # noinspection UndefinedParamsPresent
-      GIT_BRANCH: develop
+      GIT_BRANCH: experimental
+      # noinspection UndefinedParamsPresent
+      UPDATE_ARG: ${{ inputs.UPDATE_ARG }}
       # noinspection UndefinedParamsPresent
       RELEASE_BODY: |
         This is a development build of Carbon based on the latest commit pushed to the repository (`develop` branch).
-        Use this build on the `release` Rust server branch.
+        Use this build on the `${{ needs.configure.outputs.update_arg }}` Rust server branch.
 
         This build is targeted at developers.
         The general public is advised to use the [stable] build. Use the [experimental] build if you want to test out major changes before they are merged into `develop` and released on a stable build.
@@ -48,4 +52,4 @@ jobs:
     needs: call-common
     name: Tests
     with:
-      build_identifier: 'develop'
+      build_identifier: 'qa'
