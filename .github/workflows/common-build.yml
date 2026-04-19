@@ -9,6 +9,10 @@ on:
       RELEASE_BODY:
         required: true
         type: string
+      UPDATE_ARG:
+        required: false
+        type: string
+        default: ''
     secrets:
       PAT_ALL_REPO:
         required: true
@@ -42,6 +46,8 @@ jobs:
       - name: Configure Build
         id: config
         shell: bash
+        env:
+          UPDATE_ARG_OVERRIDE: ${{ inputs.UPDATE_ARG }}
         run: |
           REF="${{ inputs.GIT_BRANCH }}"
           
@@ -70,22 +76,15 @@ jobs:
               MAJOR_VER="2.1"
               RELEASE_NAME="Edge"
               ;;
-            "preview")
-              API_ID="preview"
-              BUILD_DEFINE="PREVIEW"
-              TAG_NAME="preview_build"
-              MAJOR_VER="2.2"
-              RELEASE_NAME="Preview"
-              ;;
-            "qa")
-              API_ID="qa"
-              BUILD_DEFINE="QA"
-              TAG_NAME="qa_build"
+            "experimental")
+              API_ID="experimental"
+              BUILD_DEFINE="EXPERIMENTAL"
+              TAG_NAME="experimental_build"
               UPDATE_ARG="release"
               NATIVE_MODE="both"
               CS_MODE="full"
               MAJOR_VER="2.9"
-              RELEASE_NAME="QA"
+              RELEASE_NAME="Experimental"
               ;;
             "production")
               API_ID="production"
@@ -148,6 +147,11 @@ jobs:
               exit 1
               ;;
           esac
+
+          # Allow caller workflows to override the Rust update branch argument
+          if [ -n "$UPDATE_ARG_OVERRIDE" ]; then
+            UPDATE_ARG="$UPDATE_ARG_OVERRIDE"
+          fi
 
           echo "api_id=$API_ID" >> $GITHUB_OUTPUT
           echo "update_arg=$UPDATE_ARG" >> $GITHUB_OUTPUT
