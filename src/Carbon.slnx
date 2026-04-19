@@ -45,6 +45,9 @@
     </Project>
   </Folder>
   <Folder Name="/Miscellaneous/">
+    <Project Path="Carbon.Polyfills/Carbon.Polyfills.csproj">
+      <Platform Project="x64" />
+    </Project>
     <Project Path="Carbon.Tests/Carbon.Tests.csproj">
       <BuildType Solution="DebugUnix|*" Project="Debug" />
       <BuildType Solution="MinimalUnix|*" Project="Debug" />
