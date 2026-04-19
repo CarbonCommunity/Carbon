@@ -26,11 +26,6 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 	public IAddonManager Hooks { get; private set; }
 	public IAddonManager Modules { get; private set; }
 
-#if EXPERIMENTAL
-	public IAddonManager Plugins
-	{ get => gameObject.GetComponent<PluginManager>(); }
-#endif
-
 	private void Awake()
 	{
 		_library = LibraryLoader.GetInstance();
