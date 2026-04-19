@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - develop
+      - main
     
     paths-ignore:
       - ".github/**/*"
@@ -23,14 +23,14 @@ jobs:
       contents: write
     with:
       # noinspection UndefinedParamsPresent
-      GIT_BRANCH: develop
+      GIT_BRANCH: main
       # noinspection UndefinedParamsPresent
       RELEASE_BODY: |
-        This is a development build of Carbon based on the latest commit pushed to the repository (`develop` branch).
+        This is a development build of Carbon based on the latest commit pushed to the repository (`main` branch).
         Use this build on the `release` Rust server branch.
 
         This build is targeted at developers.
-        The general public is advised to use the [stable] build. Use the [experimental] build if you want to test out major changes before they are merged into `develop` and released on a stable build.
+        The general public is advised to use the [stable] build. Use the [experimental] build if you want to test out major changes before they are merged into `main` and released on a stable build.
         
         ### How to install
         1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
@@ -48,4 +48,4 @@ jobs:
     needs: call-common
     name: Tests
     with:
-      build_identifier: 'develop'
+      build_identifier: 'main'
