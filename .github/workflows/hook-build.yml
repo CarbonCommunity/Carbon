@@ -13,10 +13,10 @@ on:
       carbon_branch:
         description: 'Carbon Branch'
         required: true
-        default: 'develop'
+        default: 'main'
         type: choice
         options:
-          - develop
+          - main
           - preview
           - production
           - rust_beta/release

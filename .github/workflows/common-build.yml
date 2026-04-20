@@ -69,7 +69,7 @@ jobs:
           RELEASE_NAME="Edge"
 
           case "$REF" in
-            "develop")
+            "main")
               API_ID="edge"
               BUILD_DEFINE="EDGE"
               TAG_NAME="edge_build"

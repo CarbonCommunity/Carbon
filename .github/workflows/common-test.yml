@@ -12,10 +12,10 @@ on:
       build_identifier:
         description: 'Carbon Build (and git branch) to run tests on'
         required: true
-        default: 'develop'
+        default: 'main'
         type: choice
         options:
-          - develop
+          - main
           - preview
           - qa
           - production
@@ -43,7 +43,7 @@ jobs:
           RUST_BRANCH="release"
 
           case "$REF" in
-            "develop")
+            "main")
               DOWNLOAD_ID="edge_build"
               ;;
             "preview")

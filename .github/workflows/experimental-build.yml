@@ -30,19 +30,18 @@ jobs:
       UPDATE_ARG: ${{ inputs.UPDATE_ARG }}
       # noinspection UndefinedParamsPresent
       RELEASE_BODY: |
-        This is a development build of Carbon based on the latest commit pushed to the repository (`develop` branch).
-        Use this build on the `${{ needs.configure.outputs.update_arg }}` Rust server branch.
+        This is a development build of Carbon filled with experimental features and tests that may or may not end up being added to the `main` branch.
+        Use this build on the `${{ inputs.UPDATE_ARG }}` Rust server branch.
 
         This build is targeted at developers.
-        The general public is advised to use the [stable] build. Use the [experimental] build if you want to test out major changes before they are merged into `develop` and released on a stable build.
+        The general public is advised to use the [stable] build.
         
         ### How to install
-        1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
+        1. Download the `Carbon.[Windows|Linux].[Debug|Release]` archive from the attachments below.
         2. Unzip the archive to the root of your Rust Dedicated Server.
         3. Restart the server and enjoy.
         
         [stable]: https://github.com/CarbonCommunity/Carbon/releases/latest
-        [experimental]: https://github.com/CarbonCommunity/Carbon/releases/experimental_build
     secrets:
       PAT_ALL_REPO: ${{ secrets.PAT_ALL_REPO }}
       VERSIONS_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
@@ -52,4 +51,4 @@ jobs:
     needs: call-common
     name: Tests
     with:
-      build_identifier: 'qa'
+      build_identifier: 'experimental'
