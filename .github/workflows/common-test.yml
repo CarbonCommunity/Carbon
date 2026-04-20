@@ -16,8 +16,7 @@ on:
         type: choice
         options:
           - main
-          - preview
-          - qa
+          - experimental
           - production
           - rust_beta/release
           - rust_beta/staging
@@ -46,12 +45,8 @@ jobs:
             "main")
               DOWNLOAD_ID="edge_build"
               ;;
-            "preview")
-              DOWNLOAD_ID="preview_build"
-              ;;
-            "qa")
-              DOWNLOAD_ID="qa_build"
-              RUST_BRANCH="release"
+            "experimental")
+              DOWNLOAD_ID="experimental_build"
               ;;
             "production")
               DOWNLOAD_ID="production_build"

@@ -16,6 +16,8 @@ on:
           - release
           - staging
           - aux01
+          - aux02
+          - aux03
 
 jobs:
   call-common:
