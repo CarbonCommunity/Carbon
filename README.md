@@ -12,7 +12,7 @@
     <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/rustbeta_aux02_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/rust-aux02-build.yml/badge.svg" /></a>
   <br />
   <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/profiler_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/profiler-build.yml/badge.svg" /></a>
-  <a href="https://github.com/CarbonCommunity/Carbon/blob/develop/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/CarbonCommunity/Carbon" /></a>
+  <a href="https://github.com/CarbonCommunity/Carbon/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/CarbonCommunity/Carbon" /></a>
   <a href="https://www.nuget.org/packages/Carbon.Community"><img alt="NuGet" src="https://img.shields.io/nuget/v/Carbon.Community.svg" /></a>
   <a href="https://github.com/GameServerManagers/LinuxGSM/releases/latest"><img src="https://img.shields.io/badge/LinuxGSM-v23.2.0-informational" /></a>
   <hr />
@@ -43,16 +43,16 @@ Upon cloning Carbon, all you need to execute is [`setup.bat`](./setup.bat) to in
 
 ### Branches
 The following branches are shared across all Component and Hook projects and synchronized accordingly with the main project ([this one](https://github.com/CarbonCommunity/Carbon)) and its branches.
-- `develop` branch is the primary base branch of Carbon. It's used to be merged into Rust beta branches as well as the `production` (live) branch.
+- `main` branch is the primary base branch of Carbon. It's used to be merged into Rust beta branches as well as the `production` (live) branch.
   - Used against Rust `public` branch.
   - Public [build](https://github.com/CarbonCommunity/Carbon/releases/tag/edge_build), gets updated every time we commit changes to Carbon.
-- `preview` branch is usually synced up with `develop` and has experimental features that may or may not be brought into `develop`.
-  - Used against Rust `public` branch.
+- `experimental` branch is usually synced up with `main` and has experimental features that may or may not be brought into `main`.
+  - Used against Rust `release` branch (usually).
   - Public [build](https://github.com/CarbonCommunity/Carbon/releases/tag/preview_build), gets manually triggered to get updated, not very often.
 - `production` branch is the primary (live) branch of Carbon and [main release](https://github.com/CarbonCommunity/Carbon/releases/tag/production_build) is built off of.
   - Used against Rust `public` branch or `release` on Rust wipe day.
   - Public [build](https://github.com/CarbonCommunity/Carbon/releases/tag/production_build), gets updated twice times a month, excluding important hotfix patches.
-- `rust_beta/staging` is often times synced up with `develop` and has changes that might come to Rust `release|public` branch in a future update, which can contain mandatory changes to Carbon to address the Rust changes.
+- `rust_beta/staging` is often times synced up with `main` and has changes that might come to Rust `release|public` branch in a future update, which can contain mandatory changes to Carbon to address the Rust changes.
   - Used against Rust `staging` branch.
   - Public [build](https://github.com/CarbonCommunity/Carbon/releases/tag/rustbeta_staging_build), gets updated a few times a month. Usually only hooks get updated. Mainly merged from `develop`.
 - `rust_beta/aux01` is often times synced up with `rust_beta/staging` and is minimally supported, just enough to be able to run Carbon on AUX01. This Rust branch is extremely unstable and contains things that may or may not ever be merged to the main version of Rust.

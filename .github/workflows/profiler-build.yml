@@ -36,7 +36,7 @@ jobs:
       - name: Git Clone
         uses: actions/checkout@v6
         with:
-          ref: develop
+          ref: main
           token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
 
@@ -101,8 +101,8 @@ jobs:
         with:
           name: build-${{ matrix.group }}
           path: |
-            Release/Carbon.Linux.Profiler.tar.gz
-            Release/Carbon.Windows.Profiler.zip
+            release/Carbon.Linux.Profiler.tar.gz
+            release/Carbon.Windows.Profiler.zip
 
   release-on-commit:
     name: Profiler Release

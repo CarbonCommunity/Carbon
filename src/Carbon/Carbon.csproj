@@ -28,6 +28,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="$(SolutionDir)\..\tools\build\runners\*" LinkBase="tools\build\runners" />
+		<None Include="$(SolutionDir)\..\tools\build\win\*" LinkBase="tools\build\win" />
+		<None Include="$(SolutionDir)\..\tools\build\linux\*" LinkBase="tools\build\linux" />
+		<None Include="$(SolutionDir)\..\tools\helpers\*" LinkBase="tools\helpers" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="$(SolutionDir)\..\.github\workflows\*" LinkBase="workflows" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Startup\Carbon.Startup.csproj" Private="false" />
 	</ItemGroup>

@@ -1,19 +1,23 @@
-name: Edge Build
+name: Experimental Build
 concurrency:
-  group: build-edge
+  group: build-experimental
   cancel-in-progress: true
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    
-    paths-ignore:
-      - ".github/**/*"
-      - "**/*.md"
-      - "src/Carbon.Tests/**/*"
-      - ".gitignore"
+    inputs:
+      UPDATE_ARG:
+        description: 'Rust server branch'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - public
+          - release
+          - staging
+          - aux01
+          - aux02
+          - aux03
 
 jobs:
   call-common:
@@ -23,17 +27,19 @@ jobs:
       contents: write
     with:
       # noinspection UndefinedParamsPresent
-      GIT_BRANCH: main
+      GIT_BRANCH: experimental
+      # noinspection UndefinedParamsPresent
+      UPDATE_ARG: ${{ inputs.UPDATE_ARG }}
       # noinspection UndefinedParamsPresent
       RELEASE_BODY: |
-        This is a development build of Carbon based on the latest commit pushed to the repository (`main` branch).
-        Use this build on the `release` Rust server branch.
+        This is a development build of Carbon filled with experimental features and tests that may or may not end up being added to the `main` branch.
+        Use this build on the `${{ inputs.UPDATE_ARG }}` Rust server branch.
 
         This build is targeted at developers.
         The general public is advised to use the [stable] build.
         
         ### How to install
-        1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
+        1. Download the `Carbon.[Windows|Linux].[Debug|Release]` archive from the attachments below.
         2. Unzip the archive to the root of your Rust Dedicated Server.
         3. Restart the server and enjoy.
         
@@ -47,4 +53,4 @@ jobs:
     needs: call-common
     name: Tests
     with:
-      build_identifier: 'main'
+      build_identifier: 'experimental'
