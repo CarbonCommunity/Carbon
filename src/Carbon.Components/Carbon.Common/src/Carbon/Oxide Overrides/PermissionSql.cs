@@ -1,6 +1,6 @@
 ﻿using Facepunch;
 
-namespace Carbon.Oxide;
+namespace Carbon.OxideRefs;
 
 public class PermissionSql : Permission
 {
