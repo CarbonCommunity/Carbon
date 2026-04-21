@@ -16,7 +16,7 @@ global using Carbon.Contracts;
 global using Carbon.Core;
 global using Carbon.Extensions;
 global using Carbon.Modules;
-global using Carbon.Oxide;
+global using Carbon.OxideRefs;
 global using Carbon.Plugins;
 global using Carbon.Pooling;
 global using Oxide.Core;
