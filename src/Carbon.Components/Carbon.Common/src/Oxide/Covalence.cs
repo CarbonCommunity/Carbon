@@ -467,7 +467,7 @@ namespace Oxide.Core.Libraries.Covalence
 	}
 }
 
-namespace Carbon.Oxide
+namespace Carbon.OxideRefs
 {
 	public class Element
 	{
