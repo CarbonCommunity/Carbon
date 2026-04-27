@@ -149,6 +149,14 @@ public class HookEx : IDisposable, IHook
 			if (_runtime.Transpiler != null)
 				transpiler = new HarmonyMethod(_runtime.Transpiler, Priority.VeryHigh);
 
+			var dependencyHarmonyIds = ResolveDependencyHarmonyIds();
+			if (dependencyHarmonyIds.Length > 0)
+			{
+				if (prefix != null) prefix.after = dependencyHarmonyIds;
+				if (postfix != null) postfix.after = dependencyHarmonyIds;
+				if (transpiler != null) transpiler.after = dependencyHarmonyIds;
+			}
+
 			if (prefix is null && postfix is null && transpiler is null)
 				throw new Exception($"(prefix, postfix, transpiler not found");
 
@@ -200,6 +208,70 @@ public class HookEx : IDisposable, IHook
 
 		return true;
 	}
+
+	private string[] ResolveDependencyHarmonyIds()
+	{
+		if (Dependencies is not { Length: > 0 })
+		{
+			return [];
+		}
+
+		var hookManager = Community.Runtime?.HookManager;
+		if (hookManager == null)
+		{
+			return [];
+		}
+
+		var resolved = new List<string>();
+
+		AddDependencies(hookManager.LoadedPatches);
+		AddDependencies(hookManager.LoadedDynamicHooks);
+		AddDependencies(hookManager.LoadedStaticHooks);
+
+		return [.. resolved];
+
+		void AddDependencies(IEnumerable<IHook> hooks)
+		{
+			foreach (var hook in hooks)
+			{
+				if (hook is not HookEx hookEx)
+				{
+					continue;
+				}
+
+				bool isDependency = false;
+				for (int i = 0; i < Dependencies.Length; i++)
+				{
+					if (Dependencies[i].Equals(hookEx.HookFullName))
+					{
+						isDependency = true;
+						break;
+					}
+				}
+
+				if (!isDependency)
+				{
+					continue;
+				}
+
+				bool alreadyAdded = false;
+				for (int i = 0; i < resolved.Count; i++)
+				{
+					if (resolved[i].Equals(hookEx.Identifier))
+					{
+						alreadyAdded = true;
+						break;
+					}
+				}
+
+				if (!alreadyAdded)
+				{
+					resolved.Add(hookEx.Identifier);
+				}
+			}
+		}
+	}
+
 	public bool RemovePatch()
 	{
 		try
