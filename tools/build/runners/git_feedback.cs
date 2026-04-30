@@ -15,15 +15,8 @@ using var stream = new System.IO.MemoryStream();
     using var writer = new System.IO.BinaryWriter(stream);
     {
         ProcessRepository("Carbon", Path(home));
-        ProcessRepository("Carbon.Modules", Path(home, "src", "Carbon.Components", "Carbon.Modules"));
-        ProcessRepository("Carbon.Preloader", Path(home, "src", "Carbon.Components", "Carbon.Preloader"));
-        ProcessRepository("Carbon.Startup", Path(home, "src", "Carbon.Components", "Carbon.Startup"));
-        ProcessRepository("Carbon.Test", Path(home, "src", "Carbon.Components", "Carbon.Test"));
         ProcessRepository("Carbon.Native", Path(home, "src", "Carbon.Native"));
         ProcessRepository("Carbon.Profiler", Path(home, "src", "Carbon.Profiler"));
-        ProcessRepository("Carbon.UniTask", Path(home, "src", "Carbon.UniTask"));
-        ProcessRepository("Carbon.Hooks.Base", Path(home, "src", "Carbon.Hooks", "Carbon.Hooks.Base"));
-        ProcessRepository("Carbon.Hooks.Community", Path(home, "src", "Carbon.Hooks", "Carbon.Hooks.Community"));
 
         Task.WaitAll(tasks);
         
