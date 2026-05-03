@@ -89,7 +89,7 @@ jobs:
       - name: Git Clone (Carbon.Hooks)
         uses: actions/checkout@v6
         with:
-          repository: CarbonCommunity/Carbon.Hooks
+          repository: CarbonCommunity/Carbon.Hooks.Generator
           token: ${{ secrets.PAT_ALL_REPO }}
           path: src/Carbon.Hooks/Carbon.Hooks.Internal
 
