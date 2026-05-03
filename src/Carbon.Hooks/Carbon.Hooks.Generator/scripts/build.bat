@@ -57,8 +57,8 @@ echo ** Carbon Bootstrap (%BOOTSTRAP%.bat) [STEAM: %STEAM_TARGET%]
 	set HERE=%cd%
 	cd %CARBON_SLN%\..\
 	echo %cd%
-	rem dotnet run --project "src\Carbon.Tools\Carbon.Runner" "tools\build\runners\bootstrap.cs"
-	rem dotnet run --project "src\Carbon.Tools\Carbon.Runner" "tools\build\runners\update.cs" %STEAM_TARGET%
+	dotnet run --project "src\Carbon.Tools\Carbon.Runner" "tools\build\runners\bootstrap.cs"
+	dotnet run --project "src\Carbon.Tools\Carbon.Runner" "tools\build\runners\update.cs" %STEAM_TARGET%
 	cd %HERE%
 	
 	if NOT "%RUST_OPJ%" EQU "" (
