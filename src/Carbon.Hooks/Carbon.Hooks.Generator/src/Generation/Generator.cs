@@ -9,7 +9,7 @@ using static Carbon.Projects.Oxide.Oxide;
 
 namespace Carbon.Generation;
 
-internal sealed partial class HookahGenerator(HookahGenerationOptions options)
+internal sealed partial class Generator(GeneratorOptions options)
 {
 	private static readonly HashSet<string> LocalBlacklist = new(StringComparer.Ordinal)
 	{

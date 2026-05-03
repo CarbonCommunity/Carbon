@@ -1,13 +1,12 @@
 using System.Text;
 using System.Text.Json;
-using Carbon.Generation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 
-namespace Carbon.Output;
+namespace Carbon.Generation;
 
-internal sealed class HookahOutputWriter(string outputFolder, string managedFolder, bool important, bool deterministic, bool formatOutput)
+internal sealed class OutputWriter(string outputFolder, string managedFolder, bool important, bool deterministic, bool formatOutput)
 {
 	public void CleanOutputFolder()
 	{
@@ -27,7 +26,7 @@ internal sealed class HookahOutputWriter(string outputFolder, string managedFold
 		}
 
 		File.WriteAllText(Path.Combine(outputFolder, "__example.cs.txt"), ProcessSource(BuildExampleSource(report, gameProtocol)));
-		File.WriteAllText(Path.Combine(outputFolder, "__HookahRuntime.cs"), GetRuntimeHelpersSource());
+		File.WriteAllText(Path.Combine(outputFolder, "__GeneratorRuntime.cs"), GetRuntimeHelpersSource());
 		File.WriteAllText(Path.Combine(outputFolder, "_Meta.cs"), BuildMetaSource());
 	}
 
@@ -168,7 +167,7 @@ public class _Meta
 
 			namespace Carbon.Hooks;
 
-			internal static class __HookahRuntime
+			internal static class __GeneratorRuntime
 			{
 				private static readonly ConditionalWeakTable<ILGenerator, Dictionary<int, LocalBuilder>> SyntheticLocals = new();
 

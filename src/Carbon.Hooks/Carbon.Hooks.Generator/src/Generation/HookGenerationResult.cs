@@ -35,4 +35,4 @@ internal sealed record HookGenerationReport(
 	IReadOnlyList<HookGenerationResult> FailedHooks
 );
 
-internal sealed record HookahGenerationOptions(int Jobs, ValidationMode ValidationMode, bool Deterministic);
+internal sealed record GeneratorOptions(int Jobs, ValidationMode ValidationMode, bool Deterministic);
