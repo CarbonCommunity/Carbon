@@ -45,7 +45,7 @@ internal abstract class Program
 			assembly = Assembly.LoadFrom(location);
 		}
 
-		location = Path.Combine(Carbon.Program.Arguments.ManagedFolder, Path.GetFileName(fileName));
+		location = Path.Combine(Generation.Program.Arguments.ManagedFolder, Path.GetFileName(fileName));
 		if (File.Exists(location))
 		{
 			assembly = Assembly.LoadFrom(location);

@@ -29,6 +29,6 @@ internal static class Logger
 
 	internal static string GetAssemblyName()
 	{
-		return typeof(Carbon.Program).Assembly.GetName().Name ?? "Carbon.Hookah";
+		return typeof(Generation.Program).Assembly.GetName().Name ?? "Carbon.Hooks.Generator";
 	}
 }

@@ -1,12 +1,10 @@
 using System.Reflection;
-using Carbon.Generation;
-using Carbon.Output;
 using Carbon.Projects.Oxide;
 using Carbon.Utility;
 using CommandLine;
 using CommandLineArguments = Carbon.Utility.CommandLineArguments;
 
-namespace Carbon;
+namespace Carbon.Generation;
 
 internal static class Program
 {
@@ -23,24 +21,24 @@ internal static class Program
 
 		if (!Directory.Exists(Arguments.ManagedFolder))
 		{
-			throw new Exception($"Managed directory not found at '{Arguments.ManagedFolder}'");
+			throw new Exception("Managed directory not found");
 		}
 
 		AppDomain.CurrentDomain.AssemblyResolve += Utility.Program.AssemblyResolver;
 
 		if (!Directory.Exists(Arguments.OutputFolder))
 		{
-			throw new Exception($"Output directory not found at '{Arguments.OutputFolder}'");
+			throw new Exception("Output directory not found");
 		}
 
-		var writer = new HookahOutputWriter(Arguments.OutputFolder, Arguments.ManagedFolder, Arguments.Important, Arguments.Deterministic,
+		var writer = new OutputWriter(Arguments.OutputFolder, Arguments.ManagedFolder, Arguments.Important, Arguments.Deterministic,
 			Arguments is { FormatOutput: true, DisableOutputFormatting: false });
 		timings.Measure("clean output", writer.CleanOutputFolder);
 
 		var project = timings.Measure("load project", () => Oxide.Load(Arguments.InputFile));
 		var gameProtocol = timings.Measure("resolve game protocol", ResolveGameProtocol);
 
-		var generator = new HookahGenerator(new HookahGenerationOptions(Arguments.Jobs, validationMode, Arguments.Deterministic));
+		var generator = new Generator(new GeneratorOptions(Arguments.Jobs, validationMode, Arguments.Deterministic));
 		var report = timings.Measure("generate hooks", () => generator.Generate(project));
 
 		Console.WriteLine($">> types done:{report.SuccessfulHooks.Count} failed:{report.FailedHooks.Count} types");
@@ -48,7 +46,7 @@ internal static class Program
 		timings.Measure("write output", () => writer.Write(report, gameProtocol));
 		if (!string.IsNullOrWhiteSpace(Arguments.SummaryOutput))
 		{
-			timings.Measure("write summary", () => HookahOutputWriter.WriteSummary(report, gameProtocol, Arguments.SummaryOutput));
+			timings.Measure("write summary", () => OutputWriter.WriteSummary(report, gameProtocol, Arguments.SummaryOutput));
 		}
 
 		if (Arguments.Timings)
