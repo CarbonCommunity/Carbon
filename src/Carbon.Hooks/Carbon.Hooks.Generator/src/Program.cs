@@ -23,14 +23,14 @@ internal static class Program
 
 		if (!Directory.Exists(Arguments.ManagedFolder))
 		{
-			throw new Exception("Managed directory not found");
+			throw new Exception($"Managed directory not found at '{Arguments.ManagedFolder}'");
 		}
 
 		AppDomain.CurrentDomain.AssemblyResolve += Utility.Program.AssemblyResolver;
 
 		if (!Directory.Exists(Arguments.OutputFolder))
 		{
-			throw new Exception("Output directory not found");
+			throw new Exception($"Output directory not found at '{Arguments.OutputFolder}'");
 		}
 
 		var writer = new HookahOutputWriter(Arguments.OutputFolder, Arguments.ManagedFolder, Arguments.Important, Arguments.Deterministic,

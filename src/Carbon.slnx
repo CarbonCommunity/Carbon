@@ -40,6 +40,12 @@
     <Project Path="Carbon.Hooks/Carbon.Hooks.Community/Carbon.Hooks.Community.csproj">
       <Platform Project="x64" />
     </Project>
+    <Project Path="Carbon.Hooks/Carbon.Hooks.Generator/src/Carbon.Hooks.Generator.csproj">
+      <BuildType Solution="DebugUnix|*" Project="Debug" />
+      <BuildType Solution="MinimalUnix|*" Project="Release" />
+      <BuildType Solution="Minimal|*" Project="Release" />
+      <BuildType Solution="ReleaseUnix|*" Project="Release" />
+    </Project>
     <Project Path="Carbon.Hooks/Carbon.Hooks.Oxide/Carbon.Hooks.Oxide.csproj">
       <Platform Project="x64" />
     </Project>

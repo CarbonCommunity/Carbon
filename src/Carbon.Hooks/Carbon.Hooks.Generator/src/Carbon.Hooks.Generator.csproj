@@ -15,4 +15,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Roslynator.CSharp" Version="4.13.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\scripts\*" LinkBase="Scripts" />
+  </ItemGroup>
+
 </Project>
