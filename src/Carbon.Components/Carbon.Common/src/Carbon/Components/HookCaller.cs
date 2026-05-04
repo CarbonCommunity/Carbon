@@ -7,7 +7,7 @@ using static Carbon.HookCallerCommon;
 
 namespace Carbon;
 
-public class HookCallerCommon
+public abstract class HookCallerCommon
 {
 	public readonly Dictionary<int, HookArgPool> _argumentBuffer = [];
 	public readonly Dictionary<uint, DateTime> _lastDeprecatedWarningAt = [];
@@ -75,13 +75,13 @@ public class HookCallerCommon
 		}
 	}
 
-	public virtual object[] AllocateBuffer(int count) => null;
-	public virtual object[] RescaleBuffer(object[] oldBuffer, int newScale, BaseHookable.CachedHook hook) => null;
-	public virtual void ProcessDefaults(object[] buffer, BaseHookable.CachedHook hook) { }
-	public virtual void ReturnBuffer(object[] buffer) { }
+	public abstract object[] AllocateBuffer(int count);
+	public abstract object[] RescaleBuffer(object[] oldBuffer, int newScale, BaseHookable.CachedHook hook);
+	public abstract void ProcessDefaults(object[] buffer, BaseHookable.CachedHook hook);
+	public abstract void ReturnBuffer(object[] buffer);
 
-	public virtual object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args) where T : BaseHookable => null;
-	public virtual object CallDeprecatedHook<T>(T plugin, uint oldHookId, uint newHookId, DateTime expireDate, BindingFlags flags, object[] args) where T : BaseHookable => null;
+	public abstract object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args) where T : BaseHookable;
+	public abstract object CallDeprecatedHook<T>(T plugin, uint oldHookId, uint newHookId, DateTime expireDate, BindingFlags flags, object[] args) where T : BaseHookable;
 
 	public struct Conflict
 	{
