@@ -3,7 +3,7 @@
 
 <p align="center">
   <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/edge_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/edge-build.yml/badge.svg" /></a>
-  <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/preview_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/preview-build.yml/badge.svg" /></a>
+  <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/experimental_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/experimental-build.yml/badge.svg" /></a>
   <a href="https://github.com/CarbonCommunity/Carbon/releases/latest"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/production-build.yml/badge.svg" /></a>
   <br />
     <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/rustbeta_staging_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/rust-staging-build.yml/badge.svg" /></a>
@@ -63,20 +63,21 @@ The following branches are shared across all Component and Hook projects and syn
   - Public [build](https://github.com/CarbonCommunity/Carbon/releases/tag/rustbeta_aux02_build), gets updated a few times a month. Usually only hooks get updated.
 
 ### Components
-- [Carbon.Preloader](https://github.com/CarbonCommunity/Carbon.Preloader/tree/develop): Runtime preloader of dependencies and responsible for the self-updating process. It invokes Carbon.Startup.
-- [Carbon.Startup](https://github.com/CarbonCommunity/Carbon.Startup/tree/main): Handles in-memory Rust assembly patching and publicizing and exporting if Developer Mode is enabled in the config.
+- [Carbon.Preloader](./src/Carbon.Components/Carbon.Preloader): Runtime preloader of dependencies and responsible for the self-updating process. It invokes Carbon.Startup.
+- [Carbon.Startup](./src/Carbon.Components/Carbon.Startup): Handles in-memory Rust assembly patching and publicizing and exporting if Developer Mode is enabled in the config.
 - [Carbon.Bootstrap](./src/Carbon.Components/Carbon.Bootstrap): Initial Carbon execution and boot in the primary app-domain.
 - [Carbon.Common](./src/Carbon.Components/Carbon.Common): The very basis of Carbon, tools and extensions for overall use and functionality. Primarily a centerpiece for all dependant subcomponents.
 - [Carbon.SDK](./src/Carbon.Components/Carbon.SDK): Infrastructural and contractual features with no implementation. An easy way to identify and organize the structure of our systems.
-- [Carbon.Modules](https://github.com/CarbonCommunity/Carbon.Modules/tree/develop): Carbon optional modules expanding functionality, enhanced QoL and tools.
+- [Carbon.Modules](./src/Carbon.Components/Carbon.Modules): Carbon optional modules expanding functionality, enhanced QoL and tools.
 - [Carbon.Compat](./src/Carbon.Components/Carbon.Compat): Previously known as Carbon Compatibility Loader written by Patrette (community member).
-- [Carbon.Test](https://github.com/CarbonCommunity/Carbon.Test/tree/main): Integral implementation for automated testing rules and events.
+- [Carbon.Test](./src/Carbon.Components/Carbon.Test): Integral implementation for automated testing rules and events.
 
 ### Hooks
-Carbon's hooks are managed in a separate location:
-- [Carbon.Hooks.Base](https://github.com/CarbonCommunity/Carbon.Hooks.Base/tree/develop): Includes ground level dynamic and static patching instructions supplementing necessary events for Carbon's own runtime.
-- [Carbon.Hooks.Community](https://github.com/CarbonCommunity/Carbon.Hooks.Community/tree/develop): Community curated patches and hooks.
-- [Carbon.Hooks.Oxide](https://github.com/CarbonCommunity/Carbon.Hooks.Oxide/tree/develop): Oxide compatibility package, primarily utilized for internal use whenever going through the automatic patch code generation process.
+Carbon's hooks are managed in [`src/Carbon.Hooks`](./src/Carbon.Hooks):
+- [Carbon.Hooks.Base](./src/Carbon.Hooks/Carbon.Hooks.Base): Includes ground level dynamic and static patching instructions supplementing necessary events for Carbon's own runtime.
+- [Carbon.Hooks.Community](./src/Carbon.Hooks/Carbon.Hooks.Community): Community curated patches and hooks.
+- [Carbon.Hooks.Generator](./src/Carbon.Hooks/Carbon.Hooks.Generator): Generates Carbon Harmony hooks based on an Oxide `.opj` file.
+- [Carbon.Hooks.Oxide](./src/Carbon.Hooks/Carbon.Hooks.Oxide): Oxide compatibility package, primarily utilized for internal use whenever going through the automatic patch code generation process.
 
 ### Building
 To locally build Carbon from scratch, execute the [`setup.bat`](./setup.bat) or [`setup.sh`](./setup.sh) file, and find the results in the root of Carbon, under `./release`.
@@ -91,6 +92,6 @@ We would like to thank everyone who sponsors us.
 [discord]: https://discord.gg/carbonmod
 [documentation]: https://carbonmod.gg/
 [patreon]: https://patreon.com/CarbonMod
-[production]: https://github.com/CarbonCommunity/Carbon.Core/releases/tag/production_build
+[production]: https://github.com/CarbonCommunity/Carbon/releases/tag/production_build
 [quick-start]: https://github.com/CarbonCommunity/Carbon.QuickStart
 [developer-doc]: https://carbonmod.gg/devs/creating-your-project

@@ -12,6 +12,8 @@ public static class GlobalEx
 		return id > 76561197960265728UL;
 	}
 
+	public static bool IsSteamId(this EncryptedValue<ulong> userID) => ((ulong)userID).IsSteamId();
+
 	[Obsolete("This method is deprecated! Use effect.Clear() instead.")]
 	public static void Clear(this Effect effect, bool _)
 	{
