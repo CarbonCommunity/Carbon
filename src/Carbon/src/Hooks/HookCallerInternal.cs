@@ -104,7 +104,7 @@ public class HookCallerInternal : HookCallerCommon
 		}
 
 		var result = (object)null;
-		var conflicts = Pool.Get<List<Conflict>>();
+		List<Conflict> conflicts = null;
 		var hasRescaledBuffer = false;
 
 		if (hookable.InternalCallHookOverriden)
@@ -117,7 +117,8 @@ public class HookCallerInternal : HookCallerCommon
 			}
 
 			hookable.TrackStart();
-			var beforeMemory = CurrentMemory;
+			var trackMemory = Community.Runtime.Config.Debugging.TrackHookMemory;
+			var beforeMemory = trackMemory ? CurrentMemory : 0L;
 
 			if (hook != null && args != null)
 			{
@@ -146,13 +147,14 @@ public class HookCallerInternal : HookCallerCommon
 
 				if (currentResult != null)
 				{
+					conflicts ??= Pool.Get<List<Conflict>>();
 					HookCaller.ResultOverride(conflicts, hookable, hookId, result = currentResult);
 				}
 			}
 
 			var afterHookTime = hookable.CurrentHookTime;
-			var afterMemory = CurrentMemory;
-			var totalMemory = Mathf.Abs(afterMemory - beforeMemory);
+			var afterMemory = trackMemory ? CurrentMemory : 0L;
+			var totalMemory = trackMemory ? Mathf.Abs(afterMemory - beforeMemory) : 0L;
 
 			hook?.OnFired(hookable, afterHookTime, totalMemory);
 
@@ -196,6 +198,7 @@ public class HookCallerInternal : HookCallerCommon
 
 							if (currentResult != null)
 							{
+								conflicts ??= Pool.Get<List<Conflict>>();
 								HookCaller.ResultOverride(conflicts, hookable, hookId, result = currentResult);
 								break;
 							}
@@ -289,7 +292,10 @@ public class HookCallerInternal : HookCallerCommon
 				HookCaller.Caller.ReturnBuffer(buffer);
 			}
 
-			Pool.FreeUnmanaged(ref conflicts);
+			if (conflicts != null)
+			{
+				Pool.FreeUnmanaged(ref conflicts);
+			}
 		}
 
 		return result;
