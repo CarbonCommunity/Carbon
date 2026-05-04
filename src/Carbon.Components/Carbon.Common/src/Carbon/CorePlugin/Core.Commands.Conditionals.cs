@@ -33,7 +33,7 @@ public partial class CorePlugin
 				}
 				plugin.ProcessorProcess.Dispose();
 				plugin.ProcessorProcess.Execute(plugin.Processor);
-				package.Plugins.Remove(plugin);
+				package.RemovePlugin(plugin);
 			}
 		}
 	}
@@ -69,7 +69,7 @@ public partial class CorePlugin
 				}
 				plugin.ProcessorProcess.Dispose();
 				plugin.ProcessorProcess.Execute(plugin.Processor);
-				package.Plugins.Remove(plugin);
+				package.RemovePlugin(plugin);
 			}
 		}
 	}
