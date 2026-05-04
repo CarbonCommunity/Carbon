@@ -285,8 +285,9 @@ public static class HookCaller
 		var localResult = result = conflicts[0].Result;
 		var differentResults = false;
 
-		foreach (var conflict in conflicts)
+		for(int i = 0; i < conflicts.Count; i++)
 		{
+			var conflict = conflicts[i];
 			if (localResult == null || (conflict.Result != null && conflict.Result.Equals(localResult)))
 			{
 				continue;
