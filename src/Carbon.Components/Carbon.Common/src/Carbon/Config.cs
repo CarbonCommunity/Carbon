@@ -99,6 +99,7 @@ public class Config
 	{
 		public string ScriptDebuggingOrigin = string.Empty;
 		public int HookLagSpikeThreshold = 1000;
+		public bool TrackHookMemory = true;
 	}
 
 	public class LoggingConfig
