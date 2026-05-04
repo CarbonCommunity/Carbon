@@ -1,6 +1,5 @@
-﻿using System.Text;
-using Carbon.Base.Interfaces;
-using HarmonyLib;
+﻿using Carbon.Base.Interfaces;
+using Facepunch;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1420,18 +1419,19 @@ public static class HookCaller
 
 	public static void HandleVersionConditionals(CompilationUnitSyntax input, List<string> conditionals)
 	{
-		var directives = GetDirectives();
+		using var directives = Pool.Get<PooledList<string>>();
+		GetDirectives(directives);
 
-		foreach (var directive in directives)
+		for(int i = 0; i < directives.Count; i++)
 		{
+			var directive = directives[i];
 			var processedDirective = directive.Replace(_ifDirective, string.Empty).Replace(_elifDirective, string.Empty).Trim();
 
 			var subdirectivesSplit = processedDirective.Split(_operatorsStrings, StringSplitOptions.RemoveEmptyEntries);
 
-			foreach (var subdirective in subdirectivesSplit)
+			for(int j = 0; j < subdirectivesSplit.Length; j++)
 			{
-				var processedSubdirective = subdirective.Trim();
-
+				var processedSubdirective = subdirectivesSplit[j].Trim();
 				var split = processedSubdirective.Split(_underscoreChar);
 
 				if (split.Length < 3)
@@ -1483,7 +1483,7 @@ public static class HookCaller
 
 		}
 
-		IEnumerable<string> GetDirectives()
+		void GetDirectives(List<string> output)
 		{
 			foreach (var child in input.DescendantNodesAndTokensAndSelf())
 			{
@@ -1500,14 +1500,19 @@ public static class HookCaller
 
 					if (element != null)
 					{
-						yield return element.GetText().ToString();
+						output.Add(element.GetText().ToString());
 					}
 				}
 				else
 				{
-					foreach (var element in child.AsToken().LeadingTrivia.Where(x => x.IsDirective && (x.IsKind(SyntaxKind.IfDirectiveTrivia) || x.IsKind(SyntaxKind.ElifDirectiveTrivia))).Select(x => x.GetStructure()))
+					var trivia = child.AsToken().LeadingTrivia;
+					for (int t = 0; t < trivia.Count; t++)
 					{
-						yield return element.GetText().ToString();
+						var x = trivia[t];
+						if(x.IsDirective && (x.IsKind(SyntaxKind.IfDirectiveTrivia) || x.IsKind(SyntaxKind.ElifDirectiveTrivia)))
+						{
+							output.Add(x.GetStructure().GetText().ToString());
+						}
 					}
 				}
 			}
