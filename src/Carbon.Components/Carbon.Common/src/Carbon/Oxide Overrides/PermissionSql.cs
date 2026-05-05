@@ -16,7 +16,6 @@ public class PermissionSql : Permission
 		db = new PermissionDatabase();
 		db.Open(path, true);
 		db.Execute("PRAGMA foreign_keys = ON");
-		db.Execute("PRAGMA synchronous = FULL");
 		db.Execute("PRAGMA wal_autocheckpoint = 1000");
 		db.Execute("PRAGMA busy_timeout = 5000");
 		db.Execute("CREATE TABLE IF NOT EXISTS users ( userId TEXT PRIMARY KEY, lastSeenNickname TEXT, language TEXT )");
@@ -39,45 +38,58 @@ public class PermissionSql : Permission
 	public void MigrateFromProto(Permission database)
 	{
 		Logger.Log($"Migrating database..");
-		var totalPerms = 0;
-		foreach (var perm in database.permset)
+
+		db?.Execute("BEGIN IMMEDIATE TRANSACTION");
+		try
 		{
-			permset[perm.Key] = perm.Value;
-			totalPerms += perm.Value.Count;
-		}
-		Logger.Log($" Migrating {database.permset.Count:n0} plugins with {totalPerms:n0} perms..");
-		foreach (var group in database.groupdata)
-		{
-			CreateGroup(group.Key, group.Value.Title, group.Value.Rank);
-			SetGroupParent(group.Key, group.Value.ParentGroup);
-			foreach (var perm in group.Value.Perms)
+			var totalPerms = 0;
+			foreach (var perm in database.permset)
 			{
-				GrantGroupPermission(group.Key, perm, null);
-				db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", group.Key, perm);
+				permset[perm.Key] = perm.Value;
+				totalPerms += perm.Value.Count;
 			}
-			Logger.Log($" Group {group.Key} with {group.Value.Perms.Count} perms");
-		}
-		Logger.Log($" Migrating {database.userdata.Count:n0} users..");
-		foreach (var user in database.userdata)
-		{
-			userdata[user.Key] = user.Value;
-			CommitUser(user.Key, user.Value);
-			foreach (var group in user.Value.Groups)
+			Logger.Log($" Migrating {database.permset.Count:n0} plugins with {totalPerms:n0} perms..");
+			foreach (var group in database.groupdata)
 			{
-				var selfGroup = group;
-				if (!group.IsLower())
+				CreateGroup(group.Key, group.Value.Title, group.Value.Rank);
+				SetGroupParent(group.Key, group.Value.ParentGroup);
+				foreach (var perm in group.Value.Perms)
 				{
-					selfGroup = group.ToLowerInvariant();
+					GrantGroupPermission(group.Key, perm, null);
+					db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", group.Key, perm);
 				}
-				AddUserGroup(user.Key, selfGroup);
-				db?.Execute("INSERT OR IGNORE INTO userGroups ( userId, groupName ) VALUES ( ?, ? )", user.Key, selfGroup);
+				Logger.Log($" Group {group.Key} with {group.Value.Perms.Count} perms");
 			}
-			foreach (var perm in user.Value.Perms)
+			Logger.Log($" Migrating {database.userdata.Count:n0} users..");
+			foreach (var user in database.userdata)
 			{
-				GrantUserPermission(user.Key, perm, null);
-				db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", user.Key, perm);
+				userdata[user.Key] = user.Value;
+				CommitUser(user.Key, user.Value);
+				foreach (var group in user.Value.Groups)
+				{
+					var selfGroup = group;
+					if (!group.IsLower())
+					{
+						selfGroup = group.ToLowerInvariant();
+					}
+					AddUserGroup(user.Key, selfGroup);
+					db?.Execute("INSERT OR IGNORE INTO userGroups ( userId, groupName ) VALUES ( ?, ? )", user.Key, selfGroup);
+				}
+				foreach (var perm in user.Value.Perms)
+				{
+					GrantUserPermission(user.Key, perm, null);
+					db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", user.Key, perm);
+				}
 			}
+
+			db?.Execute("COMMIT");
 		}
+		catch
+		{
+			db?.Execute("ROLLBACK");
+			throw;
+		}
+
 		Logger.Log($"Successfully migrated database!");
 	}
 
@@ -192,85 +204,99 @@ public class PermissionSql : Permission
 
 	public override bool GrantGroupPermission(string name, string perm, BaseHookable owner)
 	{
-		if (base.GrantGroupPermission(name, perm, owner))
+		if (!base.GrantGroupPermission(name, perm, owner))
 		{
-			if (!name.IsLower())
-			{
-				name = name.ToLower();
-			}
-			if (!perm.IsLower())
-			{
-				perm = perm.ToLower();
-			}
+			return false;
+		}
 
-			if (perm.EndsWith(StarStr))
-			{
-				HashSet<string> source;
-				if (owner == null)
-				{
-					source = new HashSet<string>(permset.Values.SelectMany(v => v));
-				}
-				else if (!permset.TryGetValue(owner, out source))
-				{
-					return false;
-				}
+		if (!name.IsLower())
+		{
+			name = name.ToLower();
+		}
+		if (!perm.IsLower())
+		{
+			perm = perm.ToLower();
+		}
 
-				if (perm.Equals(StarStr))
-				{
-					foreach (var s in source)
-					{
-						db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", name, s);
-					}
-					return true;
-				}
-
-				perm = perm.TrimEnd(Star);
-				foreach (var s in source)
-				{
-					if (!s.StartsWith(perm))
-					{
-						continue;
-					}
-					db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", name, s);
-				}
-				return true;
-			}
-
-			db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", name, perm);
+		if (perm.Length > 0 && perm[perm.Length - 1] == '*')
+		{
+			SqlInsertWildcardGroupPerms(name, perm, owner);
 			return true;
 		}
-		return false;
+
+		db?.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", name, perm);
+		return true;
+	}
+
+	private void SqlInsertWildcardGroupPerms(string name, string perm, BaseHookable owner)
+	{
+		if (db == null) return;
+
+		var prefixLen = perm.Length == 1 ? 0 : perm.Length - 1;
+
+		db.Execute("BEGIN IMMEDIATE TRANSACTION");
+		try
+		{
+			if (owner == null)
+			{
+				foreach (var kvp in permset)
+				{
+					var src = kvp.Value;
+					if (src.Count == 0) continue;
+					foreach (var s in src)
+					{
+						if (prefixLen > 0 && !StartsWithPrefix(s, perm, prefixLen)) continue;
+						db.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", name, s);
+					}
+				}
+			}
+			else if (permset.TryGetValue(owner, out var ownerSet) && ownerSet.Count > 0)
+			{
+				foreach (var s in ownerSet)
+				{
+					if (prefixLen > 0 && !StartsWithPrefix(s, perm, prefixLen)) continue;
+					db.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", name, s);
+				}
+			}
+			db.Execute("COMMIT");
+		}
+		catch
+		{
+			db.Execute("ROLLBACK");
+			throw;
+		}
 	}
 
 	public override bool RevokeGroupPermission(string name, string perm)
 	{
-		if (base.RevokeGroupPermission(name, perm))
+		if (!base.RevokeGroupPermission(name, perm))
 		{
-			if (!name.IsLower())
-			{
-				name = name.ToLower();
-			}
-			if (!perm.IsLower())
-			{
-				perm = perm.ToLower();
-			}
+			return false;
+		}
 
-			if (perm.EndsWith(StarStr))
+		if (!name.IsLower())
+		{
+			name = name.ToLower();
+		}
+		if (!perm.IsLower())
+		{
+			perm = perm.ToLower();
+		}
+
+		if (perm.Length > 0 && perm[perm.Length - 1] == '*')
+		{
+			if (perm.Length == 1)
 			{
-				if (perm.Equals(StarStr))
-				{
-					db?.Execute("DELETE FROM groupsPerms WHERE groupName = ?", name);
-					return true;
-				}
-				perm = perm.TrimEnd(Star);
-				db?.Execute("DELETE FROM groupsPerms WHERE groupName = ? AND permission LIKE ?", name, perm + "%");
+				db?.Execute("DELETE FROM groupsPerms WHERE groupName = ?", name);
 				return true;
 			}
 
-			db?.Execute("DELETE FROM groupsPerms WHERE groupName = ? AND permission = ?", name, perm);
+			db?.Execute("DELETE FROM groupsPerms WHERE groupName = ? AND permission LIKE ?", name, perm.Substring(0, perm.Length - 1) + "%");
 			return true;
 		}
-		return false;
+
+		db?.Execute("DELETE FROM groupsPerms WHERE groupName = ? AND permission = ?", name, perm);
+		return true;
 	}
 
 	#endregion
@@ -349,8 +375,10 @@ public class PermissionSql : Permission
 			return;
 		}
 
-		db.Execute("INSERT OR IGNORE INTO users ( userId, lastSeenNickname, language ) VALUES ( ?, ?, ? )", userId, data.LastSeenNickname, data.Language);
-		db.Execute("UPDATE users SET lastSeenNickname = ?, language = ? WHERE userId = ?", data.LastSeenNickname, data.Language, userId);
+		db.Execute(
+			"INSERT INTO users ( userId, lastSeenNickname, language ) VALUES ( ?, ?, ? ) " +
+			"ON CONFLICT(userId) DO UPDATE SET lastSeenNickname = excluded.lastSeenNickname, language = excluded.language",
+			userId, data.LastSeenNickname, data.Language);
 	}
 
 	public override bool GrantUserPermission(string id, string perm, BaseHookable owner)
@@ -367,67 +395,83 @@ public class PermissionSql : Permission
 			perm = perm.ToLower();
 		}
 
-		if (perm.EndsWith(StarStr))
+		if (perm.Length > 0 && perm[perm.Length - 1] == '*')
 		{
-			HashSet<string> source;
-			if (owner == null)
-			{
-				source = new HashSet<string>(permset.Values.SelectMany(v => v));
-			}
-			else if (!permset.TryGetValue(owner, out source))
-			{
-				return false;
-			}
+			return SqlGrantWildcardUser(data.Perms, perm, owner, id);
+		}
 
-			if (perm.Equals(StarStr))
+		if (!data.Perms.Add(perm))
+		{
+			return false;
+		}
+
+		db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", id, perm);
+
+		// OnUserPermissionGranted
+		HookCaller.CallStaticHook(4054877424, id, perm);
+		return true;
+	}
+
+	private bool SqlGrantWildcardUser(HashSet<string> target, string perm, BaseHookable owner, string id)
+	{
+		var prefixLen = perm.Length == 1 ? 0 : perm.Length - 1;
+
+		using var added = Pool.Get<PooledList<string>>();
+
+		if (owner == null)
+		{
+			foreach (var kvp in permset)
 			{
-				return source.Aggregate(false, (c, s) =>
+				var src = kvp.Value;
+				if (src.Count == 0) continue;
+				foreach (var s in src)
 				{
-					if (!(c | data.Perms.Add(s)))
-					{
-						return false;
-					}
-
-					db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", id, s);
-
-					// OnUserPermissionGranted
-					HookCaller.CallStaticHook(4054877424, id, s);
-					return true;
-
-				});
-			}
-			perm = perm.TrimEnd(Star);
-
-			return (from s in source
-				where s.StartsWith(perm)
-				select s).Aggregate(false, (c, s) =>
-			{
-				if (!(c | data.Perms.Add(s)))
-				{
-					return false;
+					if (prefixLen > 0 && !StartsWithPrefix(s, perm, prefixLen)) continue;
+					if (target.Add(s)) added.Add(s);
 				}
-
-				db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", id, s);
-
-				// OnUserPermissionGranted
-				HookCaller.CallStaticHook(4054877424, id, s);
-				return true;
-
-			});
+			}
 		}
 		else
 		{
-			if (!data.Perms.Add(perm))
+			if (!permset.TryGetValue(owner, out var ownerSet) || ownerSet.Count == 0)
 			{
 				return false;
 			}
 
-			db?.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", id, perm);
-
-			// OnUserPermissionGranted
-			HookCaller.CallStaticHook(4054877424, id, perm);
-			return true;
+			foreach (var s in ownerSet)
+			{
+				if (prefixLen > 0 && !StartsWithPrefix(s, perm, prefixLen)) continue;
+				if (target.Add(s)) added.Add(s);
+			}
 		}
+
+		if (added.Count == 0) return false;
+
+		if (db != null)
+		{
+			db.Execute("BEGIN IMMEDIATE TRANSACTION");
+			try
+			{
+				for (var i = 0; i < added.Count; i++)
+				{
+					db.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", id, added[i]);
+				}
+				db.Execute("COMMIT");
+			}
+			catch
+			{
+				db.Execute("ROLLBACK");
+				throw;
+			}
+		}
+
+		for (var i = 0; i < added.Count; i++)
+		{
+			// OnUserPermissionGranted
+			HookCaller.CallStaticHook(4054877424, id, added[i]);
+		}
+
+		return true;
 	}
 
 	public override bool RevokeUserPermission(string id, string perm)
@@ -438,55 +482,71 @@ public class PermissionSql : Permission
 		}
 
 		var userData = GetUserData(id);
+		if (userData.Perms.Count == 0) return false;
 
 		if (!perm.IsLower())
 		{
 			perm = perm.ToLower();
 		}
 
-		if (perm.EndsWith(StarStr))
+		if (perm.Length > 0 && perm[perm.Length - 1] == '*')
 		{
-			if (!perm.Equals(StarStr))
+			if (perm.Length == 1)
 			{
-				perm = perm.TrimEnd(Star);
+				using var snapshot = Pool.Get<PooledList<string>>();
+				snapshot.AddRange(userData.Perms);
 
-				return userData.Perms.RemoveWhere(s =>
+				db?.Execute("DELETE FROM userPerms WHERE userId = ?", id);
+				userData.Perms.Clear();
+
+				for (var i = 0; i < snapshot.Count; i++)
 				{
-					if (!s.StartsWith(perm))
-					{
-						return false;
-					}
-
-					db?.Execute("DELETE FROM userPerms WHERE userId = ? AND permission = ?", id, s);
-
 					// OnUserPermissionRevoked
-					HookCaller.CallStaticHook(1879829838, id, s);
-					return true;
-				}) > 0;
+					HookCaller.CallStaticHook(1879829838, id, snapshot[i]);
+				}
+				return true;
 			}
 
-			if (userData.Perms.Count <= 0)
-			{
-				return false;
-			}
-
-			db?.Execute("DELETE FROM userPerms WHERE userId = ?", id);
-			userData.Perms.Clear();
-			return true;
+			return SqlRevokeWildcardUser(userData.Perms, perm, id);
 		}
-		else
+
+		if (!userData.Perms.Remove(perm))
 		{
-			if (!userData.Perms.Remove(perm))
-			{
-				return false;
-			}
-
-			db?.Execute("DELETE FROM userPerms WHERE userId = ? AND permission = ?", id, perm);
-
-			// OnUserPermissionRevoked
-			HookCaller.CallStaticHook(1879829838, id, perm);
-			return true;
+			return false;
 		}
+
+		db?.Execute("DELETE FROM userPerms WHERE userId = ? AND permission = ?", id, perm);
+
+		// OnUserPermissionRevoked
+		HookCaller.CallStaticHook(1879829838, id, perm);
+		return true;
+	}
+
+	private bool SqlRevokeWildcardUser(HashSet<string> perms, string perm, string id)
+	{
+		var prefixLen = perm.Length - 1;
+
+		using var matched = Pool.Get<PooledList<string>>();
+		foreach (var s in perms)
+		{
+			if (StartsWithPrefix(s, perm, prefixLen)) matched.Add(s);
+		}
+
+		if (matched.Count == 0) return false;
+
+		db?.Execute("DELETE FROM userPerms WHERE userId = ? AND permission LIKE ?", id, perm.Substring(0, prefixLen) + "%");
+
+		for (var i = 0; i < matched.Count; i++)
+		{
+			var s = matched[i];
+			if (perms.Remove(s))
+			{
+				// OnUserPermissionRevoked
+				HookCaller.CallStaticHook(1879829838, id, s);
+			}
+		}
+
+		return true;
 	}
 
 	public override void AddUserGroup(string id, string name, bool addIfNotExisting = false)
@@ -512,36 +572,38 @@ public class PermissionSql : Permission
 		{
 			name = name.ToLower();
 		}
-		if (!GroupExists(name)) return;
 
-		var userData = GetUserData(id);
-
-		if (name.Equals(StarStr))
+		if (name.Length == 1 && name[0] == '*')
 		{
-			if (userData.Groups.Count <= 0)
-			{
-				return;
-			}
+			var userData = GetUserData(id);
+			if (userData.Groups.Count == 0) return;
 
-			using var groups = Pool.Get<PooledList<string>>();
-			groups.AddRange(userData.Groups);
-			foreach (var group in groups)
+			using var snapshot = Pool.Get<PooledList<string>>();
+			snapshot.AddRange(userData.Groups);
+
+			userData.Groups.Clear();
+			db?.Execute("DELETE FROM userGroups WHERE userId = ?", id);
+
+			for (var i = 0; i < snapshot.Count; i++)
 			{
-				RemoveUserGroup(id, group);
+				// OnUserGroupRemoved
+				HookCaller.CallStaticHook(1018697706, id, snapshot[i]);
 			}
+			return;
 		}
-		else
+
+		if (!groupdata.ContainsKey(name)) return;
+
+		var ud = GetUserData(id);
+		if (ud.Groups.Count == 0 || !ud.Groups.Remove(name))
 		{
-			if (!userData.Groups.Remove(name))
-			{
-				return;
-			}
-
-			db?.Execute("DELETE FROM userGroups WHERE userId = ? AND groupName = ?", id, name);
-
-			// OnUserGroupRemoved
-			HookCaller.CallStaticHook(1018697706, id, name);
+			return;
 		}
+
+		db?.Execute("DELETE FROM userGroups WHERE userId = ? AND groupName = ?", id, name);
+
+		// OnUserGroupRemoved
+		HookCaller.CallStaticHook(1018697706, id, name);
 	}
 
 	public override KeyValuePair<string, UserData> FindUser(string id)
