@@ -28,14 +28,13 @@ public static class SelfUpdater
 	private static string Tag => Release switch
 	{
 		ReleaseType.Edge => "edge_build",
-		ReleaseType.Preview => "preview_build",
+		ReleaseType.Experimental => "experimental_build",
 		ReleaseType.RustRelease => "rustbeta_release_build",
 		ReleaseType.RustStaging => "rustbeta_staging_build",
 		ReleaseType.RustAux01 => "rustbeta_aux01_build",
 		ReleaseType.RustAux02 => "rustbeta_aux02_build",
 		ReleaseType.RustAux03 => "rustbeta_aux03_build",
 		ReleaseType.Production => "production_build",
-		ReleaseType.QA => "qa_build",
 		_ => throw new ArgumentOutOfRangeException()
 	};
 	private static string File => Platform switch
@@ -47,7 +46,7 @@ public static class SelfUpdater
 	private static string LocalProtocolFile => Path.Combine(Defines.GetRootFolder(), ".protocol");
 
 	private enum OsType { Windows, Linux }
-	private enum ReleaseType { Edge, Preview, RustRelease, RustStaging, RustAux01, RustAux02, RustAux03, Production, QA }
+	private enum ReleaseType { Edge, Experimental, RustRelease, RustStaging, RustAux01, RustAux02, RustAux03, Production }
 
 	internal static void Init()
 	{
@@ -60,8 +59,8 @@ public static class SelfUpdater
 		Release =
 #if PROD
 		ReleaseType.Production;
-#elif PREVIEW
-		ReleaseType.Preview;
+#elif EXPERIMENTAL
+		ReleaseType.Experimental;
 #elif RUST_STAGING
 		ReleaseType.RustStaging;
 #elif RUST_RELEASE
@@ -72,8 +71,6 @@ public static class SelfUpdater
 		ReleaseType.RustAux02;
 #elif RUST_AUX03
 		ReleaseType.RustAux03;
-#elif QA
-		ReleaseType.QA;
 #else
 		ReleaseType.Edge;
 #endif

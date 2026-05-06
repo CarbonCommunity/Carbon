@@ -1,0 +1,56 @@
+name: Experimental Build
+concurrency:
+  group: build-experimental
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      UPDATE_ARG:
+        description: 'Rust server branch'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - public
+          - release
+          - staging
+          - aux01
+          - aux02
+          - aux03
+
+jobs:
+  call-common:
+    uses: ./.github/workflows/common-build.yml
+    name: Build
+    permissions:
+      contents: write
+    with:
+      # noinspection UndefinedParamsPresent
+      GIT_BRANCH: experimental
+      # noinspection UndefinedParamsPresent
+      UPDATE_ARG: ${{ inputs.UPDATE_ARG }}
+      # noinspection UndefinedParamsPresent
+      RELEASE_BODY: |
+        This is a development build of Carbon filled with experimental features and tests that may or may not end up being added to the `main` branch.
+        Use this build on the `${{ inputs.UPDATE_ARG }}` Rust server branch.
+
+        This build is targeted at developers.
+        The general public is advised to use the [stable] build.
+        
+        ### How to install
+        1. Download the `Carbon.[Windows|Linux].[Debug|Release]` archive from the attachments below.
+        2. Unzip the archive to the root of your Rust Dedicated Server.
+        3. Restart the server and enjoy.
+        
+        [stable]: https://github.com/CarbonCommunity/Carbon/releases/latest
+    secrets:
+      PAT_ALL_REPO: ${{ secrets.PAT_ALL_REPO }}
+      VERSIONS_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
+
+  call-tests:
+    uses: ./.github/workflows/common-test.yml
+    needs: call-common
+    name: Tests
+    with:
+      build_identifier: 'experimental'

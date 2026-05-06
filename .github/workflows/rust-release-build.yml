@@ -23,7 +23,7 @@ jobs:
         Since it's manually triggered, we're confident you should use this build to test out the latest Carbon changes.
 
         ### How to install
-        1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
+        1. Download the `Carbon.[Windows|Linux].[Debug|Release]` archive from the attachments below.
         2. Unzip the archive to the root of your Rust Dedicated Server.
         3. Restart the server and enjoy.
 

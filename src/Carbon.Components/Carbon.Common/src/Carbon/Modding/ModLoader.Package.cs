@@ -15,6 +15,8 @@ public static partial class ModLoader
 		[JsonProperty] public bool IsCoreMod;
 		[JsonProperty] public List<RustPlugin> Plugins;
 
+		public Dictionary<string, RustPlugin> Index;
+
 		public bool IsValid { get; internal set; }
 		public readonly int PluginCount => IsValid ? Plugins.Count : default;
 
@@ -26,6 +28,7 @@ public static partial class ModLoader
 			}
 
 			Plugins.Add(plugin);
+			if (Index != null && plugin.Name != null) Index[plugin.Name] = plugin;
 			return this;
 		}
 		public Package RemovePlugin(RustPlugin plugin)
@@ -36,11 +39,16 @@ public static partial class ModLoader
 			}
 
 			Plugins.Remove(plugin);
+			if (Index != null && plugin.Name != null && Index.TryGetValue(plugin.Name, out var indexed) && ReferenceEquals(indexed, plugin))
+			{
+				Index.Remove(plugin.Name);
+			}
 			return this;
 		}
 		public RustPlugin FindPlugin(string name)
 		{
-			return Plugins?.FirstOrDefault(x => x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+			if (string.IsNullOrEmpty(name) || Index == null) return null;
+			return Index.TryGetValue(name, out var plugin) ? plugin : null;
 		}
 
 		public static Package Get(string name, bool isCoreMod, string file = null)
@@ -50,6 +58,7 @@ public static partial class ModLoader
 			package.File = file;
 			package.IsCoreMod = isCoreMod;
 			package.Plugins = new();
+			package.Index = new(StringComparer.OrdinalIgnoreCase);
 			package.IsValid = true;
 			return package;
 		}

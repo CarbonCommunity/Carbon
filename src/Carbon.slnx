@@ -31,7 +31,9 @@
     <Project Path="Carbon.Components/Carbon.Startup/Carbon.Startup.csproj">
       <Platform Project="x64" />
     </Project>
-    <Project Path="Carbon.Components/Carbon.Test/Carbon.Test.csproj" />
+    <Project Path="Carbon.Components/Carbon.Test/Carbon.Test.csproj">
+      <Platform Project="x64" />
+    </Project>
   </Folder>
   <Folder Name="/Hooks/">
     <Project Path="Carbon.Hooks/Carbon.Hooks.Base/Carbon.Hooks.Base.csproj">
@@ -40,16 +42,25 @@
     <Project Path="Carbon.Hooks/Carbon.Hooks.Community/Carbon.Hooks.Community.csproj">
       <Platform Project="x64" />
     </Project>
+    <Project Path="Carbon.Hooks/Carbon.Hooks.Generator/src/Carbon.Hooks.Generator.csproj">
+      <BuildType Solution="DebugUnix|*" Project="Debug" />
+      <BuildType Solution="MinimalUnix|*" Project="Release" />
+      <BuildType Solution="Minimal|*" Project="Release" />
+      <BuildType Solution="ReleaseUnix|*" Project="Release" />
+    </Project>
     <Project Path="Carbon.Hooks/Carbon.Hooks.Oxide/Carbon.Hooks.Oxide.csproj">
       <Platform Project="x64" />
     </Project>
   </Folder>
   <Folder Name="/Miscellaneous/">
+    <Project Path="Carbon.Polyfills/Carbon.Polyfills.csproj">
+      <Platform Project="x64" />
+    </Project>
     <Project Path="Carbon.Tests/Carbon.Tests.csproj">
       <BuildType Solution="DebugUnix|*" Project="Debug" />
-      <BuildType Solution="MinimalUnix|*" Project="Debug" />
-      <BuildType Solution="Minimal|*" Project="Debug" />
-      <BuildType Solution="ReleaseUnix|*" Project="Debug" />
+      <BuildType Solution="MinimalUnix|*" Project="Release" />
+      <BuildType Solution="Minimal|*" Project="Release" />
+      <BuildType Solution="ReleaseUnix|*" Project="Release" />
     </Project>
   </Folder>
   <Folder Name="/Tools/">
@@ -59,16 +70,16 @@
     <Project Path="Carbon.Tools/Carbon.Generator.Shared/Carbon.Generator.Shared.shproj" />
     <Project Path="Carbon.Tools/Carbon.SourceGenerators/Carbon.SourceGenerators.csproj">
       <BuildType Solution="DebugUnix|*" Project="Debug" />
-      <BuildType Solution="MinimalUnix|*" Project="Debug" />
-      <BuildType Solution="Minimal|*" Project="Debug" />
-      <BuildType Solution="ReleaseUnix|*" Project="Debug" />
+      <BuildType Solution="MinimalUnix|*" Project="Release" />
+      <BuildType Solution="Minimal|*" Project="Release" />
+      <BuildType Solution="ReleaseUnix|*" Project="Release" />
     </Project>
     <Project Path="Carbon.Tools/Carbon.Publicizer.Shared/Carbon.Publicizer.Shared.shproj" />
     <Project Path="Carbon.Tools/Carbon.Publicizer/Carbon.Publicizer.csproj">
       <BuildType Solution="DebugUnix|*" Project="Debug" />
-      <BuildType Solution="MinimalUnix|*" Project="Debug" />
-      <BuildType Solution="Minimal|*" Project="Debug" />
-      <BuildType Solution="ReleaseUnix|*" Project="Debug" />
+      <BuildType Solution="MinimalUnix|*" Project="Release" />
+      <BuildType Solution="Minimal|*" Project="Release" />
+      <BuildType Solution="ReleaseUnix|*" Project="Release" />
     </Project>
   </Folder>
   <Project Path="Carbon/Carbon.csproj">
