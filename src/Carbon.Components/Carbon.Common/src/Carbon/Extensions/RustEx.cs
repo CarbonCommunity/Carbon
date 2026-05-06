@@ -1,0 +1,4 @@
+﻿public static class RustEx
+{
+	public static void SendFullSnapshot(this BasePlayer player) => player.SendCompleteSnapshot();
+}

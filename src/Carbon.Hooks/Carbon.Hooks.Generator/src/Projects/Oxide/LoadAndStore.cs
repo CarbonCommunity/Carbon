@@ -56,35 +56,35 @@ internal static partial class Helper
 	internal static bool LoadLocalIntEx(ref StringBuilder instructions, int index, string typeHint = "System.Object")
 	{
 		AddGenericInstruction(ref instructions,
-			$"yield return __HookahRuntime.CreateLoadLocalInstruction(Generator, Method, {index}, typeof({typeHint}));");
+			$"yield return __GeneratorRuntime.CreateLoadLocalInstruction(Generator, Method, {index}, typeof({typeHint}));");
 		return true;
 	}
 
 	internal static bool StoreLocalIntEx(ref StringBuilder instructions, int index, string typeHint = "System.Object")
 	{
 		AddGenericInstruction(ref instructions,
-			$"yield return __HookahRuntime.CreateStoreLocalInstruction(Generator, Method, {index}, typeof({typeHint}));");
+			$"yield return __GeneratorRuntime.CreateStoreLocalInstruction(Generator, Method, {index}, typeof({typeHint}));");
 		return true;
 	}
 
 	internal static bool AddLoadLocalInstructionEx(ref StringBuilder instructions, int index, string typeHint = "System.Object")
 	{
 		AddGenericInstruction(ref instructions,
-			$"edit.Add(__HookahRuntime.CreateLoadLocalInstruction(Generator, Method, {index}, typeof({typeHint})));");
+			$"edit.Add(__GeneratorRuntime.CreateLoadLocalInstruction(Generator, Method, {index}, typeof({typeHint})));");
 		return true;
 	}
 
 	internal static bool AddStoreLocalInstructionEx(ref StringBuilder instructions, int index, string typeHint = "System.Object")
 	{
 		AddGenericInstruction(ref instructions,
-			$"edit.Add(__HookahRuntime.CreateStoreLocalInstruction(Generator, Method, {index}, typeof({typeHint})));");
+			$"edit.Add(__GeneratorRuntime.CreateStoreLocalInstruction(Generator, Method, {index}, typeof({typeHint})));");
 		return true;
 	}
 
 	internal static bool AddLoadLocalAddressInstructionEx(ref StringBuilder instructions, int index, string typeHint = "System.Object")
 	{
 		AddGenericInstruction(ref instructions,
-			$"edit.Add(__HookahRuntime.CreateLoadLocalAddressInstruction(Generator, Method, {index}, typeof({typeHint})));");
+			$"edit.Add(__GeneratorRuntime.CreateLoadLocalAddressInstruction(Generator, Method, {index}, typeof({typeHint})));");
 		return true;
 	}
 
