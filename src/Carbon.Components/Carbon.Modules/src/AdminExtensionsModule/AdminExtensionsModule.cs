@@ -119,7 +119,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			player.SendMarkersToClient();
 			player.Teleport(position);
 			player.UpdateNetworkGroup();
-			player.SendCompleteSnapshot();
+			player.SendFullSnapshot();
 		}
 	}
 
