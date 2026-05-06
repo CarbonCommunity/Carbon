@@ -1,0 +1,20 @@
+{
+  "Enabled": true,
+  "TrackCalls": true,
+  "SourceViewer": true,
+  "Assemblies": [
+    "*"
+  ],
+  "Plugins": [
+    "*"
+  ],
+  "Modules": [
+    "*"
+  ],
+  "Extensions": [
+    "*"
+  ],
+  "Harmony": [
+    "*"
+  ]
+}

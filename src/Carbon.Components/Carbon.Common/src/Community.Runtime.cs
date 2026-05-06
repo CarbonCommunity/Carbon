@@ -1,0 +1,99 @@
+﻿using API.Analytics;
+using API.Assembly;
+using API.Commands;
+using API.Contracts;
+using API.Events;
+using API.Hooks;
+
+namespace Carbon;
+
+public partial class Community
+{
+	public static GameObject GameObject => _gameObject.Value;
+
+	private static readonly Lazy<GameObject> _gameObject = new(() =>
+	{
+		var gameObject = GameObject.Find("Carbon");
+		return gameObject == null ? throw new Exception("Carbon GameObject not found") : gameObject;
+	});
+
+	public IAnalyticsManager Analytics => _analyticsManager.Value;
+	public IAssemblyManager AssemblyEx => _assemblyEx.Value;
+	public ICommandManager CommandManager => _commandManager.Value;
+	public IDownloadManager Downloader => _downloadManager.Value;
+	public IEventManager Events => _eventManager.Value;
+	public ICompatManager Compat => _compatManager.Value;
+
+	public IPatchManager HookManager { get; set; }
+	public IScriptProcessor ScriptProcessor { get; set; }
+	public IModuleProcessor ModuleProcessor { get; set; }
+	public IZipScriptProcessor ZipScriptProcessor { get; set; }
+
+#if DEBUG
+	public IZipDevScriptProcessor ZipDevScriptProcessor { get; set; }
+#endif
+
+	public ICarbonProcessor CarbonProcessor { get; set; }
+
+	public static bool IsServerInitialized { get; internal set; }
+	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
+	public static bool AllProcessorsFinalized => Runtime.ScriptProcessor.AllPendingScriptsComplete() &&
+												 Runtime.ZipScriptProcessor.AllPendingScriptsComplete()
+#if !MINIMAL && DEBUG
+												 && Runtime.ZipDevScriptProcessor.AllPendingScriptsComplete()
+#endif
+		;
+	public static int AllProcesses => Runtime.ScriptProcessor.InstanceBuffer.Count
+		+ Runtime.ZipScriptProcessor.InstanceBuffer.Count
+#if !MINIMAL && DEBUG
+		+ Runtime.ZipDevScriptProcessor.InstanceBuffer.Count
+#endif
+		;
+
+	internal static string _runtimeId;
+	internal static Dictionary<string, string> _protectMap = new();
+	internal static Dictionary<string, string> _protectCommands = new();
+
+	public static string RuntimeId
+	{
+		get
+		{
+			if (string.IsNullOrEmpty(_runtimeId))
+			{
+				var date = DateTime.Now;
+				_runtimeId = date.Year.ToString() + date.Month + date.Day +
+							 date.Hour + date.Minute + date.Second + date.Millisecond;
+
+			}
+
+			return _runtimeId;
+		}
+	}
+
+	/// <summary>
+	/// Returns a unique string for the provided value. The results will be different each time the server reboots.
+	/// </summary>
+	/// <param name="name">Value string input.</param>
+	/// <returns></returns>
+	public static string Protect(string name)
+	{
+		if (string.IsNullOrEmpty(name))
+			return string.Empty;
+
+		if (_protectMap.TryGetValue(name, out var result))
+			return result;
+
+		var split = name.Split(' ');
+		var command = split[0];
+		var arguments = split.Skip(1).ToString(" ");
+
+		if (_protectCommands.TryGetValue(command, out string cmdPrefix))
+			return _protectMap[name] = $"{cmdPrefix} {arguments}".TrimEnd();
+		else
+		{
+			_protectCommands[command] = $"carbonprotecc_{RandomEx.GetRandomString(command.Length, command + RuntimeId)}".TrimEnd();
+			return _protectMap[name] = $"{_protectCommands[command]} {arguments}".TrimEnd();
+		}
+
+	}
+}

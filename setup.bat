@@ -1,9 +1,13 @@
 @echo off
 
-set SUPERROOT="%cd%\Tools\Build\win"
+setlocal
+set "BUILD_ROOT=%~dp0tools\build\win"
 
-cd %SUPERROOT%
-call bootstrap.bat
+call "%BUILD_ROOT%\bootstrap.bat" || goto :done
+call "%BUILD_ROOT%\build_debug_noarchive.bat" %*
 
-cd %SUPERROOT%
-call build_debug_noarchive.bat
+:done
+set "EXIT_CODE=%ERRORLEVEL%"
+endlocal
+
+exit /b %EXIT_CODE%

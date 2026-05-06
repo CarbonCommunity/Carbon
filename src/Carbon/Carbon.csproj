@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Carbon</Product>
+		<OutputType>Library</OutputType>
+		<Title>Carbon</Title>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageId>Carbon</PackageId>
+		<IsPackable>true</IsPackable>
+		<NuspecFile>..\.nuspec</NuspecFile>
+		<NuspecProperties>version=$(PackageVersion)</NuspecProperties>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
+	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
+
+	<ItemGroup>
+		<None Include="$(SolutionDir)\.msbuild\Protocol.props" Link="msbuild\Protocol.props" />
+		<None Include="$(SolutionDir)\.msbuild\AssemblyName.props" Link="msbuild\AssemblyName.props" />
+		<None Include="$(SolutionDir)\.msbuild\Common.props" Link="msbuild\Common.props" />
+		<None Include="$(SolutionDir)\.msbuild\Configurations.props" Link="msbuild\Configurations.props" />
+		<None Include="$(SolutionDir)\.msbuild\Metadata.props" Link="msbuild\Metadata.props" />
+		<None Include="$(SolutionDir)\.msbuild\References.props" Link="msbuild\References.props" />
+		<None Include="$(SolutionDir)\.msbuild\ReferencesRust.props" Link="msbuild\ReferencesRust.props" />
+		<None Include="$(SolutionDir)\.msbuild\Tasks.targets" Link="msbuild\Tasks.targets" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="$(SolutionDir)\..\tools\build\runners\*" LinkBase="tools\build\runners" />
+		<None Include="$(SolutionDir)\..\tools\build\win\*" LinkBase="tools\build\win" />
+		<None Include="$(SolutionDir)\..\tools\build\linux\*" LinkBase="tools\build\linux" />
+		<None Include="$(SolutionDir)\..\tools\helpers\*" LinkBase="tools\helpers" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="$(SolutionDir)\..\.github\workflows\*" LinkBase="workflows" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Startup\Carbon.Startup.csproj" Private="false" />
+	</ItemGroup>
+
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+		<Copy Condition="$(Configuration.Contains('Debug'))" SourceFiles="$(OutputPath)$(Product).xml" DestinationFolder="$(c_managed)" />
+	</Target>
+</Project>
