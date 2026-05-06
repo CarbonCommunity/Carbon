@@ -64,6 +64,10 @@ public class Timers : Library
 		{
 			Persistence.Invoke(activity, time);
 		}
+		else
+		{
+			Logger.Warn($"Plugin '{Plugin.ToPrettyString()}' created a {time}s timer before OnServerInitialized(); it will probably never fire");
+		}
 
 		return timer;
 	}
