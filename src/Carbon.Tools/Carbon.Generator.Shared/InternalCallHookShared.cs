@@ -172,7 +172,8 @@ public static class InternalCallHookEmitter
 
 			if (parameter.UseInlineDefaultExpression)
 			{
-				arguments.Add($"narg{parameterIndex} is {parameter.TypeName} {argName} ? {argName} : ({parameter.TypeName})default");
+				var patternTypeName = GetPatternTypeName(parameter.TypeName);
+				arguments.Add($"narg{parameterIndex} is {patternTypeName} {argName} ? {argName} : ({parameter.TypeName})default");
 				continue;
 			}
 
@@ -243,6 +244,12 @@ public static class InternalCallHookEmitter
 		}
 
 		return value.Trim();
+	}
+
+	private static string GetPatternTypeName(string typeName)
+	{
+		typeName = typeName.Trim();
+		return typeName.EndsWith("?", StringComparison.Ordinal) ? typeName.Substring(0, typeName.Length - 1).TrimEnd() : typeName;
 	}
 
 	private static void AppendLine(StringBuilder builder, int indent, string line)
