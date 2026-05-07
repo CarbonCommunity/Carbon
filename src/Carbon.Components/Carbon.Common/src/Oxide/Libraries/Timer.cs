@@ -43,6 +43,7 @@ public partial class Timers : Library
 		}
 
 		var timer = new Timer(Persistence, action, Plugin);
+		timer.Repetitions = 1;
 		var activity = new Action(() =>
 		{
 			try
@@ -98,8 +99,22 @@ public partial class Timers : Library
 			}
 		});
 
+		timer.Delay = time;
+		timer.Repetitions = 0;
+		timer.StartupRepeating = true;
 		timer.Callback = activity;
-		Persistence.InvokeRepeating(activity, time, time);
+
+		if (Community.IsServerInitialized)
+		{
+			Persistence.InvokeRepeating(activity, time, time);
+		}
+		else
+		{
+			timer.Delay = NormalizeStartupRepeatDelay(time);
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
+			QueueStartupTimer(timer);
+		}
+
 		return timer;
 	}
 	public Timer Repeat(float time, int times, Action action)
@@ -127,8 +142,26 @@ public partial class Timers : Library
 		});
 
 		timer.Delay = time;
+		timer.Repetitions = times;
+		timer.StartupRepeating = times != 1;
 		timer.Callback = activity;
-		Persistence.InvokeRepeating(activity, time, time);
+
+		if (Community.IsServerInitialized)
+		{
+			Persistence.InvokeRepeating(activity, time, time);
+		}
+		else if (timer.StartupRepeating)
+		{
+			timer.Delay = NormalizeStartupRepeatDelay(time);
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
+			QueueStartupTimer(timer);
+		}
+		else
+		{
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + time;
+			QueueStartupTimer(timer);
+		}
+
 		return timer;
 	}
 	public void Destroy(ref Timer timer)
@@ -161,6 +194,7 @@ public class Timer : IDisposable
 	public int Repetitions { get; set; }
 	public float Delay { get; set; }
 	public float ExpiresAt { get; set; }
+	public bool StartupRepeating { get; set; }
 	public int TimesTriggered { get; set; }
 	public bool Destroyed { get; set; }
 
@@ -176,6 +210,7 @@ public class Timer : IDisposable
 	{
 		TimesTriggered = 0;
 		Repetitions = repetitions;
+		StartupRepeating = repetitions != 1;
 
 		if (delay < 0)
 		{
@@ -227,6 +262,12 @@ public class Timer : IDisposable
 		}
 		else
 		{
+			if (!Community.IsServerInitialized)
+			{
+				delay = Timers.NormalizeStartupRepeatDelay(delay);
+				Delay = delay;
+			}
+
 			Callback = () =>
 			{
 				try

@@ -8,6 +8,12 @@ public partial class Timers
 	private static readonly List<Timer> StartupTimers = [];
 	private const int MaxStartupTimersPerFrame = 256;
 	private const float StartupTimerDueTolerance = 0.001f;
+	private const float MinimumStartupRepeatDelay = 0.001f;
+
+	internal static float NormalizeStartupRepeatDelay(float delay)
+	{
+		return delay > MinimumStartupRepeatDelay ? delay : MinimumStartupRepeatDelay;
+	}
 
 	internal static void QueueStartupTimer(Timer timer)
 	{
@@ -83,6 +89,12 @@ public partial class Timers
 				if (!timer.Destroyed)
 				{
 					timer.Callback?.Invoke();
+
+					if (ShouldRequeueStartupTimer(timer))
+					{
+						timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
+						QueueStartupTimer(timer);
+					}
 				}
 			}
 		}
@@ -118,7 +130,7 @@ public partial class Timers
 				}
 
 				var remaining = Math.Max(0f, timer.ExpiresAt - now);
-				if (timer.Repetitions > 1)
+				if (timer.StartupRepeating)
 				{
 					timer.Persistence.InvokeRepeating(timer.Callback, remaining, timer.Delay);
 				}
@@ -132,5 +144,15 @@ public partial class Timers
 		{
 			Pool.FreeUnmanaged(ref timers);
 		}
+	}
+
+	private static bool ShouldRequeueStartupTimer(Timer timer)
+	{
+		if (!timer.StartupRepeating || timer.Destroyed || Community.IsServerInitialized)
+		{
+			return false;
+		}
+
+		return timer.Repetitions == 0 || timer.TimesTriggered < timer.Repetitions;
 	}
 }
