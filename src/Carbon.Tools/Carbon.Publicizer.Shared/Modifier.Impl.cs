@@ -155,7 +155,7 @@ public partial class Modifier
 
 			var module = assembly.MainModule;
 			var storeModifiers = Patch.common.MainModule.GetType("Carbon.Components", "StoredModifiers");
-			var baseDataType = storeModifiers.NestedTypes[0];
+			var baseDataType = storeModifiers.NestedTypes.First(t => t.Name.Equals("Data", StringComparison.Ordinal));
 			var dataType = module.Types.FirstOrDefault(x =>
 					x.Name.Equals(type.Name + DataType, StringComparison.CurrentCulture)) ?? new TypeDefinition(
 					type.Namespace, type.Name + DataType,

@@ -128,6 +128,7 @@ public sealed class Logger : ILogger
 
 	private static void PrintLog(string text, Severity severity)
 	{
+#if WIN
 		if (!ThreadEx.IsOnMainThread())
 		{
 			var threadedColor = Console.ForegroundColor;
@@ -153,6 +154,7 @@ public sealed class Logger : ILogger
 			Console.WriteLine(text);
 			Console.ForegroundColor = color;
 		}
+#endif
 
 		switch (severity)
 		{

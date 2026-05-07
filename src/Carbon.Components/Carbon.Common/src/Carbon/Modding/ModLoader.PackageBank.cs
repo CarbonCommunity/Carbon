@@ -27,7 +27,13 @@ public static partial class ModLoader
 
 		public RustPlugin FindPlugin(string name)
 		{
-			return this.Select(package => package.FindPlugin(name)).FirstOrDefault(plugin => plugin != null);
+			if (string.IsNullOrEmpty(name)) return null;
+			for (var i = 0; i < Count; i++)
+			{
+				var plugin = this[i].FindPlugin(name);
+				if (plugin != null) return plugin;
+			}
+			return null;
 		}
 
 		public void GetAllHookables(List<RustPlugin> plugins, bool ignoreCore = false)

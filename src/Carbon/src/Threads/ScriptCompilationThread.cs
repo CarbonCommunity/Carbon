@@ -545,6 +545,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 			}
 
+			ScriptCompilerPolyfills.InjectMissingPolyfills(trees, references, parseOptions);
+
 			var options = new CSharpCompilationOptions(
 				OutputKind.DynamicallyLinkedLibrary,
 				optimizationLevel:
