@@ -2,7 +2,7 @@
 
 namespace Oxide.Plugins;
 
-public class Timers : Library
+public partial class Timers : Library
 {
 	public Plugin Plugin { get; }
 	internal List<Timer> _timers { get; set; } = new();
@@ -43,6 +43,8 @@ public class Timers : Library
 		}
 
 		var timer = new Timer(Persistence, action, Plugin);
+		_timers.Add(timer);
+		timer.Repetitions = 1;
 		var activity = new Action(() =>
 		{
 			try
@@ -64,6 +66,11 @@ public class Timers : Library
 		{
 			Persistence.Invoke(activity, time);
 		}
+		else
+		{
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + time;
+			QueueStartupTimer(timer);
+		}
 
 		return timer;
 	}
@@ -79,6 +86,7 @@ public class Timers : Library
 		}
 
 		var timer = new Timer(Persistence, action, Plugin);
+		_timers.Add(timer);
 		var activity = new Action(() =>
 		{
 			try
@@ -93,8 +101,22 @@ public class Timers : Library
 			}
 		});
 
+		timer.Delay = time;
+		timer.Repetitions = 0;
+		timer.StartupRepeating = true;
 		timer.Callback = activity;
-		Persistence.InvokeRepeating(activity, time, time);
+
+		if (Community.IsServerInitialized)
+		{
+			Persistence.InvokeRepeating(activity, time, time);
+		}
+		else
+		{
+			timer.Delay = NormalizeStartupRepeatDelay(time);
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
+			QueueStartupTimer(timer);
+		}
+
 		return timer;
 	}
 	public Timer Repeat(float time, int times, Action action)
@@ -102,6 +124,7 @@ public class Timers : Library
 		if (!IsValid()) return null;
 
 		var timer = new Timer(Persistence, action, Plugin);
+		_timers.Add(timer);
 		var activity = new Action(() =>
 		{
 			try
@@ -109,7 +132,7 @@ public class Timers : Library
 				action?.Invoke();
 				timer.TimesTriggered++;
 
-				if (times == 0 || timer.TimesTriggered < times) return;
+				if (times <= 0 || timer.TimesTriggered < times) return;
 				if (Persistence == null) return;
 				Persistence.CancelInvoke(timer.Callback);
 				Persistence.CancelInvokeFixedTime(timer.Callback);
@@ -122,8 +145,26 @@ public class Timers : Library
 		});
 
 		timer.Delay = time;
+		timer.Repetitions = times;
+		timer.StartupRepeating = times != 1;
 		timer.Callback = activity;
-		Persistence.InvokeRepeating(activity, time, time);
+
+		if (Community.IsServerInitialized)
+		{
+			Persistence.InvokeRepeating(activity, time, time);
+		}
+		else if (timer.StartupRepeating)
+		{
+			timer.Delay = NormalizeStartupRepeatDelay(time);
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
+			QueueStartupTimer(timer);
+		}
+		else
+		{
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + time;
+			QueueStartupTimer(timer);
+		}
+
 		return timer;
 	}
 	public void Destroy(ref Timer timer)
@@ -155,6 +196,8 @@ public class Timer : IDisposable
 	public Plugin.Persistence Persistence { get; set; }
 	public int Repetitions { get; set; }
 	public float Delay { get; set; }
+	public float ExpiresAt { get; set; }
+	public bool StartupRepeating { get; set; }
 	public int TimesTriggered { get; set; }
 	public bool Destroyed { get; set; }
 
@@ -170,6 +213,7 @@ public class Timer : IDisposable
 	{
 		TimesTriggered = 0;
 		Repetitions = repetitions;
+		StartupRepeating = repetitions != 1;
 
 		if (delay < 0)
 		{
@@ -209,10 +253,24 @@ public class Timer : IDisposable
 				Destroy();
 			};
 
-			Persistence.Invoke(Callback, delay);
+			if (Community.IsServerInitialized)
+			{
+				Persistence.Invoke(Callback, delay);
+			}
+			else
+			{
+				ExpiresAt = UnityEngine.Time.realtimeSinceStartup + delay;
+				Timers.QueueStartupTimer(this);
+			}
 		}
 		else
 		{
+			if (!Community.IsServerInitialized)
+			{
+				delay = Timers.NormalizeStartupRepeatDelay(delay);
+				Delay = delay;
+			}
+
 			Callback = () =>
 			{
 				try
@@ -220,7 +278,7 @@ public class Timer : IDisposable
 					Activity?.Invoke();
 					TimesTriggered++;
 
-					if (TimesTriggered >= Repetitions)
+					if (Repetitions > 0 && TimesTriggered >= Repetitions)
 					{
 						Dispose();
 					}
@@ -232,7 +290,15 @@ public class Timer : IDisposable
 				}
 			};
 
-			Persistence.InvokeRepeating(Callback, delay, delay);
+			if (Community.IsServerInitialized)
+			{
+				Persistence.InvokeRepeating(Callback, delay, delay);
+			}
+			else
+			{
+				ExpiresAt = UnityEngine.Time.realtimeSinceStartup + delay;
+				Timers.QueueStartupTimer(this);
+			}
 		}
 	}
 	public bool Destroy()
@@ -244,6 +310,8 @@ public class Timer : IDisposable
 		{
 			Persistence.CancelInvoke(Callback);
 		}
+
+		Timers.RemoveStartupTimer(this);
 
 		if (Callback != null)
 		{
