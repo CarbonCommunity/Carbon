@@ -12,12 +12,11 @@ on:
       build_identifier:
         description: 'Carbon Build (and git branch) to run tests on'
         required: true
-        default: 'develop'
+        default: 'main'
         type: choice
         options:
-          - develop
-          - preview
-          - qa
+          - main
+          - experimental
           - production
           - rust_beta/release
           - rust_beta/staging
@@ -43,15 +42,11 @@ jobs:
           RUST_BRANCH="release"
 
           case "$REF" in
-            "develop")
+            "main")
               DOWNLOAD_ID="edge_build"
               ;;
-            "preview")
-              DOWNLOAD_ID="preview_build"
-              ;;
-            "qa")
-              DOWNLOAD_ID="qa_build"
-              RUST_BRANCH="release"
+            "experimental")
+              DOWNLOAD_ID="experimental_build"
               ;;
             "production")
               DOWNLOAD_ID="production_build"

@@ -11,18 +11,21 @@ public class PluginManager
 	{
 		OnPluginAdded?.Invoke(plugin);
 
-		if (plugin.Package.IsValid && !plugin.Package.Plugins.Contains(plugin))
-		{
-			plugin.Package.Plugins.Add(plugin);
-			return true;
-		}
+		var pkg = plugin.Package;
+		if (!pkg.IsValid || pkg.Plugins == null || pkg.Plugins.Contains(plugin)) return false;
 
-		return false;
+		pkg.AddPlugin(plugin);
+		return true;
 	}
 	public bool RemovePlugin(RustPlugin plugin)
 	{
 		OnPluginRemoved?.Invoke(plugin);
-		return plugin.Package.Plugins?.RemoveAll(x => x == plugin) > 0;
+
+		var pkg = plugin.Package;
+		if (!pkg.IsValid || pkg.Plugins == null || !pkg.Plugins.Contains(plugin)) return false;
+
+		pkg.RemovePlugin(plugin);
+		return true;
 	}
 
 	public Plugin GetPlugin(string name)

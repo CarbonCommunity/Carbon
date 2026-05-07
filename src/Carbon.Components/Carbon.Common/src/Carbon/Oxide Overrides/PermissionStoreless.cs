@@ -1,4 +1,4 @@
-﻿namespace Carbon.Oxide;
+﻿namespace Carbon.OxideRefs;
 
 public class PermissionStoreless : Permission
 {

@@ -10,10 +10,6 @@ public interface IAssemblyManager
 	public IAddonManager Hooks { get; }
 	public IAddonManager Modules { get; }
 
-#if EXPERIMENTAL
-	public IAddonManager Plugins { get; }
-#endif
-
 	public byte[] Read(string file, string[] directories = null);
 	public IReadOnlyList<string> RefBlacklist { get; }
 	public IReadOnlyList<string> RefWhitelist { get; }

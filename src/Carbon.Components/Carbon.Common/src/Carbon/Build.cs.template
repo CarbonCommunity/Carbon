@@ -1,8 +1,5 @@
 namespace Carbon;
 
-using System;
-using System.Linq;
-
 public class Build
 {
 	public static bool IsDebug =>
