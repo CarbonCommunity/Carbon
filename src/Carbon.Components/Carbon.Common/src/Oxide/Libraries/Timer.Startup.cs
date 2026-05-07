@@ -28,6 +28,14 @@ public partial class Timers
 		}
 	}
 
+	internal static void RemoveStartupTimer(Timer timer)
+	{
+		lock (StartupTimerLock)
+		{
+			StartupTimers.Remove(timer);
+		}
+	}
+
 	public static void UpdateStartupTimers()
 	{
 		if (Community.IsServerInitialized)
@@ -57,12 +65,13 @@ public partial class Timers
 					return;
 				}
 
-				for (var i = StartupTimers.Count - 1; i >= 0; i--)
+				for (var i = 0; i < StartupTimers.Count; i++)
 				{
 					var timer = StartupTimers[i];
 					if (timer.Destroyed)
 					{
 						StartupTimers.RemoveAt(i);
+						i--;
 						continue;
 					}
 
@@ -72,6 +81,7 @@ public partial class Timers
 					}
 
 					StartupTimers.RemoveAt(i);
+					i--;
 					timers.Add(timer);
 
 					if (timers.Count >= maxTimers)
@@ -80,8 +90,6 @@ public partial class Timers
 					}
 				}
 			}
-
-			timers.Reverse();
 
 			for (var i = 0; i < timers.Count; i++)
 			{
@@ -153,6 +161,6 @@ public partial class Timers
 			return false;
 		}
 
-		return timer.Repetitions == 0 || timer.TimesTriggered < timer.Repetitions;
+		return timer.Repetitions <= 0 || timer.TimesTriggered < timer.Repetitions;
 	}
 }

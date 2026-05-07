@@ -43,6 +43,7 @@ public partial class Timers : Library
 		}
 
 		var timer = new Timer(Persistence, action, Plugin);
+		_timers.Add(timer);
 		timer.Repetitions = 1;
 		var activity = new Action(() =>
 		{
@@ -85,6 +86,7 @@ public partial class Timers : Library
 		}
 
 		var timer = new Timer(Persistence, action, Plugin);
+		_timers.Add(timer);
 		var activity = new Action(() =>
 		{
 			try
@@ -122,6 +124,7 @@ public partial class Timers : Library
 		if (!IsValid()) return null;
 
 		var timer = new Timer(Persistence, action, Plugin);
+		_timers.Add(timer);
 		var activity = new Action(() =>
 		{
 			try
@@ -129,7 +132,7 @@ public partial class Timers : Library
 				action?.Invoke();
 				timer.TimesTriggered++;
 
-				if (times == 0 || timer.TimesTriggered < times) return;
+				if (times <= 0 || timer.TimesTriggered < times) return;
 				if (Persistence == null) return;
 				Persistence.CancelInvoke(timer.Callback);
 				Persistence.CancelInvokeFixedTime(timer.Callback);
@@ -275,7 +278,7 @@ public class Timer : IDisposable
 					Activity?.Invoke();
 					TimesTriggered++;
 
-					if (TimesTriggered >= Repetitions)
+					if (Repetitions > 0 && TimesTriggered >= Repetitions)
 					{
 						Dispose();
 					}
@@ -307,6 +310,8 @@ public class Timer : IDisposable
 		{
 			Persistence.CancelInvoke(Callback);
 		}
+
+		Timers.RemoveStartupTimer(this);
 
 		if (Callback != null)
 		{
