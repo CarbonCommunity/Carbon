@@ -2,7 +2,7 @@
 
 namespace Oxide.Plugins;
 
-public class Timers : Library
+public partial class Timers : Library
 {
 	public Plugin Plugin { get; }
 	internal List<Timer> _timers { get; set; } = new();
@@ -63,6 +63,11 @@ public class Timers : Library
 		if (Community.IsServerInitialized)
 		{
 			Persistence.Invoke(activity, time);
+		}
+		else
+		{
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + time;
+			QueueStartupTimer(timer);
 		}
 
 		return timer;
@@ -155,6 +160,7 @@ public class Timer : IDisposable
 	public Plugin.Persistence Persistence { get; set; }
 	public int Repetitions { get; set; }
 	public float Delay { get; set; }
+	public float ExpiresAt { get; set; }
 	public int TimesTriggered { get; set; }
 	public bool Destroyed { get; set; }
 
@@ -209,7 +215,15 @@ public class Timer : IDisposable
 				Destroy();
 			};
 
-			Persistence.Invoke(Callback, delay);
+			if (Community.IsServerInitialized)
+			{
+				Persistence.Invoke(Callback, delay);
+			}
+			else
+			{
+				ExpiresAt = UnityEngine.Time.realtimeSinceStartup + delay;
+				Timers.QueueStartupTimer(this);
+			}
 		}
 		else
 		{
@@ -232,7 +246,15 @@ public class Timer : IDisposable
 				}
 			};
 
-			Persistence.InvokeRepeating(Callback, delay, delay);
+			if (Community.IsServerInitialized)
+			{
+				Persistence.InvokeRepeating(Callback, delay, delay);
+			}
+			else
+			{
+				ExpiresAt = UnityEngine.Time.realtimeSinceStartup + delay;
+				Timers.QueueStartupTimer(this);
+			}
 		}
 	}
 	public bool Destroy()
