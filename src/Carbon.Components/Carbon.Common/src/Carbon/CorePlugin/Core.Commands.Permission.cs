@@ -225,12 +225,6 @@ public partial class CorePlugin
 		var perm = arg.GetString(2);
 		var user = permission.FindUser(name);
 
-		if (!permission.PermissionExists(perm))
-		{
-			arg.ReplyWith($"Couldn't revoke permission - permission does not exist.");
-			return;
-		}
-
 		var wildcard = perm.Equals(Permission.StarStr);
 
 		switch (action)

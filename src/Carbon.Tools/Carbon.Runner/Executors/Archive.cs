@@ -28,13 +28,28 @@ public class Archive : Executor
 
 		var temp = InternalRunner.Path(destination + ".tmp");
 
-		TarFile.CreateFromDirectory(directory, temp, false);
-
-		using (var originalFileStream = new FileStream(temp, FileMode.Open, FileAccess.Read))
-		using (var compressedFileStream = new FileStream(destination, FileMode.Create))
-		using (var gzipStream = new GZipStream(compressedFileStream, CompressionLevel.Optimal))
+		if (File.Exists(temp))
 		{
-			originalFileStream.CopyTo(gzipStream);
+			File.Delete(temp);
+		}
+
+		try
+		{
+			TarFile.CreateFromDirectory(directory, temp, false);
+
+			using (var originalFileStream = new FileStream(temp, FileMode.Open, FileAccess.Read))
+			using (var compressedFileStream = new FileStream(destination, FileMode.Create))
+			using (var gzipStream = new GZipStream(compressedFileStream, CompressionLevel.Optimal))
+			{
+				originalFileStream.CopyTo(gzipStream);
+			}
+		}
+		finally
+		{
+			if (File.Exists(temp))
+			{
+				File.Delete(temp);
+			}
 		}
 
 		Warn($"Created TAR file: {destination}");
