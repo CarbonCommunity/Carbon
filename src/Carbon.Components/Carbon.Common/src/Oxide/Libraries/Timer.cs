@@ -230,11 +230,14 @@ public class Timer : IDisposable
 			return;
 		}
 
-		if (Persistence != null)
+		if (Persistence == null)
 		{
-			Persistence.CancelInvoke(Callback);
-			Persistence.CancelInvokeFixedTime(Callback);
+			Logger.Warn($"Cannot restart a timer for '{Plugin?.ToPrettyString() ?? "unknown plugin"}' because persistence is null.");
+			return;
 		}
+
+		Persistence.CancelInvoke(Callback);
+		Persistence.CancelInvokeFixedTime(Callback);
 
 		if (Repetitions == 1)
 		{
