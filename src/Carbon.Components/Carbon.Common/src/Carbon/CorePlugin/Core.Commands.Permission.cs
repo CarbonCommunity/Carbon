@@ -312,7 +312,8 @@ public partial class CorePlugin
 		static void PrintWarn(ConsoleSystem.Arg arg)
 		{
 			arg.ReplyWith($"Syntax: c.show <groups|perms>\n" +
-						  $"Syntax: c.show <group|user|perm> <name|id>");
+						  $"Syntax: c.show <group|user|perm> <name|id>\n" +
+						  $"Syntax: c.show orphans [<user|group>] [<name|id>]");
 		}
 
 		if (!arg.HasArgs(1))
@@ -415,6 +416,242 @@ public partial class CorePlugin
 
 				arg.ReplyWith($"Permissions:\n {perms.ToString(", ")}");
 
+				break;
+			}
+			case "orphans":
+			{
+				var scope = arg.HasArgs(2) ? arg.GetString(1).ToLower() : Permission.StarStr;
+				var target = arg.HasArgs(3) ? arg.GetString(2) : null;
+				var wildcard = scope.Equals(Permission.StarStr);
+				var showUsers = wildcard || scope == "user";
+				var showGroups = wildcard || scope == "group";
+
+				if (!showUsers && !showGroups)
+				{
+					PrintWarn(arg);
+					return;
+				}
+
+				if (target != null && wildcard)
+				{
+					arg.ReplyWith($"To target a specific user or group, specify the scope: c.show orphans <user|group> <name|id>");
+					return;
+				}
+
+				var lines = Pool.Get<List<string>>();
+
+				if (showUsers)
+				{
+					if (target != null)
+					{
+						var user = permission.FindUser(target);
+						if (user.Value == null)
+						{
+							arg.ReplyWith($"Couldn't find that user.");
+							Pool.FreeUnmanaged(ref lines);
+							return;
+						}
+
+						AppendOrphans("user", user.Key, user.Value.Perms, lines);
+					}
+					else
+					{
+						foreach (var entry in permission.userdata)
+						{
+							AppendOrphans("user", entry.Key, entry.Value.Perms, lines);
+						}
+					}
+				}
+
+				if (showGroups)
+				{
+					if (target != null)
+					{
+						if (!permission.GroupExists(target))
+						{
+							arg.ReplyWith($"Couldn't find that group.");
+							Pool.FreeUnmanaged(ref lines);
+							return;
+						}
+
+						var groupData = permission.GetGroupData(target);
+						AppendOrphans("group", target, groupData?.Perms, lines);
+					}
+					else
+					{
+						foreach (var entry in permission.groupdata)
+						{
+							AppendOrphans("group", entry.Key, entry.Value.Perms, lines);
+						}
+					}
+				}
+
+				if (lines.Count == 0)
+				{
+					arg.ReplyWith($"No orphan permissions found.");
+				}
+				else
+				{
+					arg.ReplyWith($"Orphan permissions ({lines.Count:n0}):\n{string.Join("\n", lines)}");
+				}
+
+				Pool.FreeUnmanaged(ref lines);
+
+				void AppendOrphans(string kind, string id, HashSet<string> perms, List<string> output)
+				{
+					if (perms == null || perms.Count == 0) return;
+
+					foreach (var perm in perms)
+					{
+						if (permission.PermissionExists(perm)) continue;
+
+						output.Add($"  {kind} {id} -> {perm}");
+					}
+				}
+				break;
+			}
+
+			default:
+				PrintWarn(arg);
+				break;
+		}
+	}
+
+	[ConsoleCommand("cleanup", "Cleans up grants whose owning plugin is no longer registered. Do 'c.cleanup' for syntax info.")]
+	[AuthLevel(2)]
+	private void Cleanup(ConsoleSystem.Arg arg)
+	{
+		static void PrintWarn(ConsoleSystem.Arg arg)
+		{
+			arg.ReplyWith($"Syntax: c.cleanup orphans [<user|group>] [<name|id>]");
+		}
+
+		if (!arg.HasArgs(1))
+		{
+			PrintWarn(arg);
+			return;
+		}
+
+		var action = arg.GetString(0);
+
+		switch (action)
+		{
+			case "orphans":
+			{
+				var scope = arg.HasArgs(2) ? arg.GetString(1).ToLower() : Permission.StarStr;
+				var target = arg.HasArgs(3) ? arg.GetString(2) : null;
+				var wildcard = scope.Equals(Permission.StarStr);
+				var doUsers = wildcard || scope == "user";
+				var doGroups = wildcard || scope == "group";
+
+				if (!doUsers && !doGroups)
+				{
+					PrintWarn(arg);
+					return;
+				}
+
+				if (target != null && wildcard)
+				{
+					arg.ReplyWith($"To target a specific user or group, specify the scope: c.cleanup orphans <user|group> <name|id>");
+					return;
+				}
+
+				var revokedUsers = 0;
+				var revokedGroups = 0;
+				var snapshot = Pool.Get<List<string>>();
+
+				if (doUsers)
+				{
+					if (target != null)
+					{
+						var user = permission.FindUser(target);
+						if (user.Value == null)
+						{
+							arg.ReplyWith($"Couldn't find that user.");
+							Pool.FreeUnmanaged(ref snapshot);
+							return;
+						}
+
+						revokedUsers += RevokeUserOrphans(user.Key, user.Value.Perms, snapshot);
+					}
+					else
+					{
+						foreach (var entry in permission.userdata)
+						{
+							revokedUsers += RevokeUserOrphans(entry.Key, entry.Value.Perms, snapshot);
+						}
+					}
+				}
+
+				if (doGroups)
+				{
+					if (target != null)
+					{
+						if (!permission.GroupExists(target))
+						{
+							arg.ReplyWith($"Couldn't find that group.");
+							Pool.FreeUnmanaged(ref snapshot);
+							return;
+						}
+
+						var groupData = permission.GetGroupData(target);
+						revokedGroups += RevokeGroupOrphans(target, groupData?.Perms, snapshot);
+					}
+					else
+					{
+						foreach (var entry in permission.groupdata)
+						{
+							revokedGroups += RevokeGroupOrphans(entry.Key, entry.Value.Perms, snapshot);
+						}
+					}
+				}
+
+				Pool.FreeUnmanaged(ref snapshot);
+
+				var total = revokedUsers + revokedGroups;
+
+				if (total == 0)
+				{
+					arg.ReplyWith($"No orphan permissions found.");
+				}
+				else
+				{
+					arg.ReplyWith($"Revoked {total:n0} orphan {total.Plural("permission", "permissions")} ({revokedUsers:n0} user, {revokedGroups:n0} group).");
+				}
+
+				int RevokeUserOrphans(string id, HashSet<string> perms, List<string> buffer)
+				{
+					if (perms == null || perms.Count == 0) return 0;
+
+					buffer.Clear();
+					buffer.AddRange(perms);
+
+					var revoked = 0;
+					for (int i = 0; i < buffer.Count; i++)
+					{
+						var perm = buffer[i];
+						if (permission.PermissionExists(perm)) continue;
+						if (permission.RevokeUserPermission(id, perm)) revoked++;
+					}
+					return revoked;
+				}
+
+				int RevokeGroupOrphans(string name, HashSet<string> perms, List<string> buffer)
+				{
+					if (perms == null || perms.Count == 0) return 0;
+
+					buffer.Clear();
+					buffer.AddRange(perms);
+
+					var revoked = 0;
+					for (int i = 0; i < buffer.Count; i++)
+					{
+						var perm = buffer[i];
+						if (permission.PermissionExists(perm)) continue;
+						if (permission.RevokeGroupPermission(name, perm)) revoked++;
+					}
+					return revoked;
+				}
 				break;
 			}
 
