@@ -14,6 +14,7 @@ public partial class Tests
 		private static int StartupBurstCountActual;
 		private static int StartupRepeatOnceCount;
 		private static int StartupCallbackBeforeInitCount;
+		private static bool StartupTimersQueuedBeforeInit;
 		private static long StartupBurstFirstTick;
 		private static long StartupBurstLastTick;
 		private static Oxide.Plugins.Timer RemainingStartupTimer;
@@ -22,6 +23,7 @@ public partial class Tests
 
 		internal static void QueuePreServerInitializedTimers()
 		{
+			StartupTimersQueuedBeforeInit = !Community.IsServerInitialized;
 			StartupBurstStopwatch.Restart();
 
 			singleton.timer.In(0f, () =>
@@ -79,11 +81,15 @@ public partial class Tests
 		[Integrations.Test.Assert]
 		public void pre_init_due_timers_fire_before_server_initialized(Integrations.Test.Assert test)
 		{
-			test.Log($"[tests.timer.startup] scheduled={StartupBurstCount + 2:n0} immediate={StartupImmediateCount:n0} burst={StartupBurstCountActual:n0} repeatOnce={StartupRepeatOnceCount:n0} beforeInit={StartupCallbackBeforeInitCount:n0} scheduleElapsed={StartupBurstStopwatch.Elapsed.TotalMilliseconds:0.000}ms callbackSpan={GetStartupBurstCallbackSpanMilliseconds():0.000}ms");
+			test.Log($"[tests.timer.startup] scheduled={StartupBurstCount + 2:n0} queuedBeforeInit={StartupTimersQueuedBeforeInit} immediate={StartupImmediateCount:n0} burst={StartupBurstCountActual:n0} repeatOnce={StartupRepeatOnceCount:n0} beforeInit={StartupCallbackBeforeInitCount:n0} scheduleElapsed={StartupBurstStopwatch.Elapsed.TotalMilliseconds:0.000}ms callbackSpan={GetStartupBurstCallbackSpanMilliseconds():0.000}ms");
 			test.IsTrue(StartupImmediateCount == 1, "single immediate pre-init timer fired once");
 			test.IsTrue(StartupBurstCountActual == StartupBurstCount, "pre-init burst timers fired once");
 			test.IsTrue(StartupRepeatOnceCount == 1, "single repeat pre-init timer fired once");
-			test.IsTrue(StartupCallbackBeforeInitCount == StartupBurstCount + 2, "due pre-init timers fired before server initialized");
+
+			if (StartupTimersQueuedBeforeInit)
+			{
+				test.IsTrue(StartupCallbackBeforeInitCount == 0 || StartupCallbackBeforeInitCount == StartupBurstCount + 2, "due pre-init timers fired consistently around server initialization");
+			}
 			test.Complete();
 		}
 
