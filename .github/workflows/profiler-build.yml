@@ -37,7 +37,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: main
-          token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
 
       - name: Environment Setup
