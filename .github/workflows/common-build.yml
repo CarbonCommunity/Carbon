@@ -14,8 +14,6 @@ on:
         type: string
         default: ''
     secrets:
-      PAT_ALL_REPO:
-        required: true
       VERSIONS_TOKEN:
         required: true
       NUGET_API:
@@ -214,7 +212,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ inputs.GIT_BRANCH }}
-          token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
 
       - name: Environment Setup

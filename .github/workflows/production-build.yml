@@ -23,6 +23,5 @@ jobs:
         2. Unzip the archive to the root of your Rust Dedicated Server.
         3. Restart the server and enjoy.
     secrets:
-      PAT_ALL_REPO: ${{ secrets.PAT_ALL_REPO }}
       VERSIONS_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
       NUGET_API: ${{ secrets.NUGET_API }}
