@@ -1,3 +1,4 @@
+#if !TESTS_NO_WEBREQUEST
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -472,3 +473,4 @@ public partial class Tests
 		}
 	}
 }
+#endif

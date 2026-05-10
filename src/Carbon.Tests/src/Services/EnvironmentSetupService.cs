@@ -1,6 +1,8 @@
 using System.Formats.Tar;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -10,6 +12,7 @@ internal class EnvironmentSetupService
 {
 	private readonly AppSettings _appSettings;
 	private readonly ForDebugSettings _forDebugSettings;
+	private readonly TestOptOutSettings _testOptOutSettings;
 	private readonly DepotDownloaderService _depotDownloaderService;
 	private readonly ILogger<EnvironmentSetupService> _logger;
 	private readonly string _workingDirectory;
@@ -23,6 +26,7 @@ internal class EnvironmentSetupService
 	public EnvironmentSetupService(
 		IOptions<AppSettings> appSettings,
 		IOptions<ForDebugSettings> forDebugOptions,
+		IOptions<TestOptOutSettings> testOptOutOptions,
 		DepotDownloaderService depotDownloaderService,
 		ILogger<EnvironmentSetupService> logger,
 		HttpClient httpClient
@@ -30,6 +34,7 @@ internal class EnvironmentSetupService
 	{
 		_appSettings = appSettings.Value;
 		_forDebugSettings = forDebugOptions.Value;
+		_testOptOutSettings = testOptOutOptions.Value;
 		_depotDownloaderService = depotDownloaderService;
 		_logger = logger;
 		_workingDirectory = PrepareWorkingDirectory();
@@ -54,6 +59,7 @@ internal class EnvironmentSetupService
 		}
 
 		await CopyCarbonWorkspaceAsync(rustDir);
+		await ApplyTestCompilerSymbolsAsync(rustDir);
 		await CleanupServerState(rustDir, rustIdentity);
 		await PrepareRustConfigFilesAsync(rustDir, rustIdentity);
 
@@ -191,6 +197,57 @@ internal class EnvironmentSetupService
 		var targetCarbonDir = Path.Combine(rustDir, "carbon");
 		Utils.Copy(copyCarbonDir, targetCarbonDir);
 		return ValueTask.CompletedTask;
+	}
+
+	private async ValueTask ApplyTestCompilerSymbolsAsync(string rustDir)
+	{
+		var symbols = new List<string>();
+		_testOptOutSettings.GetCompilerSymbols(symbols);
+
+		if (symbols.Count == 0)
+		{
+			return;
+		}
+
+		var configPath = Path.Combine(rustDir, "carbon", "config.json");
+
+		if (!File.Exists(configPath))
+		{
+			throw new FileNotFoundException($"Didn't find Carbon config file {configPath}");
+		}
+
+		var config = JsonNode.Parse(await File.ReadAllTextAsync(configPath))?.AsObject()
+		             ?? throw new InvalidOperationException($"Invalid Carbon config JSON at {configPath}");
+
+		var compiler = config["Compiler"]?.AsObject();
+		if (compiler == null)
+		{
+			compiler = new JsonObject();
+			config["Compiler"] = compiler;
+		}
+
+		var conditionalSymbols = compiler["ConditionalCompilationSymbols"]?.AsArray();
+		if (conditionalSymbols == null)
+		{
+			conditionalSymbols = [];
+			compiler["ConditionalCompilationSymbols"] = conditionalSymbols;
+		}
+
+		var existingSymbols = conditionalSymbols
+			.Select(symbol => symbol?.GetValue<string>())
+			.Where(symbol => !string.IsNullOrWhiteSpace(symbol))
+			.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+		foreach (var symbol in symbols)
+		{
+			if (existingSymbols.Add(symbol))
+			{
+				conditionalSymbols.Add(symbol);
+			}
+		}
+
+		await File.WriteAllTextAsync(configPath, config.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+		_logger.LogInformation("Applied test compiler opt-out symbols: {Symbols}", string.Join(", ", symbols));
 	}
 
 	private static ValueTask PrepareRustConfigFilesAsync(string rustDir, string serverIdentity)

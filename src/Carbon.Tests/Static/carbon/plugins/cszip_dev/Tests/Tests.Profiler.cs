@@ -1,3 +1,4 @@
+#if !TESTS_NO_PROFILER
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Test;
@@ -103,3 +104,4 @@ public partial class Tests
 		}
 	}
 }
+#endif
