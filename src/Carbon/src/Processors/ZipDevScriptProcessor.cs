@@ -29,9 +29,9 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 			"debug"
 		];
 
-		base.Start();
-
 		IncludeSubdirectories = true;
+
+		base.Start();
 	}
 
 	public bool AllPendingScriptsComplete()

@@ -1,4 +1,6 @@
-﻿using Facepunch;
+﻿using System.Collections.Concurrent;
+using System.Linq.Expressions;
+using Facepunch;
 
 namespace Carbon.Base;
 
@@ -19,7 +21,23 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	public FileSystemWatcher Watcher { get; private set; }
 
 	internal WaitForSeconds _wfsInstance;
-	internal Dictionary<string, IBaseProcessor.IProcess> _runtimeCache = new(1000);
+	internal Dictionary<string, IBaseProcessor.IProcess> _runtimeCache = new(128);
+	internal string _normalizedFolder;
+
+	private Func<Process> _processFactory;
+	private readonly ConcurrentQueue<WatcherEvent> _events = new();
+
+	private readonly struct WatcherEvent
+	{
+		public readonly WatcherChangeTypes Type;
+		public readonly FileSystemEventArgs Args;
+
+		public WatcherEvent(WatcherChangeTypes type, FileSystemEventArgs args)
+		{
+			Type = type;
+			Args = args;
+		}
+	}
 
 	public bool IsInitialized { get; set; }
 
@@ -46,8 +64,10 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 		StopAllCoroutines();
 		StartCoroutine(Run());
 
-		Watcher?.Dispose();
-		Watcher = null;
+		DisposeWatcher();
+
+		_normalizedFolder = PathEx.NormalizePath(Folder);
+		_processFactory = BuildProcessFactory(IndexedType);
 
 		if (!string.IsNullOrEmpty(Extension) && !string.IsNullOrEmpty(Folder))
 		{
@@ -58,13 +78,15 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 				| NotifyFilters.LastAccess
 				#endif
 				,
-				Filter = $"*{Extension}"
+				Filter = $"*{Extension}",
+				IncludeSubdirectories = IncludeSubdirectories,
+				InternalBufferSize = 65536
 			};
-			Watcher.Created += OnCreated;
-			Watcher.Changed += OnChanged;
-			Watcher.Renamed += OnRenamed;
-			Watcher.Deleted += OnRemoved;
-			Watcher.IncludeSubdirectories = true;
+			Watcher.Created += OnCreatedRaw;
+			Watcher.Changed += OnChangedRaw;
+			Watcher.Renamed += OnRenamedRaw;
+			Watcher.Deleted += OnDeletedRaw;
+			Watcher.Error += OnWatcherError;
 			Watcher.EnableRaisingEvents = true;
 		}
 
@@ -75,13 +97,85 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	}
 	public virtual void OnDestroy()
 	{
+		DisposeWatcher();
+
 		IsInitialized = false;
 
 		Logger.Log($"{IndexedType?.Name} processor has been unloaded.");
 	}
+
+	private void DisposeWatcher()
+	{
+		if (Watcher == null) return;
+
+		Watcher.EnableRaisingEvents = false;
+		Watcher.Created -= OnCreatedRaw;
+		Watcher.Changed -= OnChangedRaw;
+		Watcher.Renamed -= OnRenamedRaw;
+		Watcher.Deleted -= OnDeletedRaw;
+		Watcher.Error -= OnWatcherError;
+		Watcher.Dispose();
+		Watcher = null;
+	}
 	public virtual void Dispose()
 	{
 		Clear();
+	}
+
+	private void OnCreatedRaw(object sender, FileSystemEventArgs e)
+		=> _events.Enqueue(new WatcherEvent(WatcherChangeTypes.Created, e));
+
+	private void OnChangedRaw(object sender, FileSystemEventArgs e)
+		=> _events.Enqueue(new WatcherEvent(WatcherChangeTypes.Changed, e));
+
+	private void OnRenamedRaw(object sender, RenamedEventArgs e)
+		=> _events.Enqueue(new WatcherEvent(WatcherChangeTypes.Renamed, e));
+
+	private void OnDeletedRaw(object sender, FileSystemEventArgs e)
+		=> _events.Enqueue(new WatcherEvent(WatcherChangeTypes.Deleted, e));
+
+	private void OnWatcherError(object sender, ErrorEventArgs e)
+	{
+		var ex = e.GetException();
+		Logger.Error($"FileSystemWatcher error in '{Folder}': {ex?.Message}", ex);
+	}
+
+	private static Func<Process> BuildProcessFactory(Type type)
+	{
+		if (type == null) return null;
+
+		var ctor = type.GetConstructor(Type.EmptyTypes);
+		if (ctor == null) return null;
+
+		return Expression.Lambda<Func<Process>>(Expression.New(ctor)).Compile();
+	}
+
+	private Process CreateProcess()
+	{
+		if (_processFactory != null) return _processFactory();
+		if (IndexedType == null) return null;
+		return Activator.CreateInstance(IndexedType) as Process;
+	}
+
+	private void DrainEventQueue()
+	{
+		while (_events.TryDequeue(out var evt))
+		{
+			try
+			{
+				switch (evt.Type)
+				{
+					case WatcherChangeTypes.Created: OnCreated(this, evt.Args); break;
+					case WatcherChangeTypes.Changed: OnChanged(this, evt.Args); break;
+					case WatcherChangeTypes.Renamed: OnRenamed(this, (RenamedEventArgs)evt.Args); break;
+					case WatcherChangeTypes.Deleted: OnRemoved(this, evt.Args); break;
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Watcher dispatch error for '{evt.Args.FullPath}' ({evt.Type})", ex);
+			}
+		}
 	}
 
 	public virtual IEnumerator Run()
@@ -90,24 +184,37 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 		{
 			yield return _wfsInstance;
 
+			DrainEventQueue();
+
 			foreach (var element in InstanceBuffer)
 			{
-				_runtimeCache.Add(element.Key, element.Value);
+				var value = element.Value;
+				if (value == null || value.IsRemoved || value.IsDirty)
+				{
+					_runtimeCache.Add(element.Key, value);
+				}
+			}
+
+			if (_runtimeCache.Count == 0)
+			{
+				yield return null;
+				continue;
 			}
 
 			foreach (var element in _runtimeCache)
 			{
-				var id = Path.GetFileNameWithoutExtension(element.Key);
+				var value = element.Value;
 
-				if (element.Value == null)
+				if (value == null)
 				{
-					var instance = Activator.CreateInstance(IndexedType) as Process;
+					var instance = CreateProcess();
 
 					if (instance != null)
 					{
 						instance.File = element.Key;
 						instance.Execute(this);
 
+						var id = Path.GetFileNameWithoutExtension(element.Key);
 						InstanceBuffer.Remove(element.Key);
 						InstanceBuffer[id] = instance;
 					}
@@ -115,16 +222,16 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 					continue;
 				}
 
-				if (element.Value.IsRemoved)
+				if (value.IsRemoved)
 				{
-					Clear(id, element.Value);
+					Clear(element.Key, value);
 					yield return null;
 					continue;
 				}
 
-				if (element.Value.IsDirty)
+				if (value.IsDirty)
 				{
-					Execute(element.Key, element.Value);
+					Execute(element.Key, value);
 					yield return null;
 				}
 			}
@@ -137,16 +244,26 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 	public virtual bool Exists(string path)
 	{
-		return InstanceBuffer.Any(x => x.Value.File == path);
+		foreach (var entry in InstanceBuffer)
+		{
+			if (entry.Value != null && entry.Value.File == path) return true;
+		}
+		return false;
 	}
 	public virtual void Prepare(string file)
 	{
-		if (file.StartsWith("http"))
+		if (file.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
 		{
-			var filename = Path.GetFileName(file.Replace("http://", string.Empty).Replace("https://", string.Empty));
-			Prepare(filename, file);
+			Prepare(Path.GetFileName(file.Substring(8)), file);
 		}
-		else Prepare(Path.GetFileNameWithoutExtension(file), file);
+		else if (file.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+		{
+			Prepare(Path.GetFileName(file.Substring(7)), file);
+		}
+		else
+		{
+			Prepare(Path.GetFileNameWithoutExtension(file), file);
+		}
 	}
 	public virtual void Prepare(string id, string file)
 	{
@@ -155,19 +272,16 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 			return;
 		}
 
-		if (!string.IsNullOrEmpty(file))
+		if (!string.IsNullOrEmpty(Extension) && OsEx.File.Exists(file) && !PathEx.HasExtension(file, Extension))
 		{
-			var extension = Path.GetExtension(file);
-
-			if (!string.IsNullOrEmpty(Extension) && OsEx.File.Exists(file) && extension != Extension)
-			{
-				return;
-			}
+			return;
 		}
 
 		Remove(id);
 
-		var instance = Activator.CreateInstance(IndexedType) as Process;
+		var instance = CreateProcess();
+		if (instance == null) return;
+
 		InstanceBuffer.Add(id, instance);
 
 		instance.File = file;
@@ -175,17 +289,32 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	}
 	public virtual void Remove(string id)
 	{
-		var existent = !InstanceBuffer.ContainsKey(id) ? null : InstanceBuffer[id];
-		existent?.Clear();
-		existent?.Dispose();
-
-		if (InstanceBuffer.ContainsKey(id)) InstanceBuffer.Remove(id);
+		if (InstanceBuffer.TryGetValue(id, out var existent))
+		{
+			existent?.Clear();
+			existent?.Dispose();
+			InstanceBuffer.Remove(id);
+		}
 	}
 	public virtual void Clear(IEnumerable<string> except = null)
 	{
+		List<string> exceptList = null;
+		if (except != null)
+		{
+			exceptList = Pool.Get<List<string>>();
+			foreach (var s in except) exceptList.Add(s);
+			if (exceptList.Count == 0)
+			{
+				Pool.FreeUnmanaged(ref exceptList);
+				exceptList = null;
+			}
+		}
+
+		var toRemove = Pool.Get<List<string>>();
+
 		foreach (var item in InstanceBuffer)
 		{
-			if (except != null && except.Any(x => item.Value.File.Contains(x)))
+			if (exceptList != null && FileMatchesAny(item.Value?.File, exceptList))
 			{
 				continue;
 			}
@@ -196,31 +325,17 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 				item.Value?.Dispose();
 			}
 			catch (Exception ex) { Logger.Error($" Processor error: '{item.Key}'", ex); }
+
+			toRemove.Add(item.Key);
 		}
 
-		var temp = Pool.Get<Dictionary<string, IBaseProcessor.IProcess>>();
-
-		foreach (var instance in InstanceBuffer)
+		for (int i = 0; i < toRemove.Count; i++)
 		{
-			temp.Add(instance.Key, instance.Value);
+			InstanceBuffer.Remove(toRemove[i]);
 		}
 
-		if (except == null || !except.Any())
-		{
-			InstanceBuffer.Clear();
-		}
-		else
-		{
-			foreach (var instance in temp)
-			{
-				if (!except.Any(instance.Value.File.Contains))
-				{
-					InstanceBuffer.Remove(instance.Key);
-				}
-			}
-		}
-
-		Pool.FreeUnmanaged(ref temp);
+		Pool.FreeUnmanaged(ref toRemove);
+		if (exceptList != null) Pool.FreeUnmanaged(ref exceptList);
 	}
 	public virtual void Ignore(string file)
 	{
@@ -228,7 +343,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	}
 	public virtual void ClearIgnore(string file)
 	{
-		IgnoreList.RemoveAll(x => x == file);
+		IgnoreList.Remove(file);
 	}
 	public T Get<T>(string id) where T : IBaseProcessor.IProcess
 	{
@@ -272,10 +387,9 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	}
 	public virtual void OnChanged(object sender, FileSystemEventArgs e)
 	{
-		var path = e.FullPath;
-		var name = Path.GetFileNameWithoutExtension(path);
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		if (!EnableWatcher || IsBlacklisted(path)) return;
+		var name = Path.GetFileNameWithoutExtension(e.FullPath);
 
 		if (InstanceBuffer.TryGetValue(name, out var mod))
 		{
@@ -284,23 +398,21 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	}
 	public virtual void OnRenamed(object sender, RenamedEventArgs e)
 	{
-		var path = e.FullPath;
-		var name = Path.GetFileNameWithoutExtension(path);
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		if (!EnableWatcher || IsBlacklisted(path)) return;
+		var name = Path.GetFileNameWithoutExtension(e.FullPath);
 
 		if (InstanceBuffer.TryGetValue(name, out var mod))
 		{
 			mod.MarkDeleted();
 		}
-		InstanceBuffer.Add(name, null);
+		InstanceBuffer[name] = null;
 	}
 	public virtual void OnRemoved(object sender, FileSystemEventArgs e)
 	{
-		var path = e.FullPath;
-		var name = Path.GetFileNameWithoutExtension(path);
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		if (!EnableWatcher || IsBlacklisted(path)) return;
+		var name = Path.GetFileNameWithoutExtension(e.FullPath);
 
 		if (InstanceBuffer.TryGetValue(name, out var mod))
 		{
@@ -315,9 +427,17 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 	public bool IsBlacklisted(string path)
 	{
-		if (!IncludeSubdirectories && Path.GetFullPath(Path.GetDirectoryName(path)) != Path.GetFullPath(Folder))
+		if (!IncludeSubdirectories && !string.IsNullOrEmpty(_normalizedFolder))
 		{
-			return true;
+			var dir = Path.GetDirectoryName(path);
+			if (!string.IsNullOrEmpty(dir))
+			{
+				var fullDir = PathEx.NormalizePath(dir);
+				if (!PathEx.Equals(fullDir, _normalizedFolder))
+				{
+					return true;
+				}
+			}
 		}
 
 		if (BlacklistPattern == null) return false;
@@ -327,6 +447,16 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 			if (path.Contains(BlacklistPattern[i])) return true;
 		}
 
+		return false;
+	}
+
+	private static bool FileMatchesAny(string file, List<string> patterns)
+	{
+		if (file == null) return false;
+		for (int i = 0; i < patterns.Count; i++)
+		{
+			if (file.Contains(patterns[i])) return true;
+		}
 		return false;
 	}
 

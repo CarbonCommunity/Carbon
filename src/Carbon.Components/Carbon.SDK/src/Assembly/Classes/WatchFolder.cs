@@ -22,20 +22,20 @@ public class WatchFolder
 
 	public void TriggerAll(WatcherChangeTypes type)
 	{
-		foreach (string file in System.IO.Directory.GetFiles(Handler.Path, Handler.Filter))
+		foreach (string file in System.IO.Directory.EnumerateFiles(Handler.Path, Handler.Filter))
 		{
 			switch (type)
 			{
 				case WatcherChangeTypes.Created:
-					OnFileCreated.Invoke(Handler, file);
+					OnFileCreated?.Invoke(Handler, file);
 					break;
 
 				case WatcherChangeTypes.Changed:
-					OnFileChanged.Invoke(Handler, file);
+					OnFileChanged?.Invoke(Handler, file);
 					break;
 
 				case WatcherChangeTypes.Deleted:
-					OnFileDeleted.Invoke(Handler, file);
+					OnFileDeleted?.Invoke(Handler, file);
 					break;
 			}
 		}

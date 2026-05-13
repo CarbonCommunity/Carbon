@@ -64,15 +64,11 @@ internal sealed class ExtensionManager : AddonManager, IExtensionManager
 			{
 				foreach(var file in Directory.GetFiles(directory))
 				{
-					switch (Path.GetExtension(file))
+					if (PathEx.HasExtension(file, ".dll") &&
+						Path.GetFileNameWithoutExtension(file) == name.Name)
 					{
-						case ".dll":
-							if (Path.GetFileNameWithoutExtension(file) == name.Name)
-							{
-								Cache.Add(name.Name, assembly = AssemblyDefinition.ReadAssembly(file, ReadingParameters));
-								found = true;
-							}
-							break;
+						Cache.Add(name.Name, assembly = AssemblyDefinition.ReadAssembly(file, ReadingParameters));
+						found = true;
 					}
 
 					if (found) break;
@@ -179,31 +175,26 @@ internal sealed class ExtensionManager : AddonManager, IExtensionManager
 		var assemblyName = string.Empty;
 		var result = (Assembly)null;
 
-		if (File.Exists(file))
+		if (File.Exists(file) && PathEx.HasExtension(file, ".dll"))
 		{
-			switch (Path.GetExtension(file))
+			stream = new MemoryStream(File.ReadAllBytes(file));
+
+			var assembly = AssemblyDefinition.ReadAssembly(stream, ReadingParameters);
+			assemblyName = assembly.Name.Name;
+
+			assembly.Name.Name = $"{assembly.Name.Name}_{Guid.NewGuid()}";
+
+			foreach (var reference in assembly.MainModule.AssemblyReferences)
 			{
-				case ".dll":
-					stream = new MemoryStream(File.ReadAllBytes(file));
-
-					var assembly = AssemblyDefinition.ReadAssembly(stream, ReadingParameters);
-					assemblyName = assembly.Name.Name;
-
-					assembly.Name.Name = $"{assembly.Name.Name}_{Guid.NewGuid()}";
-
-					foreach (var reference in assembly.MainModule.AssemblyReferences)
-					{
-						if (ResolverInstance.Cache.TryGetValue(reference.Name, out var assemblyDefinition))
-						{
-							reference.Name = assemblyDefinition.Name.Name;
-						}
-					}
-
-					ResolverInstance.Cache[assemblyName] = assembly;
-
-					definition = assembly;
-					break;
+				if (ResolverInstance.Cache.TryGetValue(reference.Name, out var assemblyDefinition))
+				{
+					reference.Name = assemblyDefinition.Name.Name;
+				}
 			}
+
+			ResolverInstance.Cache[assemblyName] = assembly;
+
+			definition = assembly;
 		}
 
 		if (definition == null || string.IsNullOrEmpty(assemblyName))
