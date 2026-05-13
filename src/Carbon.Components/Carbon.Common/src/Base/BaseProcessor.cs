@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using API.Assembly;
 using Facepunch;
 
 namespace Carbon.Base;
@@ -25,19 +26,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	internal string _normalizedFolder;
 
 	private Func<Process> _processFactory;
-	private readonly ConcurrentQueue<WatcherEvent> _events = new();
-
-	private readonly struct WatcherEvent
-	{
-		public readonly WatcherChangeTypes Type;
-		public readonly FileSystemEventArgs Args;
-
-		public WatcherEvent(WatcherChangeTypes type, FileSystemEventArgs args)
-		{
-			Type = type;
-			Args = args;
-		}
-	}
+	private readonly ConcurrentQueue<WatchFileEvent> _events = new();
 
 	public bool IsInitialized { get; set; }
 
@@ -123,16 +112,16 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	}
 
 	private void OnCreatedRaw(object sender, FileSystemEventArgs e)
-		=> _events.Enqueue(new WatcherEvent(WatcherChangeTypes.Created, e));
+		=> _events.Enqueue(new WatchFileEvent(WatcherChangeTypes.Created, e.FullPath, null, isInitial: false));
 
 	private void OnChangedRaw(object sender, FileSystemEventArgs e)
-		=> _events.Enqueue(new WatcherEvent(WatcherChangeTypes.Changed, e));
+		=> _events.Enqueue(new WatchFileEvent(WatcherChangeTypes.Changed, e.FullPath, null, isInitial: false));
 
 	private void OnRenamedRaw(object sender, RenamedEventArgs e)
-		=> _events.Enqueue(new WatcherEvent(WatcherChangeTypes.Renamed, e));
+		=> _events.Enqueue(new WatchFileEvent(WatcherChangeTypes.Renamed, e.FullPath, e.OldFullPath, isInitial: false));
 
 	private void OnDeletedRaw(object sender, FileSystemEventArgs e)
-		=> _events.Enqueue(new WatcherEvent(WatcherChangeTypes.Deleted, e));
+		=> _events.Enqueue(new WatchFileEvent(WatcherChangeTypes.Deleted, e.FullPath, null, isInitial: false));
 
 	private void OnWatcherError(object sender, ErrorEventArgs e)
 	{
@@ -165,15 +154,15 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 			{
 				switch (evt.Type)
 				{
-					case WatcherChangeTypes.Created: OnCreated(this, evt.Args); break;
-					case WatcherChangeTypes.Changed: OnChanged(this, evt.Args); break;
-					case WatcherChangeTypes.Renamed: OnRenamed(this, (RenamedEventArgs)evt.Args); break;
-					case WatcherChangeTypes.Deleted: OnRemoved(this, evt.Args); break;
+					case WatcherChangeTypes.Created: OnCreated(evt); break;
+					case WatcherChangeTypes.Changed: OnChanged(evt); break;
+					case WatcherChangeTypes.Renamed: OnRenamed(evt); break;
+					case WatcherChangeTypes.Deleted: OnRemoved(evt); break;
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.Error($"Watcher dispatch error for '{evt.Args.FullPath}' ({evt.Type})", ex);
+				Logger.Error($"Watcher dispatch error for '{evt.Path}' ({evt.Type})", ex);
 			}
 		}
 	}
@@ -367,52 +356,58 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 		Prepare(id, process.File);
 	}
 
-	public virtual void OnCreated(object sender, FileSystemEventArgs e)
+	public virtual void OnCreated(WatchFileEvent e)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
+		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
 
-		if (InstanceBuffer.TryGetValue(e.FullPath, out var instance1))
+		if (InstanceBuffer.TryGetValue(e.Path, out var instance1))
 		{
 			instance1?.MarkDirty();
 			return;
 		}
 
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.FullPath), out var instance2))
+		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Path), out var instance2))
 		{
 			instance2?.MarkDirty();
 			return;
 		}
 
-		InstanceBuffer.Add(e.FullPath, null);
+		InstanceBuffer.Add(e.Path, null);
 	}
-	public virtual void OnChanged(object sender, FileSystemEventArgs e)
+	public virtual void OnChanged(WatchFileEvent e)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
+		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
 
-		var name = Path.GetFileNameWithoutExtension(e.FullPath);
+		var name = Path.GetFileNameWithoutExtension(e.Path);
 
 		if (InstanceBuffer.TryGetValue(name, out var mod))
 		{
 			mod.MarkDirty();
 		}
 	}
-	public virtual void OnRenamed(object sender, RenamedEventArgs e)
+	public virtual void OnRenamed(WatchFileEvent e)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
+		if (!EnableWatcher) return;
 
-		var name = Path.GetFileNameWithoutExtension(e.FullPath);
-
-		if (InstanceBuffer.TryGetValue(name, out var mod))
+		if (!string.IsNullOrEmpty(e.OldPath))
 		{
-			mod.MarkDeleted();
+			var oldName = Path.GetFileNameWithoutExtension(e.OldPath);
+			if (InstanceBuffer.TryGetValue(oldName, out var oldMod))
+			{
+				oldMod?.MarkDeleted();
+			}
 		}
-		InstanceBuffer[name] = null;
-	}
-	public virtual void OnRemoved(object sender, FileSystemEventArgs e)
-	{
-		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		var name = Path.GetFileNameWithoutExtension(e.FullPath);
+		if (IsBlacklisted(e.Path)) return;
+
+		var newName = Path.GetFileNameWithoutExtension(e.Path);
+		InstanceBuffer[newName] = null;
+	}
+	public virtual void OnRemoved(WatchFileEvent e)
+	{
+		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
+
+		var name = Path.GetFileNameWithoutExtension(e.Path);
 
 		if (InstanceBuffer.TryGetValue(name, out var mod))
 		{

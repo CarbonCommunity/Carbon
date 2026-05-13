@@ -85,18 +85,16 @@ internal sealed class ModuleManager : AddonManager
 	{
 		Carbon.Bootstrap.Watcher.Watch(Watcher = new WatchFolder
 		{
-			Extension = "*.dll",
+			Filter = "*.dll",
 			IncludeSubFolders = false,
 			Directory = Context.CarbonModules,
 
-			OnFileCreated = (sender, file) =>
+			OnEvent = e =>
 			{
-				if (!Watcher.InitialEvent)
-				{
-					return;
-				}
+				if (!e.IsInitial) return;
+				if (e.Type != WatcherChangeTypes.Created) return;
 
-				Load(file, "ModuleManager.Created");
+				Load(e.Path, "ModuleManager.Created");
 			},
 		});
 	}

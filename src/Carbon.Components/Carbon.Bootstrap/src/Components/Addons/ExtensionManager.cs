@@ -94,25 +94,21 @@ internal sealed class ExtensionManager : AddonManager, IExtensionManager
 	{
 		Carbon.Bootstrap.Watcher.Watch(Watcher = new WatchFolder
 		{
-			Extension = "*.dll",
+			Filter = "*.dll",
 			IncludeSubFolders = false,
 			Directory = Context.CarbonExtensions,
 
-			OnFileCreated = (_, file) =>
+			OnEvent = e =>
 			{
-				if (!Watcher.InitialEvent)
-				{
-					return;
-				}
+				if (!e.IsInitial) return;
+				if (e.Type != WatcherChangeTypes.Created) return;
 
-				if (!_created.Contains(file) && !_changed.Contains(file) && !_deleted.Contains(file))
+				if (!_created.Contains(e.Path) && !_changed.Contains(e.Path) && !_deleted.Contains(e.Path))
 				{
-					_created.Add(file);
+					_created.Add(e.Path);
 				}
 			},
 		});
-
-		Watcher.Handler.EnableRaisingEvents = false;
 	}
 
 	internal void FixedUpdate()

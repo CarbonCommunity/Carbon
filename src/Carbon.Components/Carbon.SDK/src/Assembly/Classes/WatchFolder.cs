@@ -1,45 +1,29 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace API.Assembly;
 
-public class WatchFolder
+public sealed class WatchFolder
 {
-	public bool InitialEvent = true;
-
-	public bool IncludeSubFolders { get; set; }
-	public FileSystemWatcher Handler { get; set; }
 	public string Directory { get; set; }
-	public string Extension { get; set; }
+	public string Filter { get; set; }
+	public bool IncludeSubFolders { get; set; }
 
-	public OnFileChangedEvent OnFileChanged { get; set; }
-	public delegate void OnFileChangedEvent(object sender, string path);
+	public Action<WatchFileEvent> OnEvent { get; set; }
+}
 
-	public OnFileCreatedEvent OnFileCreated { get; set; }
-	public delegate void OnFileCreatedEvent(object sender, string path);
+public readonly struct WatchFileEvent
+{
+	public readonly WatcherChangeTypes Type;
+	public readonly string Path;
+	public readonly string OldPath;
+	public readonly bool IsInitial;
 
-	public OnFileDeletedEvent OnFileDeleted { get; set; }
-	public delegate void OnFileDeletedEvent(object sender, string path);
-
-	public void TriggerAll(WatcherChangeTypes type)
+	public WatchFileEvent(WatcherChangeTypes type, string path, string oldPath, bool isInitial)
 	{
-		foreach (string file in System.IO.Directory.EnumerateFiles(Handler.Path, Handler.Filter))
-		{
-			switch (type)
-			{
-				case WatcherChangeTypes.Created:
-					OnFileCreated?.Invoke(Handler, file);
-					break;
-
-				case WatcherChangeTypes.Changed:
-					OnFileChanged?.Invoke(Handler, file);
-					break;
-
-				case WatcherChangeTypes.Deleted:
-					OnFileDeleted?.Invoke(Handler, file);
-					break;
-			}
-		}
-
-		Handler.EnableRaisingEvents = true;
+		Type = type;
+		Path = path;
+		OldPath = oldPath;
+		IsInitial = isInitial;
 	}
 }
