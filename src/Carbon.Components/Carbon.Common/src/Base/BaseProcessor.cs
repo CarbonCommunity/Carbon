@@ -22,7 +22,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	public FileSystemWatcher Watcher { get; private set; }
 
 	internal WaitForSeconds _wfsInstance;
-	internal Dictionary<string, IBaseProcessor.IProcess> _runtimeCache = new(128);
+	internal readonly Dictionary<string, IBaseProcessor.IProcess> _runtimeCache = new(128);
 	internal string _normalizedFolder;
 
 	private Func<Process> _processFactory;
