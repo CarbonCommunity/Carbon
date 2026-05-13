@@ -24,6 +24,7 @@ on:
           - rust_beta/aux01
           - rust_beta/aux02
           - rust_beta/aux03
+          - rust_beta/aux04
 
       rust_branch:
         description: 'Rust Branch'
@@ -37,6 +38,7 @@ on:
           - aux01
           - aux02
           - aux03
+          - aux04
 
       debug:
         description: 'Debug Hooks'
