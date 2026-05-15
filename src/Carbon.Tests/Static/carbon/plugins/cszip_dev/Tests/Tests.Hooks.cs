@@ -1,3 +1,4 @@
+#if !TESTS_NO_HOOKS
 using System.Linq;
 using System.Threading.Tasks;
 using API.Hooks;
@@ -99,8 +100,8 @@ public partial class Tests
 		        test.Log($"{nameof(IPatchManager.InstalledDynamicHooks)}: {hookManager.InstalledDynamicHooks.Count()}");
 		        test.Log($"{nameof(IPatchManager.LoadedStaticHooks)}: {hookManager.LoadedStaticHooks.Count()}");
 		        test.Log($"{nameof(IPatchManager.InstalledStaticHooks)}: {hookManager.InstalledStaticHooks.Count()}");
-	        }
         }
+    }
     }
 
     private void TestingHook(Integrations.Test.Assert test)
@@ -116,3 +117,4 @@ public partial class Tests
         return true;
     }
 }
+#endif

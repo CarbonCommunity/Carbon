@@ -129,7 +129,10 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 			Save();
 		}
 
-		LoadDefaultImages();
+		if (ConfigInstance.LoadDefaultImagesOnStartup)
+		{
+			LoadDefaultImages();
+		}
 	}
 	public override void OnServerSaved()
 	{
@@ -664,18 +667,19 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 
 public class ImageDatabaseConfig
 {
-	public float TimeoutPerUrl { get; set; } = 2f;
+	public float TimeoutPerUrl = 2f;
+	public bool LoadDefaultImagesOnStartup = true;
 }
 
 [ProtoContract]
 public class ImageDatabaseDataProto
 {
 	[ProtoMember(1)]
-	public ulong Identifier { get; set; }
+	public ulong Identifier;
 
 	[ProtoMember(2)]
-	public Dictionary<string, uint> Map { get; set; }
+	public Dictionary<string, uint> Map;
 
 	[ProtoMember(3)]
-	public Dictionary<string, string> CustomMap { get; set; }
+	public Dictionary<string, string> CustomMap;
 }
