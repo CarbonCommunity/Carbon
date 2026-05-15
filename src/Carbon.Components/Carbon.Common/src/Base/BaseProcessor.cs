@@ -18,7 +18,17 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	public string[] BlacklistPattern { get; set; }
 	public virtual float Rate => 0.2f;
 	public virtual Type IndexedType => null;
-	public bool IncludeSubdirectories { get; set; }
+
+	public bool IncludeSubdirectories
+	{
+		get;
+		set
+		{
+			field = value;
+			Watcher?.IncludeSubdirectories = value;
+		}
+	}
+
 	public FileSystemWatcher Watcher { get; private set; }
 
 	internal WaitForSeconds _wfsInstance;
