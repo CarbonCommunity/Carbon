@@ -512,11 +512,12 @@ public class Permission : Library
 	}
 	public virtual void UpdateNickname(string id, string nickname)
 	{
-		if (!userdata.TryGetValue(id, out var userData))
+		if (!UserExists(id))
 		{
 			return;
 		}
 
+		var userData = GetUserData(id);
 		var lastSeenNickname = userData.LastSeenNickname;
 		userData.LastSeenNickname = nickname.Sanitize();
 		CommitUser(id, userData);
@@ -531,7 +532,7 @@ public class Permission : Library
 
 	public virtual bool UserHasAnyGroup(string id)
 	{
-		return userdata.TryGetValue(id, out var data) && data.Groups.Count > 0;
+		return UserExists(id) && GetUserData(id).Groups.Count > 0;
 	}
 	public virtual bool GroupsHavePermission(HashSet<string> groups, string perm)
 	{
