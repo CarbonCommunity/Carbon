@@ -43,7 +43,7 @@ public partial class Timers
 		}
 	}
 
-	public static void UpdateStartupTimers()
+	internal static void UpdateStartupTimers()
 	{
 		if (Community.IsServerInitialized)
 		{
@@ -53,7 +53,7 @@ public partial class Timers
 		FireDueStartupTimers(MaxStartupTimersPerFrame);
 	}
 
-	public static void FireDueStartupTimers(int maxTimers = int.MaxValue)
+	internal static void FireDueStartupTimers(int maxTimers = int.MaxValue)
 	{
 		if (maxTimers <= 0)
 		{
@@ -79,7 +79,7 @@ public partial class Timers
 		}
 	}
 
-	public static void ConvertRemainingStartupTimersToInvokes()
+	internal static void ConvertRemainingStartupTimersToInvokes()
 	{
 		var timers = Pool.Get<List<Timer>>();
 
