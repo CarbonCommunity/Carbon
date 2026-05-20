@@ -5,6 +5,7 @@ namespace Carbon.OxideRefs;
 public class PermissionSql : Permission
 {
 	public PermissionDatabase db;
+	private int _transactionDepth;
 
 	public void InitializeDb()
 	{
@@ -39,7 +40,7 @@ public class PermissionSql : Permission
 	{
 		Logger.Log($"Migrating database..");
 
-		db?.Execute("BEGIN IMMEDIATE TRANSACTION");
+		var transaction = BeginImmediateTransaction();
 		try
 		{
 			var totalPerms = 0;
@@ -82,11 +83,11 @@ public class PermissionSql : Permission
 				}
 			}
 
-			db?.Execute("COMMIT");
+			CommitTransaction(transaction);
 		}
 		catch
 		{
-			db?.Execute("ROLLBACK");
+			RollbackTransaction(transaction);
 			throw;
 		}
 
@@ -234,7 +235,7 @@ public class PermissionSql : Permission
 
 		var prefixLen = perm.Length == 1 ? 0 : perm.Length - 1;
 
-		db.Execute("BEGIN IMMEDIATE TRANSACTION");
+		var transaction = BeginImmediateTransaction();
 		try
 		{
 			if (owner == null)
@@ -258,11 +259,11 @@ public class PermissionSql : Permission
 					db.Execute("INSERT OR IGNORE INTO groupsPerms ( groupName, permission ) VALUES ( ?, ? )", name, s);
 				}
 			}
-			db.Execute("COMMIT");
+			CommitTransaction(transaction);
 		}
 		catch
 		{
-			db.Execute("ROLLBACK");
+			RollbackTransaction(transaction);
 			throw;
 		}
 	}
@@ -449,18 +450,18 @@ public class PermissionSql : Permission
 
 		if (db != null)
 		{
-			db.Execute("BEGIN IMMEDIATE TRANSACTION");
+			var transaction = BeginImmediateTransaction();
 			try
 			{
 				for (var i = 0; i < added.Count; i++)
 				{
 					db.Execute("INSERT OR IGNORE INTO userPerms ( userId, permission ) VALUES ( ?, ? )", id, added[i]);
 				}
-				db.Execute("COMMIT");
+				CommitTransaction(transaction);
 			}
 			catch
 			{
-				db.Execute("ROLLBACK");
+				RollbackTransaction(transaction);
 				throw;
 			}
 		}
@@ -536,18 +537,18 @@ public class PermissionSql : Permission
 
 		if (db != null)
 		{
-			db.Execute("BEGIN IMMEDIATE TRANSACTION");
+			var transaction = BeginImmediateTransaction();
 			try
 			{
 				for (var i = 0; i < matched.Count; i++)
 				{
 					db.Execute("DELETE FROM userPerms WHERE userId = ? AND permission = ?", id, matched[i]);
 				}
-				db.Execute("COMMIT");
+				CommitTransaction(transaction);
 			}
 			catch
 			{
-				db.Execute("ROLLBACK");
+				RollbackTransaction(transaction);
 				throw;
 			}
 		}
@@ -626,6 +627,36 @@ public class PermissionSql : Permission
 	{
 		GetUserData(id);
 		return base.FindUser(id);
+	}
+
+	private bool BeginImmediateTransaction()
+	{
+		if (db == null) return false;
+
+		if (_transactionDepth == 0)
+		{
+			_transactionDepth = 1;
+			db.Execute("BEGIN IMMEDIATE TRANSACTION");
+			return true;
+		}
+
+		return false;
+	}
+
+	private void CommitTransaction(bool ownsTransaction)
+	{
+		if (db == null || !ownsTransaction) return;
+
+		_transactionDepth = 0;
+		db.Execute("COMMIT");
+	}
+
+	private void RollbackTransaction(bool ownsTransaction)
+	{
+		if (db == null || !ownsTransaction) return;
+
+		_transactionDepth = 0;
+		db.Execute("ROLLBACK");
 	}
 
 	#endregion
