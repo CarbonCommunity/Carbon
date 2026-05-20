@@ -534,7 +534,23 @@ public class PermissionSql : Permission
 
 		if (matched.Count == 0) return false;
 
-		db?.Execute("DELETE FROM userPerms WHERE userId = ? AND permission LIKE ?", id, perm.Substring(0, prefixLen) + "%");
+		if (db != null)
+		{
+			db.Execute("BEGIN IMMEDIATE TRANSACTION");
+			try
+			{
+				for (var i = 0; i < matched.Count; i++)
+				{
+					db.Execute("DELETE FROM userPerms WHERE userId = ? AND permission = ?", id, matched[i]);
+				}
+				db.Execute("COMMIT");
+			}
+			catch
+			{
+				db.Execute("ROLLBACK");
+				throw;
+			}
+		}
 
 		for (var i = 0; i < matched.Count; i++)
 		{
