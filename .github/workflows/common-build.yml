@@ -7,17 +7,28 @@ on:
         required: true
         type: string
       RELEASE_BODY:
-        required: true
+        required: false
         type: string
+        default: ''
       UPDATE_ARG:
         required: false
         type: string
         default: ''
+      CHECKOUT_REPOSITORY:
+        required: false
+        type: string
+        default: ''
+      CHECKOUT_REF:
+        required: false
+        type: string
+        default: ''
+      VERSION_OVERRIDE:
+        required: false
+        type: string
+        default: ''
     secrets:
-      PAT_ALL_REPO:
-        required: true
       VERSIONS_TOKEN:
-        required: true
+        required: false
       NUGET_API:
         required: false
 
@@ -122,6 +133,14 @@ jobs:
               MAJOR_VER="2.7"
               RELEASE_NAME="Rust (Aux03)"
               ;;
+            "rust_beta/aux04")
+              API_ID="aux04"
+              BUILD_DEFINE="RUST_AUX04"
+              TAG_NAME="rustbeta_aux04_build"
+              UPDATE_ARG="aux04"
+              MAJOR_VER="2.8"
+              RELEASE_NAME="Rust (Aux04)"
+              ;;
             "rust_beta/staging")
               API_ID="staging"
               BUILD_DEFINE="RUST_STAGING"
@@ -173,13 +192,23 @@ jobs:
           TOKEN: ${{ secrets.VERSIONS_TOKEN }}
           API: ${{ steps.config.outputs.api_id }}
           MAJOR: ${{ steps.config.outputs.major_ver }}
+          VERSION_OVERRIDE: ${{ inputs.VERSION_OVERRIDE }}
         run: |
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
-          
-          VER_SUFFIX=$(curl -s -L "https://api.carbonmod.gg/version?id=$API&token=$TOKEN")
-          echo "version=$MAJOR.$VER_SUFFIX" >> $GITHUB_OUTPUT
+
+          if [ -n "$VERSION_OVERRIDE" ]; then
+            echo "version=$VERSION_OVERRIDE" >> $GITHUB_OUTPUT
+          else
+            if [ -z "$TOKEN" ]; then
+              echo "::error::VERSIONS_TOKEN is required when VERSION_OVERRIDE is not provided"
+              exit 1
+            fi
+
+            VER_SUFFIX=$(curl -s -L "https://api.carbonmod.gg/version?id=$API&token=$TOKEN")
+            echo "version=$MAJOR.$VER_SUFFIX" >> $GITHUB_OUTPUT
+          fi
 
   build:
     name: Build
@@ -213,8 +242,8 @@ jobs:
       - name: Git Clone
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.GIT_BRANCH }}
-          token: ${{ secrets.PAT_ALL_REPO }}
+          repository: ${{ inputs.CHECKOUT_REPOSITORY || github.repository }}
+          ref: ${{ inputs.CHECKOUT_REF || inputs.GIT_BRANCH }}
           submodules: recursive
 
       - name: Environment Setup
@@ -427,8 +456,6 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: [ "configure", "build" ]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Git Clone
         uses: actions/checkout@v6

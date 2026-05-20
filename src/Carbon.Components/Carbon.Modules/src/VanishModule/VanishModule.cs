@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using Carbon.Base;
 using Carbon.Components;
 using Facepunch;
@@ -13,6 +14,7 @@ using Oxide.Core.Plugins;
 using Rust;
 using Rust.Ai;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Carbon.Modules;
 
@@ -60,9 +62,13 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		base.OnDisabled(initialized);
 
-		foreach (var vanished in _vanishedPlayers)
+		foreach (var playerId in _vanishedPlayers.Keys.ToArray())
 		{
-			DoVanish(BasePlayer.FindByID(vanished.Key), false);
+			var player = BasePlayer.FindByID(playerId);
+			if (player != null)
+			{
+				DoVanish(player, false, ignorePermanentVanish: true);
+			}
 		}
 
 		_vanishedPlayers.Clear();
@@ -146,11 +152,15 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		effectInstance.Clear();
 	}
 
-	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool toggleNoclip = true)
+	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool toggleNoclip = true, bool ignorePermanentVanish = false)
 	{
+		if (player == null) return;
+		var wasVanished = _vanishedPlayers.ContainsKey(player.userID);
+		if (!wants && !wasVanished) return;
+
 		if (!wants && _vanishedPlayers.TryGetValue(player.userID, out var originalPosition))
 		{
-			if (Permissions.UserHasPermission(player.UserIDString, ConfigInstance.PermanentVanishPermission))
+			if (!ignorePermanentVanish && Permissions.UserHasPermission(player.UserIDString, ConfigInstance.PermanentVanishPermission))
 			{
 				player.ChatMessage("You're permanently vanished due to your permission and/or group.");
 				return;
@@ -162,7 +172,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 				player.Teleport(originalPosition);
 			}
 		}
-		else if(wants && !_vanishedPlayers.ContainsKey(player.userID))
+		else if(wants && !wasVanished)
 		{
 			_vanishedPlayers.Add(player.userID, player.transform.position);
 		}
@@ -200,7 +210,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 			SimpleAIMemory.AddIgnorePlayer(player);
 
-			if (ConfigInstance.WhooshSoundOnVanish)
+			if (!wasVanished && ConfigInstance.WhooshSoundOnVanish)
 			{
 				if (ConfigInstance.BroadcastVanishSounds)
 				{
@@ -214,25 +224,23 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 			if (withUI) _drawUI(player);
 
-			if (ConfigInstance.EnableLogs) Puts($"{player} just vanished at {player.transform.position}");
+			if (!wasVanished && ConfigInstance.EnableLogs) Puts($"{player} just vanished at {player.transform.position}");
 
-			if (ConfigInstance.ToggleNoclipOnVanish && toggleNoclip && player.net.connection.authLevel > 0 && !player.IsFlying)
+			if (!wasVanished && ConfigInstance.ToggleNoclipOnVanish && toggleNoclip && player.net.connection.authLevel > 0 && !player.IsFlying)
 			{
 				player.SendConsoleCommand("noclip");
 			}
 
-			var vanishObject = new GameObject("Vanish Collider");
-			vanishObject.transform.SetParent(player.transform, true);
-			vanishObject.AddComponent<VanishedPlayer>().Init(player);
+			EnsureVanishComponent(player);
 
 			// OnCarbonVanished
-			Carbon.HookCaller.CallStaticHook(778631450, player);
+			if (!wasVanished) Carbon.HookCaller.CallStaticHook(778631450, player);
 		}
 		else
 		{
 			player.transform.localScale = Vector3.one;
 
-			player.ResetAntiHack(player.StableIndex, AntiHack.PlayerSpeedhackStates, AntiHack.PlayerFlyhackStates);
+			player.ResetAntiHack(player.ActivePlayerInd, AntiHack.PlayerSpeedhackStates, AntiHack.PlayerFlyhackStates);
 			player.syncPosition = true;
 			player._limitedNetworking = false;
 			player.isInvisible = false;
@@ -274,15 +282,45 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 				player.SendConsoleCommand("noclip");
 			}
 
-			var vanishMono = player.GetComponentInChildren<VanishedPlayer>();
-
-			if(vanishMono != null)
-			{
-				GameObject.Destroy(vanishMono.gameObject);
-			}
+			DestroyVanishComponents(player);
 
 			// OnCarbonUnvanished
-			Carbon.HookCaller.CallStaticHook(3385747762, player);
+			if (wasVanished) Carbon.HookCaller.CallStaticHook(3385747762, player);
+		}
+	}
+
+	private static void EnsureVanishComponent(BasePlayer player)
+	{
+		if (player.GetComponentInChildren<VanishedPlayer>() != null)
+		{
+			return;
+		}
+
+		var vanishObject = new GameObject("Vanish Collider");
+		vanishObject.transform.SetParent(player.transform, true);
+		vanishObject.AddComponent<VanishedPlayer>().Init(player);
+	}
+
+	private static void DestroyVanishComponents(BasePlayer player)
+	{
+		foreach (var vanishMono in player.GetComponentsInChildren<VanishedPlayer>())
+		{
+			if (vanishMono != null)
+			{
+				Object.Destroy(vanishMono.gameObject);
+			}
+		}
+	}
+
+	private static bool IsValidInvisPlayerConnection(BasePlayer player)
+	{
+		try
+		{
+			return player != null && player.Connection != null && player.transform != null;
+		}
+		catch
+		{
+			return false;
 		}
 	}
 
@@ -462,6 +500,53 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		{
 			if (sourceConnection == null) return true;
 			return Singleton == null || !Singleton.IsEnabled() || !Singleton.IsPlayerVanished(sourceConnection.userid);
+		}
+	}
+
+	[AutoPatch, HarmonyPatch(typeof(BaseNetworkable), nameof(BaseNetworkable.GetConnectionsWithin), typeof(Vector3), typeof(float), typeof(bool), typeof(bool), typeof(bool))]
+	public static class GetConnectionsWithinPatch
+	{
+		[UsedImplicitly]
+		[HarmonyTranspiler]
+		public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+		{
+			var matcher = new CodeMatcher(instructions, generator)
+				.MatchStartForward(new CodeMatch(OpCodes.Ldsfld, AccessTools.Field(typeof(BasePlayer), nameof(BasePlayer.invisPlayers))))
+				.ThrowIfInvalid("Could not find BasePlayer.invisPlayers in BaseNetworkable.GetConnectionsWithin")
+				.MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(Component), nameof(Component.transform))))
+				.ThrowIfInvalid("Could not find invis player transform access in BaseNetworkable.GetConnectionsWithin");
+
+			var transformCallIndex = matcher.Pos;
+			matcher
+				.MatchStartForward(CodeMatch.Calls(AccessTools.PropertyGetter(typeof(Vector3), nameof(Vector3.sqrMagnitude))))
+				.ThrowIfInvalid("Could not find invis player distance check in BaseNetworkable.GetConnectionsWithin");
+
+			var codes = matcher.Instructions().ToList();
+			var loadPlayerIndex = transformCallIndex - 1;
+			var loadPlayerInstruction = codes[loadPlayerIndex];
+			Label? continueLabel = null;
+			for (var i = matcher.Pos; i < codes.Count; i++)
+			{
+				var instruction = codes[i];
+				if ((instruction.opcode == OpCodes.Bgt_Un || instruction.opcode == OpCodes.Bgt_Un_S) && instruction.operand is Label label)
+				{
+					continueLabel = label;
+					break;
+				}
+			}
+
+			if (continueLabel == null)
+			{
+				throw new InvalidOperationException("Could not find invis player loop continue label in BaseNetworkable.GetConnectionsWithin");
+			}
+
+			codes.InsertRange(loadPlayerIndex, [
+				new CodeInstruction(loadPlayerInstruction.opcode, loadPlayerInstruction.operand),
+				new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(VanishModule), nameof(IsValidInvisPlayerConnection))),
+				new CodeInstruction(OpCodes.Brfalse, continueLabel.Value)
+			]);
+
+			return codes;
 		}
 	}
 
