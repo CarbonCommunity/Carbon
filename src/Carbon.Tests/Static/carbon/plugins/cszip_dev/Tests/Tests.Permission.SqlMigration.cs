@@ -1,3 +1,4 @@
+#if !TESTS_NO_PERMISSION_SQL_MIGRATION
 using Carbon.Test;
 
 namespace Carbon.Plugins;
@@ -157,3 +158,4 @@ public partial class Tests
 		}
 	}
 }
+#endif

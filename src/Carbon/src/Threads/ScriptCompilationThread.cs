@@ -465,8 +465,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("RUST_AUX02");
 #elif RUST_AUX03
 			conditionals.Add("RUST_AUX03");
-#elif QA
-			conditionals.Add("QA");
+#elif RUST_AUX04
+			conditionals.Add("RUST_AUX04");
+#elif EXPERIMENTAL
+			conditionals.Add("EXPERIMENTAL");
 #endif
 
 			if (Carbon.Components.Modifier.Active.HasPlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath)))

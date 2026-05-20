@@ -377,7 +377,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic}) from file '{fileName}' in {sw.ElapsedMilliseconds}ms");
 			}
 
-#if !(RUST_STAGING || RUST_RELEASE || RUST_AUX01 || RUST_AUX02 || RUST_AUX03 || QA)
+#if !(RUST_STAGING || RUST_RELEASE || RUST_AUX01 || RUST_AUX02 || RUST_AUX03 || RUST_AUX04 || EXPERIMENTAL)
 			if (hooks.GetType("Carbon.Hooks._Meta") is Type type)
 			{
 				var checksum = (string)type.GetField("Checksum").GetValue(null);
