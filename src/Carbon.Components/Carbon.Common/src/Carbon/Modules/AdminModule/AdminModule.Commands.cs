@@ -32,7 +32,7 @@ public partial class AdminModule
 			array = HookCaller.Caller.AllocateBuffer(args.Args.Length - 2);
 			for (int i = 2; i < args.Args.Length; i++)
 			{
-				array[i - 2] = args.Args[i];
+				array[i - 2] = args.Args[i].ToString();
 			}
 		}
 
