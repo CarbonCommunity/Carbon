@@ -291,7 +291,7 @@ public partial class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyMo
 	{
 		var player = args.Player();
 		var ap = Admin.GetPlayerSession (player);
-		var alpha = args.Args[0].ToFloat().Clamp(0f, 1f);
+		var alpha = args.GetFloat(0).Clamp(0f, 1f);
 		ap.SetStorage(ap.SelectedTab, Alpha, alpha);
 	}
 

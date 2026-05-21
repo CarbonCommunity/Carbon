@@ -2126,7 +2126,7 @@ public partial class AdminModule
 			return;
 		}
 
-		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), args.Args[0])));
+		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), args.Args[0].ToString())));
 		vendor.Refresh();
 		PluginsTab.TagFilter.Clear();
 		PluginsTab.DropdownShow = false;
@@ -2553,7 +2553,7 @@ public partial class AdminModule
 		vendor.Refresh();
 
 		var plugins = PluginsTab.GetPlugins(vendor, tab, ap, 15);
-		var nextPage = plugins.IndexOf(ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin")) + args.Args[0].ToInt();
+		var nextPage = plugins.IndexOf(ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin")) + args.GetInt(0);
 		ap.SetStorage(tab, "selectedplugin", plugins[nextPage > plugins.Count - 1 ? 0 : nextPage < 0 ? plugins.Count - 1 : nextPage]);
 		Facepunch.Pool.FreeUnmanaged(ref plugins);
 
@@ -2570,14 +2570,14 @@ public partial class AdminModule
 		var tab = Singleton.GetTab(ap.Player);
 		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 
-		switch (args.Args[0])
+		switch (args.GetString(0))
 		{
 			case "filter_dd":
 				PluginsTab.DropdownShow = !PluginsTab.DropdownShow;
 
 				if (args.HasArgs(4))
 				{
-					var index = args.Args[3].ToInt();
+					var index = args.GetInt(3);
 					var filter = ap.GetStorage(tab, "filter", PluginsTab.FilterTypes.None);
 					var flipFilter = ap.GetStorage<bool>(tab, "flipfilter");
 
