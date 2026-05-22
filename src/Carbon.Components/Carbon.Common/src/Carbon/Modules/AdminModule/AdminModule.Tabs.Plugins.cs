@@ -2155,7 +2155,10 @@ public partial class AdminModule
 		}
 		var plugin = tabPlugin.ExistentPlugin;
 		var arg = new string[args.Args.Length];
-		Array.Copy(args.Args, arg, args.Args.Length);
+		for (int i = 0; i < args.Args.Length; i++)
+		{
+			arg[i] = args.Args[i].ToString();
+		}
 
 		switch (arg[0])
 		{
