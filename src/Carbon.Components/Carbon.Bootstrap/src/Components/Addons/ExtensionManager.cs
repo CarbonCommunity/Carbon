@@ -225,7 +225,8 @@ internal sealed class ExtensionManager : AddonManager, IExtensionManager
 		var isProfiled = MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Extension, result, Path.GetFileNameWithoutExtension(file));
 		Assemblies.Extensions.Update(Path.GetFileNameWithoutExtension(file), result, file, isProfiled);
 
-		if (AssemblyManager.IsType<ICarbonExtension>(result, out var types))
+		using var types = Pool.Get<PooledList<Type>>();
+		if (AssemblyManager.IsType<ICarbonExtension>(result, types))
 		{
 			var moduleFile = Path.Combine(Context.CarbonExtensions, $"{assemblyName}.dll");
 
@@ -241,8 +242,10 @@ internal sealed class ExtensionManager : AddonManager, IExtensionManager
 
 			if (types != null)
 			{
-				foreach (var type in types)
+				for (int i = 0; i < types.Count; i++)
 				{
+					var type = types[i];
+
 					if (!type.GetInterfaces().Contains(typeof(ICarbonExtension)))
 					{
 						continue;

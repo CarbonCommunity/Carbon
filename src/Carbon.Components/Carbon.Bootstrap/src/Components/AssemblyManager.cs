@@ -8,6 +8,7 @@ using API.Abstracts;
 using API.Assembly;
 using API.Commands;
 using Carbon.Compat;
+using Facepunch;
 using Loaders;
 using Utility;
 
@@ -97,12 +98,21 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		return null;
 	}
 
-	public bool IsType<T>(Assembly assembly, out IEnumerable<Type> output)
+	public bool IsType<T>(Assembly assembly, PooledList<Type> output)
 	{
 		try
 		{
-			output = assembly.GetTypes().Where(type => typeof(T).IsAssignableFrom(type));
-			return output.Count() > 0;
+			var baseT = typeof(T);
+			var types = assembly.GetTypes();
+			for (int i = 0; i < types.Length; i++)
+			{
+				var type = types[i];
+				if (baseT.IsAssignableFrom(type))
+				{
+					output.Add(types[i]);
+				}
+			}
+			return output.Count > 0;
 		}
 		catch
 #if DEBUG

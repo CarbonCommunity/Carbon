@@ -37,9 +37,9 @@ public class Config
 
 		public bool IsMemberIgnored(string name)
 		{
-			foreach (var item in PublicizerMemberIgnores)
+			for (int i = 0; i < PublicizerMemberIgnores.Count; i++)
 			{
-				if (Regex.IsMatch(name, item))
+				if (Regex.IsMatch(name, PublicizerMemberIgnores[i]))
 				{
 					return true;
 				}

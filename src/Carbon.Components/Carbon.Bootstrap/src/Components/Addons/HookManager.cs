@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Hooks;
+using Facepunch;
 using Utility;
 
 namespace Components;
@@ -34,17 +35,20 @@ internal sealed class HookManager : AddonManager
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
+				{
 					// before changing this line, look at the warning above..
 					Assembly asm = _loader.Load(file, requester, _directories)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 					// -----------------------------------------------------------------------------
 
-					if (!AssemblyManager.IsType<Patch>(asm, out _))
+					using var types = Pool.Get<PooledList<Type>>();
+					if (!AssemblyManager.IsType<Patch>(asm, types))
 					{
 						throw new Exception("Unsupported assembly type");
 					}
 
 					return asm;
+				}
 
 				// case ".drm"
 				// 	LoadFromDRM();

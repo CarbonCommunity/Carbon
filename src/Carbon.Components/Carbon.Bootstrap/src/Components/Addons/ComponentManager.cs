@@ -45,16 +45,17 @@ internal sealed class ComponentManager : AddonManager
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
-					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, _directories)?.Assembly
-						?? throw new ReflectionTypeLoadException(null, null, null);
+				{
+					Assembly asm = _loader.Load(file, requester, _directories)?.Assembly ?? throw new ReflectionTypeLoadException(null, null, null);
 
-					if (AssemblyManager.IsType<ICarbonComponent>(asm, out types))
+					using var types = Pool.Get<PooledList<Type>>();
+					if (AssemblyManager.IsType<ICarbonComponent>(asm, types))
 					{
 						if (types != null)
 						{
-							foreach (Type type in types)
+							for (int i = 0; i < types.Count; i++)
 							{
+								var type = types[i];
 								try
 								{
 									if (Activator.CreateInstance(type) is not ICarbonComponent component)
@@ -83,6 +84,7 @@ internal sealed class ComponentManager : AddonManager
 						throw new Exception("Unsupported assembly type");
 					}
 					return asm;
+				}
 
 				default:
 					throw new Exception("File extension not supported");

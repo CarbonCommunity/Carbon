@@ -33,10 +33,12 @@ internal abstract class AddonManager : CarbonBehaviour, IAddonManager
 		get
 		{
 			var dictionary = new Dictionary<Type, KeyValuePair<string, byte[]>>();
-			foreach (var item in _loaded)
+			for (int i = 0; i < _loaded.Count; i++)
 			{
-				foreach (var type in item.Types)
+				var item = _loaded[i];
+				for (int j = 0; j < item.Types.Count; j++)
 				{
+					var type = item.Types[j];
 					if (!dictionary.ContainsKey(type))
 					{
 						dictionary.Add(type, new KeyValuePair<string, byte[]>(item.File, item.PostProcessedRaw));
@@ -52,10 +54,12 @@ internal abstract class AddonManager : CarbonBehaviour, IAddonManager
 		get
 		{
 			var dictionary = new Dictionary<Type, string>();
-			foreach (var item in _loaded)
+			for (int i = 0; i < _loaded.Count; i++)
 			{
-				foreach (var type in item.Shared)
+				var item = _loaded[i];
+				for (int j = 0; j < item.Shared.Count; j++)
 				{
+					var type = item.Shared[j];
 					if (!dictionary.ContainsKey(type))
 					{
 						dictionary.Add(type, item.File);

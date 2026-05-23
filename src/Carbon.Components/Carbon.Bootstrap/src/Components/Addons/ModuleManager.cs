@@ -159,7 +159,8 @@ internal sealed class ModuleManager : AddonManager
 		var isProfiled = MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Module, result, Path.GetFileNameWithoutExtension(file));
 		Assemblies.Modules.Update(Path.GetFileNameWithoutExtension(file), result, file, isProfiled);
 
-		if (AssemblyManager.IsType<IModulePackage>(result, out var types))
+		using var types = Pool.Get<PooledList<Type>>();
+		if (AssemblyManager.IsType<IModulePackage>(result, types))
 		{
 			var moduleFile = Path.Combine(Context.CarbonModules, $"{assemblyName}.dll");
 
