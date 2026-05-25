@@ -21,7 +21,7 @@ public sealed class CompilerPolyfillGenerator : ISourceGenerator
 				: "public";
 
 		var source = CompilerPolyfillCatalog.BuildSource(
-			metadataName => IsPublic(context.Compilation.GetTypeByMetadataName(metadataName)),
+			metadataName => IsAvailable(context.Compilation.GetTypeByMetadataName(metadataName), accessibility),
 			designTime,
 			accessibility);
 
@@ -33,8 +33,9 @@ public sealed class CompilerPolyfillGenerator : ISourceGenerator
 		context.AddSource("Carbon.CompilerPolyfills.g.cs", SourceText.From(source, Encoding.UTF8));
 	}
 
-	private static bool IsPublic(INamedTypeSymbol? symbol)
+	private static bool IsAvailable(INamedTypeSymbol? symbol, string accessibility)
 	{
-		return symbol?.DeclaredAccessibility == Accessibility.Public;
+		return symbol?.DeclaredAccessibility == Accessibility.Public ||
+			(accessibility == "internal" && symbol?.DeclaredAccessibility == Accessibility.Internal);
 	}
 }
