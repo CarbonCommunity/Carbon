@@ -15,10 +15,15 @@ public sealed class CompilerPolyfillGenerator : ISourceGenerator
 	{
 		var designTime = context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.DesignTimeBuild", out var value) &&
 			bool.TryParse(value, out var parsed) && parsed;
+		var accessibility = context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.CarbonCompilerPolyfillsAccessibility", out var accessibilityValue) &&
+			string.Equals(accessibilityValue, "internal", StringComparison.OrdinalIgnoreCase)
+				? "internal"
+				: "public";
 
 		var source = CompilerPolyfillCatalog.BuildSource(
 			metadataName => IsPublic(context.Compilation.GetTypeByMetadataName(metadataName)),
-			designTime);
+			designTime,
+			accessibility);
 
 		if (source.Length == 0)
 		{

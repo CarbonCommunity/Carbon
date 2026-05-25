@@ -405,7 +405,7 @@ namespace System.Runtime.CompilerServices
 """)
 	];
 
-	public static string BuildSource(Func<string, bool> typeExists, bool forceDesignTimePolyfills)
+	public static string BuildSource(Func<string, bool> typeExists, bool forceDesignTimePolyfills, string accessibility = "public")
 	{
 		var source = new StringBuilder();
 
@@ -419,9 +419,17 @@ namespace System.Runtime.CompilerServices
 				}
 			}
 
-			source.AppendLine(entry.Source);
+			source.AppendLine(accessibility == "public" ? entry.Source : WithAccessibility(entry.Source, accessibility));
 		}
 
 		return source.ToString();
+	}
+
+	private static string WithAccessibility(string source, string accessibility)
+	{
+		return source
+			.Replace("\tpublic readonly struct ", $"\t{accessibility} readonly struct ")
+			.Replace("\tpublic static class ", $"\t{accessibility} static class ")
+			.Replace("\tpublic sealed class ", $"\t{accessibility} sealed class ");
 	}
 }
