@@ -64,6 +64,7 @@
     </Project>
   </Folder>
   <Folder Name="/Tools/">
+	<Project Path="Carbon.Tools/Carbon.CompilerPolyfills.Generator/Carbon.CompilerPolyfills.Generator.csproj" />
     <Project Path="Carbon.Profiler/Carbon.Profiler.csproj">
       <Platform Project="x64" />
     </Project>
