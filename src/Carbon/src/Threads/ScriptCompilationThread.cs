@@ -262,6 +262,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			parameters ??= new ReaderParameters();
 			parameters.AssemblyResolver = this;
+			parameters.InMemory = true;
 
 			var directories = GetSearchDirectories();
 			foreach (var directory in directories)
@@ -277,8 +278,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					var fileName = Path.GetFileNameWithoutExtension(file);
 					if (fileName.Equals(name.Name, StringComparison.OrdinalIgnoreCase))
 					{
-						using var stream = new MemoryStream(File.ReadAllBytes(file));
-						assembly = AssemblyDefinition.ReadAssembly(stream, parameters);
+						assembly = AssemblyDefinition.ReadAssembly(file, parameters);
 						break;
 					}
 				}
