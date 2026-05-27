@@ -252,12 +252,25 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		public override AssemblyDefinition Resolve(AssemblyNameReference name)
 		{
+			return Resolve(name, new ReaderParameters());
+		}
+
+		public override AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
+		{
 			if (cache.TryGetValue(name.FullName, out var assembly))
 				return assembly;
+
+			parameters ??= new ReaderParameters();
+			parameters.AssemblyResolver = this;
 
 			var directories = GetSearchDirectories();
 			foreach (var directory in directories)
 			{
+				if (!Directory.Exists(directory))
+				{
+					continue;
+				}
+
 				var files = Directory.GetFiles(directory, "*.dll", SearchOption.AllDirectories);
 				foreach (var file in files)
 				{
@@ -265,7 +278,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					if (fileName.Equals(name.Name, StringComparison.OrdinalIgnoreCase))
 					{
 						using var stream = new MemoryStream(File.ReadAllBytes(file));
-						assembly = AssemblyDefinition.ReadAssembly(stream);
+						assembly = AssemblyDefinition.ReadAssembly(stream, parameters);
 						break;
 					}
 				}
