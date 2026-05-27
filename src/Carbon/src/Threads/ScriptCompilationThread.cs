@@ -344,15 +344,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		hasLoaded = true;
 		var resolver = new CarbonAssemblyResolver();
-		var readerParameters = new ReaderParameters { AssemblyResolver = resolver };
+		var readerParameters = new ReaderParameters { AssemblyResolver = resolver, InMemory = true };
 		resolver.AddSearchDirectory(Defines.GetRustManagedFolder());
 
 		foreach (var assembly in Directory.GetFiles(Defines.GetRustManagedFolder(), "*.dll"))
 		{
 			try
 			{
-				using var memoryStream = new MemoryStream(File.ReadAllBytes(assembly));
-				var asm = AssemblyDefinition.ReadAssembly(memoryStream, readerParameters);
+				var asm = AssemblyDefinition.ReadAssembly(assembly, readerParameters);
 				InternalCallHook.Assemblies.Add(asm);
 				resolver.RegisterAssembly(asm);
 			}
