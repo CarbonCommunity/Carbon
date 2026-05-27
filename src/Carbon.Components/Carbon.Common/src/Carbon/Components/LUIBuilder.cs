@@ -1166,7 +1166,7 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("scrollSensitivity", scroll.scrollSensitivity);
 		                    }
-		                    if (scroll.horizontal)
+		                    if (scroll.horizontal  && !scroll.horizontalScrollbar.disabled)
 		                    {
 			                    this.WriteComma();
 			                    this.WriteStartObject("horizontalScrollbar");
@@ -1174,7 +1174,7 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteEndObject();
 
 		                    }
-		                    if (scroll.vertical)
+		                    if (scroll.vertical && !scroll.verticalScrollbar.disabled)
 		                    {
 			                    this.WriteComma();
 			                    this.WriteStartObject("verticalScrollbar");
