@@ -86,17 +86,8 @@ public class Patch : IDisposable
 
 		public override AssemblyDefinition Resolve(AssemblyNameReference name)
 		{
-			return Resolve(name, new ReaderParameters());
-		}
-
-		public override AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
-		{
-			if (_cache.TryGetValue(name.FullName, out var assembly))
+			if (_cache.TryGetValue (name.FullName, out var assembly))
 				return assembly;
-
-			parameters ??= new ReaderParameters();
-			parameters.AssemblyResolver = this;
-			parameters.InMemory = true;
 
 			var directories = GetSearchDirectories();
 			foreach (var directory in directories)
@@ -113,7 +104,11 @@ public class Patch : IDisposable
 					{
 						try
 						{
-							assembly = AssemblyDefinition.ReadAssembly(file, parameters);
+							assembly = AssemblyDefinition.ReadAssembly(file, new ReaderParameters
+							{
+								AssemblyResolver = this,
+								InMemory = true,
+							});
 						}
 						catch { }
 						break;
