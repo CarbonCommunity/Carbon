@@ -52,15 +52,7 @@ public class InternalCallHook
 
 		while (current != null)
 		{
-			TypeDefinition resolved;
-			try
-			{
-				resolved = current.Resolve();
-			}
-			catch
-			{
-				break;
-			}
+			var resolved = current.Resolve();
 			if (resolved == null)
 				break;
 
