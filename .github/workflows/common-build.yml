@@ -133,6 +133,14 @@ jobs:
               MAJOR_VER="2.7"
               RELEASE_NAME="Rust (Aux03)"
               ;;
+            "rust_beta/aux04")
+              API_ID="aux04"
+              BUILD_DEFINE="RUST_AUX04"
+              TAG_NAME="rustbeta_aux04_build"
+              UPDATE_ARG="aux04"
+              MAJOR_VER="2.8"
+              RELEASE_NAME="Rust (Aux04)"
+              ;;
             "rust_beta/staging")
               API_ID="staging"
               BUILD_DEFINE="RUST_STAGING"
