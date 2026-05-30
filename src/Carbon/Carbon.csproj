@@ -36,6 +36,7 @@
 
 	<ItemGroup>
 		<None Include="$(SolutionDir)\..\.github\workflows\*" LinkBase="workflows" />
+		<None Include="$(SolutionDir)\..\README.md" Link="README.md" />
 	</ItemGroup>
 
 	<ItemGroup>
