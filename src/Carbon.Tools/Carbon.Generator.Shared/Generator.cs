@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Reflection;
 using System.Text;
 using Carbon.InternalCallHookGeneration;
 using HarmonyLib;
@@ -84,7 +85,7 @@ public class InternalCallHook
 		return totalDepth;
 	}
 
-	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null, List<string> usingsList = null)
+	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null, List<string> usingsList = null, IEnumerable<MetadataReference> references = null)
 	{
 		BaseNamespaceDeclarationSyntax @namespace;
 
@@ -104,7 +105,7 @@ public class InternalCallHook
 			return;
 		}
 
-		var model = CreateModel(input, @namespace, classes, usingsList);
+		var model = CreateModel(input, @namespace, classes, usingsList, references, options);
 		if (model.Methods.Count == 0)
 		{
 			output = null;
@@ -135,7 +136,8 @@ public class InternalCallHook
 	}
 
 	private static InternalCallHookTypeModel CreateModel(
-		CompilationUnitSyntax input, BaseNamespaceDeclarationSyntax @namespace, List<ClassDeclarationSyntax> classes, List<string> usingsList
+		CompilationUnitSyntax input, BaseNamespaceDeclarationSyntax @namespace, List<ClassDeclarationSyntax> classes, List<string> usingsList,
+		IEnumerable<MetadataReference> references, CSharpParseOptions options
 	)
 	{
 		var model = new InternalCallHookTypeModel
@@ -160,10 +162,17 @@ public class InternalCallHook
 		var methods = classes
 			.SelectMany(x => x.ChildNodes().OfType<MethodDeclarationSyntax>())
 			.Where(IsHookableMethod)
-			.OrderBy(x => x.Identifier.ValueText);
+			.OrderBy(x => x.Identifier.ValueText)
+			.ToArray();
+		var refLikeMethods = GetRefLikeMethodKeys(input, references, options, methods);
 
 		foreach (var method in methods)
 		{
+			if (refLikeMethods != null && refLikeMethods.Contains(GetMethodKey(method)))
+			{
+				continue;
+			}
+
 			var hookName = ResolveHookName(method, classes);
 			var hook = new InternalCallHookMethodModel
 			{
@@ -205,6 +214,101 @@ public class InternalCallHook
 		return (method.Modifiers.Count == 0 ||
 		        method.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.PublicKeyword) && !modifier.IsKind(SyntaxKind.StaticKeyword)) ||
 		        method.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && method.TypeParameterList == null;
+	}
+
+	private static HashSet<string> GetRefLikeMethodKeys(CompilationUnitSyntax input, IEnumerable<MetadataReference> references, CSharpParseOptions options, IReadOnlyCollection<MethodDeclarationSyntax> methods)
+	{
+		if (methods.Count == 0 || !methods.Any(CanHaveRefLikeSignature) || references == null || options == null)
+		{
+			return null;
+		}
+
+		var methodKeys = new HashSet<string>(methods.Select(GetMethodKey));
+		var tree = CSharpSyntaxTree.Create(input, options);
+		var compilation = CSharpCompilation.Create(
+			"Carbon.InternalCallHook.Analysis",
+			new[] { tree },
+			references,
+			new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+
+		var model = compilation.GetSemanticModel(tree, true);
+		HashSet<string> refLikeMethods = null;
+
+		foreach (var method in tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>())
+		{
+			if (!methodKeys.Contains(GetMethodKey(method)))
+			{
+				continue;
+			}
+
+			var methodSymbol = model.GetDeclaredSymbol(method);
+			if (methodSymbol == null || !HasRefLikeSignature(methodSymbol))
+			{
+				continue;
+			}
+
+			refLikeMethods ??= [];
+			refLikeMethods.Add(GetMethodKey(method));
+		}
+
+		return refLikeMethods;
+	}
+
+	private static bool CanHaveRefLikeSignature(MethodDeclarationSyntax method)
+	{
+		return CanBeRefLikeType(method.ReturnType) || method.ParameterList.Parameters.Any(x => CanBeRefLikeType(x.Type));
+	}
+
+	private static bool CanBeRefLikeType(TypeSyntax type)
+	{
+		return type is not null and not PredefinedTypeSyntax;
+	}
+
+	private static bool HasRefLikeSignature(IMethodSymbol method)
+	{
+		return method.ReturnType.IsRefLikeType || method.Parameters.Any(x => x.Type.IsRefLikeType);
+	}
+
+	public static bool HasRefLikeSignature(MethodInfo method)
+	{
+		return IsRefLikeType(method.ReturnType) || method.GetParameters().Any(x => IsRefLikeType(x.ParameterType));
+	}
+
+	private static bool IsRefLikeType(Type type)
+	{
+		while (type is { HasElementType: true })
+		{
+			type = type.GetElementType();
+		}
+
+		if (type == null)
+		{
+			return false;
+		}
+
+		try
+		{
+			return type.GetCustomAttributesData().Any(x => x.AttributeType.FullName == "System.Runtime.CompilerServices.IsByRefLikeAttribute");
+		}
+		catch
+		{
+			return false;
+		}
+	}
+
+	private static string GetMethodKey(MethodDeclarationSyntax method)
+	{
+		return $"{GetContainingTypeKey(method)}|{method.Identifier.ValueText}|{method.ReturnType}|{string.Join(",", method.ParameterList.Parameters.Select(GetParameterKey))}";
+	}
+
+	private static string GetContainingTypeKey(MethodDeclarationSyntax method)
+	{
+		return string.Join(".", method.Ancestors().OfType<TypeDeclarationSyntax>().Reverse().Select(x => x.Identifier.ValueText));
+	}
+
+	private static string GetParameterKey(ParameterSyntax parameter)
+	{
+		return $"{string.Join(" ", parameter.Modifiers.Select(x => x.Text))}:{parameter.Type}";
 	}
 
 	private static string ResolveHookName(MethodDeclarationSyntax method, List<ClassDeclarationSyntax> classes)
