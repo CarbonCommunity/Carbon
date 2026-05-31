@@ -548,7 +548,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
 
 				InternalCallHook.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
-					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings, references);
+					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
 
@@ -680,10 +680,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 				foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance |
 				                                       BindingFlags.NonPublic))
 				{
-					if (InternalCallHook.HasRefLikeSignature(method))
-					{
-						continue;
-					}
 
 					if (Community.Runtime.HookManager.IsHook(method.Name))
 					{

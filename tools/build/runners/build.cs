@@ -60,9 +60,6 @@ else
 }
 
 Files.Copy(Path(Home, "tools", "helpers", "Carbon.targets"), Path(Home, "release", ".tmp", target, "Carbon.targets"));
-Files.Copy(Path(Home, "src", "Carbon.Tools", "Carbon.CompilerPolyfills.Generator", "bin", target, "netstandard2.0", "Carbon.CompilerPolyfills.Generator.dll"), Path(Home, "release", ".tmp", target, "carbon", "managed", "Carbon.CompilerPolyfills.Generator.dll"));
-Files.Delete(Path(Home, "release", ".tmp", target, "carbon", "managed", "Carbon.Polyfills.dll"));
-Files.Delete(Path(Home, "release", ".tmp", target, "carbon", "managed", "Carbon.Polyfills.xml"));
 
 var tos = isUnix ? "Linux" : "Windows";
 var finalTarget = target.Replace("Unix", string.Empty);

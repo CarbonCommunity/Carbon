@@ -1,5 +1,4 @@
 ﻿using API.Commands;
-using Facepunch;
 using static ConsoleSystem;
 using Logger = Carbon.Logger;
 using Pool = Facepunch.Pool;
@@ -167,7 +166,7 @@ public class Command : Library
 							client.FromRcon = FromRcon;
 							arg.Option = client;
 							arg.FullString = fullString;
-							arg.Args = [.. args.Select(x => (StringView)x)];
+							arg.Args = args;
 
 							arguments.Add(arg);
 						}
@@ -307,7 +306,7 @@ public class Command : Library
 				if (player != null) option = option.FromConnection(player.net.connection);
 				arg.Option = option;
 				arg.FullString = fullString;
-				arg.Args = [.. args];
+				arg.Args = args;
 				arg.cmd = Community.Runtime.CommandManager.Find(command)?.RustCommand;
 
 				try

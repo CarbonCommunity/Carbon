@@ -201,7 +201,7 @@ public partial class DatePickerModule : CarbonModule<EmptyModuleConfig, EmptyMod
 		var ap = Admin.GetPlayerSession(player);
 		var onDatePicked = ap.GetStorage<Action<DateTime>>(ap.SelectedTab, OnDatePicked);
 
-		switch (args.Args[0].ToString())
+		switch (args.Args[0])
 		{
 			case "yearchange":
 				Year = args.GetInt(1, DateTime.UtcNow.Year).Clamp(1977, 2100);

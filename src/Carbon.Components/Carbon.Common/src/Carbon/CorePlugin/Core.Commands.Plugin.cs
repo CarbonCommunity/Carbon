@@ -163,9 +163,9 @@ public partial class CorePlugin
 			default:
 				if (name.Contains(' '))
 				{
-					for(int i = 0; i < arg.Args.Length; i++)
+					foreach (var argValue in arg.Args)
 					{
-						ProcessInput(arg.GetString(i), arg);
+						ProcessInput(argValue, arg);
 					}
 				}
 				else
@@ -301,12 +301,12 @@ public partial class CorePlugin
 		switch (name)
 		{
 			case "*":
-				var except = arg.Args.Skip(1).Select(x => x.ToString());
+				var except = arg.Args.Skip(1);
 
-				Community.Runtime.ScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(y => x.Contains(y.ToString())));
-				Community.Runtime.ZipScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(y => x.Contains(y.ToString())));
+				Community.Runtime.ScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(x.Contains));
+				Community.Runtime.ZipScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(x.Contains));
 #if DEBUG
-				Community.Runtime.ZipDevScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(y => x.Contains(y.ToString())));
+				Community.Runtime.ZipDevScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(x.Contains));
 #endif
 
 				foreach (var plugin in ProcessableFiles)
@@ -325,9 +325,9 @@ public partial class CorePlugin
 			default:
 				if (name.Contains(' '))
 				{
-					for(int i = 0; i < arg.Args.Length; i++)
+					foreach (var argValue in arg.Args)
 					{
-						ProcessInput(arg.GetString(i));
+						ProcessInput(argValue);
 					}
 				}
 				else
@@ -371,7 +371,7 @@ public partial class CorePlugin
 		{
 			case "*":
 			{
-				var except = arg.Args.Skip(1).Select(x => x.ToString());
+				var except = arg.Args.Skip(1);
 				{
 					Community.Runtime.ScriptProcessor.Clear(except);
 					Community.Runtime.ZipScriptProcessor.Clear(except);
@@ -401,9 +401,9 @@ public partial class CorePlugin
 			default:
 				if (name.Contains(' '))
 				{
-					for(int i = 0; i < arg.Args.Length; i++)
+					foreach (var argValue in arg.Args)
 					{
-						ProcessInput(arg.GetString(i), arg);
+						ProcessInput(argValue, arg);
 					}
 				}
 				else

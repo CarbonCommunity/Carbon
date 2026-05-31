@@ -432,11 +432,6 @@ public class BaseHookable : Integrations.ITestable
 
 		foreach (var method in methods)
 		{
-			if (Generator.InternalCallHook.HasRefLikeSignature(method))
-			{
-				continue;
-			}
-
 			var id = HookStringPool.GetOrAdd(method.Name);
 
 			if (!hooksPresent)
@@ -465,11 +460,6 @@ public class BaseHookable : Integrations.ITestable
 
 		foreach (var method in methodAttributes)
 		{
-			if (Generator.InternalCallHook.HasRefLikeSignature(method))
-			{
-				continue;
-			}
-
 			var methodAttribute = method.GetCustomAttribute<HookMethodAttribute>();
 
 			if (methodAttribute == null)

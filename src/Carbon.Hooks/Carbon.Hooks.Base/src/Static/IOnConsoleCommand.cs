@@ -5,7 +5,6 @@ using System.Runtime.Serialization;
 using API.Commands;
 using API.Hooks;
 using Carbon.Extensions;
-using Facepunch;
 using Facepunch.Extend;
 using static ConsoleSystem;
 using Command = API.Commands.Command;
@@ -44,69 +43,60 @@ public partial class Category_Static
 						return false;
 					}
 
-					if (Command.FromRcon)
+					var temp = Facepunch.Pool.Get<List<string>>();
+					temp.AddRange(parsedArguments);
+					if (args != null)
 					{
-						return true;
+						temp.AddRange(args.Select(arg => arg?.ToString()));
 					}
+					var arguments = temp.ToArray();
+					Facepunch.Pool.FreeUnmanaged(ref temp);
 
-					var argsLength = args?.Length ?? 0;
-					string[] arguments;
-					if (argsLength == 0)
+					if (!Command.FromRcon)
 					{
-						arguments = parsedArguments;
-					}
-					else
-					{
-						arguments = new string[parsedArguments.Length + argsLength];
-						Array.Copy(parsedArguments, arguments, parsedArguments.Length);
-						for (var i = 0; i < argsLength; i++)
+						var player = options.Connection?.player as BasePlayer;
+						var commands = player == null ? Community.Runtime.CommandManager.RCon : Community.Runtime.CommandManager.ClientConsole;
+
+						if (Community.Runtime.Config.Aliases.TryGetValue(command, out var alias))
 						{
-							arguments[parsedArguments.Length + i] = args[i]?.ToString();
-						}
-					}
-
-					var player = options.Connection?.player as BasePlayer;
-					var commands = player == null ? Community.Runtime.CommandManager.RCon : Community.Runtime.CommandManager.ClientConsole;
-
-					if (Community.Runtime.Config.Aliases.TryGetValue(command, out var alias))
-					{
-						command = alias;
-						strCommand = argsLength == 0 && parsedArguments.Length == 0
-							? alias
-							: $"{alias} {arguments.ToString(Space)}";
-					}
-
-					if (Community.Runtime.CommandManager.Contains(commands, command, out var commandInstance))
-					{
-						var arg = new Arg(options, strCommand);
-						arg.cmd = commandInstance.RustCommand;
-						arg.Invalid = false;
-
-						var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
-						commandArgs.Token = arg;
-						commandArgs.Type = commandInstance.Type;
-						commandArgs.Arguments = arguments;
-						commandArgs.Player = player;
-						commandArgs.IsServer = player == null;
-						commandArgs.PrintOutput = options.PrintOutput || player != null;
-
-						Command.FromRcon = false;
-						Community.Runtime.CommandManager.Execute(commandInstance, commandArgs);
-						__result = new CommandResult(CommandResultType.Success, arg.Reply, arg.cmd);
-						Facepunch.Pool.Free(ref commandArgs);
-						return false;
-					}
-
-					if (Community.Runtime.Config.Logging.CommandSuggestions)
-					{
-						if (player != null && !player.IsAdmin)
-						{
-							return true;
+							command = alias;
+							strCommand = $"{alias} {arguments.ToString(Space)}";
 						}
 
-						if (ConsoleSystem.Index.Server.Find(command) != null)
+						if (Community.Runtime.CommandManager.Contains(commands, command, out var commandInstance))
 						{
-							return true;
+							var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
+							arg.Option = options;
+							arg.FullString = strCommand;
+							arg.Args = arguments;
+							arg.cmd = commandInstance.RustCommand;
+
+							var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
+							commandArgs.Token = arg;
+							commandArgs.Type = commandInstance.Type;
+							commandArgs.Arguments = arguments;
+							commandArgs.Player = player;
+							commandArgs.IsServer = player == null;
+							commandArgs.PrintOutput = options.PrintOutput || player != null;
+
+							Command.FromRcon = false;
+							Community.Runtime.CommandManager.Execute(commandInstance, commandArgs);
+							__result = new CommandResult(CommandResultType.Success, arg.Reply, arg.cmd);
+							Facepunch.Pool.Free(ref commandArgs);
+							return false;
+						}
+
+						if (Community.Runtime.Config.Logging.CommandSuggestions)
+						{
+							if (player != null && !player.IsAdmin)
+							{
+								return true;
+							}
+
+							if (ConsoleSystem.Index.Server.Find(command) != null)
+							{
+								return true;
+							}
 						}
 					}
 				}

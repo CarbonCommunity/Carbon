@@ -2126,7 +2126,7 @@ public partial class AdminModule
 			return;
 		}
 
-		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), args.Args[0].ToString())));
+		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), args.Args[0])));
 		vendor.Refresh();
 		PluginsTab.TagFilter.Clear();
 		PluginsTab.DropdownShow = false;
@@ -2146,7 +2146,7 @@ public partial class AdminModule
 		var tab = Singleton.GetTab(ap.Player);
 		var vendorType = ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed);
 		var vendor = PluginsTab.GetVendor(vendorType);
-		var pluginName = string.Join(" ", args.Args.Skip(1).Select(x => x.ToString())).Replace("\"", string.Empty).Trim();
+		var pluginName = args.Args.Skip(1).ToString(" ").Replace("\"", string.Empty).Trim();
 		var tabPlugin = ap.GetStorage<PluginsTab.Plugin>(tab, "plugin") ?? vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName));
 		var mainTabPlugin = tabPlugin;
 		if (tabPlugin.PreferredVendorPlugin != null)
@@ -2155,10 +2155,7 @@ public partial class AdminModule
 		}
 		var plugin = tabPlugin.ExistentPlugin;
 		var arg = new string[args.Args.Length];
-		for (int i = 0; i < args.Args.Length; i++)
-		{
-			arg[i] = args.Args[i].ToString();
-		}
+		Array.Copy(args.Args, arg, args.Args.Length);
 
 		switch (arg[0])
 		{
@@ -2360,7 +2357,7 @@ public partial class AdminModule
 		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
 
-		var search = ap.SetStorage(tab, "search", string.Join(" ", args.Args.Select(x => x.ToString())));
+		var search = ap.SetStorage(tab, "search", args.Args.ToString(" "));
 		ap.SetStorage(tab, "page", 0);
 
 		if (search == "Search...")
@@ -2556,7 +2553,7 @@ public partial class AdminModule
 		vendor.Refresh();
 
 		var plugins = PluginsTab.GetPlugins(vendor, tab, ap, 15);
-		var nextPage = plugins.IndexOf(ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin")) + args.GetInt(0);
+		var nextPage = plugins.IndexOf(ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin")) + args.Args[0].ToInt();
 		ap.SetStorage(tab, "selectedplugin", plugins[nextPage > plugins.Count - 1 ? 0 : nextPage < 0 ? plugins.Count - 1 : nextPage]);
 		Facepunch.Pool.FreeUnmanaged(ref plugins);
 
@@ -2573,14 +2570,14 @@ public partial class AdminModule
 		var tab = Singleton.GetTab(ap.Player);
 		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 
-		switch (args.GetString(0))
+		switch (args.Args[0])
 		{
 			case "filter_dd":
 				PluginsTab.DropdownShow = !PluginsTab.DropdownShow;
 
 				if (args.HasArgs(4))
 				{
-					var index = args.GetInt(3);
+					var index = args.Args[3].ToInt();
 					var filter = ap.GetStorage(tab, "filter", PluginsTab.FilterTypes.None);
 					var flipFilter = ap.GetStorage<bool>(tab, "flipfilter");
 

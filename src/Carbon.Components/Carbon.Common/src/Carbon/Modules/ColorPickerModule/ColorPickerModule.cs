@@ -241,10 +241,10 @@ public partial class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyMo
 	{
 		var player = args.Player();
 		var ap = Admin.GetPlayerSession(player);
-		var mode = args.GetString(0);
-		var hex = args.GetString(1);
+		var mode = args.Args[0];
+		var hex = args.Args[1];
 		var alpha = ap.GetStorage(ap.SelectedTab, Alpha, 1f);
-		var rawColor = string.Join(" ", args.Args.Skip(2).Select(x => x.ToString()));
+		var rawColor = args.Args.Skip(2).ToString(" ");
 		ColorUtility.TryParseHtmlString($"#{hex}", out var color);
 
 		var brightness = ap.GetStorage(ap.SelectedTab, Brightness, 1f);
@@ -291,7 +291,7 @@ public partial class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyMo
 	{
 		var player = args.Player();
 		var ap = Admin.GetPlayerSession (player);
-		var alpha = args.GetFloat(0).Clamp(0f, 1f);
+		var alpha = args.Args[0].ToFloat().Clamp(0f, 1f);
 		ap.SetStorage(ap.SelectedTab, Alpha, alpha);
 	}
 
