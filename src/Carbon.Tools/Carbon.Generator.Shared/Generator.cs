@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Reflection;
 using System.Text;
 using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
@@ -84,7 +85,7 @@ public class InternalCallHook
 		return totalDepth;
 	}
 
-	public static void Generate(CompilationUnitSyntax input, out CompilationUnitSyntax output, out MethodDeclarationSyntax generatedMethod, out bool isPartial, bool baseCall = false, string baseName = "plugin", List<ClassDeclarationSyntax> classList = null)
+	public static void Generate(CompilationUnitSyntax input, out CompilationUnitSyntax output, out MethodDeclarationSyntax generatedMethod, out bool isPartial, bool baseCall = false, string baseName = "plugin", List<ClassDeclarationSyntax> classList = null, IEnumerable<MetadataReference> references = null, CSharpParseOptions options = null, Func<IEnumerable<MetadataReference>> referenceFactory = null)
 	{
 		var @namespace = (BaseNamespaceDeclarationSyntax)null;
 		var namespaceIndex = 0;
@@ -124,10 +125,16 @@ public class InternalCallHook
 
 		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
 		var privateMethods0 = methodDeclarations.Where(md => (md.Modifiers.Count == 0 || md.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.PublicKeyword) && !modifier.IsKind(SyntaxKind.StaticKeyword)) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null);
-		var privateMethods = privateMethods0.OrderBy(x => x.Identifier.ValueText);
+		var privateMethods = privateMethods0.OrderBy(x => x.Identifier.ValueText).ToArray();
+		var refLikeMethods = GetRefLikeMethodKeys(input, references, referenceFactory, options, privateMethods);
 
 		foreach (var method in privateMethods)
 		{
+			if (refLikeMethods != null && refLikeMethods.Contains(GetMethodKey(method)))
+			{
+				continue;
+			}
+
 			var hookMethod = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => x.Name.ToString() == "HookMethod")).FirstOrDefault();
 			var methodName = hookMethod != null && hookMethod.ArgumentList.Arguments.Count > 0 ? hookMethod.ArgumentList.Arguments[0].ToString().Replace("\"", string.Empty) : method.Identifier.ValueText;
 
@@ -312,6 +319,7 @@ public class InternalCallHook
 		#region Cleanup
 
 		methodDeclarations.Clear();
+		refLikeMethods?.Clear();
 		foreach (var hookableMethod in hookableMethods)
 		{
 			hookableMethod.Value.Clear();
@@ -323,9 +331,9 @@ public class InternalCallHook
 
 	public static void GeneratePartial(
 		CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName,
-		List<ClassDeclarationSyntax> classes = null, string? debugOutputPath = null, List<string> usingsList = null)
+		List<ClassDeclarationSyntax> classes = null, string? debugOutputPath = null, List<string> usingsList = null, IEnumerable<MetadataReference> references = null)
 	{
-		Generate(input, out _, out var method, out var isPartial, classList: classes);
+		Generate(input, out _, out var method, out var isPartial, classList: classes, references: references, options: options);
 
 		if (method == null)
 		{
@@ -429,6 +437,110 @@ partial class {@class.Identifier.ValueText}
 		}
 
 		return @class != null;
+	}
+
+	private static HashSet<string> GetRefLikeMethodKeys(CompilationUnitSyntax input, IEnumerable<MetadataReference> references, Func<IEnumerable<MetadataReference>> referenceFactory, CSharpParseOptions options, IReadOnlyCollection<MethodDeclarationSyntax> methods)
+	{
+		if (methods.Count == 0 || !methods.Any(CanHaveRefLikeSignature))
+		{
+			return null;
+		}
+
+		references ??= referenceFactory?.Invoke();
+		if (references == null)
+		{
+			return null;
+		}
+
+		var methodKeys = new HashSet<string>(methods.Select(GetMethodKey));
+
+		var tree = CSharpSyntaxTree.Create(input, options);
+
+		var compilation = CSharpCompilation.Create(
+			"Carbon.InternalCallHook.Analysis",
+			[tree],
+			references,
+			new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+
+		var model = compilation.GetSemanticModel(tree, true);
+		HashSet<string> refLikeMethods = null;
+
+		foreach (var method in tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>())
+		{
+			if (!methodKeys.Contains(GetMethodKey(method)))
+			{
+				continue;
+			}
+
+			var methodSymbol = model.GetDeclaredSymbol(method);
+			if (methodSymbol == null || !HasRefLikeSignature(methodSymbol))
+			{
+				continue;
+			}
+
+			refLikeMethods ??= [];
+			refLikeMethods.Add(GetMethodKey(method));
+		}
+
+		return refLikeMethods;
+	}
+
+	private static bool CanHaveRefLikeSignature(MethodDeclarationSyntax method)
+	{
+		return CanBeRefLikeType(method.ReturnType) || method.ParameterList.Parameters.Any(x => CanBeRefLikeType(x.Type));
+	}
+
+	private static bool CanBeRefLikeType(TypeSyntax type)
+	{
+		return type is not null and not PredefinedTypeSyntax;
+	}
+
+	private static bool HasRefLikeSignature(IMethodSymbol method)
+	{
+		return method.ReturnType.IsRefLikeType || method.Parameters.Any(x => x.Type.IsRefLikeType);
+	}
+
+	public static bool HasRefLikeSignature(MethodInfo method)
+	{
+		return IsRefLikeType(method.ReturnType) || method.GetParameters().Any(x => IsRefLikeType(x.ParameterType));
+	}
+
+	private static bool IsRefLikeType(Type type)
+	{
+		while (type is { HasElementType: true })
+		{
+			type = type.GetElementType();
+		}
+
+		if (type == null)
+		{
+			return false;
+		}
+
+		try
+		{
+			return type.GetCustomAttributesData().Any(x => x.AttributeType.FullName == "System.Runtime.CompilerServices.IsByRefLikeAttribute");
+		}
+		catch
+		{
+			return false;
+		}
+	}
+
+	private static string GetMethodKey(MethodDeclarationSyntax method)
+	{
+		return
+			$"{GetContainingTypeKey(method)}|{method.Identifier.ValueText}|{method.ReturnType}|{string.Join(",", method.ParameterList.Parameters.Select(GetParameterKey))}";
+	}
+
+	private static string GetContainingTypeKey(MethodDeclarationSyntax method)
+	{
+		return string.Join(".", method.Ancestors().OfType<TypeDeclarationSyntax>().Reverse().Select(x => x.Identifier.ValueText));
+	}
+
+	private static string GetParameterKey(ParameterSyntax parameter)
+	{
+		return $"{string.Join(" ", parameter.Modifiers.Select(x => x.Text))}:{parameter.Type}";
 	}
 
 	public static bool IsUnmanagedType(TypeSyntax type)
