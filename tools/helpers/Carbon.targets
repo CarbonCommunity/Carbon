@@ -10,6 +10,9 @@
         <CarbonManagedPath>$(RustServerRootPath)carbon/managed</CarbonManagedPath>
         <CarbonManagedLibPath>$(CarbonManagedPath)/lib</CarbonManagedLibPath>
     </PropertyGroup>
+    <ItemGroup Condition="Exists('$(CarbonManagedPath)/Carbon.CompilerPolyfills.Generator.dll')">
+        <Analyzer Include="$(CarbonManagedPath)/Carbon.CompilerPolyfills.Generator.dll" />
+    </ItemGroup>
     <ItemGroup>
 		<Reference Include="$(RustServerManagedPath)/*">
           <Private>false</Private>
@@ -33,9 +36,6 @@
             <Private>false</Private>
         </Reference>
         <Reference Include="$(CarbonManagedPath)/Carbon.Common.dll">
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="$(CarbonManagedPath)/Carbon.Polyfills.dll">
             <Private>false</Private>
         </Reference>
         <Reference Include="$(CarbonManagedPath)/Carbon.dll">
