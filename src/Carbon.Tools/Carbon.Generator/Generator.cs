@@ -49,6 +49,8 @@ public sealed class Generator
 		{
 			var options = new CSharpParseOptions(LanguageVersion.Latest, DocumentationMode.None, preprocessorSymbols: ["DEBUG"]);
 			var inputs = Arguments.PluginInput.Split(';');
+			List<MetadataReference>? references = null;
+			IEnumerable<MetadataReference> GetReferences() => references ??= CreateReferences();
 
 			foreach(var input in inputs)
 			{
@@ -63,6 +65,7 @@ public sealed class Generator
 				var nameSpace = (NameSyntax)null;
 				var usings = new List<UsingDirectiveSyntax>();
 				var groupedMembers = new Dictionary<string, List<MemberDeclarationSyntax>>();
+				var nonClassMembers = new List<MemberDeclarationSyntax>();
 
 				foreach (var syntaxTree in syntaxTrees)
 				{
@@ -72,12 +75,13 @@ public sealed class Generator
 					{
 						if (member is FileScopedNamespaceDeclarationSyntax namespaceSyntax)
 						{
+							nameSpace = namespaceSyntax.Name;
+
 							foreach (var type in namespaceSyntax.Members)
 							{
 								if (type is ClassDeclarationSyntax classSyntax)
 								{
 									var key = $"{namespaceSyntax.Name}_{classSyntax.Identifier}";
-									nameSpace = namespaceSyntax.Name;
 
 									if (!groupedMembers.TryGetValue(key, out var list))
 									{
@@ -86,12 +90,17 @@ public sealed class Generator
 
 									list.AddRange(classSyntax.Members);
 								}
+								else
+								{
+									nonClassMembers.Add(type);
+								}
 							}
 						}
 					}
 				}
 
 				var mergedMembers = new List<MemberDeclarationSyntax>();
+				mergedMembers.AddRange(nonClassMembers);
 				foreach (var group in groupedMembers)
 				{
 					var typeNameParts = group.Key.Split('_');
@@ -108,7 +117,7 @@ public sealed class Generator
 
 				classes.AddRange(nameSpace2.Members.OfType<ClassDeclarationSyntax>());
 
-				Carbon.Generator.InternalCallHook.Generate(compilationUnit, out var output, out var method, out var isPartial, Arguments.BaseCall, Arguments.BaseName, classList: classes);
+				InternalCallHook.Generate(compilationUnit, out var output, out var method, out var isPartial, Arguments.BaseCall, Arguments.BaseName, classes, options: options, referenceFactory: GetReferences);
 
 				var pluginName = Path.GetFileNameWithoutExtension(input);
 				var prettyFormat = $@"{string.Join("\n", usings.Select(x => x.ToString()).Distinct())}
@@ -127,5 +136,23 @@ public partial class {pluginName}
 		{
 			Console.WriteLine($"** CorePlugin - {ex}");
 		}
+	}
+
+	private static List<MetadataReference> CreateReferences()
+	{
+		var references = new List<MetadataReference>();
+
+		foreach (var assembly in Directory.GetFiles(Arguments.Rust, "*.dll"))
+		{
+			try
+			{
+				references.Add(MetadataReference.CreateFromFile(assembly));
+			}
+			catch
+			{
+			}
+		}
+
+		return references;
 	}
 }
