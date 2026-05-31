@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Reflection;
 using System.Text;
 using Carbon.InternalCallHookGeneration;
 using HarmonyLib;
@@ -84,6 +85,7 @@ public class InternalCallHook
 		return totalDepth;
 	}
 
+	public static void Generate(CompilationUnitSyntax input, out CompilationUnitSyntax output, out MethodDeclarationSyntax generatedMethod, out bool isPartial, bool baseCall = false, string baseName = "plugin", List<ClassDeclarationSyntax> classList = null, IEnumerable<MetadataReference> references = null, CSharpParseOptions options = null, Func<IEnumerable<MetadataReference>> referenceFactory = null)
 	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null, List<string> usingsList = null)
 	{
 		BaseNamespaceDeclarationSyntax @namespace;
@@ -114,10 +116,50 @@ public class InternalCallHook
 		var source = InternalCallHookEmitter.BuildSource(model);
 		string path;
 
+		var methodDeclarations = new List<MethodDeclarationSyntax>();
+		methodDeclarations.AddRange(classList.SelectMany(x => x.ChildNodes()).OfType<MethodDeclarationSyntax>());
+
+		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
+		var privateMethods0 = methodDeclarations.Where(md => (md.Modifiers.Count == 0 || md.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.PublicKeyword) && !modifier.IsKind(SyntaxKind.StaticKeyword)) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null);
+		var privateMethods = privateMethods0.OrderBy(x => x.Identifier.ValueText).ToArray();
+		var refLikeMethods = GetRefLikeMethodKeys(input, references, referenceFactory, options, privateMethods);
+
+		foreach (var method in privateMethods)
 #if DEBUG
 		var isPartial = classes[0].Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword));
 		if (isPartial)
 		{
+			if (refLikeMethods != null && refLikeMethods.Contains(GetMethodKey(method)))
+			{
+				continue;
+			}
+
+			var hookMethod = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => x.Name.ToString() == "HookMethod")).FirstOrDefault();
+			var methodName = hookMethod != null && hookMethod.ArgumentList.Arguments.Count > 0 ? hookMethod.ArgumentList.Arguments[0].ToString().Replace("\"", string.Empty) : method.Identifier.ValueText;
+
+			if (hookMethod != null)
+			{
+				var context = hookMethod.ArgumentList.Arguments[0];
+				var contextString = context.ToString();
+
+				if (contextString.Contains("nameof"))
+				{
+					methodName = contextString
+						.Replace("nameof", string.Empty)
+						.Replace("(", string.Empty)
+						.Replace(")", string.Empty);
+
+					if (methodName.Contains("."))
+					{
+						var temp = methodName.Split('.');
+						methodName = temp[^1];
+					}
+				}
+				else if (contextString.Contains("."))
+				{
+					var argument = context.Expression as MemberAccessExpressionSyntax;
+					var expression = argument.Expression.ToString();
+					var name = argument.Name.ToString();
 			var fileNameWithNewExt = $"{Path.GetFileNameWithoutExtension(fileName)}.Internal.cs";
 			path = debugOutputPath != null ? Path.Combine(debugOutputPath, fileNameWithNewExt) : fileNameWithNewExt;
 			output = CSharpSyntaxTree.ParseText(source, options, path, Encoding.UTF8).GetCompilationUnitRoot().NormalizeWhitespace();
@@ -233,6 +275,42 @@ public class InternalCallHook
 			return methodName;
 		}
 
+		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.Pooling.HookStringPool.GetOrAdd(hook)}' on " + baseName + " '{" + (baseName == "plugin" ? "base.Name" : "this.Name") + "} v{ " + (baseName == "plugin" ? "base.Version" : "this.Version") + "}' [{hook}]\", ex);\n" +
+						  "\nOnException(hook);\n}\n" +
+			$"return {(baseCall ? "base.InternalCallHook(hook, args)" : "(object)null")};";
+
+		generatedMethod = SyntaxFactory.MethodDeclaration(
+			SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword).WithTrailingTrivia(SyntaxFactory.Space)),
+			"InternalCallHook").AddParameterListParameters(
+				SyntaxFactory.Parameter(SyntaxFactory.Identifier("hook")).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UIntKeyword)).WithTrailingTrivia(SyntaxFactory.Space)),
+				SyntaxFactory.Parameter(SyntaxFactory.Identifier("args")).WithType(SyntaxFactory.ArrayType(
+				SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
+				SyntaxFactory.SingletonList(
+						SyntaxFactory.ArrayRankSpecifier(
+							SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+								SyntaxFactory.OmittedArraySizeExpression()
+							)
+						)
+					)
+				).WithTrailingTrivia(SyntaxFactory.Space)))
+				.WithTrailingTrivia(SyntaxFactory.LineFeed)
+			.AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space), SyntaxFactory.Token(SyntaxKind.OverrideKeyword).WithTrailingTrivia(SyntaxFactory.Space))
+			.AddBodyStatements(SyntaxFactory.ParseStatement(methodContents)).WithTrailingTrivia(SyntaxFactory.LineFeed);
+
+		output = input.WithMembers(input.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class.WithMembers(@class.Members.Insert(@class.Members.Count, generatedMethod))))));
+
+		#region Cleanup
+
+		methodDeclarations.Clear();
+		refLikeMethods?.Clear();
+		foreach (var hookableMethod in hookableMethods)
+		{
+			hookableMethod.Value.Clear();
+		}
+		hookableMethods.Clear();
+
+		#endregion
+	}
 		if (contextString.Contains("."))
 		{
 			var argument = context.Expression as MemberAccessExpressionSyntax;
@@ -245,6 +323,13 @@ public class InternalCallHook
 			}
 		}
 
+	public static void GeneratePartial(
+		CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName,
+		List<ClassDeclarationSyntax> classes = null, string? debugOutputPath = null, List<string> usingsList = null, IEnumerable<MetadataReference> references = null)
+	{
+		Generate(input, out _, out var method, out var isPartial, classList: classes, references: references, options: options);
+
+		if (method == null)
 		if (contextString.Contains("\""))
 		{
 			var value = AccessTools.Field(AccessTools.TypeByName(classes[0].Identifier.Text), contextString.Replace("\"", string.Empty))?.GetValue(null)
