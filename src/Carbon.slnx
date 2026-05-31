@@ -73,7 +73,7 @@
 			<Platform Project="x64"/>
 		</Project>
 		<Project Path="Carbon.Tools/Carbon.Generator.Shared/Carbon.Generator.Shared.shproj"/>
-		<Project Path="Carbon.Tools/Carbon.Generator/Carbon.Generator.csproj">
+		<Project Path="Carbon.Tools/Carbon.SourceGenerators/Carbon.SourceGenerators.csproj">
 			<BuildType Solution="DebugUnix|*" Project="Debug"/>
 			<BuildType Solution="MinimalUnix|*" Project="Release"/>
 			<BuildType Solution="Minimal|*" Project="Release"/>
