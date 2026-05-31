@@ -21,7 +21,6 @@
 # Code gen
 src/Carbon.Components/Carbon.Common/src/Carbon/Build.cs
 [Gg]enerated/
-*-Generated.cs
 [Tt]ools/Runtime
 
 # Oxide autogen hooks
