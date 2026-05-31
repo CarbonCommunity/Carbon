@@ -150,11 +150,17 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 				!method.IsImplicitlyDeclared &&
 				!method.IsStatic &&
 				method.TypeParameters.Length == 0 &&
+				!HasRefLikeSignature(method) &&
 				(method.DeclaredAccessibility != Accessibility.Public || HasHookMethodAttribute(method)) &&
 				method.Name != "InternalCallHook")
 			.OrderBy(static method => ResolveHookName(method), StringComparer.Ordinal)
 			.ThenBy(static method => method.Name, StringComparer.Ordinal)
 			.ToList();
+	}
+
+	private static bool HasRefLikeSignature(IMethodSymbol method)
+	{
+		return method.ReturnType.IsRefLikeType || method.Parameters.Any(static parameter => parameter.Type.IsRefLikeType);
 	}
 
 	private static bool HasInternalCallHookOverride(INamedTypeSymbol typeSymbol)
