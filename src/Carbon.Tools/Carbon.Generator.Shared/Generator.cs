@@ -1,11 +1,11 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
-using Carbon.InternalCallHookGeneration;
-using HarmonyLib;
+using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using HarmonyLib;
 using Mono.Cecil;
 
 namespace Carbon.Generator;
@@ -18,7 +18,7 @@ public class InternalCallHook
 
 	public static ConcurrentDictionary<string, int> InheritanceCache = new();
 
-	public static TypeDefinition FindTypeInAssemblies(string fullName)
+	public static TypeDefinition? FindTypeInAssemblies(string fullName)
 	{
 		for (int i = 0; i < Assemblies.Count; i++)
 		{
@@ -86,35 +86,39 @@ public class InternalCallHook
 	}
 
 	public static void Generate(CompilationUnitSyntax input, out CompilationUnitSyntax output, out MethodDeclarationSyntax generatedMethod, out bool isPartial, bool baseCall = false, string baseName = "plugin", List<ClassDeclarationSyntax> classList = null, IEnumerable<MetadataReference> references = null, CSharpParseOptions options = null, Func<IEnumerable<MetadataReference>> referenceFactory = null)
-	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null, List<string> usingsList = null)
 	{
-		BaseNamespaceDeclarationSyntax @namespace;
+		var @namespace = (BaseNamespaceDeclarationSyntax)null;
+		var namespaceIndex = 0;
+		var classIndex = 0;
 
-		if (classes == null)
+		if (classList == null)
 		{
-			classes = new List<ClassDeclarationSyntax>();
-			FindPluginInfo(input, out @namespace, out _, out _, classes);
+			classList = new List<ClassDeclarationSyntax>();
+			FindPluginInfo(input, out @namespace, out _, out _, classList);
 		}
 		else
 		{
-			@namespace = classes[0].Parent as BaseNamespaceDeclarationSyntax;
+			FindPluginInfo(input, out @namespace, out _, out _, null);
+
+			namespaceIndex = classIndex = 0;
 		}
 
-		if (classes.Count == 0)
+		if (classList.Count == 0)
 		{
 			output = null;
+			generatedMethod = null;
+			isPartial = default;
 			return;
 		}
 
-		var model = CreateModel(input, @namespace, classes, usingsList);
-		if (model.Methods.Count == 0)
+		var @class = classList[0];
+
+		if (@namespace == null)
 		{
-			output = null;
-			return;
+			@namespace = @class.Parent as BaseNamespaceDeclarationSyntax;
 		}
 
-		var source = InternalCallHookEmitter.BuildSource(model);
-		string path;
+		isPartial = @class.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword));
 
 		var methodDeclarations = new List<MethodDeclarationSyntax>();
 		methodDeclarations.AddRange(classList.SelectMany(x => x.ChildNodes()).OfType<MethodDeclarationSyntax>());
@@ -125,9 +129,6 @@ public class InternalCallHook
 		var refLikeMethods = GetRefLikeMethodKeys(input, references, referenceFactory, options, privateMethods);
 
 		foreach (var method in privateMethods)
-#if DEBUG
-		var isPartial = classes[0].Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword));
-		if (isPartial)
 		{
 			if (refLikeMethods != null && refLikeMethods.Contains(GetMethodKey(method)))
 			{
@@ -160,119 +161,135 @@ public class InternalCallHook
 					var argument = context.Expression as MemberAccessExpressionSyntax;
 					var expression = argument.Expression.ToString();
 					var name = argument.Name.ToString();
-			var fileNameWithNewExt = $"{Path.GetFileNameWithoutExtension(fileName)}.Internal.cs";
-			path = debugOutputPath != null ? Path.Combine(debugOutputPath, fileNameWithNewExt) : fileNameWithNewExt;
-			output = CSharpSyntaxTree.ParseText(source, options, path, Encoding.UTF8).GetCompilationUnitRoot().NormalizeWhitespace();
-			File.WriteAllText(path, output.ToFullString());
-		}
-		else
-		{
-			path = $"{fileName}/Internal";
-			output = CSharpSyntaxTree.ParseText(source, options, path, Encoding.UTF8).GetCompilationUnitRoot();
-		}
-#else
-		path = $"{fileName}/Internal";
-		output = CSharpSyntaxTree.ParseText(source, options, path, Encoding.UTF8).GetCompilationUnitRoot();
-#endif
-	}
 
-	private static InternalCallHookTypeModel CreateModel(
-		CompilationUnitSyntax input, BaseNamespaceDeclarationSyntax @namespace, List<ClassDeclarationSyntax> classes, List<string> usingsList
-	)
-	{
-		var model = new InternalCallHookTypeModel
-		{
-			NamespaceName = @namespace?.Name.ToString() ?? string.Empty,
-			TypeName = classes[0].Identifier.ValueText,
-			BaseKind = "plugin",
-			VersionOwnerExpression = "base"
-		};
+					var value = AccessTools.Field(AccessTools.TypeByName(expression), name)?.GetValue(null)?.ToString();
 
-		model.GlobalUsings.AddRange(input.Usings.Select(x => x.ToString()));
-		if (usingsList != null)
-		{
-			model.GlobalUsings.AddRange(usingsList);
-		}
-
-		if (@namespace != null)
-		{
-			model.NamespaceUsings.AddRange(@namespace.Usings.Select(x => x.ToString()));
-		}
-
-		var methods = classes
-			.SelectMany(x => x.ChildNodes().OfType<MethodDeclarationSyntax>())
-			.Where(IsHookableMethod)
-			.OrderBy(x => x.Identifier.ValueText);
-
-		foreach (var method in methods)
-		{
-			var hookName = ResolveHookName(method, classes);
-			var hook = new InternalCallHookMethodModel
-			{
-				MethodName = method.Identifier.ValueText,
-				HookName = hookName,
-				HookId = HookStringPool.GetOrAdd(hookName),
-				ReturnsVoid = method.ReturnType.ToString() == "void",
-				Score = GetMethodParameterDepthScore(method),
-				ConditionalSymbol = GetConditionalSymbol(method)
-			};
-
-			foreach (var parameter in method.ParameterList.Parameters)
-			{
-				if (parameter.Type == null)
+					if (!string.IsNullOrEmpty(value))
+					{
+						methodName = value;
+					}
+				}
+				else if (context.ToString().Contains("\""))
 				{
-					continue;
+					var value = AccessTools.Field(AccessTools.TypeByName(classList.FirstOrDefault().Identifier.Text), context.ToString().Replace("\"", string.Empty))?.GetValue(null)?.ToString();
+
+					if (!string.IsNullOrEmpty(value))
+					{
+						methodName = value;
+					}
+				}
+			}
+
+			var id = HookStringPool.GetOrAdd(methodName);
+
+			if (!hookableMethods.TryGetValue(id, out var list))
+			{
+				hookableMethods[id] = list = new();
+			}
+
+			list.Add(method);
+		}
+
+		var maxArgs = hookableMethods.Count == 0 ? 0 : hookableMethods.Max(x => x.Value.Max(y => y.ParameterList.Parameters.Count));
+		var methodContents = $"\n\tvar length = args?.Length;\n";
+
+		for (int i = 0; i < maxArgs; i++)
+		{
+			methodContents += $"var narg{i} = length > {i} ? args[{i}] : null; ";
+		}
+
+		methodContents += $"try {{ switch(hook) {{ ";
+		foreach (var group in hookableMethods)
+		{
+			methodContents += $"\t\t\t\n// {group.Value[0].Identifier.ValueText} aka {group.Key}\n\t\t\tcase {group.Key}:\n\t\t\t{{";
+
+			var overrideCount = 1;
+
+			var orderedGroup = group.Value
+				.Select(m => (Method: m, Score: GetMethodParameterDepthScore(m)))
+				.OrderByDescending(x => x.Score);
+			var i = -1;
+			foreach (var g in orderedGroup)
+			{
+				i++;
+
+				var parameterIndex = -1;
+				var method = g.Method;
+				var conditional = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => ((IdentifierNameSyntax)x.Name).Identifier.Text == "Conditional"))?.FirstOrDefault()?.ArgumentList?.Arguments[0].ToString().Replace("\"", string.Empty);
+				var methodName = method.Identifier.ValueText;
+				var parameters0 = method.ParameterList.Parameters.Select(x =>
+				{
+					var type = x.Type!.ToString().Replace("?", string.Empty);
+					parameterIndex++;
+
+					if (x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)))
+					{
+						return $"out var arg{parameterIndex}_{i}";
+					}
+
+					if (x.Default != null || x.Type is NullableTypeSyntax)
+					{
+						return $"narg{parameterIndex} is {type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : ({type}{(x.Type is NullableTypeSyntax ? "?" : null)})default";
+					}
+
+					if (x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
+					{
+						return $"ref arg{parameterIndex}_{i}";
+					}
+
+					return $"arg{parameterIndex}_{i}";
+				});
+
+				var parameters = parameters0.ToArray();
+				var refSets = string.Empty;
+				parameterIndex = 0;
+				foreach (var @ref in method.ParameterList.Parameters)
+				{
+					if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword) || x.IsKind(SyntaxKind.OutKeyword)))
+					{
+						refSets += $"args[{parameterIndex}] = arg{parameterIndex}_{i}; ";
+					}
+
+					parameterIndex++;
 				}
 
-				var isOut = parameter.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword));
-				var useInlineDefaultExpression = parameter.Default != null || parameter.Type is NullableTypeSyntax;
-				hook.Parameters.Add(new InternalCallHookParameterModel
+				parameterIndex = -1;
+				var parameterText = string.Empty;
+				var varText = string.Empty;
+				for (int o = 0; o < method.ParameterList.Parameters.Count; o++)
 				{
-					TypeName = parameter.Type.ToString().Replace("global::", string.Empty),
-					IsOut = isOut,
-					IsRef = parameter.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)),
-					UseInlineDefaultExpression = useInlineDefaultExpression,
-					RequiresGuard = !useInlineDefaultExpression && !isOut
-				});
+					var parameter = method.ParameterList.Parameters[o];
+					parameterIndex++;
+
+					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) && parameter.Type is not NullableTypeSyntax && !(parameter.Type is ITypeSymbol symbol && symbol.IsValueType))
+					{
+						var typeString = parameter.Type.ToString().Replace("global::", string.Empty);
+
+						if (parameter.Type is TupleTypeSyntax tuple)
+						{
+							typeString = $"({string.Join(", ", tuple.Elements.Select(x => x.Type.ToString()))})";
+						}
+
+						varText += $"var narg{parameterIndex}_{i} = narg{parameterIndex} is {typeString} or null;\nvar arg{parameterIndex}_{i} = narg{parameterIndex}_{i} ? ({typeString})(narg{parameterIndex} ?? ({typeString})default) : ({typeString})default;\n";
+						parameterText += !IsUnmanagedType(parameter.Type) ? $"narg{parameterIndex}_{i} && " : $"(narg{parameterIndex}_{i} || narg{parameterIndex} == null) && ";
+					}
+				}
+
+				if (!string.IsNullOrEmpty(parameterText))
+				{
+					parameterText = parameterText[..^3];
+				}
+
+				methodContents += $"{(string.IsNullOrEmpty(conditional) ? string.Empty : $"\n#if {conditional}")}\t\t\t\n\t\t\t\t" +
+					$"{varText}{(string.IsNullOrEmpty(parameterText) ? string.Empty : $"if({parameterText}) {{")}" +
+					$"{(method.ReturnType.ToString() != "void" ? "return" : string.Empty)} {methodName}({string.Join(", ", parameters)}); {refSets} " +
+					$"{(method.ReturnType.ToString() != "void" ? string.Empty : "return null;")}" +
+					$"{(string.IsNullOrEmpty(parameterText) ? string.Empty : $"}}")}{(string.IsNullOrEmpty(conditional) ? string.Empty : $"\n#endif")}\n";
+
+				overrideCount++;
 			}
 
-			model.Methods.Add(hook);
-		}
-
-		return model;
-	}
-
-	private static bool IsHookableMethod(MethodDeclarationSyntax method)
-	{
-		return (method.Modifiers.Count == 0 ||
-		        method.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.PublicKeyword) && !modifier.IsKind(SyntaxKind.StaticKeyword)) ||
-		        method.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && method.TypeParameterList == null;
-	}
-
-	private static string ResolveHookName(MethodDeclarationSyntax method, List<ClassDeclarationSyntax> classes)
-	{
-		var hookMethod = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => x.Name.ToString() == "HookMethod")).FirstOrDefault();
-		var methodName = hookMethod != null && hookMethod.ArgumentList?.Arguments.Count > 0
-			? hookMethod.ArgumentList.Arguments[0].ToString().Replace("\"", string.Empty)
-			: method.Identifier.ValueText;
-
-		if (hookMethod == null || hookMethod.ArgumentList?.Arguments.Count == 0)
-		{
-			return methodName;
-		}
-
-		var context = hookMethod.ArgumentList.Arguments[0];
-		var contextString = context.ToString();
-		if (contextString.Contains("nameof"))
-		{
-			methodName = contextString.Replace("nameof", string.Empty).Replace("(", string.Empty).Replace(")", string.Empty);
-			if (methodName.Contains("."))
-			{
-				var split = methodName.Split('.');
-				methodName = split[^1];
-			}
-
-			return methodName;
+			methodContents += "\t\t\t\tbreak;\n\t\t\t}";
 		}
 
 		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.Pooling.HookStringPool.GetOrAdd(hook)}' on " + baseName + " '{" + (baseName == "plugin" ? "base.Name" : "this.Name") + "} v{ " + (baseName == "plugin" ? "base.Version" : "this.Version") + "}' [{hook}]\", ex);\n" +
@@ -311,17 +328,6 @@ public class InternalCallHook
 
 		#endregion
 	}
-		if (contextString.Contains("."))
-		{
-			var argument = context.Expression as MemberAccessExpressionSyntax;
-			var expression = argument?.Expression.ToString();
-			var name = argument?.Name.ToString();
-			var value = AccessTools.Field(AccessTools.TypeByName(expression), name)?.GetValue(null)?.ToString();
-			if (!string.IsNullOrEmpty(value))
-			{
-				return value;
-			}
-		}
 
 	public static void GeneratePartial(
 		CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName,
@@ -330,28 +336,58 @@ public class InternalCallHook
 		Generate(input, out _, out var method, out var isPartial, classList: classes, references: references, options: options);
 
 		if (method == null)
-		if (contextString.Contains("\""))
 		{
-			var value = AccessTools.Field(AccessTools.TypeByName(classes[0].Identifier.Text), contextString.Replace("\"", string.Empty))?.GetValue(null)
-				?.ToString();
-			if (!string.IsNullOrEmpty(value))
-			{
-				return value;
-			}
+			output = null;
+			return;
 		}
 
-		return methodName;
-	}
+		BaseNamespaceDeclarationSyntax @namespace;
 
-	private static string GetConditionalSymbol(MethodDeclarationSyntax method)
-	{
-		var conditional = method.AttributeLists
-			.SelectMany(x => x.Attributes)
-			.FirstOrDefault(x => x.Name.ToString() == "Conditional")
-			?.ArgumentList?.Arguments.FirstOrDefault()
-			?.ToString();
+		if (classes == null)
+		{
+			classes = new List<ClassDeclarationSyntax>();
+			FindPluginInfo(input, out @namespace, out _, out _, classes);
+		}
+		else
+		{
+			@namespace = classes[0].Parent as BaseNamespaceDeclarationSyntax;
+		}
 
-		return conditional?.Replace("\"", string.Empty) ?? string.Empty;
+		var @class = classes[0];
+		var usings = input.Usings.Select(x => x.ToString())
+			.Concat(usingsList ?? [])
+			.Distinct()
+			.ToList();
+		var subUsings = @namespace!.Usings;
+
+		var source = @$"{string.Join("\n", usings.Select(x => x.ToString()))}
+
+namespace {@namespace.Name};
+{(subUsings.Any() ? $"\n{string.Join("\n", subUsings.Select(x => x.ToString()))}" : string.Empty)}
+partial class {@class.Identifier.ValueText}
+{{
+	{method}
+}}";
+
+		string path;
+
+#if DEBUG
+		if (isPartial)
+		{
+			string fileNameWithNewExt = $"{Path.GetFileNameWithoutExtension(fileName)}.Internal.cs";
+			path = debugOutputPath != null ? Path.Combine(debugOutputPath, fileNameWithNewExt) : fileNameWithNewExt;
+			output = CSharpSyntaxTree.ParseText(source, options, path, Encoding.UTF8).GetCompilationUnitRoot().NormalizeWhitespace();
+			File.WriteAllText(path, output.ToFullString());
+		}
+		else
+		{
+			path = $"{fileName}/Internal";
+			output = CSharpSyntaxTree.ParseText(source, options, path, Encoding.UTF8).GetCompilationUnitRoot();
+		}
+#else
+		path = $"{fileName}/Internal";
+		output = CSharpSyntaxTree.ParseText(source, options, path, Encoding.UTF8).GetCompilationUnitRoot();
+#endif
 	}
 
 	public static bool FindPluginInfo(CompilationUnitSyntax input, out BaseNamespaceDeclarationSyntax @namespace, out int namespaceIndex, out int classIndex, List<ClassDeclarationSyntax> classes)
@@ -385,7 +421,7 @@ public class InternalCallHook
 					{
 						if (attribute.Attributes[0].Name is IdentifierNameSyntax nameSyntax && nameSyntax.Identifier.Text.Equals("Info"))
 						{
-							namespaceIndex = n;
+							@namespaceIndex = n;
 							@namespace = ns;
 							classIndex = c;
 							@class = cls;
@@ -401,5 +437,114 @@ public class InternalCallHook
 		}
 
 		return @class != null;
+	}
+
+	private static HashSet<string> GetRefLikeMethodKeys(CompilationUnitSyntax input, IEnumerable<MetadataReference> references, Func<IEnumerable<MetadataReference>> referenceFactory, CSharpParseOptions options, IReadOnlyCollection<MethodDeclarationSyntax> methods)
+	{
+		if (methods.Count == 0 || !methods.Any(CanHaveRefLikeSignature))
+		{
+			return null;
+		}
+
+		references ??= referenceFactory?.Invoke();
+		if (references == null)
+		{
+			return null;
+		}
+
+		var methodKeys = new HashSet<string>(methods.Select(GetMethodKey));
+
+		var tree = CSharpSyntaxTree.Create(input, options);
+
+		var compilation = CSharpCompilation.Create(
+			"Carbon.InternalCallHook.Analysis",
+			[tree],
+			references,
+			new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+
+		var model = compilation.GetSemanticModel(tree, true);
+		HashSet<string> refLikeMethods = null;
+
+		foreach (var method in tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>())
+		{
+			if (!methodKeys.Contains(GetMethodKey(method)))
+			{
+				continue;
+			}
+
+			var methodSymbol = model.GetDeclaredSymbol(method);
+			if (methodSymbol == null || !HasRefLikeSignature(methodSymbol))
+			{
+				continue;
+			}
+
+			refLikeMethods ??= [];
+			refLikeMethods.Add(GetMethodKey(method));
+		}
+
+		return refLikeMethods;
+	}
+
+	private static bool CanHaveRefLikeSignature(MethodDeclarationSyntax method)
+	{
+		return CanBeRefLikeType(method.ReturnType) || method.ParameterList.Parameters.Any(x => CanBeRefLikeType(x.Type));
+	}
+
+	private static bool CanBeRefLikeType(TypeSyntax type)
+	{
+		return type is not null and not PredefinedTypeSyntax;
+	}
+
+	private static bool HasRefLikeSignature(IMethodSymbol method)
+	{
+		return method.ReturnType.IsRefLikeType || method.Parameters.Any(x => x.Type.IsRefLikeType);
+	}
+
+	public static bool HasRefLikeSignature(MethodInfo method)
+	{
+		return IsRefLikeType(method.ReturnType) || method.GetParameters().Any(x => IsRefLikeType(x.ParameterType));
+	}
+
+	private static bool IsRefLikeType(Type type)
+	{
+		while (type is { HasElementType: true })
+		{
+			type = type.GetElementType();
+		}
+
+		if (type == null)
+		{
+			return false;
+		}
+
+		try
+		{
+			return type.GetCustomAttributesData().Any(x => x.AttributeType.FullName == "System.Runtime.CompilerServices.IsByRefLikeAttribute");
+		}
+		catch
+		{
+			return false;
+		}
+	}
+
+	private static string GetMethodKey(MethodDeclarationSyntax method)
+	{
+		return
+			$"{GetContainingTypeKey(method)}|{method.Identifier.ValueText}|{method.ReturnType}|{string.Join(",", method.ParameterList.Parameters.Select(GetParameterKey))}";
+	}
+
+	private static string GetContainingTypeKey(MethodDeclarationSyntax method)
+	{
+		return string.Join(".", method.Ancestors().OfType<TypeDeclarationSyntax>().Reverse().Select(x => x.Identifier.ValueText));
+	}
+
+	private static string GetParameterKey(ParameterSyntax parameter)
+	{
+		return $"{string.Join(" ", parameter.Modifiers.Select(x => x.Text))}:{parameter.Type}";
+	}
+
+	public static bool IsUnmanagedType(TypeSyntax type)
+	{
+		return type is ITypeSymbol symbol && symbol.IsUnmanagedType;
 	}
 }
