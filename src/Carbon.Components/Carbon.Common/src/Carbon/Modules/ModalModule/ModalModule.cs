@@ -326,7 +326,7 @@ public partial class ModalModule : CarbonModule<EmptyModuleConfig, EmptyModuleDa
 
 		if (!field.IsReadOnly)
 		{
-			var value = arg.Args.Skip(1).ToString(" ");
+			var value = string.Join(" ", arg.Args.Skip(1).Select(x => x.ToString()));
 
 			switch (field.Type)
 			{
