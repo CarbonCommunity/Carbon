@@ -30,7 +30,7 @@ public partial class AdminModule
 			array = HookCaller.Caller.AllocateBuffer(args.Args.Length - 2);
 			for (int i = 2; i < args.Args.Length; i++)
 			{
-				array[i - 2] = args.Args[i];
+				array[i - 2] = args.Args[i].ToString();
 			}
 		}
 
@@ -49,8 +49,8 @@ public partial class AdminModule
 	{
 		var player = args.Player();
 		var instance = GetPlayerSession(player);
-		var page = instance.GetOrCreatePage(args.Args[0].ToInt());
-		var type = args.Args[1].ToInt();
+		var page = instance.GetOrCreatePage(args.GetInt(0));
+		var type = args.GetInt(1);
 
 		switch (type)
 		{
@@ -73,7 +73,7 @@ public partial class AdminModule
 				break;
 
 			case 4:
-				page.CurrentPage = (args.Args[2].ToInt() - 1).Clamp(0, page.TotalPages);
+				page.CurrentPage = (args.GetInt(2) - 1).Clamp(0, page.TotalPages);
 				break;
 		}
 
@@ -137,7 +137,7 @@ public partial class AdminModule
 		var dialog = tab?.Dialog;
 		if (tab != null) tab.Dialog = null;
 
-		switch (args.Args[0])
+		switch (args.Args[0].ToString())
 		{
 			case "confirm":
 				try { dialog?.OnConfirm(admin); } catch { }

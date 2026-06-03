@@ -648,7 +648,7 @@ public partial class AdminModule
 		var player = arg.Player();
 		var session = GetPlayerSession(player);
 		var setting = arg.GetString(0);
-		var value = arg.Args.Skip(1).ToString(" ");
+		var value = string.Join(" ", arg.Args.Skip(1).Select(x => x.ToString()));
 
 		switch (setting)
 		{
