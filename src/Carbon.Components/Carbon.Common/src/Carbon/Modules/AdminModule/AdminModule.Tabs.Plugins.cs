@@ -2360,7 +2360,7 @@ public partial class AdminModule
 		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
 
-		var search = ap.SetStorage(tab, "search", string.Join(" ", args.Args.Select(x => x.ToString())));
+		var search = ap.SetStorage(tab, "search", args.Args?.Select(x => x.ToString()).ToString(" "));
 		ap.SetStorage(tab, "page", 0);
 
 		if (search == "Search...")
