@@ -268,6 +268,8 @@ public class Oxide
 
 				public object Operand { get; set; }
 
+				public bool ReferencesNewInstruction { get; set; }
+
 				public override string ToString()
 				{
 					return $"{OpCode} {Operand}";

@@ -15,6 +15,7 @@
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
 	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
 	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
+	<Import Project="$(SolutionDir)\Carbon.Tools\Carbon.CompilerPolyfills.Shared\Carbon.CompilerPolyfills.Shared.projitems" Label="Shared" />
 
 	<ItemGroup>
 		<None Include="$(SolutionDir)\.msbuild\Protocol.props" Link="msbuild\Protocol.props" />
@@ -36,6 +37,7 @@
 
 	<ItemGroup>
 		<None Include="$(SolutionDir)\..\.github\workflows\*" LinkBase="workflows" />
+		<None Include="$(SolutionDir)\..\README.md" Link="README.md" />
 	</ItemGroup>
 
 	<ItemGroup>
