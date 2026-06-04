@@ -18,6 +18,8 @@ internal abstract class Program
 		var debugSettings = config.GetSection(ForDebugSettings.SectionName).Get<ForDebugSettings>()
 		                    ?? new ForDebugSettings()
 		                    ?? throw new Exception("Debug options are missing");
+		var testOptOutSettings = config.GetSection(TestOptOutSettings.SectionName).Get<TestOptOutSettings>()
+		                         ?? new TestOptOutSettings();
 
 		var httpClient = new HttpClient();
 		var processLifetimeManager = new ProcessLifetimeManager(loggerFactory.CreateLogger<ProcessLifetimeManager>());
@@ -31,6 +33,7 @@ internal abstract class Program
 		var envSetup = new EnvironmentSetupService(
 			new OptionsWrapper<AppSettings>(appSettings),
 			new OptionsWrapper<ForDebugSettings>(debugSettings),
+			new OptionsWrapper<TestOptOutSettings>(testOptOutSettings),
 			depotDownloader,
 			loggerFactory.CreateLogger<EnvironmentSetupService>(),
 			httpClient);

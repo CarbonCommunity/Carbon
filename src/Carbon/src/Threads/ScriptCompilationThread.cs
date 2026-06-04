@@ -477,8 +477,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("RUST_AUX02");
 #elif RUST_AUX03
 			conditionals.Add("RUST_AUX03");
-#elif QA
-			conditionals.Add("QA");
+#elif RUST_AUX04
+			conditionals.Add("RUST_AUX04");
+#elif EXPERIMENTAL
+			conditionals.Add("EXPERIMENTAL");
 #endif
 
 			if (Carbon.Components.Modifier.Active.HasPlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath)))
@@ -546,7 +548,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
 
 				InternalCallHook.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
-					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings);
+					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings, references);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
 
@@ -678,6 +680,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 				foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance |
 				                                       BindingFlags.NonPublic))
 				{
+					if (InternalCallHook.HasRefLikeSignature(method))
+					{
+						continue;
+					}
 
 					if (Community.Runtime.HookManager.IsHook(method.Name))
 					{

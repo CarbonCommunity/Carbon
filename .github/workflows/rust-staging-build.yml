@@ -31,7 +31,6 @@ jobs:
 
         [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
     secrets:
-      PAT_ALL_REPO: ${{ secrets.PAT_ALL_REPO }}
       VERSIONS_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
 
   call-tests:

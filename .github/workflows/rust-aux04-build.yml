@@ -1,0 +1,32 @@
+name: Rust (Aux04) Build
+concurrency: build-aux04
+
+on:
+  workflow_dispatch:
+
+jobs:
+  call-common:
+    uses: ./.github/workflows/common-build.yml
+    name: Build
+    permissions:
+      contents: write
+    with:
+      # noinspection UndefinedParamsPresent
+      GIT_BRANCH: rust_beta/aux04
+      # noinspection UndefinedParamsPresent
+      RELEASE_BODY: |
+        This is a manually triggered development build of Carbon based on the `rust_beta/aux04` branch.
+        This build might and probably will be very unstable and its sole purpose is for testing and/or exploring Rust's future update features in a modded environment.
+
+        This build is targeted at developers or testers.
+        The general public is advised to use one of the [stable] builds.
+        Since it's manually triggered, we're confident you should use this build to test out the latest Carbon changes.
+
+        ### How to install
+        1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
+        2. Unzip the archive to the root of your Rust Dedicated Server.
+        3. Restart the server and enjoy.
+
+        [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
+    secrets:
+      VERSIONS_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
