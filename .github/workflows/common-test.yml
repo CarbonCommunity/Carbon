@@ -6,6 +6,18 @@ on:
       build_identifier:
         required: true
         type: string
+      checkout_repository:
+        required: false
+        type: string
+        default: ''
+      checkout_ref:
+        required: false
+        type: string
+        default: ''
+      use_build_artifacts:
+        required: false
+        type: boolean
+        default: false
 
   workflow_dispatch:
     inputs:
@@ -101,7 +113,42 @@ jobs:
       - name: Git Clone
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.build_identifier }}
+          repository: ${{ inputs.checkout_repository || github.repository }}
+          ref: ${{ inputs.checkout_ref || inputs.build_identifier }}
+
+      - name: Download Carbon Build
+        if: inputs.use_build_artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: build-${{ matrix.group }}
+          path: carbon-build
+
+      - name: Resolve Carbon Download
+        id: carbon-download
+        shell: bash
+        env:
+          USE_BUILD_ARTIFACTS: ${{ inputs.use_build_artifacts }}
+          GROUP: ${{ matrix.group }}
+          BUILD_CONFIG: ${{ needs.configure.outputs.build_config }}
+          DOWNLOAD_ID: ${{ needs.configure.outputs.download_id }}
+          ARCHIVE: Carbon.${{ matrix.group }}.${{ needs.configure.outputs.build_config }}.${{ matrix.group == 'Linux' && 'tar.gz' || 'zip' }}
+        run: |
+          EXT="zip"
+          if [ "$GROUP" = "Linux" ]; then
+            EXT="tar.gz"
+          fi
+
+          if [ "$USE_BUILD_ARTIFACTS" = "true" ]; then
+            if [ ! -f "carbon-build/$ARCHIVE" ]; then
+              echo "::error::Expected build artifact not found: carbon-build/$ARCHIVE"
+              ls -la carbon-build || true
+              exit 1
+            fi
+
+            python -c 'import os; from pathlib import Path; uri = Path("carbon-build", os.environ["ARCHIVE"]).resolve().as_uri(); open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8").write(f"url={uri}\n")'
+          else
+            echo "url=https://github.com/CarbonCommunity/Carbon/releases/download/$DOWNLOAD_ID/Carbon.$GROUP.$BUILD_CONFIG.$EXT" >> $GITHUB_OUTPUT
+          fi
 
       - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v5
@@ -124,6 +171,6 @@ jobs:
         env:
           WorkingDir: TestRunner
           BranchName: ${{ needs.configure.outputs.rust_branch }}
-          CarbonDownloadZipUrl: https://github.com/CarbonCommunity/Carbon/releases/download/${{ needs.configure.outputs.download_id }}/Carbon.${{ matrix.group }}.${{ needs.configure.outputs.build_config }}.${{ matrix.group == 'Linux' && 'tar.gz' || 'zip' }}
+          CarbonDownloadZipUrl: ${{ steps.carbon-download.outputs.url }}
         run: |
           dotnet run --project src/Carbon.Tests -c Release --no-build

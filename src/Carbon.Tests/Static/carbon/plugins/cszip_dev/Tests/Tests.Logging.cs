@@ -1,3 +1,4 @@
+#if !TESTS_NO_LOGGING
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -293,3 +294,4 @@ public partial class Tests
 		*/
 	}
 }
+#endif

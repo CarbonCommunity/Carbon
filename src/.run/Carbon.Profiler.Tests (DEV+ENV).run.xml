@@ -1,0 +1,24 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Carbon.Profiler.Tests (DEV+ENV)" type="DotNetProject" factoryName=".NET Project">
+    <option name="EXE_PATH" value="$PROJECT_DIR$/Carbon.Profiler.Tests/bin/Debug/net10.0/Carbon.Profiler.Tests" />
+    <option name="PROGRAM_PARAMETERS" value="" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Carbon.Profiler.Tests/bin/Debug/net10.0" />
+    <option name="PASS_PARENT_ENVS" value="1" />
+    <option name="ENV_FILE_PATHS" value="$PROJECT_DIR$/Carbon.Profiler.Tests/.env" />
+    <option name="REDIRECT_INPUT_PATH" value="" />
+    <option name="MIXED_MODE_DEBUG" value="0" />
+    <option name="USE_MONO" value="0" />
+    <option name="RUNTIME_ARGUMENTS" value="" />
+    <option name="AUTO_ATTACH_CHILDREN" value="0" />
+    <option name="PROJECT_PATH" value="$PROJECT_DIR$/Carbon.Profiler.Tests/Carbon.Profiler.Tests.csproj" />
+    <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
+    <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
+    <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
+    <option name="PROJECT_KIND" value="DotNetCore" />
+    <option name="PROJECT_TFM" value="net10.0" />
+    <method v="2">
+      <option name="Build" default="false" projectName="Carbon.Profiler.Tests.Harness" projectPath="$PROJECT_DIR$/Carbon.Profiler.Tests.Harness/Carbon.Profiler.Tests.Harness.csproj" />
+      <option name="Build" />
+    </method>
+  </configuration>
+</component>

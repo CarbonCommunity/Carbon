@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
 using API.Hooks;
@@ -32,6 +33,9 @@ public partial class Category_Static
 		{
 			internal static string Space = " ";
 
+			private static readonly Action _resetFromRconAction = static () =>
+				Command.FromRcon = API.Commands.Command.FromRcon = false;
+
 			public static bool Prefix(RCon.Command cmd)
 			{
 				if (Community.Runtime == null)
@@ -47,18 +51,20 @@ public partial class Category_Static
 				{
 					ConsoleArgEx.TryParseCommand(cmd.Message, out var command, out var parsedArguments);
 
-					var temp = Pool.Get<List<string>>();
-					temp.AddRange(parsedArguments);
-					var arguments = temp.ToArray();
-					Pool.FreeUnmanaged(ref temp);
+					// Avoid the pooled-list round-trip; materialize the arguments array once.
+					var arguments = parsedArguments as string[] ?? parsedArguments.ToArray();
 
 					if (Community.Runtime.Config.Aliases.TryGetValue(command, out var alias))
 					{
 						command = alias;
-						cmd.Message = $"{alias} {arguments.ToString(Space)}";
+						cmd.Message = arguments.Length == 0
+							? alias
+							: string.Concat(alias, " ", string.Join(Space, arguments));
 					}
 
-					var consoleArg = new Arg(Option.Server.Quiet().FromRconConnection(cmd.ConnectionId, cmd.Ip.ToString(), cmd.Name), cmd.Message);
+					var consoleArg = new Arg(
+						Option.Server.Quiet().FromRconConnection(cmd.ConnectionId, cmd.Ip.ToString(), cmd.Name),
+						cmd.Message);
 
 					if (HookCaller.CallStaticHook(3740958730, cmd.Ip, command, arguments) != null)
 					{
@@ -71,6 +77,15 @@ public partial class Category_Static
 						{
 							Command.FromRcon = API.Commands.Command.FromRcon = true;
 
+							var views = new StringView[arguments.Length];
+							for (var i = 0; i < arguments.Length; i++)
+							{
+								views[i] = arguments[i];
+							}
+
+							consoleArg.Args = views;
+							consoleArg.cmd = outCommand.RustCommand;
+
 							var commandArgs = Pool.Get<API.Commands.Command.Args>();
 							commandArgs.Token = consoleArg;
 							commandArgs.Type = outCommand.Type;
@@ -78,13 +93,11 @@ public partial class Category_Static
 							commandArgs.IsRCon = true;
 							commandArgs.IsServer = true;
 							commandArgs.PrintOutput = consoleArg.Option.PrintOutput;
-							consoleArg.Args = arguments;
-							consoleArg.cmd = outCommand.RustCommand;
 
 							Community.Runtime.CommandManager.Execute(outCommand, commandArgs);
 							Pool.Free(ref commandArgs);
 
-							Community.Runtime.Core.NextFrame(() => Command.FromRcon = API.Commands.Command.FromRcon = false);
+							Community.Runtime.Core.NextFrame(_resetFromRconAction);
 							return false;
 						}
 					}

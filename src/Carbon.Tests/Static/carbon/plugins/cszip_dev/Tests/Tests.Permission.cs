@@ -1,3 +1,4 @@
+#if !TESTS_NO_PERMISSION
 using Carbon.Test;
 using Oxide.Core.Libraries;
 
@@ -84,3 +85,4 @@ public partial class Tests
 		}
 	}
 } 
+#endif

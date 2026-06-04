@@ -13,6 +13,8 @@ on:
       - ".github/**/*"
       - "**/*.md"
       - "src/Carbon.Tests/**/*"
+      - "src/Carbon.Profiler.Tests/**/*"
+      - "src/Carbon.Profiler.Tests.Harness/**/*"
       - ".gitignore"
 
 jobs:
@@ -39,7 +41,6 @@ jobs:
         
         [stable]: https://github.com/CarbonCommunity/Carbon/releases/latest
     secrets:
-      PAT_ALL_REPO: ${{ secrets.PAT_ALL_REPO }}
       VERSIONS_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
 
   call-tests:
