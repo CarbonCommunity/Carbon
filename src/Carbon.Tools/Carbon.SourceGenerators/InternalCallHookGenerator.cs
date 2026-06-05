@@ -148,7 +148,7 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 	{
 		if (type is INamedTypeSymbol namedType && namedType.IsTupleType)
 		{
-			var builder = new StringBuilder();
+			var builder = StringBuilderPool.Rent();
 			builder.Append('(');
 
 			var elements = namedType.TupleElements;
@@ -163,7 +163,7 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 			}
 
 			builder.Append(')');
-			return builder.ToString();
+			return StringBuilderPool.ToStringAndReturn(ref builder);
 		}
 
 		return type.ToDisplayString(TypeFormat);
@@ -307,12 +307,12 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 
 	private static string SanitizeHintName(string input)
 	{
-		var builder = new StringBuilder(input.Length);
+		var builder = StringBuilderPool.Rent();
 		for (int i = 0; i < input.Length; i++)
 		{
 			var character = input[i];
 			builder.Append(char.IsLetterOrDigit(character) ? character : '_');
 		}
-		return builder.ToString();
+		return StringBuilderPool.ToStringAndReturn(ref builder);
 	}
 }
