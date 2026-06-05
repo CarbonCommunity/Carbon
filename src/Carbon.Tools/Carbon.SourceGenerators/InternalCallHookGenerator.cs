@@ -123,8 +123,9 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 
 			hook.HookId = ComputeHookId(hook.HookName);
 
-			foreach (var parameter in method.Parameters)
+			for (int p = 0; p < method.Parameters.Length; p++)
 			{
+				var parameter = method.Parameters[p];
 				var isOut = parameter.RefKind == RefKind.Out;
 				var useInlineDefaultExpression = parameter.HasExplicitDefaultValue || parameter.NullableAnnotation == NullableAnnotation.Annotated;
 				hook.Parameters.Add(new InternalCallHookParameterModel
@@ -231,14 +232,14 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 		}
 
 		if (attribute.ConstructorArguments.Length > 0 && attribute.ConstructorArguments[0].Value is string constructorValue &&
-		    !string.IsNullOrWhiteSpace(constructorValue))
+			!string.IsNullOrWhiteSpace(constructorValue))
 		{
 			return constructorValue;
 		}
 
-		foreach (var argument in attribute.NamedArguments)
+		for (int i = 0; i < attribute.NamedArguments.Length; i++)
 		{
-			if (argument is { Key: "Name", Value.Value: string namedValue } && !string.IsNullOrWhiteSpace(namedValue))
+			if (attribute.NamedArguments[i] is { Key: "Name", Value.Value: string namedValue } && !string.IsNullOrWhiteSpace(namedValue))
 			{
 				return namedValue;
 			}
@@ -261,9 +262,9 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 			return constructorValue;
 		}
 
-		foreach (var argument in attribute.NamedArguments)
+		for (int i = 0; i < attribute.NamedArguments.Length; i++)
 		{
-			if (argument is { Key: "Symbol", Value.Value: string namedValue } && !string.IsNullOrWhiteSpace(namedValue))
+			if (attribute.NamedArguments[i] is { Key: "Symbol", Value.Value: string namedValue } && !string.IsNullOrWhiteSpace(namedValue))
 			{
 				return namedValue;
 			}
@@ -275,11 +276,10 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 	private static int GetMethodParameterDepthScore(IMethodSymbol method)
 	{
 		var score = 0;
-		foreach (var parameter in method.Parameters)
+		for (int i = 0; i < method.Parameters.Length; i++)
 		{
-			score += GetInheritanceDepth(parameter.Type);
+			score += GetInheritanceDepth(method.Parameters[i].Type);
 		}
-
 		return score;
 	}
 
@@ -308,11 +308,11 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 	private static string SanitizeHintName(string input)
 	{
 		var builder = new StringBuilder(input.Length);
-		foreach (var character in input)
+		for (int i = 0; i < input.Length; i++)
 		{
+			var character = input[i];
 			builder.Append(char.IsLetterOrDigit(character) ? character : '_');
 		}
-
 		return builder.ToString();
 	}
 }
