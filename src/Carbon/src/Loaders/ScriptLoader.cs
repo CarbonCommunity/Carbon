@@ -433,7 +433,7 @@ public class ScriptLoader : IScriptLoader
 				}
 
 #if DEBUG
-				OsEx.File.Create(Path.Combine(Defines.GetScriptDebugFolder(), $"{AsyncLoader.InitialSource.ContextFileName}.Internal.cs"), AsyncLoader.InternalCallHookSource);
+				OsEx.File.Create(Path.Combine(Defines.GetScriptDebugFolder(), $"{Path.GetFileNameWithoutExtension(AsyncLoader.InitialSource.ContextFilePath)}.Internal.cs"), AsyncLoader.InternalCallHookSource);
 #endif
 			}
 
