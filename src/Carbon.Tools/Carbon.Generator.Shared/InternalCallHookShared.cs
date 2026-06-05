@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 
 namespace Carbon.InternalCallHookGeneration;
 
@@ -37,7 +37,7 @@ public static class InternalCallHookEmitter
 {
 	public static string BuildSource(InternalCallHookTypeModel model)
 	{
-		var builder = new StringBuilder();
+		var builder = StringBuilderPool.Rent();
 		var globalUsings = model.GlobalUsings
 			.Select(NormalizeUsing)
 			.Where(static item => !string.IsNullOrWhiteSpace(item))
@@ -88,7 +88,7 @@ public static class InternalCallHookEmitter
 			AppendClass(builder, model, 0);
 		}
 
-		return builder.ToString();
+		return StringBuilderPool.ToStringAndReturn(ref builder);
 	}
 
 	private static void AppendClass(StringBuilder builder, InternalCallHookTypeModel model, int indent)
