@@ -15,6 +15,10 @@ internal static partial class Helper
 		"OnWireClear",
 		"OnWireClear [patch]", // to fix
 	];
+	public static readonly string[] PatchBlacklist =
+	[
+		"OnPlayerAttack [Projectile] [Patch]"
+	];
 
 	[ThreadStatic] public static Type CurrentField;
 	[ThreadStatic] public static List<(string, Type)> Parameters;
