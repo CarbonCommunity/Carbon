@@ -117,9 +117,15 @@ internal static partial class Helper
 						AddYieldInstruction(ref instructions, nameof(OpCodes.Ldnull));
 						AddYieldInstruction(ref instructions, nameof(OpCodes.Beq_S), "label", false); // if not null ret
 						if (PendingExitLeaveLabel != null)
-							AddYieldInstruction(ref instructions, nameof(OpCodes.Leave), PendingExitLeaveLabel, false);
+						{
+							AddGenericInstruction(ref instructions, "Label lastLabel = Generator.DefineLabel();");
+							AddGenericInstruction(ref instructions, "Instructions.Last().labels.Add(lastLabel);");
+							AddYieldInstruction(ref instructions, nameof(OpCodes.Leave), "lastLabel", false);
+						}
 						else
+						{
 							AddYieldInstruction(ref instructions, nameof(OpCodes.Ret));
+						}
 						ReturnType = typeof(void);
 						break;
 					}
