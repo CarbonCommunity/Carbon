@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
 using Carbon.InternalCallHookGeneration;
@@ -195,7 +195,9 @@ public class InternalCallHook
 				var useInlineDefaultExpression = parameter.Default != null || parameter.Type is NullableTypeSyntax;
 				hook.Parameters.Add(new InternalCallHookParameterModel
 				{
-					TypeName = parameter.Type.ToString().Replace("global::", string.Empty),
+					TypeName = (parameter.Type is TupleTypeSyntax tuple
+						? $"({string.Join(", ", tuple.Elements.Select(e => e.Type.ToString()))})"
+						: parameter.Type.ToString()).Replace("global::", string.Empty),
 					IsOut = isOut,
 					IsRef = parameter.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)),
 					UseInlineDefaultExpression = useInlineDefaultExpression,
