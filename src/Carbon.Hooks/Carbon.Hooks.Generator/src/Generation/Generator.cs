@@ -266,6 +266,18 @@ internal sealed partial class Generator(GeneratorOptions options)
 			}
 		}
 
+		var useExitLeave = (targetMethod.GetMethodBody()?.ExceptionHandlingClauses.Count ?? 0) > 0
+			&& targetMethod.ReturnType == typeof(void)
+			&& (hook.ReturnBehavior == ReturnBehavior.ExitWhenNonNull || hook.ReturnBehavior == ReturnBehavior.ExitWhenValidType);
+		Helper.PendingExitLeaveLabel = useExitLeave ? "__exitLabel" : null;
+		if (useExitLeave)
+		{
+			body.AppendLine("Label __exitLabel = Generator.DefineLabel();");
+			body.AppendLine("List<CodeInstruction> __ins = new List<CodeInstruction>(Instructions);");
+			body.AppendLine("for (int __i = __ins.Count - 1; __i >= 0; __i--) { if (__ins[__i].opcode == OpCodes.Ret) { __ins[__i].labels.Add(__exitLabel); break; } }");
+			body.AppendLine("Instructions = __ins;");
+		}
+
 		body.AppendLine("int x = 0;");
 		body.AppendLine("foreach (CodeInstruction instruction in Instructions) {");
 		body.AppendLine($"if (x++ != {hook.InjectionIndex + offset}) {{");

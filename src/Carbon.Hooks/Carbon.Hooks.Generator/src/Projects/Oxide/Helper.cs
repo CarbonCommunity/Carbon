@@ -28,6 +28,7 @@ internal static partial class Helper
 	[ThreadStatic] public static string ModifyAnchorExpression;
 	[ThreadStatic] public static List<string> PendingOriginalLabelAssignments;
 	[ThreadStatic] public static int ModifyAnchorBaseIndex;
+	[ThreadStatic] public static string PendingExitLeaveLabel;
 	[ThreadStatic] private static bool DeterministicNames;
 	[ThreadStatic] private static int GeneratedNameIndex;
 
@@ -45,6 +46,7 @@ internal static partial class Helper
 		ModifyAnchorExpression = null;
 		PendingOriginalLabelAssignments = [];
 		ModifyAnchorBaseIndex = 0;
+		PendingExitLeaveLabel = null;
 		DeterministicNames = deterministicNames;
 		GeneratedNameIndex = 0;
 	}

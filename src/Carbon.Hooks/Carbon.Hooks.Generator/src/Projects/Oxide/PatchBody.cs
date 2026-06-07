@@ -116,7 +116,10 @@ internal static partial class Helper
 						AddGenericInstruction(ref instructions, "instruction.labels.Add(label);"); // tag the original code starting point
 						AddYieldInstruction(ref instructions, nameof(OpCodes.Ldnull));
 						AddYieldInstruction(ref instructions, nameof(OpCodes.Beq_S), "label", false); // if not null ret
-						AddYieldInstruction(ref instructions, nameof(OpCodes.Ret));
+						if (PendingExitLeaveLabel != null)
+							AddYieldInstruction(ref instructions, nameof(OpCodes.Leave), PendingExitLeaveLabel, false);
+						else
+							AddYieldInstruction(ref instructions, nameof(OpCodes.Ret));
 						ReturnType = typeof(void);
 						break;
 					}
