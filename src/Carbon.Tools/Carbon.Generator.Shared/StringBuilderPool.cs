@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
-using System.Threading;
+
+// ReSharper disable once RedundantNullableDirective
+#nullable enable
 
 namespace Carbon.InternalCallHookGeneration;
 
@@ -38,8 +40,13 @@ internal static class StringBuilderPool
 	/// Materializes the builder content and returns it to the pool in a single call.
 	/// Prefer this over manual <see cref="Return"/> to avoid forgetting to release.
 	/// </summary>
-	public static string ToStringAndReturn(ref StringBuilder builder)
+	public static string ToStringAndReturn(ref StringBuilder? builder)
 	{
+		if (builder == null)
+		{
+			throw new ArgumentNullException(nameof(builder));
+		}
+
 		var result = builder.ToString();
 		Return(ref builder);
 		return result;
@@ -50,9 +57,9 @@ internal static class StringBuilderPool
 	/// instances beyond the pool size cap are dropped to avoid unbounded memory growth.
 	/// Safe to call concurrently from multiple threads.
 	/// </summary>
-	public static void Return(ref StringBuilder builder)
+	public static void Return(ref StringBuilder? builder)
 	{
-		if (builder is null || builder.Capacity > MaxRetainedCapacity)
+		if (builder == null || builder.Capacity > MaxRetainedCapacity)
 		{
 			return;
 		}
