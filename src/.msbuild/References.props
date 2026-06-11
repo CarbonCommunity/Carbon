@@ -7,18 +7,17 @@
 		<Reference Include="System.Drawing" />
 		<Reference Include="System.Globalization" />
 		<Reference Include="System.Management" />
+		<Reference Include="System.Net.Http" />
 		<Reference Include="System.Xml.Linq" />
 		<Reference Include="System.Xml.Serialization" />
+		<Reference Include="System.Xml" />
+		<Reference Include="System" />
 
-		
 		<PackageReference Include="Lib.Harmony" Version="2.4.2" />
 		<PackageReference Include="SharpCompress" Version="0.32.2" />
 		<PackageReference Include="ZstdSharp.Port" Version="0.8.0" />
 		<PackageReference Include="Mono.Data.Sqlite" Version="1.0.61" />
 		<PackageReference Include="AsmResolver.DotNet" Version="5.5.1" />
-
-		<PackageReference Include="System.Memory" Version="*" ExcludeAssets="compile" />
-		<PackageReference Include="System.Threading.Tasks.Extensions" Version="*" ExcludeAssets="compile" />
 
 		<!-- Carbon API -->
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.SDK\Carbon.SDK.csproj" Private="false" Condition="!$(Product.Contains('Carbon.SDK')) and !$(Product.Contains('Carbon.Compiler'))" />
