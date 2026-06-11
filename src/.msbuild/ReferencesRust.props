@@ -1,32 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
-
-		<Reference Include="mscorlib">
-			<HintPath>$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\mscorlib.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-
-		<Reference Include="System">
-			<HintPath>$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\System.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-
-		<Reference Include="System.Xml">
-			<HintPath>$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\System.Xml.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-
-		<Reference Include="System">
-			<HintPath>$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\System.Memory.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-
-		<Reference Include="System">
-			<HintPath>$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\System.Buffers.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-
 		<!-- Facepunch game files -->
 		<Reference Include="$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\Assembly-CSharp-firstpass.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\Assembly-CSharp.dll" Private="false" />

@@ -475,7 +475,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 		if (array == null)
 			return;
 
-		CommunityEntity.ServerInstance.ClientRPC(RpcTarget.Player("CL_ReceiveFilePng", player), image, (uint)array.Length, array, 0U, (byte)FileStorage.Type.png);
+		CommunityEntity.ServerInstance.ClientRPC(RpcTarget.Player("CL_ReceiveFilePng", player), image, (uint)array.Length, array);
 	}
 	public bool HasImage(string keyOrUrl)
 	{

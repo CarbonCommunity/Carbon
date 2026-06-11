@@ -3,8 +3,6 @@
 		<Product>Carbon.Common</Product>
 		<OutputType>Library</OutputType>
 		<ImplicitUsings>true</ImplicitUsings>
-		<NoStdLib>true</NoStdLib>
-		<DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
 	</PropertyGroup>
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
