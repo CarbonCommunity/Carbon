@@ -19,6 +19,8 @@
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<CarbonCompilerPolyfillsAccessibility Condition="'$(CarbonCompilerPolyfillsAccessibility)' == ''">internal</CarbonCompilerPolyfillsAccessibility>
+		<NoStdLib>true</NoStdLib>
+		<DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
 	</PropertyGroup>
 
 	<ItemGroup Condition="!$(Product.Contains('Carbon.CompilerPolyfills.Generator')) and !$(Product.Contains('Carbon.Polyfills'))">
