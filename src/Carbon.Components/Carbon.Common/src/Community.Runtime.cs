@@ -82,10 +82,10 @@ public partial class Community
 
 		var str = new StringView(name);
 		var spaceIndex = str.IndexOf(' ');
-		var command = spaceIndex < 0 ? str : str.Substring(0, spaceIndex);
 		if (_protect.TryGetValue(str, out var cached))
 			return cached.ToString();
 
+		var command = spaceIndex < 0 ? str : str.Substring(0, spaceIndex);
 		var args = spaceIndex < 0 ? string.Empty : str.Substring(spaceIndex + 1);
 		return (_protect[str] = new StringView(Vault.Pool.Get(command + RuntimeId).ToString() + " " + args)).ToString();
 	}
