@@ -4,6 +4,7 @@ using API.Commands;
 using API.Contracts;
 using API.Events;
 using API.Hooks;
+using Facepunch;
 
 namespace Carbon;
 
@@ -51,8 +52,7 @@ public partial class Community
 		;
 
 	internal static string _runtimeId;
-	internal static Dictionary<string, string> _protectMap = new();
-	internal static Dictionary<string, string> _protectCommands = new();
+	internal static Dictionary<StringView, StringView> _protect = [];
 
 	public static string RuntimeId
 	{
@@ -78,22 +78,19 @@ public partial class Community
 	public static string Protect(string name)
 	{
 		if (string.IsNullOrEmpty(name))
-			return string.Empty;
-
-		if (_protectMap.TryGetValue(name, out var result))
-			return result;
-
-		var split = name.Split(' ');
-		var command = split[0];
-		var arguments = split.Skip(1).ToString(" ");
-
-		if (_protectCommands.TryGetValue(command, out string cmdPrefix))
-			return _protectMap[name] = $"{cmdPrefix} {arguments}".TrimEnd();
-		else
 		{
-			_protectCommands[command] = $"carbonprotecc_{RandomEx.GetRandomString(command.Length, command + RuntimeId)}".TrimEnd();
-			return _protectMap[name] = $"{_protectCommands[command]} {arguments}".TrimEnd();
+			return string.Empty;
 		}
 
+		var str = new StringView(name);
+		var spaceIndex = str.IndexOf(' ');
+		if (spaceIndex < 0)
+		{
+			return Vault.Pool.Get(str + RuntimeId).ToString();
+		}
+
+		var command = str.Substring(0, spaceIndex);
+		var args = str.Substring(spaceIndex + 1);
+		return Vault.Pool.Get(command + RuntimeId) + " " + args;
 	}
 }

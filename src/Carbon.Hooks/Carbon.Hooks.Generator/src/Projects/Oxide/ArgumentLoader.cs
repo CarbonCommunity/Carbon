@@ -272,7 +272,7 @@ internal static partial class Helper
 								}
 								else
 								{
-									AddYieldInstruction(ref instructions, nameof(OpCodes.Box), $"Carbon.Extensions.AccessToolsEx.TypeByName(\"{typeref.FullName}\")", false);
+									AddYieldInstruction(ref instructions, nameof(OpCodes.Box), $"Carbon.Extensions.AccessToolsEx.TypeByName(\"{(RuntimeType ?? typeref).FullName}\")", false);
 								}
 							}
 

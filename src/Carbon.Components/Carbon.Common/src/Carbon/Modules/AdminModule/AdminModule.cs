@@ -1493,7 +1493,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 										var blur = cui.CreatePanel(container, parent: panel,
 											color: "0 0 0 0.4",
-											xMin: xMin, xMax: 1f, yMin: rowIndex, yMax: rowIndex + rowHeight,
+											xMin: xMin, OxMax: Option_RightOffset, yMin: rowIndex, yMax: rowIndex + rowHeight,
 											blur: true);
 
 										cui.CreateImage(container, blur, "fade", Cache.CUI.WhiteColor);

@@ -28,7 +28,7 @@ public static partial class WebControlPanel
 	public static void RestartServer()
 	{
 		server?.Shutdown();
-		if (config.ShouldStartServer())
+		if (config.ShouldStartServer(out string reason))
 		{
 			BridgeServerInfo serverInfo = default;
 			serverInfo.port = config.BridgeServer.Port;
@@ -42,6 +42,10 @@ public static partial class WebControlPanel
 			{
 				MAPINFO_CACHE = MapInfo.Get(config.Panel.MapImageScale);
 			}
+		}
+		if (config.Enabled && !string.IsNullOrEmpty(reason))
+		{
+			Logger.Warn($"WebControlPanel couldn't start: {reason}");
 		}
 	}
 
@@ -57,9 +61,28 @@ public static partial class WebControlPanel
 			Permissions = new Permissions(true)
 		}];
 
-		public bool ShouldStartServer()
+		public bool ShouldStartServer(out string reason)
 		{
-			return Enabled && !string.IsNullOrEmpty(BridgeServer.Ip) && BridgeServer.Port != 0;
+			if (!Enabled)
+			{
+				reason = "The server is disabled in the config";
+				return false;
+			}
+
+			if (string.IsNullOrEmpty(BridgeServer.Ip))
+			{
+				reason = "The server IP isn't set in the config. Can just be set to 'localhost'";
+				return false;
+			}
+
+			if (BridgeServer.Port == 0)
+			{
+				reason = "The server port isn't set in the config";
+				return false;
+			}
+
+			reason = null;
+			return true;
 		}
 	}
 }
