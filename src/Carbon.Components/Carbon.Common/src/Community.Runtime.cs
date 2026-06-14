@@ -78,15 +78,19 @@ public partial class Community
 	public static string Protect(string name)
 	{
 		if (string.IsNullOrEmpty(name))
+		{
 			return string.Empty;
+		}
 
 		var str = new StringView(name);
 		var spaceIndex = str.IndexOf(' ');
-		var command = spaceIndex < 0 ? str : str.Substring(0, spaceIndex);
-		if (_protect.TryGetValue(name, out var cached))
-			return cached.ToString();
+		if (spaceIndex < 0)
+		{
+			return Vault.Pool.Get(str + RuntimeId).ToString();
+		}
 
-		var args = spaceIndex < 0 ? string.Empty : str.Substring(spaceIndex + 1);
-		return (_protect[name] = new StringView(Vault.Pool.Get(command + RuntimeId).ToString() + " " + args)).ToString();
+		var command = str.Substring(0, spaceIndex);
+		var args = str.Substring(spaceIndex + 1);
+		return Vault.Pool.Get(command + RuntimeId) + " " + args;
 	}
 }
