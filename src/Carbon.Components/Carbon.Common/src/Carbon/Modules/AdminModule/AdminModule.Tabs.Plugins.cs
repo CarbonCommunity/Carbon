@@ -2146,7 +2146,7 @@ public partial class AdminModule
 		var tab = Singleton.GetTab(ap.Player);
 		var vendorType = ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed);
 		var vendor = PluginsTab.GetVendor(vendorType);
-		var pluginName = string.Join(" ", args.Args.Skip(1).Select(x => x.ToString())).Replace("\"", string.Empty).Trim();
+		var pluginName = args.GetFullString(1);
 		var tabPlugin = ap.GetStorage<PluginsTab.Plugin>(tab, "plugin") ?? vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName));
 		var mainTabPlugin = tabPlugin;
 		if (tabPlugin.PreferredVendorPlugin != null)
