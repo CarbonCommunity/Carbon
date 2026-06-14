@@ -382,8 +382,9 @@ public partial class CorePlugin
 					using var plugins = Pool.Get<PooledList<RustPlugin>>();
 					ModLoader.Packages.GetAllHookables(plugins, true);
 
-					foreach (var plugin in plugins)
+					for(int i = 0; i < plugins.Count; i++)
 					{
+						var plugin = plugins[i];
 						if (except.Contains(plugin.Name))
 						{
 							continue;

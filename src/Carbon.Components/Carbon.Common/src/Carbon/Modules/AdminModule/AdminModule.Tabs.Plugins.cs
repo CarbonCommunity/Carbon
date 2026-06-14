@@ -2126,7 +2126,7 @@ public partial class AdminModule
 			return;
 		}
 
-		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), args.Args[0].ToString())));
+		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendorName)));
 		vendor.Refresh();
 		PluginsTab.TagFilter.Clear();
 		PluginsTab.DropdownShow = false;
@@ -2708,9 +2708,9 @@ public partial class AdminModule
 	[Conditional("!MINIMAL")]
 	[ConsoleCommand("adminmodule.updatevendor", "Downloads latest vendor information. Syntax: adminmodule.updatevendor <codefling|umod>")]
 	[AuthLevel(2)]
-	private void UpdateVendor(Arg args)
+	private void UpdateVendor(Arg arg)
 	{
-		var vendor = PluginsTab.GetVendor(args.Args[0] == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);
+		var vendor = PluginsTab.GetVendor(arg.GetString(0) == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);
 		if (vendor == null)
 		{
 			Singleton.PutsWarn($"Couldn't find that vendor.");
