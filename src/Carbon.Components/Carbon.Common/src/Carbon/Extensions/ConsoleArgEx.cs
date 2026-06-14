@@ -7,7 +7,7 @@ public static class ConsoleArgEx
 {
 	public static char[] CommandSpacing = new char[] { ' ' };
 
-	public static bool TryParseCommand(string input, out string command, out string[] args)
+	public static bool TryParseCommand(string input, out string command, out object[] args)
 	{
 		if (input == null)
 		{
@@ -19,7 +19,32 @@ public static class ConsoleArgEx
 		return TryParseCommand(input.AsSpan(), out command, out args);
 	}
 
-	public static bool TryParseCommand(ReadOnlySpan<char> input, out string command, out string[] args)
+	public static bool TryParseCommand(string input, object[] extraArgs, out string command, out object[] args)
+	{
+		if (!TryParseCommand(input, out command, out var parsedArgs))
+		{
+			args = [];
+			return false;
+		}
+
+		var extraLength = extraArgs?.Length ?? 0;
+		if (extraLength == 0)
+		{
+			args = parsedArgs;
+			return true;
+		}
+
+		args = new object[parsedArgs.Length + extraLength];
+		Array.Copy(parsedArgs, args, parsedArgs.Length);
+		for (var i = 0; i < extraLength; i++)
+		{
+			args[parsedArgs.Length + i] = extraArgs[i]?.ToString();
+		}
+
+		return true;
+	}
+
+	public static bool TryParseCommand(ReadOnlySpan<char> input, out string command, out object[] args)
 	{
 		command = string.Empty;
 		args = [];
