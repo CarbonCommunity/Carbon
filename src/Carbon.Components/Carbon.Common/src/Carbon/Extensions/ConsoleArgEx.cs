@@ -1,4 +1,7 @@
-﻿namespace Carbon.Extensions;
+﻿using System.Text;
+using Facepunch;
+
+namespace Carbon.Extensions;
 
 public static class ConsoleArgEx
 {
@@ -87,6 +90,26 @@ public static class ConsoleArgEx
 	public static bool IsPlayerCalledOrAdmin(this ConsoleSystem.Arg arg)
 	{
 		return arg.Player() == null || arg.IsAdmin;
+	}
+
+	public static string GetFullString(this ConsoleSystem.Arg arg, int startIndex = 0)
+	{
+		if (arg.Args == null || arg.Args.Length <= startIndex)
+		{
+			return string.Empty;
+		}
+		var sb = Pool.Get<StringBuilder>();
+		for (var i = startIndex; i < arg.Args.Length; i++)
+		{
+			if (i > startIndex)
+			{
+				sb.Append(' ');
+			}
+			sb.Append(arg.GetString(i));
+		}
+		var result = sb.ToString();
+		Pool.FreeUnmanaged(ref sb);
+		return result;
 	}
 
 	private static bool IsCommandSpacing(char ch)
