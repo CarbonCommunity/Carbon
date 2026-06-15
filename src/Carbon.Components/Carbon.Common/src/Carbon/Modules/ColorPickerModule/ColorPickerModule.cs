@@ -237,14 +237,19 @@ public partial class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyMo
 	}
 
 	[ProtectedCommand(PanelId + ".pickcolor")]
-	private void PickColorPickerUI(Arg args)
+	private void PickColorPickerUI(Arg arg)
 	{
-		var player = args.Player();
+		if (arg.Args == null)
+		{
+			return;
+		}
+
+		var player = arg.Player();
 		var ap = Admin.GetPlayerSession(player);
-		var mode = args.GetString(0);
-		var hex = args.GetString(1);
+		var mode = arg.GetString(0);
+		var hex = arg.GetString(1);
 		var alpha = ap.GetStorage(ap.SelectedTab, Alpha, 1f);
-		var rawColor = string.Join(" ", args.Args.Skip(2).Select(x => x.ToString()));
+		var rawColor = string.Join(" ", arg.Args.Skip(2).Select(x => x.ToString()));
 		ColorUtility.TryParseHtmlString($"#{hex}", out var color);
 
 		var brightness = ap.GetStorage(ap.SelectedTab, Brightness, 1f);
@@ -262,18 +267,18 @@ public partial class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyMo
 		}
 
 		onColorPicked?.Invoke(hex, rawColor, alpha);
-		Close (args.Player());
+		Close (arg.Player());
 	}
 
 	[ProtectedCommand(PanelId + ".pickhexcolor")]
-	private void PickHexColorPickerUI(Arg args)
+	private void PickHexColorPickerUI(Arg arg)
 	{
-		var player = args.Player();
+		var player = arg.Player();
 		var ap = Admin.GetPlayerSession (player);
-		var hex = args.GetString(0);
+		var hex = arg.GetString(0);
 		var alpha = ap.GetStorage(ap.SelectedTab, Alpha, 1f);
 
-		if (args.Args.Length == 0 || string.IsNullOrEmpty(hex) || hex == "#")
+		if (arg.Args == null || arg.Args.Length == 0 || string.IsNullOrEmpty(hex) || hex == "#")
 		{
 			return;
 		}
@@ -283,7 +288,7 @@ public partial class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyMo
 		if (!hex.StartsWith("#")) hex = "#" + hex;
 		var rawColor = HexToRustColor(hex);
 		onColorPicked?.Invoke(hex, rawColor, alpha);
-		Close (args.Player());
+		Close (arg.Player());
 	}
 
 	[ProtectedCommand(PanelId + ".pickalpha")]

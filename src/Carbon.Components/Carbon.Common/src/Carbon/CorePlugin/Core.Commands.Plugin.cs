@@ -143,7 +143,7 @@ public partial class CorePlugin
 
 		ProcessableFilesLookup();
 
-		var name = string.Join(" ", arg.Args);
+		var name = arg.GetFullString();
 		switch (name)
 		{
 			case "*":
@@ -297,11 +297,11 @@ public partial class CorePlugin
 
 		ProcessableFilesLookup();
 
-		var name = string.Join(" ", arg.Args);
+		var name = arg.GetFullString();
 		switch (name)
 		{
 			case "*":
-				var except = arg.Args.Skip(1).Select(x => x.ToString());
+				var except = arg.GetFullString(1);
 
 				Community.Runtime.ScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(y => x.Contains(y.ToString())));
 				Community.Runtime.ZipScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(y => x.Contains(y.ToString())));
@@ -366,7 +366,7 @@ public partial class CorePlugin
 
 		ProcessableFilesLookup();
 
-		var name = string.Join(" ", arg.Args);
+		var name = arg.GetFullString();
 		switch (name)
 		{
 			case "*":
@@ -382,8 +382,9 @@ public partial class CorePlugin
 					using var plugins = Pool.Get<PooledList<RustPlugin>>();
 					ModLoader.Packages.GetAllHookables(plugins, true);
 
-					foreach (var plugin in plugins)
+					for(int i = 0; i < plugins.Count; i++)
 					{
+						var plugin = plugins[i];
 						if (except.Contains(plugin.Name))
 						{
 							continue;

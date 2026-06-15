@@ -1,4 +1,5 @@
-﻿using Facepunch;
+﻿using System.Drawing;
+using Facepunch;
 using ProtoBuf;
 using Object = UnityEngine.Object;
 using Ping = ConVar.Ping;
@@ -40,9 +41,13 @@ public static partial class WebControlPanel
 
 	public static void ServerInit()
 	{
-		if (config.ShouldStartServer())
+		if (config.ShouldStartServer(out string reason))
 		{
 			MAPINFO_CACHE = MapInfo.Get(config.Panel.MapImageScale);
+		}
+		if (config.Enabled && !string.IsNullOrEmpty(reason))
+		{
+			Logger.Warn($"WebControlPanel couldn't start: {reason}");
 		}
 	}
 
