@@ -52,7 +52,6 @@ public partial class Community
 		;
 
 	internal static string _runtimeId;
-	internal static Dictionary<StringView, StringView> _protect = [];
 
 	public static string RuntimeId
 	{
