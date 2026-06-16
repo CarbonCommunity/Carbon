@@ -108,7 +108,7 @@ public partial class CorePlugin
 			var stringArgs = AllocateBuffer(args.Length);
 			for(int i = 0; i < args.Length; i++)
 			{
-				stringArgs[i] = args[i].ToString();
+				stringArgs[i] = args[i]?.ToString();
 			}
 
 			// OnUserCommand
