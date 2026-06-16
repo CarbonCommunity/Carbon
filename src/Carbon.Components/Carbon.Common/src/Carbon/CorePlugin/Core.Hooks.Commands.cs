@@ -1,6 +1,5 @@
 ﻿using API.Commands;
 using ConVar;
-using Facepunch;
 using Command = API.Commands.Command;
 
 namespace Carbon.Core;
@@ -9,6 +8,92 @@ namespace Carbon.Core;
 
 public partial class CorePlugin
 {
+	private static Dictionary<int, ArgPool> _argumentBuffer = [with(ArgPool.DefaultCapacity)];
+
+	public static string[] AllocateBuffer(int count)
+	{
+		if (_argumentBuffer.TryGetValue(count, out var pool))
+		{
+			return pool.Rent();
+		}
+
+		_argumentBuffer[count] = pool = new ArgPool(count);
+		return pool.Rent();
+	}
+
+	public static void ReturnBuffer(string[] buffer)
+	{
+		if (buffer == null) return;
+
+		if (_argumentBuffer.TryGetValue(buffer.Length, out var pool))
+		{
+			pool.Return(buffer);
+		}
+	}
+
+	public class ArgPool
+	{
+		public static readonly int DefaultCapacity = 10;
+
+		private readonly int length;
+		private readonly Stack<string[]> pool;
+		private readonly object syncRoot = new();
+
+		private int rentedExtra;
+		private int rented;
+		private int returned;
+
+		public int RentedExtra => rentedExtra;
+		public int Rented => rented;
+		public int Returned => returned;
+		public int Length => length;
+		public int Count => pool.Count;
+
+		public ArgPool(int length)
+		{
+			this.length = length;
+			this.rented = 0;
+			this.returned = 0;
+			this.rentedExtra = 0;
+			pool = new Stack<string[]>(DefaultCapacity);
+
+			for (int i = 0; i < DefaultCapacity; i++)
+			{
+				this.pool.Push(new string[length]);
+			}
+		}
+
+		public string[] Rent()
+		{
+			lock (syncRoot)
+			{
+				if (pool.Count > 0)
+				{
+					rented++;
+					return pool.Pop();
+				}
+				else
+				{
+					rentedExtra++;
+					return new string[length];
+				}
+			}
+		}
+		public void Return(string[] array)
+		{
+			for (int i = 0; i < array.Length; i++)
+			{
+				array[i] = default;
+			}
+
+			lock (syncRoot)
+			{
+				returned++;
+				pool.Push(array);
+			}
+		}
+	}
+
 	public static object IOnPlayerCommand(BasePlayer player, string message, Command.Prefix prefix)
 	{
 		if (Community.Runtime == null) return Cache.True;
@@ -20,23 +105,34 @@ public partial class CorePlugin
 				return Cache.False;
 			}
 
-			// OnUserCommand
-			if (HookCaller.CallStaticHook(2198880635, player, command, args) != null)
+			var stringArgs = AllocateBuffer(args.Length);
+			for(int i = 0; i < args.Length; i++)
 			{
+				stringArgs[i] = args[i].ToString();
+			}
+
+			// OnUserCommand
+			if (HookCaller.CallStaticHook(2198880635, player, command, stringArgs) != null)
+			{
+				ReturnBuffer(stringArgs);
 				return Cache.False;
 			}
 
 			// OnUserCommand
-			if (HookCaller.CallStaticHook(2198880635, player.AsIPlayer(), command, args) != null)
+			if (HookCaller.CallStaticHook(2198880635, player.AsIPlayer(), command, stringArgs) != null)
 			{
+				ReturnBuffer(stringArgs);
 				return Cache.False;
 			}
 
 			// OnPlayerCommand
-			if (HookCaller.CallStaticHook(2915735597, player, command, args) != null)
+			if (HookCaller.CallStaticHook(2915735597, player, command, stringArgs) != null)
 			{
+				ReturnBuffer(stringArgs);
 				return Cache.False;
 			}
+
+			ReturnBuffer(stringArgs);
 
 			if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Chat, command, out var cmd))
 			{
