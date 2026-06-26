@@ -8,6 +8,11 @@ public static partial class WebControlPanel
 	[WebCall.Condition.Permission(PermissionTypes.PermissionsView)]
 	private static void RPC_GetPermissionsMetadata(BridgeRead read)
 	{
+		if (Community.Runtime == null || Community.Runtime.Core == null || Community.Runtime.Core.permission == null)
+		{
+			return;
+		}
+
 		var permission = Community.Runtime.Core.permission;
 
 		using var plugins = Pool.Get<PooledList<HookableInfo>>();
