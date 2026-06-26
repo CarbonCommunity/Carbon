@@ -440,11 +440,18 @@ public sealed class BridgeConnection : Pool.IPooled
 
 	public void Send(BridgeWrite write)
 	{
-		if (Socket == null)
+		if (Socket == null || write == null || !Socket.IsAvailable)
 		{
 			return;
 		}
-		Socket.Send(write.GetMemory());
+		try
+		{
+			Socket.Send(write.GetMemory());
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("BridgeConnection.Send failure", ex);
+		}
 	}
 
 	public void EnterPool()
