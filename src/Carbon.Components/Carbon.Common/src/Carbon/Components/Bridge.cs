@@ -280,7 +280,6 @@ public abstract class BridgeServer
 	}
 	private void OnCloseSocket(IWebSocketConnection socket, BridgeConnection bridgeConnection)
 	{
-		Listener._subscribedRconClients.Remove(bridgeConnection.Id);
 		Listener.clients.Remove(bridgeConnection.Id);
 		if (Connections.ContainsKey(bridgeConnection.Id))
 		{
