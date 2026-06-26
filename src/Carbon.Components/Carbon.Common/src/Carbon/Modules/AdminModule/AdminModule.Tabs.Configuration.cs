@@ -645,10 +645,15 @@ public partial class AdminModule
 	[ProtectedCommand("adminmodule.itemsetting")]
 	private void ItemSetting(ConsoleSystem.Arg arg)
 	{
+		if (arg.Args == null)
+		{
+			return;
+		}
+
 		var player = arg.Player();
 		var session = GetPlayerSession(player);
 		var setting = arg.GetString(0);
-		var value = string.Join(" ", arg.Args.Skip(1).Select(x => x.ToString()));
+		var value = arg.GetFullString(1);
 
 		switch (setting)
 		{

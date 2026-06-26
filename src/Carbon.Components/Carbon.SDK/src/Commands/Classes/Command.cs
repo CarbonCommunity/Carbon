@@ -112,7 +112,7 @@ public class Command : IDisposable
 	public class Args : Pool.IPooled
 	{
 		public Types Type { get; set; }
-		public string[] Arguments { get; set; }
+		public object[] Arguments { get; set; }
 
 		public string Reply { get; set; }
 		public object Token { get; set; }

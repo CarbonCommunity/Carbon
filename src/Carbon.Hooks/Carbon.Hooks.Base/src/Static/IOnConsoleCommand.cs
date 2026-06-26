@@ -38,7 +38,7 @@ public partial class Category_Static
 
 				try
 				{
-					if (!ConsoleArgEx.TryParseCommand(strCommand, out var command, out var parsedArguments))
+					if (!ConsoleArgEx.TryParseCommand(strCommand, args, out var command, out var arguments))
 					{
 						__result = new CommandResult(CommandResultType.CommandNotFound, null, null);
 						return false;
@@ -49,36 +49,31 @@ public partial class Category_Static
 						return true;
 					}
 
-					var argsLength = args?.Length ?? 0;
-					string[] arguments;
-					if (argsLength == 0)
-					{
-						arguments = parsedArguments;
-					}
-					else
-					{
-						arguments = new string[parsedArguments.Length + argsLength];
-						Array.Copy(parsedArguments, arguments, parsedArguments.Length);
-						for (var i = 0; i < argsLength; i++)
-						{
-							arguments[parsedArguments.Length + i] = args[i]?.ToString();
-						}
-					}
-
 					var player = options.Connection?.player as BasePlayer;
 					var commands = player == null ? Community.Runtime.CommandManager.RCon : Community.Runtime.CommandManager.ClientConsole;
 
 					if (Community.Runtime.Config.Aliases.TryGetValue(command, out var alias))
 					{
 						command = alias;
-						strCommand = argsLength == 0 && parsedArguments.Length == 0
-							? alias
-							: $"{alias} {arguments.ToString(Space)}";
+						strCommand = arguments.Length == 0 ? alias : $"{alias} {string.Join(Space, arguments)}";
 					}
 
 					if (Community.Runtime.CommandManager.Contains(commands, command, out var commandInstance))
 					{
-						var arg = new Arg(options, strCommand);
+						var argString = " ";
+						if (args != null && args.Length > 0)
+						{
+							for (int i = 0; i < args.Length; i++)
+							{
+								argString += args[i].ToString();
+								if (i < args.Length - 1)
+								{
+									argString += " ";
+								}
+							}
+						}
+					
+						var arg = new Arg(options, strCommand + argString);
 						arg.cmd = commandInstance.RustCommand;
 						arg.Invalid = false;
 

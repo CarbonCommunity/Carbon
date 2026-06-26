@@ -1,4 +1,4 @@
-namespace Carbon.Modules;
+﻿namespace Carbon.Modules;
 
 public partial class AdminModule
 {
@@ -25,7 +25,7 @@ public partial class AdminModule
 		var player = args.Player();
 
 		var array = Array.Empty<object>();
-		if (args.Args.Length - 2 > 0)
+		if (args.Args != null && args.Args.Length - 2 > 0)
 		{
 			array = HookCaller.Caller.AllocateBuffer(args.Args.Length - 2);
 			for (int i = 2; i < args.Args.Length; i++)
@@ -137,7 +137,7 @@ public partial class AdminModule
 		var dialog = tab?.Dialog;
 		if (tab != null) tab.Dialog = null;
 
-		switch (args.Args[0].ToString())
+		switch (args.GetString(0))
 		{
 			case "confirm":
 				try { dialog?.OnConfirm(admin); } catch { }

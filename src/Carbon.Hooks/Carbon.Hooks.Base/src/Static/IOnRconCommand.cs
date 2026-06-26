@@ -80,7 +80,7 @@ public partial class Category_Static
 							var views = new StringView[arguments.Length];
 							for (var i = 0; i < arguments.Length; i++)
 							{
-								views[i] = arguments[i];
+								views[i] = arguments[i]?.ToString();
 							}
 
 							consoleArg.Args = views;
