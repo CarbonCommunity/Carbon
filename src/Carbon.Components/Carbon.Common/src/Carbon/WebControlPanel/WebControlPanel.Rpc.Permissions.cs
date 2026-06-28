@@ -128,7 +128,7 @@ public static partial class WebControlPanel
 
 	[WebCall]
 	[WebCall.Condition.Permission(PermissionTypes.PermissionsEdit)]
-	public static void RPC_GetUserMetadata(BridgeRead read)
+	private static void RPC_GetUserMetadata(BridgeRead read)
 	{
 		var steamId = read.String();
 		var permission = Community.Runtime.Core.permission;
@@ -146,7 +146,7 @@ public static partial class WebControlPanel
 
 	[WebCall]
 	[WebCall.Condition.Permission(PermissionTypes.PlayersView)]
-	public static void RPC_SearchUsers(BridgeRead read)
+	private static void RPC_SearchUsers(BridgeRead read)
 	{
 		var search = read.String();
 
@@ -171,7 +171,7 @@ public static partial class WebControlPanel
 
 	[WebCall]
 	[WebCall.Condition.Permission(PermissionTypes.PermissionsEdit)]
-	public static void RPC_ToggleUserGroup(BridgeRead read)
+	private static void RPC_ToggleUserGroup(BridgeRead read)
 	{
 		var steamId = read.String();
 		var group = read.String();
@@ -195,7 +195,7 @@ public static partial class WebControlPanel
 
 	[WebCall]
 	[WebCall.Condition.Permission(PermissionTypes.PermissionsEdit)]
-	public static void RPC_ToggleUserPermission(BridgeRead read)
+	private static void RPC_ToggleUserPermission(BridgeRead read)
 	{
 		var steamId = read.String();
 		var permissionName = read.String();
