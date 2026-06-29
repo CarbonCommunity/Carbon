@@ -15,6 +15,10 @@ internal static partial class Helper
 		"OnWireClear",
 		"OnWireClear [patch]", // to fix
 	];
+	public static readonly string[] PatchBlacklist =
+	[
+		"OnPlayerAttack [Projectile] [Patch]"
+	];
 
 	[ThreadStatic] public static Type CurrentField;
 	[ThreadStatic] public static List<(string, Type)> Parameters;
@@ -28,6 +32,7 @@ internal static partial class Helper
 	[ThreadStatic] public static string ModifyAnchorExpression;
 	[ThreadStatic] public static List<string> PendingOriginalLabelAssignments;
 	[ThreadStatic] public static int ModifyAnchorBaseIndex;
+	[ThreadStatic] public static string PendingExitLeaveLabel;
 	[ThreadStatic] private static bool DeterministicNames;
 	[ThreadStatic] private static int GeneratedNameIndex;
 
@@ -45,6 +50,7 @@ internal static partial class Helper
 		ModifyAnchorExpression = null;
 		PendingOriginalLabelAssignments = [];
 		ModifyAnchorBaseIndex = 0;
+		PendingExitLeaveLabel = null;
 		DeterministicNames = deterministicNames;
 		GeneratedNameIndex = 0;
 	}
@@ -231,22 +237,19 @@ internal static partial class Helper
 	}
 
 	internal static void AddOpCodeWithLabel(
-		ref StringBuilder instructions, ref Dictionary<int, string> existing, ref Dictionary<int, string> forward, string opcode,
-		object operand
-	)
+		ref StringBuilder instructions, ref Dictionary<int, string> existingInstructions, ref Dictionary<int, string> newInstructions, string opcode, object operand, bool referencesNewInstruction)
 	{
-		var fwd = Convert.ToInt32(operand) >= 1024;
-		var index = Convert.ToInt32(operand) < 1024 ? Convert.ToInt32(operand) : Convert.ToInt32(operand) - 1024;
+		var index = Convert.ToInt32(operand);
 
-		if (!existing.TryGetValue(index, out var label))
+		if (!existingInstructions.TryGetValue(index, out var label))
 		{
 			label = CreateGeneratedName("label");
 			AddGenericInstruction(ref instructions, $"Label {label} = Generator.DefineLabel();");
-			existing.Add(index, label);
+			existingInstructions.Add(index, label);
 
-			if (fwd)
+			if (referencesNewInstruction)
 			{
-				forward.Add(index, label);
+				newInstructions.Add(index, label);
 			}
 			else
 			{

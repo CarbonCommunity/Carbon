@@ -162,9 +162,9 @@ public abstract class BridgeServer
 							if (Connections.TryGetValue(connectionId, out var bridgeConnection))
 							{
 								OnBridgeDisconnection(bridgeConnection);
-								Pool.Free(ref bridgeConnection);
 								Connections.Remove(connectionId);
 								ConnectionsList.Remove(bridgeConnection);
+								Pool.Free(ref bridgeConnection);
 							}
 
 							OnClosedConnection?.Invoke(bridgeConnection);
@@ -386,6 +386,7 @@ public sealed class BridgeConnection : Pool.IPooled
 		Id = 0;
 		Messages = null;
 		Socket = null;
+		Reference = null;
 	}
 	public void LeavePool()
 	{

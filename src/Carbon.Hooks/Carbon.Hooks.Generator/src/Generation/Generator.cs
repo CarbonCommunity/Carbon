@@ -15,7 +15,7 @@ internal sealed partial class Generator(GeneratorOptions options)
 	{
 		"ConsumptionAmountField [AutoTurret]",
 		"SplashThresholdField [SprayCanSpray]",
-		"IOnPlayerChat[patch]",
+		"IOnPlayerChat[patch]"
 	};
 
 	private readonly HookValidator _validator = new(options.ValidationMode);
@@ -126,6 +126,11 @@ internal sealed partial class Generator(GeneratorOptions options)
 		Helper.ResetGenerationState(options.Deterministic);
 
 		if (Helper.HookBlacklist.Contains(hook.HookName))
+		{
+			return HookGenerationResult.Failed(workItem.Order, hook, workItem.Action);
+		}
+
+		if (Helper.PatchBlacklist.Contains(hook.Name))
 		{
 			return HookGenerationResult.Failed(workItem.Order, hook, workItem.Action);
 		}
@@ -265,6 +270,11 @@ internal sealed partial class Generator(GeneratorOptions options)
 				body.AppendLine(string.Empty);
 			}
 		}
+
+		var useExitLeave = (targetMethod.GetMethodBody()?.ExceptionHandlingClauses.Count ?? 0) > 0
+			&& targetMethod.ReturnType == typeof(void)
+			&& (hook.ReturnBehavior == ReturnBehavior.ExitWhenNonNull || hook.ReturnBehavior == ReturnBehavior.ExitWhenValidType);
+		Helper.PendingExitLeaveLabel = useExitLeave ? "lastLabel" : null;
 
 		body.AppendLine("int x = 0;");
 		body.AppendLine("foreach (CodeInstruction instruction in Instructions) {");
