@@ -116,7 +116,16 @@ internal static partial class Helper
 						AddGenericInstruction(ref instructions, "instruction.labels.Add(label);"); // tag the original code starting point
 						AddYieldInstruction(ref instructions, nameof(OpCodes.Ldnull));
 						AddYieldInstruction(ref instructions, nameof(OpCodes.Beq_S), "label", false); // if not null ret
-						AddYieldInstruction(ref instructions, nameof(OpCodes.Ret));
+						if (PendingExitLeaveLabel != null)
+						{
+							AddGenericInstruction(ref instructions, "Label lastLabel = Generator.DefineLabel();");
+							AddGenericInstruction(ref instructions, "Instructions.Last().labels.Add(lastLabel);");
+							AddYieldInstruction(ref instructions, nameof(OpCodes.Leave), "lastLabel", false);
+						}
+						else
+						{
+							AddYieldInstruction(ref instructions, nameof(OpCodes.Ret));
+						}
 						ReturnType = typeof(void);
 						break;
 					}
@@ -328,37 +337,37 @@ internal static partial class Helper
 				switch (instruction.OpCode)
 				{
 					case "beq_s":
-						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Beq_S), instruction.Operand);
+						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Beq_S), instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "bge_s":
-						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Bge_S), instruction.Operand);
+						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Bge_S), instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "blt_s":
-						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Blt_S), instruction.Operand);
+						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Blt_S), instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "blt_un_s":
 						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Blt_Un_S),
-							instruction.Operand);
+							instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "ble":
-						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Ble), instruction.Operand);
+						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Ble), instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "ble_un":
-						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Ble_Un), instruction.Operand);
+						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Ble_Un), instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "ble_s":
-						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Ble_S), instruction.Operand);
+						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Ble_S), instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "bne_un_s":
 						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Bne_Un_S),
-							instruction.Operand);
+							instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "box":
@@ -372,31 +381,31 @@ internal static partial class Helper
 						throw new Exception($"{metadata.Name} : box : {instruction.Operand}");
 
 					case "br_s":
-						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Br_S), instruction.Operand);
+						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Br_S), instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "br":
-						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Br), instruction.Operand);
+						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Br), instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "brfalse":
 						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Brfalse),
-							instruction.Operand);
+							instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "brfalse_s":
 						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Brfalse_S),
-							instruction.Operand);
+							instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "brtrue_s":
 						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Brtrue_S),
-							instruction.Operand);
+							instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "brtrue":
 						AddOpCodeWithLabel(ref instructions, ref labels, ref fwdLabels, nameof(OpCodes.Brtrue),
-							instruction.Operand);
+							instruction.Operand, instruction.ReferencesNewInstruction);
 						break;
 
 					case "call":

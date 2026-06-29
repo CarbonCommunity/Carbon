@@ -1,10 +1,13 @@
-﻿namespace Carbon.Extensions;
+﻿using System.Text;
+using Facepunch;
+
+namespace Carbon.Extensions;
 
 public static class ConsoleArgEx
 {
 	public static char[] CommandSpacing = new char[] { ' ' };
 
-	public static bool TryParseCommand(string input, out string command, out string[] args)
+	public static bool TryParseCommand(string input, out string command, out object[] args)
 	{
 		if (input == null)
 		{
@@ -16,7 +19,32 @@ public static class ConsoleArgEx
 		return TryParseCommand(input.AsSpan(), out command, out args);
 	}
 
-	public static bool TryParseCommand(ReadOnlySpan<char> input, out string command, out string[] args)
+	public static bool TryParseCommand(string input, object[] extraArgs, out string command, out object[] args)
+	{
+		if (!TryParseCommand(input, out command, out var parsedArgs))
+		{
+			args = [];
+			return false;
+		}
+
+		var extraLength = extraArgs?.Length ?? 0;
+		if (extraLength == 0)
+		{
+			args = parsedArgs;
+			return true;
+		}
+
+		args = new object[parsedArgs.Length + extraLength];
+		Array.Copy(parsedArgs, args, parsedArgs.Length);
+		for (var i = 0; i < extraLength; i++)
+		{
+			args[parsedArgs.Length + i] = extraArgs[i]?.ToString();
+		}
+
+		return true;
+	}
+
+	public static bool TryParseCommand(ReadOnlySpan<char> input, out string command, out object[] args)
 	{
 		command = string.Empty;
 		args = [];
@@ -87,6 +115,26 @@ public static class ConsoleArgEx
 	public static bool IsPlayerCalledOrAdmin(this ConsoleSystem.Arg arg)
 	{
 		return arg.Player() == null || arg.IsAdmin;
+	}
+
+	public static string GetFullString(this ConsoleSystem.Arg arg, int startIndex = 0)
+	{
+		if (arg.Args == null || arg.Args.Length <= startIndex)
+		{
+			return string.Empty;
+		}
+		var sb = Pool.Get<StringBuilder>();
+		for (var i = startIndex; i < arg.Args.Length; i++)
+		{
+			if (i > startIndex)
+			{
+				sb.Append(' ');
+			}
+			sb.Append(arg.GetString(i));
+		}
+		var result = sb.ToString();
+		Pool.FreeUnmanaged(ref sb);
+		return result;
 	}
 
 	private static bool IsCommandSpacing(char ch)

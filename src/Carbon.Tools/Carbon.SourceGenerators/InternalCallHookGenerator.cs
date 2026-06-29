@@ -77,8 +77,9 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 	{
 		var seen = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
 
-		foreach (var symbol in symbols)
+		for (int i = 0; i < symbols.Length; i++)
 		{
+			var symbol = symbols[i];
 			if (symbol is null || !seen.Add(symbol))
 			{
 				continue;
@@ -108,8 +109,9 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 			VersionOwnerExpression = isModule ? "this" : "base",
 		};
 
-		foreach (var method in methods)
+		for (int i = 0; i < methods.Count; i++)
 		{
+			var method = methods[i];
 			var hook = new InternalCallHookMethodModel
 			{
 				MethodName = method.Name,
@@ -121,13 +123,14 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 
 			hook.HookId = ComputeHookId(hook.HookName);
 
-			foreach (var parameter in method.Parameters)
+			for (int p = 0; p < method.Parameters.Length; p++)
 			{
+				var parameter = method.Parameters[p];
 				var isOut = parameter.RefKind == RefKind.Out;
 				var useInlineDefaultExpression = parameter.HasExplicitDefaultValue || parameter.NullableAnnotation == NullableAnnotation.Annotated;
 				hook.Parameters.Add(new InternalCallHookParameterModel
 				{
-					TypeName = parameter.Type.ToDisplayString(TypeFormat),
+					TypeName = FormatTypeName(parameter.Type),
 					IsOut = isOut,
 					IsRef = parameter.RefKind == RefKind.Ref,
 					UseInlineDefaultExpression = useInlineDefaultExpression,
@@ -141,9 +144,34 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 		return model;
 	}
 
+	private static string FormatTypeName(ITypeSymbol type)
+	{
+		if (type is INamedTypeSymbol namedType && namedType.IsTupleType)
+		{
+			var builder = StringBuilderPool.Rent();
+			builder.Append('(');
+
+			var elements = namedType.TupleElements;
+			for (int i = 0; i < elements.Length; i++)
+			{
+				if (i > 0)
+				{
+					builder.Append(", ");
+				}
+
+				builder.Append(FormatTypeName(elements[i].Type));
+			}
+
+			builder.Append(')');
+			return StringBuilderPool.ToStringAndReturn(ref builder);
+		}
+
+		return type.ToDisplayString(TypeFormat);
+	}
+
 	private static List<IMethodSymbol> GetHookMethods(INamedTypeSymbol typeSymbol)
 	{
-		return typeSymbol.GetMembers()
+		return [.. typeSymbol.GetMembers()
 			.OfType<IMethodSymbol>()
 			.Where(static method =>
 				method.MethodKind == MethodKind.Ordinary &&
@@ -154,8 +182,7 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 				(method.DeclaredAccessibility != Accessibility.Public || HasHookMethodAttribute(method)) &&
 				method.Name != "InternalCallHook")
 			.OrderBy(static method => ResolveHookName(method), StringComparer.Ordinal)
-			.ThenBy(static method => method.Name, StringComparer.Ordinal)
-			.ToList();
+			.ThenBy(static method => method.Name, StringComparer.Ordinal)];
 	}
 
 	private static bool HasRefLikeSignature(IMethodSymbol method)
@@ -205,14 +232,14 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 		}
 
 		if (attribute.ConstructorArguments.Length > 0 && attribute.ConstructorArguments[0].Value is string constructorValue &&
-		    !string.IsNullOrWhiteSpace(constructorValue))
+			!string.IsNullOrWhiteSpace(constructorValue))
 		{
 			return constructorValue;
 		}
 
-		foreach (var argument in attribute.NamedArguments)
+		for (int i = 0; i < attribute.NamedArguments.Length; i++)
 		{
-			if (argument is { Key: "Name", Value.Value: string namedValue } && !string.IsNullOrWhiteSpace(namedValue))
+			if (attribute.NamedArguments[i] is { Key: "Name", Value.Value: string namedValue } && !string.IsNullOrWhiteSpace(namedValue))
 			{
 				return namedValue;
 			}
@@ -235,9 +262,9 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 			return constructorValue;
 		}
 
-		foreach (var argument in attribute.NamedArguments)
+		for (int i = 0; i < attribute.NamedArguments.Length; i++)
 		{
-			if (argument is { Key: "Symbol", Value.Value: string namedValue } && !string.IsNullOrWhiteSpace(namedValue))
+			if (attribute.NamedArguments[i] is { Key: "Symbol", Value.Value: string namedValue } && !string.IsNullOrWhiteSpace(namedValue))
 			{
 				return namedValue;
 			}
@@ -249,11 +276,10 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 	private static int GetMethodParameterDepthScore(IMethodSymbol method)
 	{
 		var score = 0;
-		foreach (var parameter in method.Parameters)
+		for (int i = 0; i < method.Parameters.Length; i++)
 		{
-			score += GetInheritanceDepth(parameter.Type);
+			score += GetInheritanceDepth(method.Parameters[i].Type);
 		}
-
 		return score;
 	}
 
@@ -281,12 +307,12 @@ public sealed class InternalCallHookGenerator : IIncrementalGenerator
 
 	private static string SanitizeHintName(string input)
 	{
-		var builder = new StringBuilder(input.Length);
-		foreach (var character in input)
+		var builder = StringBuilderPool.Rent();
+		for (int i = 0; i < input.Length; i++)
 		{
+			var character = input[i];
 			builder.Append(char.IsLetterOrDigit(character) ? character : '_');
 		}
-
-		return builder.ToString();
+		return StringBuilderPool.ToStringAndReturn(ref builder);
 	}
 }
