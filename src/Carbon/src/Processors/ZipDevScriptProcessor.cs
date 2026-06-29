@@ -128,7 +128,14 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 		if (IsBlacklisted(e.Path)) return;
 
 		var newDirectory = GetZipScriptName(e.Path);
-		InstanceBuffer[newDirectory] = null;
+		if (InstanceBuffer.TryGetValue(newDirectory, out var existing) && existing != null)
+		{
+			existing.MarkDirty();
+		}
+		else
+		{
+			InstanceBuffer[newDirectory] = null;
+		}
 	}
 	public override void OnRemoved(WatchFileEvent e)
 	{

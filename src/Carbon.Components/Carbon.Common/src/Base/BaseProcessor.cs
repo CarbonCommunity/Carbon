@@ -202,35 +202,19 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 			foreach (var element in _runtimeCache)
 			{
-				var value = element.Value;
+				var yieldAfter = false;
 
-				if (value == null)
+				try
 				{
-					var instance = CreateProcess();
-
-					if (instance != null)
-					{
-						instance.File = element.Key;
-						instance.Execute(this);
-
-						var id = Path.GetFileNameWithoutExtension(element.Key);
-						InstanceBuffer.Remove(element.Key);
-						InstanceBuffer[id] = instance;
-					}
-
-					continue;
+					yieldAfter = ProcessRuntimeEntry(element.Key, element.Value);
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"Processor run error for '{element.Key}'", ex);
 				}
 
-				if (value.IsRemoved)
+				if (yieldAfter)
 				{
-					Clear(element.Key, value);
-					yield return null;
-					continue;
-				}
-
-				if (value.IsDirty)
-				{
-					Execute(element.Key, value);
 					yield return null;
 				}
 			}
@@ -239,6 +223,40 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 			yield return null;
 		}
+	}
+
+	private bool ProcessRuntimeEntry(string key, IBaseProcessor.IProcess value)
+	{
+		if (value == null)
+		{
+			var instance = CreateProcess();
+
+			if (instance != null)
+			{
+				instance.File = key;
+				instance.Execute(this);
+
+				var id = Path.GetFileNameWithoutExtension(key);
+				InstanceBuffer.Remove(key);
+				InstanceBuffer[id] = instance;
+			}
+
+			return false;
+		}
+
+		if (value.IsRemoved)
+		{
+			Clear(key, value);
+			return true;
+		}
+
+		if (value.IsDirty)
+		{
+			Execute(key, value);
+			return true;
+		}
+
+		return false;
 	}
 
 	public virtual bool Exists(string path)
@@ -411,7 +429,14 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 		if (IsBlacklisted(e.Path)) return;
 
 		var newName = Path.GetFileNameWithoutExtension(e.Path);
-		InstanceBuffer[newName] = null;
+		if (InstanceBuffer.TryGetValue(newName, out var existing) && existing != null)
+		{
+			existing.MarkDirty();
+		}
+		else
+		{
+			InstanceBuffer[newName] = null;
+		}
 	}
 	public virtual void OnRemoved(WatchFileEvent e)
 	{
