@@ -87,6 +87,11 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 		return Path.Combine(cszipDevDir, source.Replace(cszipDevDir, string.Empty).Split(DirectorySeparators, StringSplitOptions.RemoveEmptyEntries)[0]);
 	}
 
+	protected override string GetInstanceKey(string sourcePath)
+	{
+		return GetZipScriptName(sourcePath);
+	}
+
 	public override void OnCreated(WatchFileEvent e)
 	{
 		if (!EnableWatcher || IsBlacklisted(e.Path)) return;

@@ -156,6 +156,11 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 		return Activator.CreateInstance(IndexedType) as Process;
 	}
 
+	protected virtual string GetInstanceKey(string sourcePath)
+	{
+		return Path.GetFileNameWithoutExtension(sourcePath);
+	}
+
 	private void DrainEventQueue()
 	{
 		while (_events.TryDequeue(out var evt))
@@ -236,7 +241,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 				instance.File = key;
 				instance.Execute(this);
 
-				var id = Path.GetFileNameWithoutExtension(key);
+				var id = GetInstanceKey(key);
 				InstanceBuffer.Remove(key);
 				InstanceBuffer[id] = instance;
 			}
