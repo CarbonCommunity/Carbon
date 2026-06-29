@@ -34,6 +34,11 @@ public partial class Timers
 
 	internal static void RemoveStartupTimer(Timer timer)
 	{
+		if (Community.IsServerInitialized)
+		{
+			return;
+		}
+
 		lock (StartupTimerLock)
 		{
 			if (StartupTimers.Remove(timer))
