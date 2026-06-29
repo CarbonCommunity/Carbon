@@ -2,10 +2,10 @@
 
 namespace Oxide.Plugins;
 
-public class Timers : Library
+public partial class Timers : Library
 {
 	public Plugin Plugin { get; }
-	internal List<Timer> _timers { get; set; } = new();
+	internal List<Timer> _timers { get; set; } = [];
 
 	public Timers() { }
 	public Timers(Plugin plugin)
@@ -19,21 +19,32 @@ public class Timers : Library
 	}
 	public void Clear()
 	{
-		if (_timers == null)
+		DestroyAll();
+	}
+
+	public Plugin.Persistence Persistence => Plugin.persistence;
+
+	internal void TrackTimer(Timer timer)
+	{
+		timer.OwnerTimers = this;
+		_timers ??= [];
+
+		if (_timers.Contains(timer))
 		{
 			return;
 		}
 
-		foreach (var timer in _timers)
+		_timers.Add(timer);
+	}
+	internal void UntrackTimer(Timer timer)
+	{
+		if (timer.OwnerTimers != this)
 		{
-			timer.Destroy();
+			return;
 		}
 
-		_timers.Clear();
-		_timers = null;
+		_timers?.Remove(timer);
 	}
-
-	public Plugin.Persistence Persistence => Plugin.persistence;
 
 	public Timer In(float time, Action action)
 	{
@@ -43,12 +54,21 @@ public class Timers : Library
 		}
 
 		var timer = new Timer(Persistence, action, Plugin);
+		TrackTimer(timer);
+		timer.Repetitions = 1;
 		var activity = new Action(() =>
 		{
 			try
 			{
+				var callback = timer.Callback;
 				action?.Invoke();
+				if (timer.Destroyed || timer.Callback != callback)
+				{
+					return;
+				}
+
 				timer.TimesTriggered++;
+				timer.Destroy();
 			}
 			catch (Exception ex)
 			{
@@ -63,6 +83,11 @@ public class Timers : Library
 		if (Community.IsServerInitialized)
 		{
 			Persistence.Invoke(activity, time);
+		}
+		else
+		{
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + time;
+			QueueStartupTimer(timer);
 		}
 
 		return timer;
@@ -79,40 +104,19 @@ public class Timers : Library
 		}
 
 		var timer = new Timer(Persistence, action, Plugin);
+		TrackTimer(timer);
 		var activity = new Action(() =>
 		{
 			try
 			{
+				var callback = timer.Callback;
 				action?.Invoke();
+				if (timer.Destroyed || timer.Callback != callback)
+				{
+					return;
+				}
+
 				timer.TimesTriggered++;
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"Timer of {time}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
-				timer.Destroy();
-			}
-		});
-
-		timer.Callback = activity;
-		Persistence.InvokeRepeating(activity, time, time);
-		return timer;
-	}
-	public Timer Repeat(float time, int times, Action action)
-	{
-		if (!IsValid()) return null;
-
-		var timer = new Timer(Persistence, action, Plugin);
-		var activity = new Action(() =>
-		{
-			try
-			{
-				action?.Invoke();
-				timer.TimesTriggered++;
-
-				if (times == 0 || timer.TimesTriggered < times) return;
-				if (Persistence == null) return;
-				Persistence.CancelInvoke(timer.Callback);
-				Persistence.CancelInvokeFixedTime(timer.Callback);
 			}
 			catch (Exception ex)
 			{
@@ -122,8 +126,73 @@ public class Timers : Library
 		});
 
 		timer.Delay = time;
+		timer.Repetitions = 0;
+		timer.StartupRepeating = true;
 		timer.Callback = activity;
-		Persistence.InvokeRepeating(activity, time, time);
+
+		if (Community.IsServerInitialized)
+		{
+			Persistence.InvokeRepeating(activity, time, time);
+		}
+		else
+		{
+			timer.Delay = NormalizeStartupRepeatDelay(time);
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
+			QueueStartupTimer(timer);
+		}
+
+		return timer;
+	}
+	public Timer Repeat(float time, int times, Action action)
+	{
+		if (!IsValid()) return null;
+
+		var timer = new Timer(Persistence, action, Plugin);
+		TrackTimer(timer);
+		var activity = new Action(() =>
+		{
+			try
+			{
+				var callback = timer.Callback;
+				action?.Invoke();
+				if (timer.Destroyed || timer.Callback != callback)
+				{
+					return;
+				}
+
+				timer.TimesTriggered++;
+
+				if (times <= 0 || timer.TimesTriggered < times) return;
+				timer.Destroy();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Timer of {time}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+				timer.Destroy();
+			}
+		});
+
+		timer.Delay = time;
+		timer.Repetitions = times;
+		timer.StartupRepeating = times != 1;
+		timer.Callback = activity;
+
+		if (Community.IsServerInitialized)
+		{
+			Persistence.InvokeRepeating(activity, time, time);
+		}
+		else if (timer.StartupRepeating)
+		{
+			timer.Delay = NormalizeStartupRepeatDelay(time);
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
+			QueueStartupTimer(timer);
+		}
+		else
+		{
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + time;
+			QueueStartupTimer(timer);
+		}
+
 		return timer;
 	}
 	public void Destroy(ref Timer timer)
@@ -137,24 +206,33 @@ public class Timers : Library
 	}
 	public void DestroyAll()
 	{
-		foreach (var timer in _timers)
+		if (_timers == null)
 		{
-			timer.Destroy();
+			return;
 		}
 
-		_timers.Clear();
+		while (_timers.Count > 0)
+		{
+			var timer = _timers[^1];
+			_timers.RemoveAt(_timers.Count - 1);
+
+			timer.Destroy();
+		}
 	}
 }
 
 public class Timer : IDisposable
 {
 	public Plugin Plugin { get; set; }
+	internal Timers OwnerTimers { get; set; }
 
 	public Action Activity { get; set; }
 	public Action Callback { get; set; }
 	public Plugin.Persistence Persistence { get; set; }
 	public int Repetitions { get; set; }
 	public float Delay { get; set; }
+	public float ExpiresAt { get; set; }
+	public bool StartupRepeating { get; set; }
 	public int TimesTriggered { get; set; }
 	public bool Destroyed { get; set; }
 
@@ -170,6 +248,7 @@ public class Timer : IDisposable
 	{
 		TimesTriggered = 0;
 		Repetitions = repetitions;
+		StartupRepeating = repetitions != 1;
 
 		if (delay < 0)
 		{
@@ -180,49 +259,83 @@ public class Timer : IDisposable
 			Delay = delay;
 		}
 
-		if (Destroyed)
+		if (Persistence == null)
 		{
-			Logger.Warn($"You cannot restart a timer that has been destroyed.");
+			Logger.Warn($"Cannot restart a timer for '{Plugin?.ToPrettyString() ?? "unknown plugin"}' because persistence is null.");
 			return;
 		}
 
-		if (Persistence != null)
+		Timers.RemoveStartupTimer(this);
+
+		if (Callback != null)
 		{
 			Persistence.CancelInvoke(Callback);
 			Persistence.CancelInvokeFixedTime(Callback);
 		}
 
+		Destroyed = false;
+		OwnerTimers?.TrackTimer(this);
+
 		if (Repetitions == 1)
 		{
-			Callback = () =>
+			Action callback = null;
+			callback = () =>
 			{
 				try
 				{
 					Activity?.Invoke();
+					if (Destroyed || Callback != callback)
+					{
+						return;
+					}
+
 					TimesTriggered++;
 				}
 				catch (Exception ex)
 				{
 					Logger.Error($"Timer of {delay}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+					Destroy();
+					return;
 				}
 
 				Destroy();
 			};
+			Callback = callback;
 
-			Persistence.Invoke(Callback, delay);
+			if (Community.IsServerInitialized)
+			{
+				Persistence.Invoke(Callback, delay);
+			}
+			else
+			{
+				ExpiresAt = UnityEngine.Time.realtimeSinceStartup + delay;
+				Timers.QueueStartupTimer(this);
+			}
 		}
 		else
 		{
-			Callback = () =>
+			if (!Community.IsServerInitialized)
+			{
+				delay = Timers.NormalizeStartupRepeatDelay(delay);
+				Delay = delay;
+			}
+
+			Action callback = null;
+			callback = () =>
 			{
 				try
 				{
 					Activity?.Invoke();
+					if (Destroyed || Callback != callback)
+					{
+						return;
+					}
+
 					TimesTriggered++;
 
-					if (TimesTriggered >= Repetitions)
+					if (Repetitions > 0 && TimesTriggered >= Repetitions)
 					{
-						Dispose();
+						Destroy();
 					}
 				}
 				catch (Exception ex)
@@ -231,26 +344,34 @@ public class Timer : IDisposable
 					Destroy();
 				}
 			};
+			Callback = callback;
 
-			Persistence.InvokeRepeating(Callback, delay, delay);
+			if (Community.IsServerInitialized)
+			{
+				Persistence.InvokeRepeating(Callback, delay, delay);
+			}
+			else
+			{
+				ExpiresAt = UnityEngine.Time.realtimeSinceStartup + delay;
+				Timers.QueueStartupTimer(this);
+			}
 		}
 	}
 	public bool Destroy()
 	{
-		if (Destroyed) return false;
+		var wasDestroyed = Destroyed;
 		Destroyed = true;
 
-		if (Persistence != null)
-		{
-			Persistence.CancelInvoke(Callback);
-		}
+		Timers.RemoveStartupTimer(this);
+		OwnerTimers?.UntrackTimer(this);
 
 		if (Callback != null)
 		{
+			Persistence?.CancelInvoke(Callback);
 			Callback = null;
 		}
 
-		return true;
+		return !wasDestroyed;
 	}
 	public void DestroyToPool()
 	{

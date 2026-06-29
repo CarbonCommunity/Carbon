@@ -32,3 +32,4 @@ global using UnityEngine;
 using static Carbon.Components.MonoProfiler;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Carbon.Hooks.Base")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Carbon")]
