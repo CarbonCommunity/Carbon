@@ -27,9 +27,9 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 			"debug"
 		};
 
-		base.Start();
-
 		IncludeSubdirectories = Community.Runtime.Config.Watchers.ScriptWatcherOption == SearchOption.AllDirectories;
+
+		base.Start();
 	}
 
 	public bool AllPendingScriptsComplete()
