@@ -32,6 +32,10 @@ public static partial class WebControlPanel
 			return;
 		}
 
-		CuiHelper.DestroyUi(player, read.String());
+		var name = read.String();
+		if (!string.IsNullOrWhiteSpace(name))
+		{
+			CuiHelper.DestroyUi(player, name);
+		}
 	}
 }
