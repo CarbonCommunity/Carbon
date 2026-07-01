@@ -26,9 +26,9 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 			"cszip_dev"
 		];
 
-		base.Start();
-
 		IncludeSubdirectories = Community.Runtime.Config.Watchers.ScriptWatcherOption == SearchOption.AllDirectories;
+
+		base.Start();
 	}
 
 	public bool AllPendingScriptsComplete()

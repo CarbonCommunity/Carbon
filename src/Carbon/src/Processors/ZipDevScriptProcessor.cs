@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using API.Assembly;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Contracts;
@@ -29,9 +30,9 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 			"debug"
 		];
 
-		base.Start();
-
 		IncludeSubdirectories = true;
+
+		base.Start();
 	}
 
 	public bool AllPendingScriptsComplete()
@@ -86,11 +87,16 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 		return Path.Combine(cszipDevDir, source.Replace(cszipDevDir, string.Empty).Split(DirectorySeparators, StringSplitOptions.RemoveEmptyEntries)[0]);
 	}
 
-	public override void OnCreated(object sender, FileSystemEventArgs e)
+	protected override string GetInstanceKey(string sourcePath)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
+		return GetZipScriptName(sourcePath);
+	}
 
-		var directory = GetZipScriptName(e.FullPath);
+	public override void OnCreated(WatchFileEvent e)
+	{
+		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
+
+		var directory = GetZipScriptName(e.Path);
 
 		if (InstanceBuffer.TryGetValue(directory, out var instance1))
 		{
@@ -98,36 +104,49 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 			return;
 		}
 
-		InstanceBuffer.Add(directory, null);
+		InstanceBuffer[directory] = null;
 	}
-	public override void OnChanged(object sender, FileSystemEventArgs e)
+	public override void OnChanged(WatchFileEvent e)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
+		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
 
-		var directory = GetZipScriptName(e.FullPath);
+		var directory = GetZipScriptName(e.Path);
 
 		if (InstanceBuffer.TryGetValue(directory, out var mod))
 		{
 			mod.MarkDirty();
 		}
 	}
-	public override void OnRenamed(object sender, RenamedEventArgs e)
+	public override void OnRenamed(WatchFileEvent e)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
+		if (!EnableWatcher) return;
 
-		var directory = GetZipScriptName(e.FullPath);
-
-		if (InstanceBuffer.TryGetValue(directory, out var mod))
+		if (!string.IsNullOrEmpty(e.OldPath))
 		{
-			mod.MarkDeleted();
+			var oldDirectory = GetZipScriptName(e.OldPath);
+			if (InstanceBuffer.TryGetValue(oldDirectory, out var oldMod))
+			{
+				oldMod?.MarkDeleted();
+			}
 		}
-		InstanceBuffer.Add(directory, null);
-	}
-	public override void OnRemoved(object sender, FileSystemEventArgs e)
-	{
-		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		var directory = GetZipScriptName(e.FullPath);
+		if (IsBlacklisted(e.Path)) return;
+
+		var newDirectory = GetZipScriptName(e.Path);
+		if (InstanceBuffer.TryGetValue(newDirectory, out var existing) && existing != null)
+		{
+			existing.MarkDirty();
+		}
+		else
+		{
+			InstanceBuffer[newDirectory] = null;
+		}
+	}
+	public override void OnRemoved(WatchFileEvent e)
+	{
+		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
+
+		var directory = GetZipScriptName(e.Path);
 
 		if (InstanceBuffer.TryGetValue(directory, out var mod))
 		{
