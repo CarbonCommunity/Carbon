@@ -40,25 +40,36 @@ internal static partial class Helper
 
 				argc++;
 
-				LoadArgumentEx(ref instructions, parameter, hasThis);
-
-				if (parameter.ParameterType.IsByRef)
+				if (!metadata.IsInternal && parameter.ParameterType is { IsValueType: true, IsByRefLike: true })
 				{
-					AddYieldInstruction(ref instructions, nameof(OpCodes.Ldobj),
-						$"typeof({Tools.TypeNameSanitizerEx(parameter.ParameterType.FullName)})", false);
+					var argIndex = parameter.Position + (hasThis ? 1 : 0);
+					AddYieldInstruction(ref instructions, nameof(OpCodes.Ldarga_S), $"(byte){argIndex}", false);
+					AddYieldInstruction(ref instructions, nameof(OpCodes.Call),
+						$"AccessTools.Method(typeof({Tools.TypeNameSanitizerEx(parameter.ParameterType.FullName)}), \"ToArray\")",
+						false);
+				}
+				else
+				{
+					LoadArgumentEx(ref instructions, parameter, hasThis);
 
-					if (!metadata.IsInternal)
+					if (parameter.ParameterType.IsByRef)
+					{
+						AddYieldInstruction(ref instructions, nameof(OpCodes.Ldobj),
+							$"typeof({Tools.TypeNameSanitizerEx(parameter.ParameterType.FullName)})", false);
+
+						if (!metadata.IsInternal)
+						{
+							AddYieldInstruction(ref instructions, nameof(OpCodes.Box),
+								$"typeof({(Nullable.GetUnderlyingType(parameter.ParameterType) == null ? Tools.TypeNameSanitizerEx(parameter.ParameterType.FullName) : $"{parameter.ParameterType.FullName}?")})",
+								false);
+						}
+					}
+					else if (!metadata.IsInternal && parameter.ParameterType.IsValueType)
 					{
 						AddYieldInstruction(ref instructions, nameof(OpCodes.Box),
 							$"typeof({(Nullable.GetUnderlyingType(parameter.ParameterType) == null ? Tools.TypeNameSanitizerEx(parameter.ParameterType.FullName) : $"{parameter.ParameterType.FullName}?")})",
 							false);
 					}
-				}
-				else if (!metadata.IsInternal && parameter.ParameterType.IsValueType)
-				{
-					AddYieldInstruction(ref instructions, nameof(OpCodes.Box),
-						$"typeof({(Nullable.GetUnderlyingType(parameter.ParameterType) == null ? Tools.TypeNameSanitizerEx(parameter.ParameterType.FullName) : $"{parameter.ParameterType.FullName}?")})",
-						false);
 				}
 			}
 		}

@@ -8,6 +8,11 @@ public static partial class WebControlPanel
 	[WebCall.Condition.Permission(PermissionTypes.PermissionsView)]
 	private static void RPC_GetPermissionsMetadata(BridgeRead read)
 	{
+		if (Community.Runtime == null || Community.Runtime.Core == null || Community.Runtime.Core.permission == null)
+		{
+			return;
+		}
+
 		var permission = Community.Runtime.Core.permission;
 
 		using var plugins = Pool.Get<PooledList<HookableInfo>>();
@@ -121,6 +126,97 @@ public static partial class WebControlPanel
 		}
 	}
 
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.PermissionsEdit)]
+	private static void RPC_GetUserMetadata(BridgeRead read)
+	{
+		var steamId = read.String();
+		var permission = Community.Runtime.Core.permission;
+
+		var user = permission.FindUser(steamId);
+		if (user.Value == null)
+		{
+			return;
+		}
+
+		var write = StartRpcResponse();
+		UserInfo.Get(user.Key, user.Value, true).Serialize(write);
+		SendRpcResponse(read.Connection, write);
+	}
+
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.PlayersView)]
+	private static void RPC_SearchUsers(BridgeRead read)
+	{
+		var search = read.String();
+
+		var permission = Community.Runtime.Core.permission;
+		using var users = Pool.Get<PooledList<UserInfo>>();
+		foreach (var user in permission.userdata)
+		{
+			if (search == user.Key || search == user.Value.LastSeenNickname || user.Value.LastSeenNickname.Contains(search, System.StringComparison.CurrentCultureIgnoreCase))
+			{
+				users.Add(UserInfo.Get(user.Key, user.Value));
+			}
+		}
+
+		var write = StartRpcResponse();
+		write.WriteObject(users.Count);
+		for (int i = 0; i < users.Count; i++)
+		{
+			users[i].Serialize(write);
+		}
+		SendRpcResponse(read.Connection, write);
+	}
+
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.PermissionsEdit)]
+	private static void RPC_ToggleUserGroup(BridgeRead read)
+	{
+		var steamId = read.String();
+		var group = read.String();
+
+		var permission = Community.Runtime.Core.permission;
+		var user = permission.FindUser(steamId);
+		if (user.Value == null)
+		{
+			return;
+		}
+
+		if (user.Value.Groups.Contains(group))
+		{
+			user.Value.Groups.Remove(group);
+		}
+		else
+		{
+			user.Value.Groups.Add(group);
+		}
+	}
+
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.PermissionsEdit)]
+	private static void RPC_ToggleUserPermission(BridgeRead read)
+	{
+		var steamId = read.String();
+		var permissionName = read.String();
+
+		var permission = Community.Runtime.Core.permission;
+		var user = permission.FindUser(steamId);
+		if (user.Value == null)
+		{
+			return;
+		}
+
+		if (user.Value.Perms.Contains(permissionName))
+		{
+			user.Value.Perms.Remove(permissionName);
+		}
+		else
+		{
+			user.Value.Perms.Add(permissionName);
+		}
+	}
+
 	public struct HookableInfo
 	{
 		private string name;
@@ -154,6 +250,47 @@ public static partial class WebControlPanel
 				{
 					write.WriteObject(permissions[i]);
 				}
+			}
+		}
+	}
+
+	public struct UserInfo
+	{
+		private string displayName;
+		private string steamId;
+		private UserData data;
+		private bool permissionsOnly;
+
+		public static UserInfo Get(string steamId, UserData user, bool permissionsOnly = false)
+		{
+			UserInfo info = default;
+			info.displayName = user.LastSeenNickname;
+			info.steamId = steamId;
+			info.data = user;
+			info.permissionsOnly = permissionsOnly;
+			return info;
+		}
+
+		public void Serialize(BridgeWrite write)
+		{
+			if (permissionsOnly)
+			{
+				write.WriteObject(steamId);
+				write.WriteObject(data.Perms.Count);
+				foreach (var perm in data.Perms)
+				{
+					write.WriteObject(perm);
+				}
+				write.WriteObject(data.Groups.Count);
+				foreach (var group in data.Groups)
+				{
+					write.WriteObject(group);
+				}
+			}
+			else
+			{
+				write.WriteObject(displayName);
+				write.WriteObject(steamId);
 			}
 		}
 	}

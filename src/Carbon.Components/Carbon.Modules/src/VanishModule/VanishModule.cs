@@ -503,7 +503,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		}
 	}
 
-	[AutoPatch, HarmonyPatch(typeof(BaseNetworkable), nameof(BaseNetworkable.GetConnectionsWithin), typeof(Vector3), typeof(float), typeof(bool), typeof(bool), typeof(bool))]
+	[AutoPatch, HarmonyPatch(typeof(BaseNetworkable), nameof(BaseNetworkable.GetConnectionsWithin), typeof(Vector3), typeof(float), typeof(bool))]
 	public static class GetConnectionsWithinPatch
 	{
 		[UsedImplicitly]
