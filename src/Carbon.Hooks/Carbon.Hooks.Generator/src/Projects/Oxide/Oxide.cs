@@ -63,6 +63,12 @@ public class Oxide
 			"Carbon.Common|Carbon.Pooling.PoolEx|FreeRaycastHitList",
 	};
 
+	private static readonly Dictionary<string, string> ParameterReplacers = new()
+	{
+		["System.ReadOnlySpan`1<System.Byte>"] =
+			"System.ReadOnlySpan`1[System.Byte]",
+	};
+
 	private void PostProcess()
 	{
 		for (var manifestIndex = 0; manifestIndex < Manifests.Count; manifestIndex++)
@@ -71,6 +77,18 @@ public class Oxide
 			for (var hookIndex = 0; hookIndex < manifest.Hooks.Count; hookIndex++)
 			{
 				var hook = manifest.Hooks[hookIndex];
+				if (hook.Hook.Signature != null && hook.Hook.Signature.Parameters != null)
+				{
+					for (var parameterIndex = 0; parameterIndex < hook.Hook.Signature.Parameters.Length; parameterIndex++)
+					{
+						var parameter = hook.Hook.Signature.Parameters[parameterIndex];
+						if (ParameterReplacers.TryGetValue(parameter, out var value))
+						{
+							hook.Hook.Signature.Parameters[parameterIndex] = value;
+						}
+					}
+				}
+
 				if (hook.Hook.Instructions == null)
 				{
 					continue;
@@ -85,7 +103,6 @@ public class Oxide
 					}
 
 					var operand = instruction.Operand.ToString();
-
 					if (OperandReplacers.TryGetValue(operand, out var value))
 					{
 						instruction.Operand = value;

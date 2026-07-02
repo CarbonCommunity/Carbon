@@ -14,7 +14,7 @@ public static class AccessToolsEx
 		{
 			return type;
 		}
-		return searchCache[name] = AccessTools.TypeByName(name) ?? SearchTypeByName(name);
+		return searchCache[name] = Type.GetType(name, throwOnError: false) ?? AccessTools.TypeByName(name) ?? SearchTypeByName(name);
 	}
 
 	private static Type SearchTypeByName(string name)
@@ -38,7 +38,7 @@ public static class AccessToolsEx
 			genericArgs.AddRange(genericArgPart.Replace("<", string.Empty).Replace(">", string.Empty).Split(','));
 
 			var argTypes = genericArgs
-				.Select(arg => AccessTools.TypeByName(arg))
+				.Select(arg => Type.GetType(arg, throwOnError: false) ?? AccessTools.TypeByName(arg))
 				.ToArray();
 
 			if (argTypes.Length != genericArgs.Count)

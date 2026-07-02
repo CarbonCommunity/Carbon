@@ -27,6 +27,8 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 	public override bool EnabledByDefault => false;
 
+	private HashSet<NetworkableId> _processedEntities = new();
+
 	public enum KindTypes
 	{
 		Pickup = 0,
@@ -46,8 +48,16 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 	private object OnCollectiblePickup(CollectibleEntity entity, BasePlayer reciever, bool eat)
 	{
-		foreach (var itemAmount in entity.itemList)
+		var entityId = entity.net.ID;
+
+		if (!_processedEntities.Add(entityId))
 		{
+			return false;
+		}
+
+		for(int i = 0; i < entity.itemList.Length; i++)
+		{
+			var itemAmount = entity.itemList[i];
 			var item = ByDefinition(itemAmount.itemDef, (int)itemAmount.amount, 0, 0);
 			if (item == null)
 			{
@@ -88,6 +98,8 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 		NextFrame(() =>
 		{
+			_processedEntities.Remove(entityId);
+
 			if (entity == null || entity.IsDestroyed) return;
 
 			entity.Kill();
