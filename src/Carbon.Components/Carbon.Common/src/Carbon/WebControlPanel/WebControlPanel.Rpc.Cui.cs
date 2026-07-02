@@ -15,7 +15,7 @@ public static partial class WebControlPanel
 			return;
 		}
 
-		var json = read.String();
+		var json = read.String(262144);
 		if (!string.IsNullOrWhiteSpace(json))
 		{
 			CuiHelper.AddUi(player, json);
