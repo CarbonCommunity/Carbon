@@ -72,15 +72,17 @@ public partial class Timers
 		}
 
 		var timers = Pool.Get<List<Timer>>();
+		var callbacks = Pool.Get<List<Action>>();
 
 		try
 		{
-			CollectDueStartupTimers(timers, now, maxTimers);
-			FireStartupTimers(timers);
+			CollectDueStartupTimers(timers, callbacks, now, maxTimers);
+			FireStartupTimers(timers, callbacks);
 		}
 		finally
 		{
 			Pool.FreeUnmanaged(ref timers);
+			Pool.FreeUnmanaged(ref callbacks);
 		}
 	}
 
@@ -145,7 +147,7 @@ public partial class Timers
 		}
 	}
 
-	private static void CollectDueStartupTimers(List<Timer> timers, float now, int maxTimers)
+	private static void CollectDueStartupTimers(List<Timer> timers, List<Action> callbacks, float now, int maxTimers)
 	{
 		lock (StartupTimerLock)
 		{
@@ -172,6 +174,7 @@ public partial class Timers
 				StartupTimers.RemoveAt(i);
 				i--;
 				timers.Add(timer);
+				callbacks.Add(timer.Callback);
 
 				if (timers.Count >= maxTimers)
 				{
@@ -183,21 +186,22 @@ public partial class Timers
 		}
 	}
 
-	private static void FireStartupTimers(List<Timer> timers)
+	private static void FireStartupTimers(List<Timer> timers, List<Action> callbacks)
 	{
 		for (var i = 0; i < timers.Count; i++)
 		{
 			var timer = timers[i];
-			if (timer.Destroyed)
+			var callback = callbacks[i];
+			if (timer.Destroyed || callback == null || timer.Callback != callback)
 			{
 				continue;
 			}
 
-			timer.Callback?.Invoke();
+			callback.Invoke();
 
-			if (ShouldRequeueStartupTimer(timer))
+			if (timer.Callback == callback && ShouldRequeueStartupTimer(timer))
 			{
-				timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
+				timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + NormalizeStartupRepeatDelay(timer.Delay);
 				QueueStartupTimer(timer);
 			}
 		}
