@@ -87,6 +87,11 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 		return Path.Combine(cszipDevDir, source.Replace(cszipDevDir, string.Empty).Split(DirectorySeparators, StringSplitOptions.RemoveEmptyEntries)[0]);
 	}
 
+	protected override string GetInstanceKey(string sourcePath)
+	{
+		return GetZipScriptName(sourcePath);
+	}
+
 	public override void OnCreated(WatchFileEvent e)
 	{
 		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
@@ -128,7 +133,14 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 		if (IsBlacklisted(e.Path)) return;
 
 		var newDirectory = GetZipScriptName(e.Path);
-		InstanceBuffer[newDirectory] = null;
+		if (InstanceBuffer.TryGetValue(newDirectory, out var existing) && existing != null)
+		{
+			existing.MarkDirty();
+		}
+		else
+		{
+			InstanceBuffer[newDirectory] = null;
+		}
 	}
 	public override void OnRemoved(WatchFileEvent e)
 	{

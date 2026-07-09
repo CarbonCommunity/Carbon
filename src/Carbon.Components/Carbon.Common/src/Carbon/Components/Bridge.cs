@@ -1,8 +1,9 @@
-﻿using System.Net.WebSockets;
-using Fleck;
-using Network;
+﻿using System.Collections.Concurrent;
+using System.Net.WebSockets;
 using Facepunch;
 using Facepunch.Rcon;
+using Fleck;
+using Network;
 
 namespace Carbon.Components;
 
@@ -111,6 +112,10 @@ public abstract class BridgeServer
 	public readonly Dictionary<int, BridgeConnection> Connections = [];
 	public readonly ListHashSet<BridgeConnection> ConnectionsList = [];
 
+	private const int MaxEventsPerFrame = 100;
+
+	private readonly ConcurrentQueue<Action> _bridgeEvents = new();
+	private Coroutine _routine;
 	private string _context;
 	private bool _isConnected;
 
@@ -149,25 +154,11 @@ public abstract class BridgeServer
 						var bridgeConnection = Pool.Get<BridgeConnection>().Init(connectionId, socket, Messages);
 						socket.OnOpen = () =>
 						{
-							listener.clients.Add(connectionId, new RconConnection(socket, connectionId));
-							Connections[connectionId] = bridgeConnection;
-							ConnectionsList.Add(bridgeConnection);
-							OnNewConnection?.Invoke(bridgeConnection);
-							OnBridgeConnection(bridgeConnection);
+							_bridgeEvents.Enqueue(() => OnOpenSocket(socket, bridgeConnection));
 						};
 						socket.OnClose = () =>
 						{
-							listener._subscribedRconClients.Remove(connectionId);
-							listener.clients.Remove(connectionId);
-							if (Connections.TryGetValue(connectionId, out var bridgeConnection))
-							{
-								OnBridgeDisconnection(bridgeConnection);
-								Connections.Remove(connectionId);
-								ConnectionsList.Remove(bridgeConnection);
-								Pool.Free(ref bridgeConnection);
-							}
-
-							OnClosedConnection?.Invoke(bridgeConnection);
+							_bridgeEvents.Enqueue(() => OnCloseSocket(socket, bridgeConnection));
 						};
 						socket.OnBinary += data =>
 						{
@@ -180,12 +171,7 @@ public abstract class BridgeServer
 								stream._buffer[i] = data[i];
 							}
 
-							var read = BridgeRead.Rent(stream, bridgeConnection);
-							Messages.HandleChannelRead(read);
-							if (Messages.ShouldPool)
-							{
-								BridgeRead.Return(ref read);
-							}
+							_bridgeEvents.Enqueue(() => OnBinarySocket(socket, bridgeConnection, stream));
 						};
 						socket.OnError = e =>
 						{
@@ -206,6 +192,12 @@ public abstract class BridgeServer
 	}
 	public void Shutdown()
 	{
+		while (_bridgeEvents.TryDequeue(out var bridgeEvent))
+		{
+			try { bridgeEvent(); }
+			catch (Exception ex) { Logger.Error("Bridge shutdown drain failure", ex); }
+		}
+
 		using var connections = Pool.Get<PooledList<BridgeConnection>>();
 		for (int i = 0; i < ConnectionsList.Count; i++)
 		{
@@ -234,8 +226,18 @@ public abstract class BridgeServer
 		return Listener != null && _isConnected;
 	}
 
-	public virtual void OnServerConnected() { }
-	public virtual void OnServerDisconnected() { }
+	public virtual void OnServerConnected()
+	{
+		_routine = Facepunch.Application.Controller.StartCoroutine(RunEventRoutine());
+	}
+	public virtual void OnServerDisconnected()
+	{
+		if (_routine != null)
+		{
+			Facepunch.Application.Controller.StopCoroutine(_routine);
+			_routine = null;
+		}
+	}
 	public virtual bool OnPasswordValidate(string password)
 	{
 		return password is not (null or "unset" or "password");
@@ -246,6 +248,65 @@ public abstract class BridgeServer
 	}
 	public abstract void OnBridgeConnection(BridgeConnection connection);
 	public abstract void OnBridgeDisconnection(BridgeConnection connection);
+
+	private IEnumerator RunEventRoutine()
+	{
+		while (true)
+		{
+			var processed = 0;
+			while (processed < MaxEventsPerFrame && _bridgeEvents.TryDequeue(out var bridgeEvent))
+			{
+				try
+				{
+					bridgeEvent();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error("Bridge event failure", ex);
+				}
+				processed++;
+			}
+			yield return null;
+		}
+	}
+
+	private void OnOpenSocket(IWebSocketConnection socket, BridgeConnection bridgeConnection)
+	{
+		Listener.clients.Add(bridgeConnection.Id, new RconConnection(socket, bridgeConnection.Id));
+		Connections[bridgeConnection.Id] = bridgeConnection;
+		ConnectionsList.Add(bridgeConnection);
+		OnNewConnection?.Invoke(bridgeConnection);
+		OnBridgeConnection(bridgeConnection);
+	}
+	private void OnCloseSocket(IWebSocketConnection socket, BridgeConnection bridgeConnection)
+	{
+		Listener.clients.Remove(bridgeConnection.Id);
+		if (Connections.ContainsKey(bridgeConnection.Id))
+		{
+			OnBridgeDisconnection(bridgeConnection);
+			OnClosedConnection?.Invoke(bridgeConnection);
+			Connections.Remove(bridgeConnection.Id);
+			ConnectionsList.Remove(bridgeConnection);
+			Pool.Free(ref bridgeConnection);
+		}
+	}
+	private void OnBinarySocket(IWebSocketConnection socket, BridgeConnection bridgeConnection, BufferStream buffer)
+	{
+		var read = BridgeRead.Rent(buffer, bridgeConnection);
+		try
+		{
+			Messages.HandleChannelRead(read);
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Carbon.Bridge.OnBinarySocket failure", ex);
+		}
+
+		if (Messages.ShouldPool)
+		{
+			BridgeRead.Return(ref read);
+		}
+	}
 
 	public void SetMessages(BridgeMessages messages)
 	{
@@ -322,7 +383,6 @@ public sealed class BridgeClient
 				{
 					case WebSocketMessageType.Binary:
 						var read = BridgeRead.Rent(stream);
-						read.stream = stream;
 						try
 						{
 							Messages.HandleChannelRead(read);
@@ -339,7 +399,12 @@ public sealed class BridgeClient
 						break;
 
 					case WebSocketMessageType.Close:
+						Pool.Free(ref stream);
 						await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server closed", CancellationToken.Token);
+						break;
+
+					default:
+						Pool.Free(ref stream);
 						break;
 				}
 			}
@@ -374,11 +439,18 @@ public sealed class BridgeConnection : Pool.IPooled
 
 	public void Send(BridgeWrite write)
 	{
-		if (Socket == null)
+		if (Socket == null || write == null || !Socket.IsAvailable)
 		{
 			return;
 		}
-		Socket.Send(write.GetMemory());
+		try
+		{
+			Socket.Send(write.GetMemory());
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("BridgeConnection.Send failure", ex);
+		}
 	}
 
 	public void EnterPool()

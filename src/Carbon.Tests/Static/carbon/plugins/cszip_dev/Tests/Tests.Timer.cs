@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Carbon.Test;
 
 namespace Carbon.Plugins;
@@ -14,14 +15,23 @@ public partial class Tests
 		private static int StartupBurstCountActual;
 		private static int StartupRepeatOnceCount;
 		private static int StartupCallbackBeforeInitCount;
+		private static bool StartupTimersQueuedBeforeInit;
 		private static long StartupBurstFirstTick;
 		private static long StartupBurstLastTick;
 		private static Oxide.Plugins.Timer RemainingStartupTimer;
 		private static Oxide.Plugins.Timer RemainingStartupEveryTimer;
 		private static Oxide.Plugins.Timer RemainingStartupRepeatTimer;
+		private static int StartupResetAttackerCount;
+		private static int StartupResetVictimCount;
+		private static int StartupRepeatLifecycleCount;
+		private static int StartupEveryTickCount;
+		private static Oxide.Plugins.Timer StartupResetVictimTimer;
+		private static Oxide.Plugins.Timer StartupRepeatLifecycleTimer;
+		private static Oxide.Plugins.Timer StartupEveryTickTimer;
 
 		internal static void QueuePreServerInitializedTimers()
 		{
+			StartupTimersQueuedBeforeInit = !Community.IsServerInitialized;
 			StartupBurstStopwatch.Restart();
 
 			singleton.timer.In(0f, () =>
@@ -31,6 +41,17 @@ public partial class Tests
 				{
 					Interlocked.Increment(ref StartupCallbackBeforeInitCount);
 				}
+			});
+
+			singleton.timer.In(0f, () =>
+			{
+				Interlocked.Increment(ref StartupResetAttackerCount);
+				StartupResetVictimTimer?.Reset(120f);
+			});
+
+			StartupResetVictimTimer = singleton.timer.In(0f, () =>
+			{
+				Interlocked.Increment(ref StartupResetVictimCount);
 			});
 
 			for (var i = 0; i < StartupBurstCount; i++)
@@ -74,16 +95,117 @@ public partial class Tests
 			{
 				// This timer should be destroyed by the test before it naturally fires
 			});
+
+			StartupRepeatLifecycleTimer = singleton.timer.Repeat(0.05f, 3, () =>
+			{
+				Interlocked.Increment(ref StartupRepeatLifecycleCount);
+			});
+
+			StartupEveryTickTimer = singleton.timer.Every(0.1f, () =>
+			{
+				Interlocked.Increment(ref StartupEveryTickCount);
+			});
 		}
 
 		[Integrations.Test.Assert]
 		public void pre_init_due_timers_fire_before_server_initialized(Integrations.Test.Assert test)
 		{
-			test.Log($"[tests.timer.startup] scheduled={StartupBurstCount + 2:n0} immediate={StartupImmediateCount:n0} burst={StartupBurstCountActual:n0} repeatOnce={StartupRepeatOnceCount:n0} beforeInit={StartupCallbackBeforeInitCount:n0} scheduleElapsed={StartupBurstStopwatch.Elapsed.TotalMilliseconds:0.000}ms callbackSpan={GetStartupBurstCallbackSpanMilliseconds():0.000}ms");
+			test.Log($"[tests.timer.startup] scheduled={StartupBurstCount + 2:n0} queuedBeforeInit={StartupTimersQueuedBeforeInit} immediate={StartupImmediateCount:n0} burst={StartupBurstCountActual:n0} repeatOnce={StartupRepeatOnceCount:n0} beforeInit={StartupCallbackBeforeInitCount:n0} scheduleElapsed={StartupBurstStopwatch.Elapsed.TotalMilliseconds:0.000}ms callbackSpan={GetStartupBurstCallbackSpanMilliseconds():0.000}ms");
 			test.IsTrue(StartupImmediateCount == 1, "single immediate pre-init timer fired once");
 			test.IsTrue(StartupBurstCountActual == StartupBurstCount, "pre-init burst timers fired once");
 			test.IsTrue(StartupRepeatOnceCount == 1, "single repeat pre-init timer fired once");
-			test.IsTrue(StartupCallbackBeforeInitCount == StartupBurstCount + 2, "due pre-init timers fired before server initialized");
+
+			if (StartupTimersQueuedBeforeInit)
+			{
+				test.IsTrue(StartupCallbackBeforeInitCount == StartupBurstCount + 2, "due pre-init timers fired before server initialization");
+			}
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert]
+		public void pre_init_reset_from_startup_callback_does_not_fire_early(Integrations.Test.Assert test)
+		{
+			if (!StartupTimersQueuedBeforeInit)
+			{
+				test.Log("[tests.timer.startup] skipped, test plugin was loaded after server initialization");
+				test.Complete();
+				return;
+			}
+
+			test.IsTrue(StartupResetAttackerCount == 1, "startup reset attacker fired once");
+			test.IsTrue(StartupResetVictimCount == 0, "reset startup timer did not fire early");
+			test.IsNotNull(StartupResetVictimTimer, "reset startup timer instance");
+
+			if (StartupResetVictimTimer != null)
+			{
+				test.IsFalse(StartupResetVictimTimer.Destroyed, "reset startup timer stays alive");
+				test.IsNotNull(StartupResetVictimTimer.Callback, "reset startup timer callback");
+
+				if (StartupResetVictimTimer.Callback != null)
+				{
+					var callback = StartupResetVictimTimer.Callback;
+					test.IsTrue(StartupResetVictimTimer.Persistence.IsInvoking(callback), "reset startup timer converted to invoke");
+					StartupResetVictimTimer.Destroy();
+					test.IsFalse(StartupResetVictimTimer.Persistence.IsInvoking(callback), "reset startup timer destroy cancels invoke");
+				}
+			}
+
+			test.IsTrue(StartupResetVictimCount == 0, "reset startup timer never fired during the test");
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 10_000)]
+		public async Task pre_init_repeat_completes_exact_repetitions_across_init(Integrations.Test.Assert test)
+		{
+			test.IsNotNull(StartupRepeatLifecycleTimer, "pre-init repeat lifecycle timer instance");
+			if (StartupRepeatLifecycleTimer == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			var deadline = Stopwatch.StartNew();
+			while (!StartupRepeatLifecycleTimer.Destroyed && deadline.ElapsedMilliseconds < 6_000)
+			{
+				await Task.Delay(50);
+			}
+
+			test.IsTrue(StartupRepeatLifecycleTimer.Destroyed, "pre-init repeat lifecycle timer destroyed after final repetition");
+			test.IsTrue(StartupRepeatLifecycleCount == 3, "pre-init repeat lifecycle timer fired exactly its repetition count");
+			test.IsTrue(StartupRepeatLifecycleTimer.TimesTriggered == 3, "pre-init repeat lifecycle timer tracked all repetitions");
+
+			await Task.Delay(300);
+
+			test.IsTrue(StartupRepeatLifecycleCount == 3, "pre-init repeat lifecycle timer did not fire after completion");
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 10_000)]
+		public async Task pre_init_every_keeps_ticking_after_conversion(Integrations.Test.Assert test)
+		{
+			test.IsNotNull(StartupEveryTickTimer, "pre-init every tick timer instance");
+			if (StartupEveryTickTimer == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			var before = StartupEveryTickCount;
+			var deadline = Stopwatch.StartNew();
+			while (StartupEveryTickCount <= before && deadline.ElapsedMilliseconds < 6_000)
+			{
+				await Task.Delay(100);
+			}
+
+			test.IsTrue(StartupEveryTickCount > before, "pre-init every timer still ticking after server initialization");
+			test.IsFalse(StartupEveryTickTimer.Destroyed, "pre-init every timer stays alive until destroyed");
+
+			StartupEveryTickTimer.Destroy();
+			await Task.Delay(400);
+			var after = StartupEveryTickCount;
+			await Task.Delay(400);
+
+			test.IsTrue(StartupEveryTickCount == after, "destroyed pre-init every timer stopped ticking");
 			test.Complete();
 		}
 
@@ -126,6 +248,223 @@ public partial class Tests
 				test.IsFalse(RemainingStartupRepeatTimer.Persistence.IsInvoking(callback), "converted pre-init repeat timer destroy cancels invoke");
 			}
 
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert]
+		public void clear_destroys_existing_timers_and_keeps_timer_set_reusable(Integrations.Test.Assert test)
+		{
+			var timers = new Oxide.Plugins.Timers(singleton);
+			var first = timers.In(60f, () => { });
+			var firstCallback = first?.Callback;
+
+			test.IsNotNull(first, "first timer instance");
+			test.IsNotNull(firstCallback, "first timer callback");
+			if (first == null || firstCallback == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			timers.Clear();
+
+			test.IsTrue(first.Destroyed, "Clear destroys existing timer");
+			test.IsFalse(first.Persistence.IsInvoking(firstCallback), "Clear cancels existing timer invoke");
+
+			var second = timers.In(60f, () => { });
+			var secondCallback = second?.Callback;
+
+			test.IsNotNull(second, "timer can be created after Clear");
+			test.IsNotNull(secondCallback, "new timer callback after Clear");
+			if (second == null || secondCallback == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			test.IsTrue(second.Persistence.IsInvoking(secondCallback), "new timer after Clear is scheduled");
+
+			timers.DestroyAll();
+
+			test.IsTrue(second.Destroyed, "DestroyAll destroys timer created after Clear");
+			test.IsFalse(second.Persistence.IsInvoking(secondCallback), "DestroyAll cancels timer created after Clear");
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 5_000)]
+		public void destroy_all_handles_stale_destroyed_timer_entries(Integrations.Test.Assert test)
+		{
+			var timers = new Oxide.Plugins.Timers(singleton);
+			var timer = timers.In(60f, () => { });
+			var callback = timer?.Callback;
+
+			test.IsNotNull(timer, "timer instance");
+			test.IsNotNull(callback, "timer callback");
+			if (timer == null || callback == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			timer.Destroyed = true;
+			timers.DestroyAll();
+
+			test.IsTrue(timer.Destroyed, "stale destroyed timer remains destroyed");
+			test.IsNull(timer.Callback, "stale destroyed timer callback is cleared");
+			test.IsFalse(timer.Persistence.IsInvoking(callback), "stale destroyed timer invoke is cancelled");
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 5_000)]
+		public async Task in_timer_destroys_and_untracks_after_firing_once(Integrations.Test.Assert test)
+		{
+			var timers = new Oxide.Plugins.Timers(singleton);
+			var firedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+			var fired = 0;
+
+			var timer = timers.In(0.05f, () =>
+			{
+				Interlocked.Increment(ref fired);
+				firedTcs.TrySetResult(true);
+			});
+
+			var callback = timer?.Callback;
+			test.IsNotNull(timer, "In timer instance");
+			test.IsNotNull(callback, "In timer callback");
+			if (timer == null || callback == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			var completed = await Task.WhenAny(firedTcs.Task, Task.Delay(2_000));
+
+			test.IsTrue(completed == firedTcs.Task, "In timer fired");
+			test.IsTrue(fired == 1, "In timer fired once");
+			test.IsTrue(timer.Destroyed, "In timer destroyed after firing");
+			test.IsNull(timer.Callback, "In timer callback cleared after firing");
+			test.IsFalse(timer.Persistence.IsInvoking(callback), "In timer invoke cancelled after firing");
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 5_000)]
+		public async Task completed_in_timer_can_be_reset(Integrations.Test.Assert test)
+		{
+			var timers = new Oxide.Plugins.Timers(singleton);
+			var firstFireTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+			var secondFireTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+			var fired = 0;
+
+			var timer = timers.In(0.05f, () =>
+			{
+				if (Interlocked.Increment(ref fired) == 1)
+				{
+					firstFireTcs.TrySetResult(true);
+				}
+				else
+				{
+					secondFireTcs.TrySetResult(true);
+				}
+			});
+
+			test.IsNotNull(timer, "In timer instance");
+			if (timer == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			var firstCompleted = await Task.WhenAny(firstFireTcs.Task, Task.Delay(2_000));
+
+			test.IsTrue(firstCompleted == firstFireTcs.Task, "In timer fired before reset");
+			test.IsTrue(timer.Destroyed, "In timer destroyed after first fire");
+
+			timer.Reset(0.05f);
+			test.IsFalse(timer.Destroyed, "Reset revives completed In timer");
+
+			var secondCompleted = await Task.WhenAny(secondFireTcs.Task, Task.Delay(2_000));
+
+			test.IsTrue(secondCompleted == secondFireTcs.Task, "reset In timer fired");
+			test.IsTrue(fired == 2, "reset In timer fired once more");
+			test.IsTrue(timer.Destroyed, "reset In timer destroyed after firing");
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 5_000)]
+		public async Task repeat_timer_destroys_and_untracks_after_final_repetition(Integrations.Test.Assert test)
+		{
+			var timers = new Oxide.Plugins.Timers(singleton);
+			var completedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+			var fired = 0;
+
+			var timer = timers.Repeat(0.05f, 2, () =>
+			{
+				if (Interlocked.Increment(ref fired) == 2)
+				{
+					completedTcs.TrySetResult(true);
+				}
+			});
+
+			var callback = timer?.Callback;
+			test.IsNotNull(timer, "Repeat timer instance");
+			test.IsNotNull(callback, "Repeat timer callback");
+			if (timer == null || callback == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			var completed = await Task.WhenAny(completedTcs.Task, Task.Delay(2_000));
+
+			test.IsTrue(completed == completedTcs.Task, "Repeat timer completed expected repetitions");
+			test.IsTrue(fired == 2, "Repeat timer fired twice");
+			test.IsTrue(timer.Destroyed, "Repeat timer destroyed after final repetition");
+			test.IsNull(timer.Callback, "Repeat timer callback cleared after final repetition");
+			test.IsFalse(timer.Persistence.IsInvoking(callback), "Repeat timer invoke cancelled after final repetition");
+
+			await Task.Delay(150);
+
+			test.IsTrue(fired == 2, "Repeat timer did not fire after final repetition");
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 5_000)]
+		public async Task repeat_timer_reset_inside_final_callback_survives_completion(Integrations.Test.Assert test)
+		{
+			var timers = new Oxide.Plugins.Timers(singleton);
+			var resetFireTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+			var fired = 0;
+			Oxide.Plugins.Timer timer = null;
+
+			timer = timers.Repeat(0.05f, 2, () =>
+			{
+				var count = Interlocked.Increment(ref fired);
+				if (count == 2)
+				{
+					timer.Reset(0.05f);
+				}
+				else if (count == 3)
+				{
+					resetFireTcs.TrySetResult(true);
+				}
+			});
+
+			test.IsNotNull(timer, "Repeat timer instance");
+			if (timer == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			var resetCompleted = await Task.WhenAny(resetFireTcs.Task, Task.Delay(2_000));
+
+			test.IsTrue(resetCompleted == resetFireTcs.Task, "reset from final Repeat callback fired");
+			test.IsTrue(fired == 3, "Repeat timer fired twice before reset and once after reset");
+			test.IsTrue(timer.Destroyed, "reset Repeat timer destroyed after replacement fire");
+
+			await Task.Delay(150);
+
+			test.IsTrue(fired == 3, "Repeat timer reset did not leave original repeat running");
 			test.Complete();
 		}
 

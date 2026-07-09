@@ -6,6 +6,8 @@ public partial class Timers
 {
 	private static readonly object StartupTimerLock = new();
 	private static readonly List<Timer> StartupTimers = [];
+	private static float _nextStartupTimerAt = float.PositiveInfinity;
+
 	private const int MaxStartupTimersPerFrame = 256;
 	private const float StartupTimerDueTolerance = 0.001f;
 	private const float MinimumStartupRepeatDelay = 0.001f;
@@ -21,22 +23,32 @@ public partial class Timers
 		{
 			if (StartupTimers.Contains(timer))
 			{
+				RefreshNextStartupTimerAt();
 				return;
 			}
 
 			StartupTimers.Add(timer);
+			TrackNextStartupTimerAt(timer);
 		}
 	}
 
 	internal static void RemoveStartupTimer(Timer timer)
 	{
+		if (Community.IsServerInitialized)
+		{
+			return;
+		}
+
 		lock (StartupTimerLock)
 		{
-			StartupTimers.Remove(timer);
+			if (StartupTimers.Remove(timer))
+			{
+				RefreshNextStartupTimerAt();
+			}
 		}
 	}
 
-	public static void UpdateStartupTimers()
+	internal static void UpdateStartupTimers()
 	{
 		if (Community.IsServerInitialized)
 		{
@@ -46,7 +58,7 @@ public partial class Timers
 		FireDueStartupTimers(MaxStartupTimersPerFrame);
 	}
 
-	public static void FireDueStartupTimers(int maxTimers = int.MaxValue)
+	internal static void FireDueStartupTimers(int maxTimers = int.MaxValue)
 	{
 		if (maxTimers <= 0)
 		{
@@ -54,65 +66,27 @@ public partial class Timers
 		}
 
 		var now = UnityEngine.Time.realtimeSinceStartup;
+		if (!HasDueStartupTimers(now))
+		{
+			return;
+		}
+
 		var timers = Pool.Get<List<Timer>>();
+		var callbacks = Pool.Get<List<Action>>();
 
 		try
 		{
-			lock (StartupTimerLock)
-			{
-				if (StartupTimers.Count == 0)
-				{
-					return;
-				}
-
-				for (var i = 0; i < StartupTimers.Count; i++)
-				{
-					var timer = StartupTimers[i];
-					if (timer.Destroyed)
-					{
-						StartupTimers.RemoveAt(i);
-						i--;
-						continue;
-					}
-
-					if (timer.ExpiresAt - now > StartupTimerDueTolerance)
-					{
-						continue;
-					}
-
-					StartupTimers.RemoveAt(i);
-					i--;
-					timers.Add(timer);
-
-					if (timers.Count >= maxTimers)
-					{
-						break;
-					}
-				}
-			}
-
-			for (var i = 0; i < timers.Count; i++)
-			{
-				var timer = timers[i];
-				if (!timer.Destroyed)
-				{
-					timer.Callback?.Invoke();
-
-					if (ShouldRequeueStartupTimer(timer))
-					{
-						timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
-						QueueStartupTimer(timer);
-					}
-				}
-			}
+			CollectDueStartupTimers(timers, callbacks, now, maxTimers);
+			FireStartupTimers(timers, callbacks);
 		}
 		finally
 		{
 			Pool.FreeUnmanaged(ref timers);
+			Pool.FreeUnmanaged(ref callbacks);
 		}
 	}
 
-	public static void ConvertRemainingStartupTimersToInvokes()
+	internal static void ConvertRemainingStartupTimersToInvokes()
 	{
 		var timers = Pool.Get<List<Timer>>();
 
@@ -126,6 +100,7 @@ public partial class Timers
 				}
 
 				StartupTimers.Clear();
+				_nextStartupTimerAt = float.PositiveInfinity;
 			}
 
 			var now = UnityEngine.Time.realtimeSinceStartup;
@@ -162,5 +137,108 @@ public partial class Timers
 		}
 
 		return timer.Repetitions <= 0 || timer.TimesTriggered < timer.Repetitions;
+	}
+
+	private static bool HasDueStartupTimers(float now)
+	{
+		lock (StartupTimerLock)
+		{
+			return StartupTimers.Count > 0 && IsStartupTimerDue(_nextStartupTimerAt, now);
+		}
+	}
+
+	private static void CollectDueStartupTimers(List<Timer> timers, List<Action> callbacks, float now, int maxTimers)
+	{
+		lock (StartupTimerLock)
+		{
+			if (StartupTimers.Count == 0 || !IsStartupTimerDue(_nextStartupTimerAt, now))
+			{
+				return;
+			}
+
+			for (var i = 0; i < StartupTimers.Count; i++)
+			{
+				var timer = StartupTimers[i];
+				if (timer.Destroyed)
+				{
+					StartupTimers.RemoveAt(i);
+					i--;
+					continue;
+				}
+
+				if (timer.ExpiresAt - now > StartupTimerDueTolerance)
+				{
+					continue;
+				}
+
+				StartupTimers.RemoveAt(i);
+				i--;
+				timers.Add(timer);
+				callbacks.Add(timer.Callback);
+
+				if (timers.Count >= maxTimers)
+				{
+					break;
+				}
+			}
+
+			RefreshNextStartupTimerAt();
+		}
+	}
+
+	private static void FireStartupTimers(List<Timer> timers, List<Action> callbacks)
+	{
+		for (var i = 0; i < timers.Count; i++)
+		{
+			var timer = timers[i];
+			var callback = callbacks[i];
+			if (timer.Destroyed || callback == null || timer.Callback != callback)
+			{
+				continue;
+			}
+
+			callback.Invoke();
+
+			if (timer.Callback == callback && ShouldRequeueStartupTimer(timer))
+			{
+				timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + NormalizeStartupRepeatDelay(timer.Delay);
+				QueueStartupTimer(timer);
+			}
+		}
+	}
+
+	private static void TrackNextStartupTimerAt(Timer timer)
+	{
+		if (timer.Destroyed)
+		{
+			return;
+		}
+
+		if (timer.ExpiresAt < _nextStartupTimerAt)
+		{
+			_nextStartupTimerAt = timer.ExpiresAt;
+		}
+	}
+
+	private static void RefreshNextStartupTimerAt()
+	{
+		_nextStartupTimerAt = float.PositiveInfinity;
+		for (var i = 0; i < StartupTimers.Count; i++)
+		{
+			var timer = StartupTimers[i];
+			if (timer.Destroyed)
+			{
+				StartupTimers.RemoveAt(i);
+				i--;
+				continue;
+			}
+
+			TrackNextStartupTimerAt(timer);
+		}
+	}
+
+	private static bool IsStartupTimerDue(float expiresAt, float now)
+	{
+		return expiresAt - now <= StartupTimerDueTolerance;
 	}
 }

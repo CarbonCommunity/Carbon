@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using API.Abstracts;
 using API.Assembly;
@@ -16,7 +16,7 @@ internal sealed class FileWatcherManager : CarbonBehaviour, IFileWatcherManager,
 		public FileSystemWatcher Handler;
 	}
 
-	private readonly Dictionary<FileSystemWatcher, WatchEntry> _byHandler = new();
+	private readonly ConcurrentDictionary<FileSystemWatcher, WatchEntry> _byHandler = new();
 
 	internal void Awake()
 	{
@@ -146,7 +146,7 @@ internal sealed class FileWatcherManager : CarbonBehaviour, IFileWatcherManager,
 		if (handler == null) return;
 
 		UnwatchInternal(handler);
-		_byHandler.Remove(handler);
+		_byHandler.TryRemove(handler, out _);
 	}
 
 	public void Unwatch(string directory)
@@ -168,7 +168,7 @@ internal sealed class FileWatcherManager : CarbonBehaviour, IFileWatcherManager,
 		if (handler == null) return;
 
 		UnwatchInternal(handler);
-		_byHandler.Remove(handler);
+		_byHandler.TryRemove(handler, out _);
 	}
 
 	private void UnwatchInternal(FileSystemWatcher handler)
