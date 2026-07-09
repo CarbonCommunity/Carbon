@@ -69,7 +69,17 @@ public partial class Community
 
 	public void MarkServerInitialized(bool wants)
 	{
+		if (wants && !IsServerInitialized)
+		{
+			Timers.FireDueStartupTimers();
+		}
+
 		IsServerInitialized = wants;
+
+		if (wants)
+		{
+			Timers.ConvertRemainingStartupTimersToInvokes();
+		}
 	}
 	public void ClearCommands(bool all = false)
 	{
