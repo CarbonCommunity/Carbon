@@ -136,8 +136,7 @@ public partial class Timers : Library
 		}
 		else
 		{
-			timer.Delay = NormalizeStartupRepeatDelay(time);
-			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + NormalizeStartupRepeatDelay(time);
 			QueueStartupTimer(timer);
 		}
 
@@ -183,8 +182,7 @@ public partial class Timers : Library
 		}
 		else if (timer.StartupRepeating)
 		{
-			timer.Delay = NormalizeStartupRepeatDelay(time);
-			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + timer.Delay;
+			timer.ExpiresAt = UnityEngine.Time.realtimeSinceStartup + NormalizeStartupRepeatDelay(time);
 			QueueStartupTimer(timer);
 		}
 		else
@@ -314,12 +312,6 @@ public class Timer : IDisposable
 		}
 		else
 		{
-			if (!Community.IsServerInitialized)
-			{
-				delay = Timers.NormalizeStartupRepeatDelay(delay);
-				Delay = delay;
-			}
-
 			Action callback = null;
 			callback = () =>
 			{
@@ -352,7 +344,7 @@ public class Timer : IDisposable
 			}
 			else
 			{
-				ExpiresAt = UnityEngine.Time.realtimeSinceStartup + delay;
+				ExpiresAt = UnityEngine.Time.realtimeSinceStartup + Timers.NormalizeStartupRepeatDelay(delay);
 				Timers.QueueStartupTimer(this);
 			}
 		}
