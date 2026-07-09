@@ -21,6 +21,13 @@ public partial class Tests
 		private static Oxide.Plugins.Timer RemainingStartupTimer;
 		private static Oxide.Plugins.Timer RemainingStartupEveryTimer;
 		private static Oxide.Plugins.Timer RemainingStartupRepeatTimer;
+		private static int StartupResetAttackerCount;
+		private static int StartupResetVictimCount;
+		private static int StartupRepeatLifecycleCount;
+		private static int StartupEveryTickCount;
+		private static Oxide.Plugins.Timer StartupResetVictimTimer;
+		private static Oxide.Plugins.Timer StartupRepeatLifecycleTimer;
+		private static Oxide.Plugins.Timer StartupEveryTickTimer;
 
 		internal static void QueuePreServerInitializedTimers()
 		{
@@ -34,6 +41,17 @@ public partial class Tests
 				{
 					Interlocked.Increment(ref StartupCallbackBeforeInitCount);
 				}
+			});
+
+			singleton.timer.In(0f, () =>
+			{
+				Interlocked.Increment(ref StartupResetAttackerCount);
+				StartupResetVictimTimer?.Reset(120f);
+			});
+
+			StartupResetVictimTimer = singleton.timer.In(0f, () =>
+			{
+				Interlocked.Increment(ref StartupResetVictimCount);
 			});
 
 			for (var i = 0; i < StartupBurstCount; i++)
@@ -77,6 +95,16 @@ public partial class Tests
 			{
 				// This timer should be destroyed by the test before it naturally fires
 			});
+
+			StartupRepeatLifecycleTimer = singleton.timer.Repeat(0.05f, 3, () =>
+			{
+				Interlocked.Increment(ref StartupRepeatLifecycleCount);
+			});
+
+			StartupEveryTickTimer = singleton.timer.Every(0.1f, () =>
+			{
+				Interlocked.Increment(ref StartupEveryTickCount);
+			});
 		}
 
 		[Integrations.Test.Assert]
@@ -89,8 +117,95 @@ public partial class Tests
 
 			if (StartupTimersQueuedBeforeInit)
 			{
-				test.IsTrue(StartupCallbackBeforeInitCount == 0 || StartupCallbackBeforeInitCount == StartupBurstCount + 2, "due pre-init timers fired consistently around server initialization");
+				test.IsTrue(StartupCallbackBeforeInitCount == StartupBurstCount + 2, "due pre-init timers fired before server initialization");
 			}
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert]
+		public void pre_init_reset_from_startup_callback_does_not_fire_early(Integrations.Test.Assert test)
+		{
+			if (!StartupTimersQueuedBeforeInit)
+			{
+				test.Log("[tests.timer.startup] skipped, test plugin was loaded after server initialization");
+				test.Complete();
+				return;
+			}
+
+			test.IsTrue(StartupResetAttackerCount == 1, "startup reset attacker fired once");
+			test.IsTrue(StartupResetVictimCount == 0, "reset startup timer did not fire early");
+			test.IsNotNull(StartupResetVictimTimer, "reset startup timer instance");
+
+			if (StartupResetVictimTimer != null)
+			{
+				test.IsFalse(StartupResetVictimTimer.Destroyed, "reset startup timer stays alive");
+				test.IsNotNull(StartupResetVictimTimer.Callback, "reset startup timer callback");
+
+				if (StartupResetVictimTimer.Callback != null)
+				{
+					var callback = StartupResetVictimTimer.Callback;
+					test.IsTrue(StartupResetVictimTimer.Persistence.IsInvoking(callback), "reset startup timer converted to invoke");
+					StartupResetVictimTimer.Destroy();
+					test.IsFalse(StartupResetVictimTimer.Persistence.IsInvoking(callback), "reset startup timer destroy cancels invoke");
+				}
+			}
+
+			test.IsTrue(StartupResetVictimCount == 0, "reset startup timer never fired during the test");
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 10_000)]
+		public async Task pre_init_repeat_completes_exact_repetitions_across_init(Integrations.Test.Assert test)
+		{
+			test.IsNotNull(StartupRepeatLifecycleTimer, "pre-init repeat lifecycle timer instance");
+			if (StartupRepeatLifecycleTimer == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			var deadline = Stopwatch.StartNew();
+			while (!StartupRepeatLifecycleTimer.Destroyed && deadline.ElapsedMilliseconds < 6_000)
+			{
+				await Task.Delay(50);
+			}
+
+			test.IsTrue(StartupRepeatLifecycleTimer.Destroyed, "pre-init repeat lifecycle timer destroyed after final repetition");
+			test.IsTrue(StartupRepeatLifecycleCount == 3, "pre-init repeat lifecycle timer fired exactly its repetition count");
+			test.IsTrue(StartupRepeatLifecycleTimer.TimesTriggered == 3, "pre-init repeat lifecycle timer tracked all repetitions");
+
+			await Task.Delay(300);
+
+			test.IsTrue(StartupRepeatLifecycleCount == 3, "pre-init repeat lifecycle timer did not fire after completion");
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 10_000)]
+		public async Task pre_init_every_keeps_ticking_after_conversion(Integrations.Test.Assert test)
+		{
+			test.IsNotNull(StartupEveryTickTimer, "pre-init every tick timer instance");
+			if (StartupEveryTickTimer == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			var before = StartupEveryTickCount;
+			var deadline = Stopwatch.StartNew();
+			while (StartupEveryTickCount <= before && deadline.ElapsedMilliseconds < 6_000)
+			{
+				await Task.Delay(100);
+			}
+
+			test.IsTrue(StartupEveryTickCount > before, "pre-init every timer still ticking after server initialization");
+			test.IsFalse(StartupEveryTickTimer.Destroyed, "pre-init every timer stays alive until destroyed");
+
+			StartupEveryTickTimer.Destroy();
+			await Task.Delay(400);
+			var after = StartupEveryTickCount;
+			await Task.Delay(400);
+
+			test.IsTrue(StartupEveryTickCount == after, "destroyed pre-init every timer stopped ticking");
 			test.Complete();
 		}
 
