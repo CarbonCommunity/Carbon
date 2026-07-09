@@ -40,13 +40,13 @@ public partial class Category_Engine
 
 				if (effect.broadcast)
 				{
-					subscribers = BaseNetworkable.GlobalNetworkGroup.subscribers;
+					subscribers = BaseNetworkable.GlobalNetworkGroup?.subscribers;
 				}
 				else if (effect.targets != null)
 				{
 					subscribers = effect.targets;
 				}
-				else if (effect.entity > 0)
+				else if (effect.entity.Value > 0)
 				{
 					var baseEntity = BaseNetworkable.serverEntities.Find(effect.entity) as BaseEntity;
 					if (baseEntity.IsValid())
