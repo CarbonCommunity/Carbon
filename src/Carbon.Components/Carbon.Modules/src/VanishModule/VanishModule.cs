@@ -134,6 +134,14 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		_lastLooter = player;
 	}
 
+	private object CanSendEffect(Effect effect, Connection connection)
+	{
+		if (effect == null || effect.source == 0) return null;
+		if (connection != null && connection.userid == effect.source) return null;
+		if (IsPlayerVanished(effect.source)) return false;
+		return null;
+	}
+
 	private static void SendEffectTo(string effect, BasePlayer player)
 	{
 		if (player == null)
@@ -452,6 +460,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		[UsedImplicitly]
 		public static bool Prefix(BasePlayer player, Translate.Phrase reason)
 		{
+			if (Singleton == null || !Singleton.IsEnabled()) return true;
 			return !Singleton.IsPlayerVanished(player);
 		}
 	}
@@ -547,18 +556,6 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			]);
 
 			return codes;
-		}
-	}
-
-	[AutoPatch, HarmonyPatch(typeof(EffectNetwork), "Send", typeof(Effect), typeof(EntityNetworkRange))]
-	public static class EffectNetworkPatch
-	{
-		[UsedImplicitly]
-		[HarmonyPrefix]
-		public static bool Prefix(Effect effect, EntityNetworkRange networkRange)
-		{
-			if (effect == null || effect.source == 0) return true;
-			return Singleton == null || !Singleton.IsEnabled() || !Singleton.IsPlayerVanished(effect.source);
 		}
 	}
 
