@@ -509,6 +509,7 @@ public class Permission : Library
 		}
 
 		rustPlayer.Object = player;
+		rustPlayer.Name = player.displayName.Sanitize();
 	}
 	public virtual void UpdateNickname(string id, string nickname)
 	{
