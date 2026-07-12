@@ -14,9 +14,9 @@ public class Command : Library
 		get; set;
 	}
 
-	private static void LogCommandCompatibilityError(string commandType, string command, BaseHookable plugin, Exception ex, string label, BasePlayer player, bool isChat, bool notifyPlayer = true)
+	private static void LogCommandCompatibilityError(string commandType, string command, BaseHookable plugin, Exception ex, Exception compatEx, string label, BasePlayer player, bool isChat, bool notifyPlayer = true)
 	{
-		Logger.Error($"Failed executing {commandType} command '{command}' in '{plugin.ToPrettyString()}' [{label}]: {ex.GetCompatibilityMessage()}", ex.GetCompatibilityException());
+		Logger.Error($"Failed executing {commandType} command '{command}' in '{plugin.ToPrettyString()}' [{label}]: {ex.GetCompatibilityMessage(compatEx)}", compatEx);
 		if (notifyPlayer && Community.Runtime.Config.Logging.ShowCommandCompatibilityErrors && player != null)
 		{
 			if (isChat) player.ChatMessage(Localisation.Get("cmd_failed_compat", player.UserIDString));
@@ -118,8 +118,11 @@ public class Command : Library
 				{
 					case PlayerArgs playerArgs:
 						try { callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments.ToStringArray()); }
-						catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("chat", command, plugin, ex, "callback", playerArgs.Player as BasePlayer, isChat: true); }
-						catch (Exception ex) { LogCommandGenericError("chat", command, plugin, ex, "callback"); }
+						catch (Exception ex)
+						{
+							if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("chat", command, plugin, ex, compatEx, "callback", playerArgs.Player as BasePlayer, isChat: true);
+							else LogCommandGenericError("chat", command, plugin, ex, "callback");
+						}
 						break;
 				}
 			},
@@ -184,7 +187,7 @@ public class Command : Library
 							client.FromRcon = FromRcon;
 							arg.Option = client;
 							arg.FullString = fullString;
-							arg.Args = [.. (args ?? []).Select(x => (StringView)x)];
+							arg.Args = [.. args.Select(x => (StringView)x)];
 
 							arguments.Add(arg);
 						}
@@ -225,8 +228,11 @@ public class Command : Library
 
 				methodInfo?.Invoke(plugin, result);
 			}
-			catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("chat", command, plugin, ex, "callback", player, isChat: true); }
-			catch (Exception ex) { LogCommandGenericError("chat", command, plugin, ex, "callback"); }
+			catch (Exception ex)
+			{
+				if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("chat", command, plugin, ex, compatEx, "callback", player, isChat: true);
+				else LogCommandGenericError("chat", command, plugin, ex, "callback");
+			}
 
 			if (arguments != null)
 			{
@@ -254,8 +260,11 @@ public class Command : Library
 					{
 						case PlayerArgs playerArgs:
 							try { callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments.ToStringArray()); }
-							catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", playerArgs.Player as BasePlayer, isChat: false); }
-							catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); }
+							catch (Exception ex)
+							{
+								if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "callback", playerArgs.Player as BasePlayer, isChat: false);
+								else LogCommandGenericError("console", command, plugin, ex, "callback");
+							}
 							break;
 					}
 				},
@@ -289,8 +298,19 @@ public class Command : Library
 				Callback = args =>
 				{
 					try { callback?.Invoke(null, command, args.Arguments.ToStringArray()); }
-					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", null, isChat: false, notifyPlayer: false); if (!args.PrintOutput) args.Reply = ex.Message; }
-					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); if (!args.PrintOutput) args.Reply = ex.Message; }
+					catch (Exception ex)
+					{
+						if (ex.TryGetCompatibilityException(out var compatEx))
+						{
+							LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "callback", null, isChat: false, notifyPlayer: false);
+							if (!args.PrintOutput) args.Reply = $"{ex.GetCompatibilityMessage(compatEx)}\n{compatEx}";
+						}
+						else
+						{
+							LogCommandGenericError("console", command, plugin, ex, "callback");
+							if (!args.PrintOutput) args.Reply = ex.ToString();
+						}
+					}
 				},
 				Help = help,
 				Token = reference,
@@ -329,7 +349,7 @@ public class Command : Library
 				if (player != null) option = option.FromConnection(player.net.connection);
 				arg.Option = option;
 				arg.FullString = fullString;
-				arg.Args = (args ?? []).ToStringViewArray();
+				arg.Args = args.ToStringViewArray();
 				arg.cmd = Community.Runtime.CommandManager.Find(command)?.RustCommand;
 
 				try
@@ -417,12 +437,18 @@ public class Command : Library
 						}
 					}
 				}
-				catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", player, isChat: false); }
-				catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); }
+				catch (Exception ex)
+				{
+					if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "callback", player, isChat: false);
+					else LogCommandGenericError("console", command, plugin, ex, "callback");
+				}
 			}
 			catch (TargetParameterCountException) { }
-			catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "internal", player, isChat: false); }
-			catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "internal"); }
+			catch (Exception ex)
+			{
+				if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "internal", player, isChat: false);
+				else LogCommandGenericError("console", command, plugin, ex, "internal");
+			}
 
 			Pool.FreeUnmanaged(ref arguments);
 
@@ -452,8 +478,11 @@ public class Command : Library
 						args.Reply = arg.Reply;
 						args.PrintOutput = arg.Option.PrintOutput;
 					}
-					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", arg.Player(), isChat: false); }
-					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); }
+					catch (Exception ex)
+					{
+						if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "callback", arg.Player(), isChat: false);
+						else LogCommandGenericError("console", command, plugin, ex, "callback");
+					}
 				},
 				Help = help,
 				Token = reference,
@@ -495,8 +524,19 @@ public class Command : Library
 						callback?.Invoke(arg);
 						args.Reply = arg.Reply;
 					}
-					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", arg.Player(), isChat: false, notifyPlayer: false); if (!args.PrintOutput) args.Reply = ex.Message; }
-					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); if (!args.PrintOutput) args.Reply = ex.Message; }
+					catch (Exception ex)
+					{
+						if (ex.TryGetCompatibilityException(out var compatEx))
+						{
+							LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "callback", arg.Player(), isChat: false, notifyPlayer: false);
+							if (!args.PrintOutput) args.Reply = $"{ex.GetCompatibilityMessage(compatEx)}\n{compatEx}";
+						}
+						else
+						{
+							LogCommandGenericError("console", command, plugin, ex, "callback");
+							if (!args.PrintOutput) args.Reply = ex.ToString();
+						}
+					}
 				},
 				Help = help,
 				Token = reference,

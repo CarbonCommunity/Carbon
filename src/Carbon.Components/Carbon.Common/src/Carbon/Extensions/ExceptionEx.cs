@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Concurrent;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Carbon.Extensions;
@@ -8,6 +9,12 @@ public static class ExceptionEx
 	private static readonly Regex _missingMethodRegex = new(@"Method not found:\s*(?:'([^']+)'|(.+))", RegexOptions.Compiled);
 	private static readonly Regex _missingFieldRegex = new(@"Field not found:\s*(?:'([^']+)'|(.+))", RegexOptions.Compiled);
 	private static readonly Regex _typeLoadAssemblyRegex = new(@"from assembly\s+['""]([^'""]+)['""]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+	private static readonly ConcurrentDictionary<string, bool> _compatibilityTypeCache = new();
+
+	static ExceptionEx()
+	{
+		AppDomain.CurrentDomain.AssemblyLoad += (_, _) => _compatibilityTypeCache.Clear();
+	}
 
 	private static string GetSimpleAssemblyName(string fileName)
 	{
@@ -72,14 +79,17 @@ public static class ExceptionEx
 		if (returnTypeIndex >= 0)
 			declaringTypeName = declaringTypeName[(returnTypeIndex + 1)..];
 
-		var declaringType = AccessToolsEx.TypeByName(declaringTypeName);
-		if (declaringType != null)
-			return IsCompatibilityAssembly(declaringType.Assembly.GetName().Name);
+		return _compatibilityTypeCache.GetOrAdd(declaringTypeName, static typeName =>
+		{
+			var declaringType = AccessToolsEx.TypeByName(typeName);
+			if (declaringType != null)
+				return IsCompatibilityAssembly(declaringType.Assembly.GetName().Name);
 
-		return AppDomain.CurrentDomain.GetAssemblies()
-			.Where(assembly => IsCompatibilityAssembly(assembly.GetName().Name))
-			.SelectMany(AccessToolsEx.GetTypesFromAssembly)
-			.Any(type => type.FullName != null && type.FullName.Replace('+', '.').Equals(declaringTypeName, StringComparison.Ordinal));
+			return AppDomain.CurrentDomain.GetAssemblies()
+				.Where(assembly => IsCompatibilityAssembly(assembly.GetName().Name))
+				.SelectMany(AccessToolsEx.GetTypesFromAssembly)
+				.Any(type => type.FullName != null && type.FullName.Replace('+', '.').Equals(typeName, StringComparison.Ordinal));
+		});
 	}
 
 	private static bool IsCompatibilityTypeLoad(TypeLoadException exception)
@@ -115,7 +125,7 @@ public static class ExceptionEx
 		return commaIndex >= 0 && IsCompatibilityAssembly(GetSimpleAssemblyName(exception.TypeName[(commaIndex + 1)..]));
 	}
 
-	private static bool TryGetCompatibilityException(Exception exception, out Exception result)
+	public static bool TryGetCompatibilityException(this Exception exception, out Exception result)
 	{
 		var ex = exception;
 		while (ex != null)
@@ -181,29 +191,39 @@ public static class ExceptionEx
 
 	public static string GetCompatibilityMessage(this Exception exception)
 	{
-		var member = exception.GetCompatibilityException().ExtractMissingMember();
+		return exception.GetCompatibilityMessage(exception.GetCompatibilityException());
+	}
+
+	public static string GetCompatibilityMessage(this Exception exception, Exception compatibilityException)
+	{
+		var member = exception.ExtractMissingMember(compatibilityException);
 		var suffix = string.IsNullOrEmpty(member) ? string.Empty : $" ('{member}')";
 		return $"This usually means the Rust/Carbon/plugin versions are out of sync{suffix}. Try updating Carbon, the module/plugin, or the Rust server.";
 	}
 
 	public static string ExtractMissingMember(this Exception exception)
 	{
-		if (!TryGetCompatibilityException(exception, out var ex))
+		if (!TryGetCompatibilityException(exception, out var compatibilityException))
 			return string.Empty;
 
-		if (ex is MissingMemberException missingMember)
+		return exception.ExtractMissingMember(compatibilityException);
+	}
+
+	public static string ExtractMissingMember(this Exception exception, Exception compatibilityException)
+	{
+		if (compatibilityException is MissingMemberException missingMember)
 			return TryExtractMissingMember(missingMember, out var member) ? member : missingMember.Message;
 
-		if (ex is TypeLoadException typeLoad)
-			return string.IsNullOrEmpty(typeLoad.TypeName) ? ex.Message : typeLoad.TypeName;
+		if (compatibilityException is TypeLoadException typeLoad)
+			return string.IsNullOrEmpty(typeLoad.TypeName) ? compatibilityException.Message : typeLoad.TypeName;
 
-		if (ex is BadImageFormatException badImage)
-			return string.IsNullOrEmpty(badImage.FileName) ? ex.Message : badImage.FileName;
+		if (compatibilityException is BadImageFormatException badImage)
+			return string.IsNullOrEmpty(badImage.FileName) ? compatibilityException.Message : badImage.FileName;
 
-		if (ex is FileNotFoundException fileNotFound)
+		if (compatibilityException is FileNotFoundException fileNotFound)
 			return GetSimpleAssemblyName(fileNotFound.FileName);
 
-		if (ex is FileLoadException fileLoad)
+		if (compatibilityException is FileLoadException fileLoad)
 			return GetSimpleAssemblyName(fileLoad.FileName);
 
 		return string.Empty;
