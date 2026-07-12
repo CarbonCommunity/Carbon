@@ -289,8 +289,8 @@ public class Command : Library
 				Callback = arg =>
 				{
 					try { callback?.Invoke(null, command, arg.Arguments.ToStringArray()); }
-					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", null, isChat: false, notifyPlayer: false); }
-					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); }
+					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", null, isChat: false, notifyPlayer: false); throw; }
+					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); throw; }
 				},
 				Help = help,
 				Token = reference,
@@ -417,11 +417,9 @@ public class Command : Library
 						}
 					}
 				}
-				catch (TargetParameterCountException ex) { Logger.Error($"Failed executing console command '{command}' in '{plugin.ToPrettyString()}' [parameter count mismatch]", ex); }
-				catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", player, isChat: false); }
 				catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); }
 			}
-			catch (TargetParameterCountException ex) { Logger.Error($"Failed executing console command '{command}' in '{plugin.ToPrettyString()}' [parameter count mismatch]", ex); }
+			catch (TargetParameterCountException) { }
 			catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "internal", player, isChat: false); }
 			catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "internal"); }
 
