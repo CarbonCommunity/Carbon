@@ -495,8 +495,8 @@ public class Command : Library
 						callback?.Invoke(arg);
 						args.Reply = arg.Reply;
 					}
-					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", arg.Player(), isChat: false, notifyPlayer: false); }
-					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); }
+					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", arg.Player(), isChat: false, notifyPlayer: false); if (!args.PrintOutput) args.Reply = ex.Message; }
+					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); if (!args.PrintOutput) args.Reply = ex.Message; }
 				},
 				Help = help,
 				Token = reference,
