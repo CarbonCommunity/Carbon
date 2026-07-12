@@ -16,7 +16,8 @@ public struct Localisation
 		["unknown_chat_cmd_separator_2"] = " or ",
 		["no_perm"] = "You don't have any of the required permissions to run this command.",
 		["no_group"] = "You aren't in any of the required groups to run this command.",
-		["no_auth"] = $"You don't have the minimum auth level [{{0}}] required to execute this command [your level: {{1}}]."
+		["no_auth"] = $"You don't have the minimum auth level [{{0}}] required to execute this command [your level: {{1}}].",
+		["cmd_failed_compat"] = "That command is temporarily unavailable. Check the server console for details."
 	};
 
 	public static string Get(string key, string playerId)

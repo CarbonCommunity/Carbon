@@ -110,6 +110,7 @@ public class Config
 		public int LogVerbosity = 0;
 		public bool CommandSuggestions = true;
 		public bool ReducedLogging = true;
+		public bool ShowCommandCompatibilityErrors = false;
 	}
 
 	public class AnalyticsConfig
