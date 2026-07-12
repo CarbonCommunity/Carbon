@@ -96,7 +96,10 @@ public class HookEx : IDisposable, IHook
 
 			if (TargetType == null)
 			{
-				throw new Exception($"Hook '{HookFullName}' target class '{(string.IsNullOrEmpty(metadata.Target) ? "<none specified>" : metadata.Target)}' was not found in the current game assembly. This usually means the Rust/Carbon versions are out of sync.");
+				if (string.IsNullOrEmpty(metadata.Target))
+					throw new Exception($"Hook '{HookFullName}' does not specify a target class.");
+
+				throw new Exception($"Hook '{HookFullName}' target class '{metadata.Target}' was not found in the current game assembly. This usually means the Rust/Carbon versions are out of sync.");
 			}
 
 			// Type generics need to handled differently from a standard type.

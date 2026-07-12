@@ -26,7 +26,7 @@ public class Command : Library
 
 	private static void LogCommandGenericError(string commandType, string command, BaseHookable plugin, Exception ex, string label)
 	{
-		Logger.Error($"Failed executing {commandType} command '{command}' in '{plugin.ToPrettyString()}' [{label}]", ex);
+		Logger.Error($"Failed executing {commandType} command '{command}' in '{plugin.ToPrettyString()}' [{label}]", ex is TargetInvocationException invocation ? invocation.InnerException ?? ex : ex);
 	}
 
 	private Func<API.Commands.Command, API.Commands.Command.Args, bool> OnPlayerExecute(bool isChat)
@@ -417,6 +417,7 @@ public class Command : Library
 						}
 					}
 				}
+				catch (TargetParameterCountException ex) { Logger.Error($"Failed executing console command '{command}' in '{plugin.ToPrettyString()}' [parameter count mismatch]", ex); }
 				catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", player, isChat: false); }
 				catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); }
 			}

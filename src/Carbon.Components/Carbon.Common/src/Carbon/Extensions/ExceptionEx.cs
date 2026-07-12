@@ -7,6 +7,7 @@ public static class ExceptionEx
 {
 	private static readonly Regex _missingMethodRegex = new(@"Method not found:\s*(?:'([^']+)'|(.+))", RegexOptions.Compiled);
 	private static readonly Regex _missingFieldRegex = new(@"Field not found:\s*(?:'([^']+)'|(.+))", RegexOptions.Compiled);
+	private static readonly Regex _typeLoadAssemblyRegex = new(@"from assembly\s+['""]([^'""]+)['""]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 	private static string GetSimpleAssemblyName(string fileName)
 	{
@@ -33,6 +34,72 @@ public static class ExceptionEx
 			assemblyName.StartsWith("Carbon.", StringComparison.OrdinalIgnoreCase);
 	}
 
+	private static bool IsCompatibilityTypeLoad(TypeLoadException exception)
+	{
+		var assemblyMatch = _typeLoadAssemblyRegex.Match(exception.Message);
+		if (assemblyMatch.Success && IsCompatibilityAssembly(GetSimpleAssemblyName(assemblyMatch.Groups[1].Value)))
+			return true;
+
+		if (string.IsNullOrEmpty(exception.TypeName))
+			return false;
+
+		var genericDepth = 0;
+		var commaIndex = -1;
+		for (var i = 0; i < exception.TypeName.Length; i++)
+		{
+			switch (exception.TypeName[i])
+			{
+				case '[':
+					genericDepth++;
+					break;
+				case ']':
+					genericDepth--;
+					break;
+				case ',' when genericDepth == 0:
+					commaIndex = i;
+					break;
+			}
+
+			if (commaIndex >= 0)
+				break;
+		}
+
+		return commaIndex >= 0 && IsCompatibilityAssembly(GetSimpleAssemblyName(exception.TypeName[(commaIndex + 1)..]));
+	}
+
+	private static bool TryGetCompatibilityException(Exception exception, out Exception result)
+	{
+		var ex = exception;
+		while (ex != null)
+		{
+			if (ex is MissingMemberException or BadImageFormatException ||
+				ex is TypeLoadException typeLoad && IsCompatibilityTypeLoad(typeLoad))
+			{
+				result = ex;
+				return true;
+			}
+
+			if (ex is FileNotFoundException fileNotFound && !string.IsNullOrEmpty(fileNotFound.FileName) &&
+				IsCompatibilityAssembly(GetSimpleAssemblyName(fileNotFound.FileName)))
+			{
+				result = ex;
+				return true;
+			}
+
+			if (ex is FileLoadException fileLoad && !string.IsNullOrEmpty(fileLoad.FileName) &&
+				IsCompatibilityAssembly(GetSimpleAssemblyName(fileLoad.FileName)))
+			{
+				result = ex;
+				return true;
+			}
+
+			ex = ex.InnerException;
+		}
+
+		result = null;
+		return false;
+	}
+
 	public static string GetFullStackTrace(this Exception exception, bool mainMessage = true)
 	{
 		var fullStackTrace = mainMessage ? exception.ToString() : exception.StackTrace;
@@ -49,46 +116,12 @@ public static class ExceptionEx
 
 	public static bool IsCompatibilityError(this Exception exception)
 	{
-		var ex = exception;
-		while (ex != null)
-		{
-			if (ex is MissingMemberException or TypeLoadException or BadImageFormatException)
-				return true;
-
-			if (ex is FileNotFoundException fileNotFound && !string.IsNullOrEmpty(fileNotFound.FileName) &&
-				IsCompatibilityAssembly(GetSimpleAssemblyName(fileNotFound.FileName)))
-					return true;
-
-			if (ex is FileLoadException fileLoad && !string.IsNullOrEmpty(fileLoad.FileName) &&
-				IsCompatibilityAssembly(GetSimpleAssemblyName(fileLoad.FileName)))
-					return true;
-
-			ex = ex.InnerException;
-		}
-
-		return false;
+		return TryGetCompatibilityException(exception, out _);
 	}
 
 	public static Exception GetCompatibilityException(this Exception exception)
 	{
-		var ex = exception;
-		while (ex != null)
-		{
-			if (ex is MissingMemberException or TypeLoadException or BadImageFormatException)
-				return ex;
-
-			if (ex is FileNotFoundException fileNotFound && !string.IsNullOrEmpty(fileNotFound.FileName) &&
-				IsCompatibilityAssembly(GetSimpleAssemblyName(fileNotFound.FileName)))
-					return ex;
-
-			if (ex is FileLoadException fileLoad && !string.IsNullOrEmpty(fileLoad.FileName) &&
-				IsCompatibilityAssembly(GetSimpleAssemblyName(fileLoad.FileName)))
-					return ex;
-
-			ex = ex.InnerException;
-		}
-
-		return exception;
+		return TryGetCompatibilityException(exception, out var result) ? result : exception;
 	}
 
 	public static string GetCompatibilityMessage(this Exception exception)
@@ -100,56 +133,41 @@ public static class ExceptionEx
 
 	public static string ExtractMissingMember(this Exception exception)
 	{
-		var ex = exception;
-		while (ex != null)
+		if (!TryGetCompatibilityException(exception, out var ex))
+			return string.Empty;
+
+		if (ex is MissingFieldException missingField)
 		{
-			if (ex is MissingFieldException missingField)
-			{
-				var match = _missingFieldRegex.Match(missingField.Message);
-				if (match.Success)
-					return match.Groups[1].Success ? match.Groups[1].Value.Trim() : match.Groups[2].Value.Trim();
+			var match = _missingFieldRegex.Match(missingField.Message);
+			if (match.Success)
+				return match.Groups[1].Success ? match.Groups[1].Value.Trim() : match.Groups[2].Value.Trim();
 
-				return missingField.Message;
-			}
-
-			if (ex is MissingMethodException missingMethod)
-			{
-				var match = _missingMethodRegex.Match(missingMethod.Message);
-				if (match.Success)
-					return match.Groups[1].Success ? match.Groups[1].Value.Trim() : match.Groups[2].Value.Trim();
-
-				return missingMethod.Message;
-			}
-
-			if (ex is MissingMemberException missingMember)
-			{
-				return missingMember.Message;
-			}
-
-			if (ex is TypeLoadException typeLoad)
-			{
-				return string.IsNullOrEmpty(typeLoad.TypeName) ? ex.Message : typeLoad.TypeName;
-			}
-
-			if (ex is BadImageFormatException badImage)
-			{
-				return string.IsNullOrEmpty(badImage.FileName) ? ex.Message : badImage.FileName;
-			}
-
-			if (ex is FileNotFoundException fileNotFound && !string.IsNullOrEmpty(fileNotFound.FileName) &&
-				IsCompatibilityAssembly(GetSimpleAssemblyName(fileNotFound.FileName)))
-			{
-				return GetSimpleAssemblyName(fileNotFound.FileName);
-			}
-
-			if (ex is FileLoadException fileLoad && !string.IsNullOrEmpty(fileLoad.FileName) &&
-				IsCompatibilityAssembly(GetSimpleAssemblyName(fileLoad.FileName)))
-			{
-				return GetSimpleAssemblyName(fileLoad.FileName);
-			}
-
-			ex = ex.InnerException;
+			return missingField.Message;
 		}
+
+		if (ex is MissingMethodException missingMethod)
+		{
+			var match = _missingMethodRegex.Match(missingMethod.Message);
+			if (match.Success)
+				return match.Groups[1].Success ? match.Groups[1].Value.Trim() : match.Groups[2].Value.Trim();
+
+			return missingMethod.Message;
+		}
+
+		if (ex is MissingMemberException missingMember)
+			return missingMember.Message;
+
+		if (ex is TypeLoadException typeLoad)
+			return string.IsNullOrEmpty(typeLoad.TypeName) ? ex.Message : typeLoad.TypeName;
+
+		if (ex is BadImageFormatException badImage)
+			return string.IsNullOrEmpty(badImage.FileName) ? ex.Message : badImage.FileName;
+
+		if (ex is FileNotFoundException fileNotFound)
+			return GetSimpleAssemblyName(fileNotFound.FileName);
+
+		if (ex is FileLoadException fileLoad)
+			return GetSimpleAssemblyName(fileLoad.FileName);
 
 		return string.Empty;
 	}
