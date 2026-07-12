@@ -34,28 +34,52 @@ public static class ExceptionEx
 			assemblyName.StartsWith("Carbon.", StringComparison.OrdinalIgnoreCase);
 	}
 
-	private static bool IsCompatibilityMissingMember(MissingMemberException exception)
+	private static bool TryExtractMissingMember(MissingMemberException exception, out string member)
 	{
-		if (string.IsNullOrEmpty(exception.Message))
-			return false;
-
-		foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().Where(assembly => IsCompatibilityAssembly(assembly.GetName().Name)))
+		var regex = exception switch
 		{
-			Type[] types;
-			try
-			{
-				types = assembly.GetTypes();
-			}
-			catch (ReflectionTypeLoadException ex)
-			{
-				types = ex.Types;
-			}
-
-			if (types.Any(type => type?.FullName != null && exception.Message.IndexOf(type.FullName.Replace('+', '.'), StringComparison.Ordinal) >= 0))
-				return true;
+			MissingMethodException => _missingMethodRegex,
+			MissingFieldException => _missingFieldRegex,
+			_ => null
+		};
+		var match = regex?.Match(exception.Message);
+		if (match?.Success != true)
+		{
+			member = string.Empty;
+			return false;
 		}
 
-		return false;
+		member = (match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value).Trim();
+		return !string.IsNullOrEmpty(member);
+	}
+
+	private static bool IsCompatibilityMissingMember(MissingMemberException exception)
+	{
+		if (!TryExtractMissingMember(exception, out var member))
+			return false;
+
+		var parameterIndex = member.IndexOf('(');
+		if (parameterIndex >= 0)
+			member = member[..parameterIndex];
+
+		var constructorIndex = member.LastIndexOf("..", StringComparison.Ordinal);
+		var memberIndex = constructorIndex >= 0 ? constructorIndex : member.LastIndexOf('.');
+		if (memberIndex <= 0)
+			return false;
+
+		var declaringTypeName = member[..memberIndex];
+		var returnTypeIndex = declaringTypeName.IndexOf(' ');
+		if (returnTypeIndex >= 0)
+			declaringTypeName = declaringTypeName[(returnTypeIndex + 1)..];
+
+		var declaringType = AccessToolsEx.TypeByName(declaringTypeName);
+		if (declaringType != null)
+			return IsCompatibilityAssembly(declaringType.Assembly.GetName().Name);
+
+		return AppDomain.CurrentDomain.GetAssemblies()
+			.Where(assembly => IsCompatibilityAssembly(assembly.GetName().Name))
+			.SelectMany(AccessToolsEx.GetTypesFromAssembly)
+			.Any(type => type.FullName != null && type.FullName.Replace('+', '.').Equals(declaringTypeName, StringComparison.Ordinal));
 	}
 
 	private static bool IsCompatibilityTypeLoad(TypeLoadException exception)
@@ -167,26 +191,8 @@ public static class ExceptionEx
 		if (!TryGetCompatibilityException(exception, out var ex))
 			return string.Empty;
 
-		if (ex is MissingFieldException missingField)
-		{
-			var match = _missingFieldRegex.Match(missingField.Message);
-			if (match.Success)
-				return match.Groups[1].Success ? match.Groups[1].Value.Trim() : match.Groups[2].Value.Trim();
-
-			return missingField.Message;
-		}
-
-		if (ex is MissingMethodException missingMethod)
-		{
-			var match = _missingMethodRegex.Match(missingMethod.Message);
-			if (match.Success)
-				return match.Groups[1].Success ? match.Groups[1].Value.Trim() : match.Groups[2].Value.Trim();
-
-			return missingMethod.Message;
-		}
-
 		if (ex is MissingMemberException missingMember)
-			return missingMember.Message;
+			return TryExtractMissingMember(missingMember, out var member) ? member : missingMember.Message;
 
 		if (ex is TypeLoadException typeLoad)
 			return string.IsNullOrEmpty(typeLoad.TypeName) ? ex.Message : typeLoad.TypeName;

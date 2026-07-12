@@ -286,11 +286,11 @@ public class Command : Library
 			{
 				Name = command,
 				Reference = plugin,
-				Callback = arg =>
+				Callback = args =>
 				{
-					try { callback?.Invoke(null, command, arg.Arguments.ToStringArray()); }
-					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", null, isChat: false, notifyPlayer: false); }
-					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); }
+					try { callback?.Invoke(null, command, args.Arguments.ToStringArray()); }
+					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", null, isChat: false, notifyPlayer: false); if (!args.PrintOutput) args.Reply = ex.Message; }
+					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); if (!args.PrintOutput) args.Reply = ex.Message; }
 				},
 				Help = help,
 				Token = reference,
