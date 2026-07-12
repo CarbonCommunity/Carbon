@@ -34,6 +34,30 @@ public static class ExceptionEx
 			assemblyName.StartsWith("Carbon.", StringComparison.OrdinalIgnoreCase);
 	}
 
+	private static bool IsCompatibilityMissingMember(MissingMemberException exception)
+	{
+		if (string.IsNullOrEmpty(exception.Message))
+			return false;
+
+		foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().Where(assembly => IsCompatibilityAssembly(assembly.GetName().Name)))
+		{
+			Type[] types;
+			try
+			{
+				types = assembly.GetTypes();
+			}
+			catch (ReflectionTypeLoadException ex)
+			{
+				types = ex.Types;
+			}
+
+			if (types.Any(type => type?.FullName != null && exception.Message.IndexOf(type.FullName.Replace('+', '.'), StringComparison.Ordinal) >= 0))
+				return true;
+		}
+
+		return false;
+	}
+
 	private static bool IsCompatibilityTypeLoad(TypeLoadException exception)
 	{
 		var assemblyMatch = _typeLoadAssemblyRegex.Match(exception.Message);
@@ -72,8 +96,15 @@ public static class ExceptionEx
 		var ex = exception;
 		while (ex != null)
 		{
-			if (ex is MissingMemberException or BadImageFormatException ||
+			if (ex is MissingMemberException missingMember && IsCompatibilityMissingMember(missingMember) ||
 				ex is TypeLoadException typeLoad && IsCompatibilityTypeLoad(typeLoad))
+			{
+				result = ex;
+				return true;
+			}
+
+			if (ex is BadImageFormatException badImage && !string.IsNullOrEmpty(badImage.FileName) &&
+				IsCompatibilityAssembly(GetSimpleAssemblyName(badImage.FileName)))
 			{
 				result = ex;
 				return true;

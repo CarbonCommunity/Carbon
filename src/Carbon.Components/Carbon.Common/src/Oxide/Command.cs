@@ -289,8 +289,8 @@ public class Command : Library
 				Callback = arg =>
 				{
 					try { callback?.Invoke(null, command, arg.Arguments.ToStringArray()); }
-					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", null, isChat: false, notifyPlayer: false); throw; }
-					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); throw; }
+					catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", null, isChat: false, notifyPlayer: false); }
+					catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); }
 				},
 				Help = help,
 				Token = reference,
@@ -417,6 +417,7 @@ public class Command : Library
 						}
 					}
 				}
+				catch (Exception ex) when (ex.IsCompatibilityError()) { LogCommandCompatibilityError("console", command, plugin, ex, "callback", player, isChat: false); }
 				catch (Exception ex) { LogCommandGenericError("console", command, plugin, ex, "callback"); }
 			}
 			catch (TargetParameterCountException) { }
