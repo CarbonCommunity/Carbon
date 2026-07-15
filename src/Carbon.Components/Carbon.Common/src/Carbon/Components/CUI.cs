@@ -213,17 +213,17 @@ public readonly struct CUI : IDisposable
 	{
 		return Manager.ScrollView(container, parent, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, out contentTransformComponent, out horizontalScrollBar, out verticalScrollBar, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, id, destroyUi, update, activeSelf, rotation, pivotX, pivotY, scrollPosHorizontal, scrollPosVertical);
 	}
-	public Pair<string, CuiElement> CreateCanvasGroup(CuiElementContainer container, string parent, float? alpha = null, bool? blocksRaycasts = null, bool? interactable = null, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true, float rotation = 0)
+	public CuiCanvasGroupComponent CreateCanvasGroup(CuiElement element, float? alpha = null, bool? blocksRaycasts = null, bool? interactable = null, bool update = false)
 	{
-		return Manager.CanvasGroup(container, parent, alpha, blocksRaycasts, interactable, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeOut, needsCursor, needsKeyboard, id, destroyUi, update, activeSelf, rotation);
+		return Manager.CanvasGroup(element, alpha, blocksRaycasts, interactable, update);
 	}
-	public Pair<string, CuiElement> CreateMask(CuiElementContainer container, string parent, bool? showMaskGraphic = null, string color = null, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true, float rotation = 0)
+	public CuiMaskComponent CreateMask(CuiElement element, bool? showMaskGraphic = null, bool update = false)
 	{
-		return Manager.Mask(container, parent, showMaskGraphic, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeOut, needsCursor, needsKeyboard, id, destroyUi, update, activeSelf, rotation);
+		return Manager.Mask(element, showMaskGraphic, update);
 	}
-	public CuiTooltipComponent CreateTooltip(CuiElement element, string text, CommunityEntity.TooltipType? tooltipType = null, string offset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? position = null, float fadeOut = 0f, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true)
+	public CuiTooltipComponent CreateTooltip(CuiElement element, string text, CommunityEntity.TooltipType? tooltipType = null, string offset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? position = null, bool update = false)
 	{
-		return Manager.Tooltip(element, text, tooltipType, offset, useCentre, delay, position, fadeOut, id, destroyUi, update, activeSelf);
+		return Manager.Tooltip(element, text, tooltipType, offset, useCentre, delay, position, update);
 	}
 
 	public static string HexToRustColor(string hexColor, float? alpha = null)
@@ -1130,17 +1130,17 @@ public static class CUIStatics
 	{
 		return cui.CreateScrollView(null, null, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, out contentTransformComponent, out horizontalScrollBar, out verticalScrollBar, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, id, destroyUi, true, activeSelf, rotation, pivotX, pivotY, scrollPosHorizontal, scrollPosVertical);
 	}
-	public static Pair<string, CuiElement> UpdateCanvasGroup(this CUI cui, string id, float? alpha = null, bool? blocksRaycasts = null, bool? interactable = null, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null, bool activeSelf = true, float rotation = 0)
+	public static CuiCanvasGroupComponent UpdateCanvasGroup(this CUI cui, CuiElement element, float? alpha = null, bool? blocksRaycasts = null, bool? interactable = null)
 	{
-		return cui.CreateCanvasGroup(null, null, alpha, blocksRaycasts, interactable, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, 0f, needsCursor, needsKeyboard, id, destroyUi, true, activeSelf, rotation);
+		return cui.CreateCanvasGroup(element, alpha, blocksRaycasts, interactable, true);
 	}
-	public static Pair<string, CuiElement> UpdateMask(this CUI cui, string id, bool? showMaskGraphic = null, string color = null, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null, bool activeSelf = true, float rotation = 0)
+	public static CuiMaskComponent UpdateMask(this CUI cui, CuiElement element, bool? showMaskGraphic = null)
 	{
-		return cui.CreateMask(null, null, showMaskGraphic, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, 0f, needsCursor, needsKeyboard, id, destroyUi, true, activeSelf, rotation);
+		return cui.CreateMask(element, showMaskGraphic, true);
 	}
 	public static CuiTooltipComponent UpdateTooltip(this CUI cui, CuiElement element, string text, CommunityEntity.TooltipType? tooltipType = null, string offset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? position = null, string destroyUi = null, bool activeSelf = true)
 	{
-		return cui.CreateTooltip(element, text, tooltipType, offset, useCentre, delay, position, 0f, null, destroyUi, true, activeSelf);
+		return cui.CreateTooltip(element, text, tooltipType, offset, useCentre, delay, position, true);
 	}
 
 	public static Pair<string, CuiElement> Panel(this Handler cui, CuiElementContainer container, string parent, string color, string material, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true, float rotation = 0)
@@ -1535,71 +1535,26 @@ public static class CUIStatics
 		if (!update) container?.Add(element);
 		return new Pair<string, CuiElement>(id, element);
 	}
-	public static Pair<string, CuiElement> CanvasGroup(this Handler cui, CuiElementContainer container, string parent, float? alpha, bool? blocksRaycasts, bool? interactable, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true, float rotation = 0)
+	public static CuiCanvasGroupComponent CanvasGroup(this Handler cui, CuiElement element, float? alpha, bool? blocksRaycasts, bool? interactable, bool update = false)
 	{
-		if (id == null) id = cui.AppendId();
-		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi, update, activeSelf);
-
 		var canvasGroup = cui.TakeFromPoolCanvasGroup();
 		canvasGroup.Alpha = alpha;
 		canvasGroup.BlocksRaycasts = blocksRaycasts;
 		canvasGroup.Interactable = interactable;
 		element.Components.Add(canvasGroup);
 
-		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
-		{
-			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
-			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
-			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
-			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
-			rect.Rotation = rotation;
-			element.Components.Add(rect);
-		}
-
-		if (needsCursor) element.Components.Add(cui.TakeFromPoolNeedsCursor());
-		if (needsKeyboard) element.Components.Add(cui.TakeFromPoolNeedsKeyboard());
-
-		if (!update) container?.Add(element);
-		return new Pair<string, CuiElement>(id, element);
+		return canvasGroup;
 	}
-	public static Pair<string, CuiElement> Mask(this Handler cui, CuiElementContainer container, string parent, bool? showMaskGraphic, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true, float rotation = 0)
+	public static CuiMaskComponent Mask(this Handler cui, CuiElement element, bool? showMaskGraphic, bool update = false)
 	{
-		if (id == null) id = cui.AppendId();
-		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi, update, activeSelf);
-
-		if (!string.IsNullOrEmpty(color))
-		{
-			var image = cui.TakeFromPoolImage();
-			image.Color = ProcessColor(color);
-			element.Components.Add(image);
-		}
-
 		var mask = cui.TakeFromPoolMask();
 		mask.ShowMaskGraphic = showMaskGraphic;
 		element.Components.Add(mask);
 
-		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
-		{
-			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
-			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
-			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
-			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
-			rect.Rotation = rotation;
-			element.Components.Add(rect);
-		}
-
-		if (needsCursor) element.Components.Add(cui.TakeFromPoolNeedsCursor());
-		if (needsKeyboard) element.Components.Add(cui.TakeFromPoolNeedsKeyboard());
-
-		if (!update) container?.Add(element);
-		return new Pair<string, CuiElement>(id, element);
+		return mask;
 	}
-	public static CuiTooltipComponent Tooltip(this Handler cui, CuiElement element, string text, CommunityEntity.TooltipType? tooltipType, string offset, bool useCentre, Tooltip.DelayType? delay, TooltipContainer.PositionMode? position, float fadeOut = 0f, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true)
+	public static CuiTooltipComponent Tooltip(this Handler cui, CuiElement element, string text, CommunityEntity.TooltipType? tooltipType, string offset, bool useCentre, Tooltip.DelayType? delay, TooltipContainer.PositionMode? position, bool update = false)
 	{
-		if (id == null) id = cui.AppendId();
-
 		var tooltip = cui.TakeFromPoolTooltip();
 		tooltip.Text = text;
 		tooltip.TooltipType = tooltipType;
