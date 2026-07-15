@@ -456,6 +456,47 @@ public class LUI : IDisposable
 		return cont;
 	}
 
+	public LuiContainer CreateCanvasGroup(LuiContainer container, LuiPosition position, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => CreateCanvasGroup(container.name, position, offset, alpha, blocksRaycasts, interactable, name);
+	public LuiContainer CreateCanvasGroup(LuiContainer container, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => CreateCanvasGroup(container.name, LuiPosition.None, offset, alpha, blocksRaycasts, interactable, name);
+	public LuiContainer CreateCanvasGroup(string parent, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => CreateCanvasGroup(parent, LuiPosition.None, offset, alpha, blocksRaycasts, interactable, name);
+
+	public LuiContainer CreateCanvasGroup(string parent, LuiPosition position, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		cont.SetCanvasGroup(alpha, blocksRaycasts, interactable);
+		elements.Add(cont);
+		return cont;
+	}
+
+	public LuiContainer CreateMask(LuiContainer container, LuiPosition position, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => CreateMask(container.name, position, offset, showMaskGraphic, color, name);
+	public LuiContainer CreateMask(LuiContainer container, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => CreateMask(container.name, LuiPosition.None, offset, showMaskGraphic, color, name);
+	public LuiContainer CreateMask(string parent, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => CreateMask(parent, LuiPosition.None, offset, showMaskGraphic, color, name);
+
+	public LuiContainer CreateMask(string parent, LuiPosition position, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		if (color != null)
+			cont.SetColor(color);
+		cont.SetMask(showMaskGraphic);
+		elements.Add(cont);
+		return cont;
+	}
+
+	public LuiContainer CreateTooltip(LuiContainer container, LuiPosition position, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => CreateTooltip(container.name, position, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name);
+	public LuiContainer CreateTooltip(LuiContainer container, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => CreateTooltip(container.name, LuiPosition.None, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name);
+	public LuiContainer CreateTooltip(string parent, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => CreateTooltip(parent, LuiPosition.None, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name);
+
+	public LuiContainer CreateTooltip(string parent, LuiPosition position, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		cont.SetTooltip(text, tooltipType, tooltipOffset, useCentre, delay, positionMode);
+		elements.Add(cont);
+		return cont;
+	}
+
 	#endregion
 
 	/// <summary>
@@ -2292,6 +2333,79 @@ public class LUI : IDisposable
 				if (vertical != 0)
 					scroll.verticalNormalizedPosition = vertical;
 				luiComponents.Add(scroll.type, scroll);
+			}
+			return this;
+		}
+
+		#endregion
+
+		#region Container Methods - LuiCanvasGroupComp
+
+		public LuiContainer SetCanvasGroup(float alpha = -1f, bool blocksRaycasts = true, bool interactable = true)
+		{
+			if (luiComponents.TryGetValue<LuiCanvasGroupComp>(LuiCompType.CanvasGroup, out var canvasGroup))
+			{
+				if (alpha != -1f)
+					canvasGroup.alpha = alpha;
+				canvasGroup.blocksRaycasts = blocksRaycasts;
+				canvasGroup.interactable = interactable;
+			}
+			else
+			{
+				canvasGroup = LuiPool.GetCanvasGroup();
+				if (alpha != -1f)
+					canvasGroup.alpha = alpha;
+				canvasGroup.blocksRaycasts = blocksRaycasts;
+				canvasGroup.interactable = interactable;
+				luiComponents.Add(canvasGroup.type, canvasGroup);
+			}
+			return this;
+		}
+
+		#endregion
+
+		#region Container Methods - LuiMaskComp
+
+		public LuiContainer SetMask(bool showMaskGraphic = true)
+		{
+			if (luiComponents.TryGetValue<LuiMaskComp>(LuiCompType.Mask, out var mask))
+			{
+				mask.showMaskGraphic = showMaskGraphic;
+			}
+			else
+			{
+				mask = LuiPool.GetMask();
+				mask.showMaskGraphic = showMaskGraphic;
+				luiComponents.Add(mask.type, mask);
+			}
+			return this;
+		}
+
+		#endregion
+
+		#region Container Methods - LuiTooltipComp
+
+		public LuiContainer SetTooltip(string text, CommunityEntity.TooltipType? tooltipType = null, string offset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? position = null)
+		{
+			if (luiComponents.TryGetValue<LuiTooltipComp>(LuiCompType.Tooltip, out var tooltip))
+			{
+				tooltip.text = text;
+				tooltip.tooltipType = tooltipType;
+				tooltip.offset = offset;
+				tooltip.useCentre = useCentre;
+				tooltip.delay = delay;
+				tooltip.position = position;
+			}
+			else
+			{
+				tooltip = LuiPool.GetTooltip();
+				tooltip.text = text;
+				tooltip.tooltipType = tooltipType;
+				tooltip.offset = offset;
+				tooltip.useCentre = useCentre;
+				tooltip.delay = delay;
+				tooltip.position = position;
+				luiComponents.Add(tooltip.type, tooltip);
 			}
 			return this;
 		}
