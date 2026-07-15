@@ -544,6 +544,7 @@ public class CuiTooltipComponent : ICuiComponent, ICuiEnableable
 {
 	public string Type => "Tooltip";
 
+	[JsonConverter(typeof(StringEnumConverter))]
 	[JsonProperty("tooltipType")]
 	public CommunityEntity.TooltipType? TooltipType { get; set; }
 
@@ -556,9 +557,11 @@ public class CuiTooltipComponent : ICuiComponent, ICuiEnableable
 	[JsonProperty("text")]
 	public string Text { get; set; }
 
+	[JsonConverter(typeof(StringEnumConverter))]
 	[JsonProperty("delay")]
 	public Tooltip.DelayType? Delay { get; set; }
 
+	[JsonConverter(typeof(StringEnumConverter))]
 	[JsonProperty("position")]
 	public TooltipContainer.PositionMode? Position { get; set; }
 

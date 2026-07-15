@@ -221,9 +221,9 @@ public readonly struct CUI : IDisposable
 	{
 		return Manager.Mask(container, parent, showMaskGraphic, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeOut, needsCursor, needsKeyboard, id, destroyUi, update, activeSelf, rotation);
 	}
-	public Pair<string, CuiElement> CreateTooltip(CuiElementContainer container, string parent, string text, CommunityEntity.TooltipType? tooltipType = null, string offset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? position = null, float fadeOut = 0f, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true)
+	public CuiTooltipComponent CreateTooltip(CuiElement element, string text, CommunityEntity.TooltipType? tooltipType = null, string offset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? position = null, float fadeOut = 0f, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true)
 	{
-		return Manager.Tooltip(container, parent, text, tooltipType, offset, useCentre, delay, position, fadeOut, id, destroyUi, update, activeSelf);
+		return Manager.Tooltip(element, text, tooltipType, offset, useCentre, delay, position, fadeOut, id, destroyUi, update, activeSelf);
 	}
 
 	public static string HexToRustColor(string hexColor, float? alpha = null)
@@ -1138,9 +1138,9 @@ public static class CUIStatics
 	{
 		return cui.CreateMask(null, null, showMaskGraphic, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, 0f, needsCursor, needsKeyboard, id, destroyUi, true, activeSelf, rotation);
 	}
-	public static Pair<string, CuiElement> UpdateTooltip(this CUI cui, string id, string text, CommunityEntity.TooltipType? tooltipType = null, string offset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? position = null, string destroyUi = null, bool activeSelf = true)
+	public static CuiTooltipComponent UpdateTooltip(this CUI cui, CuiElement element, string text, CommunityEntity.TooltipType? tooltipType = null, string offset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? position = null, string destroyUi = null, bool activeSelf = true)
 	{
-		return cui.CreateTooltip(null, null, text, tooltipType, offset, useCentre, delay, position, 0f, id, destroyUi, true, activeSelf);
+		return cui.CreateTooltip(element, text, tooltipType, offset, useCentre, delay, position, 0f, null, destroyUi, true, activeSelf);
 	}
 
 	public static Pair<string, CuiElement> Panel(this Handler cui, CuiElementContainer container, string parent, string color, string material, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true, float rotation = 0)
@@ -1596,10 +1596,9 @@ public static class CUIStatics
 		if (!update) container?.Add(element);
 		return new Pair<string, CuiElement>(id, element);
 	}
-	public static Pair<string, CuiElement> Tooltip(this Handler cui, CuiElementContainer container, string parent, string text, CommunityEntity.TooltipType? tooltipType, string offset, bool useCentre, Tooltip.DelayType? delay, TooltipContainer.PositionMode? position, float fadeOut = 0f, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true)
+	public static CuiTooltipComponent Tooltip(this Handler cui, CuiElement element, string text, CommunityEntity.TooltipType? tooltipType, string offset, bool useCentre, Tooltip.DelayType? delay, TooltipContainer.PositionMode? position, float fadeOut = 0f, string id = null, string destroyUi = null, bool update = false, bool activeSelf = true)
 	{
 		if (id == null) id = cui.AppendId();
-		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi, update, activeSelf);
 
 		var tooltip = cui.TakeFromPoolTooltip();
 		tooltip.Text = text;
@@ -1610,8 +1609,7 @@ public static class CUIStatics
 		tooltip.Position = position;
 		element.Components.Add(tooltip);
 
-		if (!update) container?.Add(element);
-		return new Pair<string, CuiElement>(id, element);
+		return tooltip;
 	}
 
 	public static readonly uint AddUiString = StringPool.Get("AddUi");
