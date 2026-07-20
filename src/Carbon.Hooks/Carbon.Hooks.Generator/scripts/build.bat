@@ -51,6 +51,10 @@ if "%STEAM_TARGET%" EQU "aux02" (
 	set BOOTSTRAP=update_aux02
 )
 
+if "%STEAM_TARGET%" EQU "aux03" (
+	set BOOTSTRAP=update_aux03
+)
+
 set TOOLS=%WORKDIR%\src
 set MANAGED=%WORKDIR%\.rust
 
