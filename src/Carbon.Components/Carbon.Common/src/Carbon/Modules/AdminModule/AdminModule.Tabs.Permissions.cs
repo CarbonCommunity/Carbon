@@ -98,7 +98,7 @@ public partial class AdminModule
 			{
 				tab.AddInput(1, "Search", ap => ap.GetStorage(tab, "playerfilter", string.Empty), (ap, args) =>
 				{
-					ap.SetStorage(tab, "playerfilter", args.ToString(" "));
+					ap.SetStorage(tab, "playerfilter", args.Select(x => x as string).ToString(" "));
 					GeneratePlayers(tab, perms, ap);
 				});
 				tab.AddButtonArray(1, new Tab.OptionButton("Add User", ap =>
@@ -316,7 +316,7 @@ public partial class AdminModule
 				{
 					tab.AddInput(2, "Search", ap => ap.GetStorage(tab, "groupfilter", string.Empty), (ap, args) =>
 					{
-						ap.SetStorage(tab, "groupfilter", args.ToString(" "));
+						ap.SetStorage(tab, "groupfilter", args.Select(x => x as string).ToString(" "));
 						GenerateHookables(tab, ap, permission, player, selectedGroup, hookableType);
 					});
 
@@ -348,7 +348,7 @@ public partial class AdminModule
 				{
 					tab.AddInput(2, "Search", ap => ap.GetStorage(tab, "pluginfilter", string.Empty), (ap, args) =>
 					{
-						ap.SetStorage(tab, "pluginfilter", args.ToString(" "));
+						ap.SetStorage(tab, "pluginfilter", args.Select(x => x as string).ToString(" "));
 						GenerateHookables(tab, ap, permission, player, selectedGroup, hookableType);
 					});
 
@@ -433,7 +433,7 @@ public partial class AdminModule
 				{
 					tab.AddInput(2, "Search", ap => ap.GetStorage(tab, "pluginfilter", string.Empty), (ap, args) =>
 					{
-						ap.SetStorage(tab, "pluginfilter", args.ToString(" "));
+						ap.SetStorage(tab, "pluginfilter", args.Select(x => x as string).ToString(" "));
 						GenerateHookables(tab, ap, permission, player, selectedGroup, hookableType);
 					});
 
@@ -485,7 +485,7 @@ public partial class AdminModule
 			tab.AddName(3, "Permissions", TextAnchor.MiddleLeft);
 			tab.AddInput(3, "Search", ap => ap.GetStorage(tab, "permfilter", string.Empty), (ap, args) =>
 			{
-				ap.SetStorage(tab, "permfilter", args.ToString(" "));
+				ap.SetStorage(tab, "permfilter", args.Select(x => x as string).ToString(" "));
 				GeneratePermissions(tab, ap, perms, hookable, player, selectedGroup);
 			});
 			tab.AddButton(3, grantAllStatus ? "Grant All" : "Revoke All", ap =>
@@ -575,7 +575,7 @@ public partial class AdminModule
 			{
 				tab.AddInput(1, "Search", ap => ap.GetStorage(tab, "groupfilter", string.Empty), (ap, args) =>
 				{
-					ap.SetStorage(tab, "groupfilter", args.ToString(" "));
+					ap.SetStorage(tab, "groupfilter", args.Select(x => x as string).ToString(" "));
 					GenerateGroups(tab, perms, ap);
 				});
 

@@ -26,9 +26,9 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 			"cszip_dev"
 		];
 
-		base.Start();
-
 		IncludeSubdirectories = Community.Runtime.Config.Watchers.ScriptWatcherOption == SearchOption.AllDirectories;
+
+		base.Start();
 	}
 
 	public bool AllPendingScriptsComplete()
@@ -144,19 +144,12 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 	public class ScriptParser : Parser, IBaseProcessor.IParser
 	{
-		internal const string FOOT = "FindObjectsOfType";
-
 		public override void Process(string file, string input, out string output)
 		{
 			using (TimeMeasure.New("ScriptParser.Process"))
 			{
 				try
 				{
-					if (input.Contains(FOOT))
-					{
-						Logger.Warn($" Warning! '{Path.GetFileNameWithoutExtension(file)}' uses UnityEngine.GameObject.FindObjectsOfType. That may cause significant performance drops, and/or server stalls. Report to the developer or use at your own discretion!");
-					}
-
 					output = input.Replace("PluginTimers", "Timers");
 				}
 				catch

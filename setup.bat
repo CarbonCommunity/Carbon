@@ -1,11 +1,13 @@
 @echo off
 
 setlocal
-set "SUPERROOT=%~dp0Tools\Build\win"
+set "BUILD_ROOT=%~dp0tools\build\win"
 
-pushd "%SUPERROOT%"
-call bootstrap.bat
-call build_debug_noarchive.bat
-popd
+call "%BUILD_ROOT%\bootstrap.bat" || goto :done
+call "%BUILD_ROOT%\build_debug_noarchive.bat" %*
 
+:done
+set "EXIT_CODE=%ERRORLEVEL%"
 endlocal
+
+exit /b %EXIT_CODE%

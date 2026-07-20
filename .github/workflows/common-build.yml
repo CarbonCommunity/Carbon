@@ -7,13 +7,28 @@ on:
         required: true
         type: string
       RELEASE_BODY:
-        required: true
+        required: false
         type: string
+        default: ''
+      UPDATE_ARG:
+        required: false
+        type: string
+        default: ''
+      CHECKOUT_REPOSITORY:
+        required: false
+        type: string
+        default: ''
+      CHECKOUT_REF:
+        required: false
+        type: string
+        default: ''
+      VERSION_OVERRIDE:
+        required: false
+        type: string
+        default: ''
     secrets:
-      PAT_ALL_REPO:
-        required: true
       VERSIONS_TOKEN:
-        required: true
+        required: false
       NUGET_API:
         required: false
 
@@ -42,6 +57,8 @@ jobs:
       - name: Configure Build
         id: config
         shell: bash
+        env:
+          UPDATE_ARG_OVERRIDE: ${{ inputs.UPDATE_ARG }}
         run: |
           REF="${{ inputs.GIT_BRANCH }}"
           
@@ -63,29 +80,22 @@ jobs:
           RELEASE_NAME="Edge"
 
           case "$REF" in
-            "develop")
+            "main")
               API_ID="edge"
               BUILD_DEFINE="EDGE"
               TAG_NAME="edge_build"
               MAJOR_VER="2.1"
               RELEASE_NAME="Edge"
               ;;
-            "preview")
-              API_ID="preview"
-              BUILD_DEFINE="PREVIEW"
-              TAG_NAME="preview_build"
-              MAJOR_VER="2.2"
-              RELEASE_NAME="Preview"
-              ;;
-            "qa")
-              API_ID="qa"
-              BUILD_DEFINE="QA"
-              TAG_NAME="qa_build"
+            "experimental")
+              API_ID="experimental"
+              BUILD_DEFINE="EXPERIMENTAL"
+              TAG_NAME="experimental_build"
               UPDATE_ARG="release"
               NATIVE_MODE="both"
               CS_MODE="full"
               MAJOR_VER="2.9"
-              RELEASE_NAME="QA"
+              RELEASE_NAME="Experimental"
               ;;
             "production")
               API_ID="production"
@@ -123,6 +133,14 @@ jobs:
               MAJOR_VER="2.7"
               RELEASE_NAME="Rust (Aux03)"
               ;;
+            "rust_beta/aux04")
+              API_ID="aux04"
+              BUILD_DEFINE="RUST_AUX04"
+              TAG_NAME="rustbeta_aux04_build"
+              UPDATE_ARG="aux04"
+              MAJOR_VER="2.8"
+              RELEASE_NAME="Rust (Aux04)"
+              ;;
             "rust_beta/staging")
               API_ID="staging"
               BUILD_DEFINE="RUST_STAGING"
@@ -149,6 +167,11 @@ jobs:
               ;;
           esac
 
+          # Allow caller workflows to override the Rust update branch argument
+          if [ -n "$UPDATE_ARG_OVERRIDE" ]; then
+            UPDATE_ARG="$UPDATE_ARG_OVERRIDE"
+          fi
+
           echo "api_id=$API_ID" >> $GITHUB_OUTPUT
           echo "update_arg=$UPDATE_ARG" >> $GITHUB_OUTPUT
           echo "build_define=$BUILD_DEFINE" >> $GITHUB_OUTPUT
@@ -169,13 +192,23 @@ jobs:
           TOKEN: ${{ secrets.VERSIONS_TOKEN }}
           API: ${{ steps.config.outputs.api_id }}
           MAJOR: ${{ steps.config.outputs.major_ver }}
+          VERSION_OVERRIDE: ${{ inputs.VERSION_OVERRIDE }}
         run: |
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
-          
-          VER_SUFFIX=$(curl -s -L "https://api.carbonmod.gg/version?id=$API&token=$TOKEN")
-          echo "version=$MAJOR.$VER_SUFFIX" >> $GITHUB_OUTPUT
+
+          if [ -n "$VERSION_OVERRIDE" ]; then
+            echo "version=$VERSION_OVERRIDE" >> $GITHUB_OUTPUT
+          else
+            if [ -z "$TOKEN" ]; then
+              echo "::error::VERSIONS_TOKEN is required when VERSION_OVERRIDE is not provided"
+              exit 1
+            fi
+
+            VER_SUFFIX=$(curl -s -L "https://api.carbonmod.gg/version?id=$API&token=$TOKEN")
+            echo "version=$MAJOR.$VER_SUFFIX" >> $GITHUB_OUTPUT
+          fi
 
   build:
     name: Build
@@ -209,8 +242,8 @@ jobs:
       - name: Git Clone
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.GIT_BRANCH }}
-          token: ${{ secrets.PAT_ALL_REPO }}
+          repository: ${{ inputs.CHECKOUT_REPOSITORY || github.repository }}
+          ref: ${{ inputs.CHECKOUT_REF || inputs.GIT_BRANCH }}
           submodules: recursive
 
       - name: Environment Setup
@@ -358,7 +391,7 @@ jobs:
           echo "Binary Verification Passed: Statically linked and exports $(echo "$SYMBOLS" | wc -l) functions."
 
       - name: Pre-build Carbon Runner
-        run: dotnet build src/Carbon.Tools/Carbon.Runner -c Release -o ./runner-bin
+        run: dotnet build src/Carbon.Tools/Carbon.Runner/Carbon.Runner.csproj -c Debug -o ./runner-bin
 
       - name: Carbon Bootstrap CS
         run: dotnet ./runner-bin/Carbon.Runner.dll tools/build/runners/bootstrap.cs
@@ -410,7 +443,7 @@ jobs:
           git push origin "$VERSION$SUFFIX"
 
       - name: Artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: build-${{ matrix.group }}
           path: |
@@ -423,8 +456,6 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: [ "configure", "build" ]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Git Clone
         uses: actions/checkout@v6
@@ -441,7 +472,7 @@ jobs:
         shell: bash
 
       - name: ⬇️ Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           path: release
           merge-multiple: true

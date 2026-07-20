@@ -55,8 +55,9 @@ public static partial class WebControlPanel
 			return;
 		}
 		using var connections = Pool.Get<PooledList<BridgeConnection>>();
-		foreach (var connection in server.Connections.Values)
+		for (int i = 0; i < server.ConnectionsList.Count; i++)
 		{
+			var connection = server.ConnectionsList[i];
 			if (connection.Reference is not Account account || !account.Permissions.chat_view)
 			{
 				continue;
@@ -73,7 +74,7 @@ public static partial class WebControlPanel
 		write.WriteObject(message);
 		write.WriteObject(player.UserIDString);
 		write.WriteObject(player.displayName);
-		write.WriteObject(ConVar.Chat.GetNameColor(player.userID));
+		write.WriteObject(ConVar.Chat.GetNameColor(player.userID, player));
 		write.WriteObject(Epoch.Current);
 		SendRpcResponse(connections, write);
 	}

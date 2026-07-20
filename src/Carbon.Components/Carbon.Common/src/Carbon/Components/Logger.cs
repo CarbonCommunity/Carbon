@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using API.Logger;
-using Cysharp.Threading.Tasks;
 using ILogger = API.Logger.ILogger;
 
 namespace Carbon;
@@ -20,10 +19,6 @@ public sealed class Logger : ILogger
 
 	public static void InitTaskExceptions()
 	{
-		UniTaskScheduler.UnobservedTaskException += ex =>
-		{
-			Error($"Unobserved task exception [UniTask|GC]", ex);
-		};
 		TaskScheduler.UnobservedTaskException += (_, args) =>
 		{
 			args.SetObserved();
@@ -133,6 +128,7 @@ public sealed class Logger : ILogger
 
 	private static void PrintLog(string text, Severity severity)
 	{
+#if WIN
 		if (!ThreadEx.IsOnMainThread())
 		{
 			var threadedColor = Console.ForegroundColor;
@@ -158,6 +154,7 @@ public sealed class Logger : ILogger
 			Console.WriteLine(text);
 			Console.ForegroundColor = color;
 		}
+#endif
 
 		switch (severity)
 		{

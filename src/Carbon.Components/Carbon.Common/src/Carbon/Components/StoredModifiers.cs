@@ -19,7 +19,7 @@ public sealed class StoredModifiers
 		}
 
 		var netId = entity.net.ID.Value;
-		var id = Vault.Pool.Get(typeof(T).Name);
+		var id = TypeId<T>.Value;
 		Dictionary<uint, Data> dict;
 
 		if (data == null)
@@ -52,7 +52,7 @@ public sealed class StoredModifiers
 		}
 
 		var netId = entity.net.ID.Value;
-		var id = Vault.Pool.Get(typeof(T).Name);
+		var id = TypeId<T>.Value;
 
 		if (Entities.TryGetValue(netId, out var dict) && dict.TryGetValue(id, out var entityData))
 		{
@@ -135,4 +135,9 @@ public sealed class StoredModifiers
 
 	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 	public class Data;
+
+	private static class TypeId<T> where T : Data
+	{
+		public static readonly uint Value = Vault.Pool.Get(typeof(T).Name);
+	}
 }

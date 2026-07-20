@@ -16,7 +16,7 @@ global using Carbon.Contracts;
 global using Carbon.Core;
 global using Carbon.Extensions;
 global using Carbon.Modules;
-global using Carbon.Oxide;
+global using Carbon.OxideRefs;
 global using Carbon.Plugins;
 global using Carbon.Pooling;
 global using Oxide.Core;
@@ -29,10 +29,7 @@ global using Oxide.Game.Rust.Libraries;
 global using Oxide.Game.Rust.Libraries.Covalence;
 global using Oxide.Plugins;
 global using UnityEngine;
-using System.Runtime.CompilerServices;
 using static Carbon.Components.MonoProfiler;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Carbon.Hooks.Base")]
-
-[assembly: TypeForwardedTo(typeof(System.Range))]
-[assembly: TypeForwardedTo(typeof(System.Index))]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Carbon")]

@@ -1,6 +1,5 @@
-﻿using System.Text;
-using Carbon.Base.Interfaces;
-using HarmonyLib;
+﻿using Carbon.Base.Interfaces;
+using Facepunch;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,32 +7,58 @@ using static Carbon.HookCallerCommon;
 
 namespace Carbon;
 
-public class HookCallerCommon
+public abstract class HookCallerCommon
 {
 	public readonly Dictionary<int, HookArgPool> _argumentBuffer = [];
 	public readonly Dictionary<uint, DateTime> _lastDeprecatedWarningAt = [];
 
-	public readonly struct HookArgPool
+	public class HookArgPool
 	{
 		public static readonly int BufferSize = 256;
 
 		private readonly int length;
-		private readonly Queue<object[]> pool;
+		private readonly Stack<object[]> pool;
+		private readonly object syncRoot = new();
+
+		private int rentedExtra;
+		private int rented;
+		private int returned;
+
+		public int RentedExtra => rentedExtra;
+		public int Rented => rented;
+		public int Returned => returned;
+		public int Length => length;
+		public int Count => pool.Count;
 
 		public HookArgPool(int length)
 		{
 			this.length = length;
-			pool = new Queue<object[]>(BufferSize);
+			this.rented = 0;
+			this.returned = 0;
+			this.rentedExtra = 0;
+			pool = new Stack<object[]>(BufferSize);
 
 			for (int i = 0; i < BufferSize; i++)
 			{
-				this.pool.Enqueue(new object[length]);
+				this.pool.Push(new object[length]);
 			}
 		}
 
 		public object[] Rent()
 		{
-			return pool.Count > 0 ? pool.Dequeue() : new object[length];
+			lock (syncRoot)
+			{
+				if (pool.Count > 0)
+				{
+					rented++;
+					return pool.Pop();
+				}
+				else
+				{
+					rentedExtra++;
+					return new object[length];
+				}
+			}
 		}
 		public void Return(object[] array)
 		{
@@ -42,17 +67,21 @@ public class HookCallerCommon
 				array[i] = default;
 			}
 
-			pool.Enqueue(array);
+			lock (syncRoot)
+			{
+				returned++;
+				pool.Push(array);
+			}
 		}
 	}
 
-	public virtual object[] AllocateBuffer(int count) => null;
-	public virtual object[] RescaleBuffer(object[] oldBuffer, int newScale, BaseHookable.CachedHook hook) => null;
-	public virtual void ProcessDefaults(object[] buffer, BaseHookable.CachedHook hook) { }
-	public virtual void ReturnBuffer(object[] buffer) { }
+	public abstract object[] AllocateBuffer(int count);
+	public abstract object[] RescaleBuffer(object[] oldBuffer, int newScale, BaseHookable.CachedHook hook);
+	public abstract void ProcessDefaults(object[] buffer, BaseHookable.CachedHook hook);
+	public abstract void ReturnBuffer(object[] buffer);
 
-	public virtual object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args) where T : BaseHookable => null;
-	public virtual object CallDeprecatedHook<T>(T plugin, uint oldHookId, uint newHookId, DateTime expireDate, BindingFlags flags, object[] args) where T : BaseHookable => null;
+	public abstract object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args) where T : BaseHookable;
+	public abstract object CallDeprecatedHook<T>(T plugin, uint oldHookId, uint newHookId, DateTime expireDate, BindingFlags flags, object[] args) where T : BaseHookable;
 
 	public struct Conflict
 	{
@@ -255,8 +284,9 @@ public static class HookCaller
 		var localResult = result = conflicts[0].Result;
 		var differentResults = false;
 
-		foreach (var conflict in conflicts)
+		for(int i = 0; i < conflicts.Count; i++)
 		{
+			var conflict = conflicts[i];
 			if (localResult == null || (conflict.Result != null && conflict.Result.Equals(localResult)))
 			{
 				continue;
@@ -565,8 +595,8 @@ public static class HookCaller
 		buffer[2] = arg3;
 		buffer[3] = arg4;
 		buffer[4] = arg5;
-		buffer[6] = arg6;
-		buffer[7] = arg7;
+		buffer[5] = arg6;
+		buffer[6] = arg7;
 
 		var result = Caller.CallDeprecatedHook(plugin, oldHookId, newHookId, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
@@ -917,7 +947,6 @@ public static class HookCaller
 		buffer[9] = arg10;
 		buffer[10] = arg11;
 		buffer[11] = arg12;
-		buffer[12] = arg13;
 		buffer[12] = arg13;
 
 		var result = Caller.CallDeprecatedHook(plugin, oldHookId, newHookId, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
@@ -1390,18 +1419,19 @@ public static class HookCaller
 
 	public static void HandleVersionConditionals(CompilationUnitSyntax input, List<string> conditionals)
 	{
-		var directives = GetDirectives();
+		using var directives = Pool.Get<PooledList<string>>();
+		GetDirectives(directives);
 
-		foreach (var directive in directives)
+		for(int i = 0; i < directives.Count; i++)
 		{
+			var directive = directives[i];
 			var processedDirective = directive.Replace(_ifDirective, string.Empty).Replace(_elifDirective, string.Empty).Trim();
 
 			var subdirectivesSplit = processedDirective.Split(_operatorsStrings, StringSplitOptions.RemoveEmptyEntries);
 
-			foreach (var subdirective in subdirectivesSplit)
+			for(int j = 0; j < subdirectivesSplit.Length; j++)
 			{
-				var processedSubdirective = subdirective.Trim();
-
+				var processedSubdirective = subdirectivesSplit[j].Trim();
 				var split = processedSubdirective.Split(_underscoreChar);
 
 				if (split.Length < 3)
@@ -1453,7 +1483,7 @@ public static class HookCaller
 
 		}
 
-		IEnumerable<string> GetDirectives()
+		void GetDirectives(List<string> output)
 		{
 			foreach (var child in input.DescendantNodesAndTokensAndSelf())
 			{
@@ -1470,14 +1500,19 @@ public static class HookCaller
 
 					if (element != null)
 					{
-						yield return element.GetText().ToString();
+						output.Add(element.GetText().ToString());
 					}
 				}
 				else
 				{
-					foreach (var element in child.AsToken().LeadingTrivia.Where(x => x.IsDirective && (x.IsKind(SyntaxKind.IfDirectiveTrivia) || x.IsKind(SyntaxKind.ElifDirectiveTrivia))).Select(x => x.GetStructure()))
+					var trivia = child.AsToken().LeadingTrivia;
+					for (int t = 0; t < trivia.Count; t++)
 					{
-						yield return element.GetText().ToString();
+						var x = trivia[t];
+						if(x.IsDirective && (x.IsKind(SyntaxKind.IfDirectiveTrivia) || x.IsKind(SyntaxKind.ElifDirectiveTrivia)))
+						{
+							output.Add(x.GetStructure().GetText().ToString());
+						}
 					}
 				}
 			}

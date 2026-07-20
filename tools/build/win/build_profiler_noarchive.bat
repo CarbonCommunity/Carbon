@@ -1,11 +1,9 @@
-@echo OFF
+@echo off
 
-call "%~dp0\build_native.bat"
+call "%~dp0build_native.bat" || exit /b %ERRORLEVEL%
 
-set ROOT=%cd%
-cd ../../..
+if not defined VERSION set "VERSION=2.0.0"
 
-set VERSION=2.0.0
-dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/profiler.cs Debug HARMONYMOD edge_build -noarchive
-dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/profiler.cs DebugUnix HARMONYMOD edge_build -noarchive
-cd %ROOT%
+call "%~dp0_runner.bat" tools/build/runners/profiler.cs Debug HARMONYMOD edge_build -noarchive %* || exit /b %ERRORLEVEL%
+call "%~dp0_runner.bat" tools/build/runners/profiler.cs DebugUnix HARMONYMOD edge_build -noarchive %*
+exit /b %ERRORLEVEL%

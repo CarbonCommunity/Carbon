@@ -1,0 +1,9 @@
+﻿<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="Carbon.Hooks.Generator.csproj">
+    <Platform Project="Any CPU" />
+  </Project>
+</Solution>

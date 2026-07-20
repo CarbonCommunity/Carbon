@@ -36,8 +36,7 @@ jobs:
       - name: Git Clone
         uses: actions/checkout@v6
         with:
-          ref: develop
-          token: ${{ secrets.PAT_ALL_REPO }}
+          ref: main
           submodules: recursive
 
       - name: Environment Setup
@@ -97,12 +96,12 @@ jobs:
           dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/profiler.cs Debug${{ matrix.build_arg }} HARMONYMOD profiler_build
 
       - name: Artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: build-${{ matrix.group }}
           path: |
-            Release/Carbon.Linux.Profiler.tar.gz
-            Release/Carbon.Windows.Profiler.zip
+            release/Carbon.Linux.Profiler.tar.gz
+            release/Carbon.Windows.Profiler.zip
 
   release-on-commit:
     name: Profiler Release
@@ -125,7 +124,7 @@ jobs:
         shell: bash
 
       - name: ⬇️ Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           path: release
           merge-multiple: true

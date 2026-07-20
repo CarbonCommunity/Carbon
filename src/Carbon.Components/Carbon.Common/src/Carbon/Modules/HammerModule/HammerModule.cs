@@ -203,6 +203,7 @@ public partial class HammerModule : CarbonModule<HammerModule.HammerConfig, Hamm
 			HarborCraneContainerPickup or HarborCraneStatic or MagnetCrane => false,
 			Barricade => false,
 
+			BaseSubmarine => true,
 			Candle => true,
 			DroppedItemContainer => true,
 			CinematicEntity => true,
@@ -706,6 +707,22 @@ public partial class HammerModule : CarbonModule<HammerModule.HammerConfig, Hamm
 		var editor = DataInstance.GetOrCreateEditor(player.userID);
 		editor.Reset();
 		ClearGUI(player);
+	}
+
+	private void OnPlayerConnected(BasePlayer player)
+	{
+		if (!player.IsValid() || player.Connection == null)
+		{
+			return;
+		}
+
+		if (player.Connection.authLevel < MinimumAuthLevel)
+		{
+			var editor = DataInstance.GetOrCreateEditor(player.userID);
+			editor.bypassCreativeMode = false;
+			editor.bypassHammer = false;
+			editor.bypassImmovableEntityDestroyConfirmations = false;
+		}
 	}
 
 	private void OnPlayerDisconnected(BasePlayer player)

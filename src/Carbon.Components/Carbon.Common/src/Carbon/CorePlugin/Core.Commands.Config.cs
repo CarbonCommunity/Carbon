@@ -162,6 +162,10 @@ public partial class CorePlugin
 	}
 #endif
 
+	[CommandVar("trackhookmemory", "Tracks the memory usage of hooks.")]
+	[AuthLevel(2)]
+	private bool TrackHookMemory { get { return Community.Runtime.Config.Debugging.TrackHookMemory; } set { Community.Runtime.Config.Debugging.TrackHookMemory = value; Community.Runtime.SaveConfig(); } }
+
 	[ConsoleCommand("assignalias", "Assigns a new command alias. (Eg. c.assignalias myalias c.reload)")]
 	[AuthLevel(2)]
 	private void AssignAlias(ConsoleSystem.Arg arg)

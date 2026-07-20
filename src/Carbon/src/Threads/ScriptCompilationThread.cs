@@ -252,20 +252,33 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		public override AssemblyDefinition Resolve(AssemblyNameReference name)
 		{
+			return Resolve(name, new ReaderParameters());
+		}
+
+		public override AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
+		{
 			if (cache.TryGetValue(name.FullName, out var assembly))
 				return assembly;
+
+			parameters ??= new ReaderParameters();
+			parameters.AssemblyResolver = this;
+			parameters.InMemory = true;
 
 			var directories = GetSearchDirectories();
 			foreach (var directory in directories)
 			{
+				if (!Directory.Exists(directory))
+				{
+					continue;
+				}
+
 				var files = Directory.GetFiles(directory, "*.dll", SearchOption.AllDirectories);
 				foreach (var file in files)
 				{
 					var fileName = Path.GetFileNameWithoutExtension(file);
 					if (fileName.Equals(name.Name, StringComparison.OrdinalIgnoreCase))
 					{
-						using var stream = new MemoryStream(File.ReadAllBytes(file));
-						assembly = AssemblyDefinition.ReadAssembly(stream);
+						assembly = AssemblyDefinition.ReadAssembly(file, parameters);
 						break;
 					}
 				}
@@ -331,15 +344,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		hasLoaded = true;
 		var resolver = new CarbonAssemblyResolver();
-		var readerParameters = new ReaderParameters { AssemblyResolver = resolver };
+		var readerParameters = new ReaderParameters { AssemblyResolver = resolver, InMemory = true };
 		resolver.AddSearchDirectory(Defines.GetRustManagedFolder());
 
 		foreach (var assembly in Directory.GetFiles(Defines.GetRustManagedFolder(), "*.dll"))
 		{
 			try
 			{
-				using var memoryStream = new MemoryStream(File.ReadAllBytes(assembly));
-				var asm = AssemblyDefinition.ReadAssembly(memoryStream, readerParameters);
+				var asm = AssemblyDefinition.ReadAssembly(assembly, readerParameters);
 				InternalCallHook.Assemblies.Add(asm);
 				resolver.RegisterAssembly(asm);
 			}
@@ -465,8 +477,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("RUST_AUX02");
 #elif RUST_AUX03
 			conditionals.Add("RUST_AUX03");
-#elif QA
-			conditionals.Add("QA");
+#elif RUST_AUX04
+			conditionals.Add("RUST_AUX04");
+#elif EXPERIMENTAL
+			conditionals.Add("EXPERIMENTAL");
 #endif
 
 			if (Carbon.Components.Modifier.Active.HasPlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath)))
@@ -534,7 +548,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
 
 				InternalCallHook.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
-					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings);
+					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings, references);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
 
@@ -544,6 +558,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					trees.Add(partialTree.SyntaxTree);
 				}
 			}
+
+			ScriptCompilerPolyfills.InjectMissingPolyfills(trees, references, parseOptions);
 
 			var options = new CSharpCompilationOptions(
 				OutputKind.DynamicallyLinkedLibrary,
@@ -664,6 +680,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 				foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance |
 				                                       BindingFlags.NonPublic))
 				{
+					if (InternalCallHook.HasRefLikeSignature(method))
+					{
+						continue;
+					}
 
 					if (Community.Runtime.HookManager.IsHook(method.Name))
 					{

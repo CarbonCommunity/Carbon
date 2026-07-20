@@ -332,7 +332,7 @@ public partial class AdminModule
 
 			AddInputButton(0, "Search", 0.075f, new OptionInput(null, ap => searchInput, 0, false, (ap, args) =>
 			{
-				ap.SetStorage(this, "bsearch", args.ToString(" "));
+				ap.SetStorage(this, "bsearch", args.Select(x => x as string).ToString(" "));
 				DrawAssemblies(ap, assembly);
 			}), new OptionButton("X", ap =>
 			{
@@ -431,7 +431,7 @@ public partial class AdminModule
 
 					AddInputButton(1, "Search", 0.075f, new OptionInput(null, ap => searchInput, 0, false, (ap, args) =>
 					{
-						ap.SetStorage(this, "msearch", args.ToString(" "));
+						ap.SetStorage(this, "msearch", args.Select(x => x as string).ToString(" "));
 						DrawSubtabs(ap, assembly);
 					}), new OptionButton("X", ap =>
 					{
@@ -496,7 +496,7 @@ public partial class AdminModule
 
 					AddInputButton(1, "Search", 0.075f, new OptionInput(null, ap => searchInput, 0, false, (ap, args) =>
 					{
-						ap.SetStorage(this, "asearch", args.ToString(" "));
+						ap.SetStorage(this, "asearch", args.Select(x => x as string).ToString(" "));
 						DrawSubtabs(ap, assembly);
 					}), new OptionButton("X", ap =>
 					{

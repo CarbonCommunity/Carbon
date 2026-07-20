@@ -29,6 +29,16 @@ public class HookStringPool
 		return HookNamePoolInt.TryGetValue(name, out var hash) ? hash : string.Empty;
 	}
 
+	public static uint Get(string name)
+	{
+		return HookNamePoolString.TryGetValue(name, out var hash) ? hash : 0;
+	}
+
+	public static string Get(uint name)
+	{
+		return HookNamePoolInt.TryGetValue(name, out var hash) ? hash : string.Empty;
+	}
+
 	private static uint ManifestHash(string str)
 	{
 		return string.IsNullOrEmpty(str) ? 0 : BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(str)), 0);

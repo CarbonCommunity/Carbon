@@ -193,9 +193,6 @@ public partial class AdminModule
 						ap => AdminModule.Tab.OptionButton.Types.Selected);
 
 					tab.AddName(0, "Configuration");
-					tab.AddDropdown(0, "Minimum Auth-Level", ap => Singleton.ConfigInstance.MinimumAuthLevel,
-						(ap, index) => Singleton.ConfigInstance.MinimumAuthLevel = index, AuthLevels);
-
 					tab.AddName(0, "Tabs");
 					for (int i = 0; i < Singleton.Tabs.Count; i++)
 					{
@@ -244,7 +241,7 @@ public partial class AdminModule
 
 					tab.AddInput(0, "Background Image",
 						ap => Singleton.DataInstance.BackgroundImage,
-						(ap, value) => Singleton.DataInstance.BackgroundImage = value.ToString(" "));
+						(ap, value) => Singleton.DataInstance.BackgroundImage = ((string)value[0]));
 
 					tab.AddRange(0, "Background Image Opacity", 0f, 100f, ap => Singleton.DataInstance.BackgroundImageOpacity * 100f,
 						(ap, value) => Singleton.DataInstance.BackgroundImageOpacity = value * 0.01f, ap => Singleton.DataInstance.BackgroundImageOpacity.ToString("0.0"));
@@ -372,7 +369,7 @@ public partial class AdminModule
 								tab.AddInput(1, $"Search ({currentlyDisplaying:n0})", ap => convarSearch, 0, false,
 									(ap, args) =>
 									{
-										ap.SetStorage(tab, "convarsearch", args.ToString(" "));
+										ap.SetStorage(tab, "convarsearch", args.Select(x => x as string).ToString(" "));
 										Refresh(tab, ap);
 									});
 							}
@@ -381,7 +378,7 @@ public partial class AdminModule
 								tab.AddInputButton(1, $"Search ({currentlyDisplaying:n0})", 0.08f,
 									new OptionInput(string.Empty, ap => convarSearch, 0, false, (ap, args) =>
 									{
-										ap.SetStorage(tab, "convarsearch", args.ToString(" "));
+										ap.SetStorage(tab, "convarsearch", args.Select(x => x as string).ToString(" "));
 										Refresh(tab, ap);
 									}),
 									new OptionButton("X", ap =>
@@ -420,7 +417,7 @@ public partial class AdminModule
 									if (field.FieldType == typeof(string))
 									{
 										tab.AddInput(1, field.Name, ap => field.GetValue(null)?.ToString(), 0, false,
-											(ap, args) => field.SetValue(null, args.ToString(" ")),
+											(ap, args) => field.SetValue(null, args.Select(x => x as string).ToString(" ")),
 											tooltip: serverVar.Help);
 									}
 									else if (field.FieldType == typeof(bool))
@@ -435,7 +432,7 @@ public partial class AdminModule
 										tab.AddInputButton(1, field.Name, 0.2f,
 											new OptionInput(string.Empty, ap => $"{field.GetValue(null)}", 0,
 												false,
-												(ap, args) => field.SetValue(null, args.ToString(" ").ToFloat())),
+												(ap, args) => field.SetValue(null, ((string)args[0]).ToFloat())),
 											new OptionButton($"<size=8>{snapshot.Value:n0}</size>",
 												ap => field.SetValue(null, snapshot.Value)),
 											tooltip: serverVar.Help);
@@ -444,7 +441,7 @@ public partial class AdminModule
 									{
 										tab.AddInputButton(1, field.Name, 0.2f,
 											new OptionInput(string.Empty, ap => $"{field.GetValue(null)}", 0,
-												false, (ap, args) => field.SetValue(null, args.ToString(" ").ToInt())),
+												false, (ap, args) => field.SetValue(null, ((string)args[0]).ToInt())),
 											new OptionButton($"<size=8>{snapshot.Value:n0}</size>",
 												ap => field.SetValue(null, snapshot.Value)),
 											tooltip: serverVar.Help);
@@ -453,7 +450,7 @@ public partial class AdminModule
 									{
 										tab.AddInputButton(1, field.Name, 0.2f,
 											new OptionInput(string.Empty, ap => $"{field.GetValue(null)}", 0,
-												false, (ap, args) => field.SetValue(null, args.ToString(" ").ToLong())),
+												false, (ap, args) => field.SetValue(null, ((string)args[0]).ToLong())),
 											new OptionButton($"<size=8>{snapshot.Value:n0}</size>",
 												ap => field.SetValue(null, snapshot.Value)),
 											tooltip: serverVar.Help);
@@ -463,7 +460,7 @@ public partial class AdminModule
 										tab.AddInputButton(1, field.Name, 0.2f,
 											new OptionInput(string.Empty, ap => $"{field.GetValue(null)}", 0,
 												false,
-												(ap, args) => field.SetValue(null, args.ToString(" ").ToUlong())),
+												(ap, args) => field.SetValue(null, ((string)args[0]).ToUlong())),
 											new OptionButton($"<size=8>{snapshot.Value:n0}</size>",
 												ap => field.SetValue(null, snapshot.Value)),
 											tooltip: serverVar.Help);
@@ -472,7 +469,7 @@ public partial class AdminModule
 									{
 										tab.AddInputButton(1, field.Name, 0.2f,
 											new OptionInput(string.Empty, ap => $"{field.GetValue(null)}", 0,
-												false, (ap, args) => field.SetValue(null, args.ToString(" ").ToUint())),
+												false, (ap, args) => field.SetValue(null, ((string)args[0]).ToUint())),
 											new OptionButton($"<size=8>{snapshot.Value:n0}</size>",
 												ap => field.SetValue(null, snapshot.Value)),
 											tooltip: serverVar.Help);
@@ -498,7 +495,7 @@ public partial class AdminModule
 								tab.AddInput(1, $"Search ({currentlyDisplaying:n0})", ap => carbonAutoSearch, 0, false,
 									(ap, args) =>
 									{
-										ap.SetStorage(tab, "carbonautosearch", args.ToString(" "));
+										ap.SetStorage(tab, "carbonautosearch", args.Select(x => x as string).ToString(" "));
 										Refresh(tab, ap);
 									});
 							}
@@ -507,7 +504,7 @@ public partial class AdminModule
 								tab.AddInputButton(1, $"Search ({currentlyDisplaying:n0})", 0.08f,
 									new OptionInput(string.Empty, ap => carbonAutoSearch, 0, false, (ap, args) =>
 									{
-										ap.SetStorage(tab, "carbonautosearch", args.ToString(" "));
+										ap.SetStorage(tab, "carbonautosearch", args.Select(x => x as string).ToString(" "));
 										Refresh(tab, ap);
 									}),
 									new OptionButton("X", ap =>
@@ -535,7 +532,7 @@ public partial class AdminModule
 								if (type == typeof(string))
 								{
 									tab.AddInput(1, cache.Value.Variable.ForceModded ? $"<color=orange>{cache.Value.Variable.DisplayName}</color>" : cache.Value.Variable.DisplayName, ap => cache.Value.GetValue()?.ToString(), 0, false,
-										(ap, args) => cache.Value.SetValue(args.ToString(" ")),
+										(ap, args) => cache.Value.SetValue(args.Select(x => x as string).ToString(" ")),
 										tooltip: $"{cache.Value.Variable.Help} ({cache.Key})");
 								}
 								else if (type == typeof(bool))
@@ -549,7 +546,7 @@ public partial class AdminModule
 								{
 									tab.AddInputButton(1, cache.Value.Variable.ForceModded ? $"<color=orange>{cache.Value.Variable.DisplayName}</color>" : cache.Value.Variable.DisplayName, 0.2f,
 										new OptionInput(string.Empty, ap => $"{cache.Value.GetValue()}", 0,
-											false, (ap, args) => cache.Value.SetValue(args.ToString(" ").ToFloat())),
+											false, (ap, args) => cache.Value.SetValue(((string)args[0]).ToFloat())),
 										new OptionButton($"<size=8>-1</size>",
 											ap => cache.Value.SetValue(-1)),
 										tooltip: $"{cache.Value.Variable.Help} ({cache.Key})");
@@ -558,7 +555,7 @@ public partial class AdminModule
 								{
 									tab.AddInputButton(1, cache.Value.Variable.ForceModded ? $"<color=orange>{cache.Value.Variable.DisplayName}</color>" : cache.Value.Variable.DisplayName, 0.2f,
 										new OptionInput(string.Empty, ap => $"{cache.Value.GetValue()}", 0,
-											false, (ap, args) => cache.Value.SetValue(args.ToString(" ").ToInt())),
+											false, (ap, args) => cache.Value.SetValue(((string)args[0]).ToInt())),
 										new OptionButton($"<size=8>-1</size>",
 											ap => cache.Value.SetValue(-1)),
 										tooltip: $"{cache.Value.Variable.Help} ({cache.Key})");
@@ -567,7 +564,7 @@ public partial class AdminModule
 								{
 									tab.AddInputButton(1, cache.Value.Variable.ForceModded ? $"<color=orange>{cache.Value.Variable.DisplayName}</color>" : cache.Value.Variable.DisplayName, 0.2f,
 										new OptionInput(string.Empty, ap => $"{cache.Value.GetValue()}", 0,
-											false, (ap, args) => cache.Value.SetValue(args.ToString(" ").ToLong())),
+											false, (ap, args) => cache.Value.SetValue(((string)args[0]).ToLong())),
 										new OptionButton($"<size=8>-1</size>",
 											ap => cache.Value.SetValue(-1)),
 										tooltip: $"{cache.Value.Variable.Help} ({cache.Key})");
@@ -595,7 +592,7 @@ public partial class AdminModule
 								tab.AddInput(1, $"Search ({currentlyDisplaying:n0})", ap => itemSearch, 0, false,
 									(ap, args) =>
 									{
-										ap.SetStorage(tab, "itemsearch", args.ToString(" "));
+										ap.SetStorage(tab, "itemsearch", args.Select(x => x as string).ToString(" "));
 										Refresh(tab, ap);
 									});
 							}
@@ -604,7 +601,7 @@ public partial class AdminModule
 								tab.AddInputButton(1, $"Search ({currentlyDisplaying:n0})", 0.08f,
 									new OptionInput(string.Empty, ap => itemSearch, 0, false, (ap, args) =>
 									{
-										ap.SetStorage(tab, "itemsearch", args.ToString(" "));
+										ap.SetStorage(tab, "itemsearch", args.Select(x => x as string).ToString(" "));
 										Refresh(tab, ap);
 									}),
 									new OptionButton("X", ap =>
@@ -648,10 +645,15 @@ public partial class AdminModule
 	[ProtectedCommand("adminmodule.itemsetting")]
 	private void ItemSetting(ConsoleSystem.Arg arg)
 	{
+		if (arg.Args == null)
+		{
+			return;
+		}
+
 		var player = arg.Player();
 		var session = GetPlayerSession(player);
 		var setting = arg.GetString(0);
-		var value = arg.Args.Skip(1).ToString(" ");
+		var value = arg.GetFullString(1);
 
 		switch (setting)
 		{

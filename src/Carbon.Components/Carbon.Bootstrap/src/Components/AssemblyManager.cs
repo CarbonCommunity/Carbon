@@ -26,11 +26,6 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 	public IAddonManager Hooks { get; private set; }
 	public IAddonManager Modules { get; private set; }
 
-#if EXPERIMENTAL
-	public IAddonManager Plugins
-	{ get => gameObject.GetComponent<PluginManager>(); }
-#endif
-
 	private void Awake()
 	{
 		_library = LibraryLoader.GetInstance();
@@ -173,8 +168,6 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"Carbon.Test",
 		"Carbon.Startup",
 		"Carbon.Profiler",
-		"Carbon.UniTask",
-		"Carbon.Polyfills",
 
 		"MySql.Data",
 		"MySqlConnector",
@@ -209,6 +202,11 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"Facepunch.UnityEngine",
 		"Facepunch.Nexus",
 		"Facepunch.Ping",
+		"UniTask",
+		"UniTask.Addressables",
+		"UniTask.DOTween",
+		"UniTask.Linq",
+		"UniTask.TextMeshPro",
 
 		"Rust.Data",
 		"Rust.FileSystem",

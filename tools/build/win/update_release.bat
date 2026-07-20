@@ -1,7 +1,4 @@
-@echo OFF
+@echo off
 
-set ROOT=%cd%
-cd ../../..
-
-dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/update.cs release
-cd %ROOT%
+call "%~dp0update.bat" release
+exit /b %ERRORLEVEL%

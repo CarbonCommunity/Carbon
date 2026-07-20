@@ -28,13 +28,24 @@ public static partial class WebControlPanel
 	public static void RestartServer()
 	{
 		server?.Shutdown();
-		if (config.ShouldStartServer())
+		if (config.ShouldStartServer(out string reason))
 		{
-			(server ??= new Server()).Start(config.BridgeServer.Port, config.BridgeServer.Ip, serverMessages, context: nameof(WebControlPanel));
+			BridgeServerInfo serverInfo = default;
+			serverInfo.port = config.BridgeServer.Port;
+			serverInfo.ip = config.BridgeServer.Ip;
+			serverInfo.messages = serverMessages;
+			serverInfo.context = nameof(WebControlPanel);
+			serverInfo.maxConnections = config.BridgeServer.MaxConnections;
+			serverInfo.maxConnectionsPerIp = config.BridgeServer.MaxConnectionsPerIp;
+			(server ??= new Server()).Start(serverInfo);
 			if (Community.IsServerInitialized && !MAPINFO_CACHE.IsValid())
 			{
 				MAPINFO_CACHE = MapInfo.Get(config.Panel.MapImageScale);
 			}
+		}
+		if (config.Enabled && !string.IsNullOrEmpty(reason))
+		{
+			Logger.Warn($"WebControlPanel couldn't start: {reason}");
 		}
 	}
 
@@ -50,9 +61,28 @@ public static partial class WebControlPanel
 			Permissions = new Permissions(true)
 		}];
 
-		public bool ShouldStartServer()
+		public bool ShouldStartServer(out string reason)
 		{
-			return Enabled && !string.IsNullOrEmpty(BridgeServer.Ip) && BridgeServer.Port != 0;
+			if (!Enabled)
+			{
+				reason = "The server is disabled in the config";
+				return false;
+			}
+
+			if (string.IsNullOrEmpty(BridgeServer.Ip))
+			{
+				reason = "The server IP isn't set in the config. Can just be set to 'localhost'";
+				return false;
+			}
+
+			if (BridgeServer.Port == 0)
+			{
+				reason = "The server port isn't set in the config";
+				return false;
+			}
+
+			reason = null;
+			return true;
 		}
 	}
 }

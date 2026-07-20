@@ -54,15 +54,11 @@ public static partial class ModLoader
 	}
 	public static RustPlugin FindPlugin(string name)
 	{
-		foreach (var package in Packages)
+		if (string.IsNullOrEmpty(name)) return null;
+		for (var i = 0; i < Packages.Count; i++)
 		{
-			foreach (var plugin in package.Plugins)
-			{
-				if (plugin.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-				{
-					return plugin;
-				}
-			}
+			var plugin = Packages[i].FindPlugin(name);
+			if (plugin != null) return plugin;
 		}
 		return null;
 	}
@@ -392,6 +388,11 @@ public static partial class ModLoader
 
 			foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 			{
+				if (Generator.InternalCallHook.HasRefLikeSignature(method))
+				{
+					continue;
+				}
+
 				var hash = HookStringPool.GetOrAdd(method.Name);
 
 				if (Community.Runtime.HookManager.IsHook(method.Name))

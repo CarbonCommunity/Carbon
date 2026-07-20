@@ -248,11 +248,11 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 		try
 		{
-			OnUnload();
+			SetEnabled(false);
 		}
 		catch (Exception ex)
 		{
-			Logger.Error($"Failed module Unload for {Name} [Reload Request]", ex);
+			Logger.Error($"Failed module Disable for {Name} [Reload Request]", ex);
 		}
 
 		try
@@ -266,20 +266,14 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 		try
 		{
-			OnServerInit(false);
+			if (IsEnabled())
+			{
+				SetEnabled(true);
+			}
 		}
 		catch (Exception ex)
 		{
-			Logger.Error($"Failed module OnServerInit for {Name} [Reload Request]", ex);
-		}
-
-		try
-		{
-			OnPostServerInit(false);
-		}
-		catch (Exception ex)
-		{
-			Logger.Error($"Failed module OnPostServerInit for {Name} [Reload Request]", ex);
+			Logger.Error($"Failed module Enable for {Name} [Reload Request]", ex);
 		}
 	}
 

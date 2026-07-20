@@ -132,12 +132,14 @@ public partial class Community
 			ForceEnsurePublicizedAssembly("Facepunch.Nexus.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Facepunch.Ping.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Facepunch.Unity.dll", ref needsSave);
+			ForceEnsurePublicizedAssembly("Facepunch.Rcon.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Rust.Localization.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Rust.Clans.Local.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Rust.FileSystem.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Rust.Harmony.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Rust.Global.dll", ref needsSave);
 			ForceEnsurePublicizedAssembly("Rust.Data.dll", ref needsSave);
+			ForceEnsurePublicizedAssembly("Fleck.dll", ref needsSave);
 
 			Config.Publicizer.PublicizerMemberIgnores ??=
 			[

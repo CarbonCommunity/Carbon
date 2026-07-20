@@ -11,6 +11,8 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Generator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HookStringPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InternalCallHookShared.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StringBuilderPool.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.CSharp">

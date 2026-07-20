@@ -42,7 +42,7 @@ public static partial class WebControlPanel
 		private string address = player.IsConnected ? player.Connection.ipaddress : string.Empty;
 		private ulong entityId = player.net.ID.Value;
 		private int connectedSeconds = player.secondsConnected;
-		private float violationLevel = player.violationLevel;
+		private float violationLevel = player.ViolationLevel;
 		private int currentLevel = 0;
 		private int unspentXp = 0;
 		private float health = player.health;
