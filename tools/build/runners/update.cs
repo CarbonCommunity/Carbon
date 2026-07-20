@@ -17,7 +17,8 @@ void DownloadRustFiles(string platform)
 		"-os", platform, 
 		"-validate", 
 		"-app 258550",
-		"-branch", branch, 
+		"-beta", branch,
+		"-betapassword", "playermaintained",
 		"-filelist", PathEnquotes(Home, "tools", "helpers", "258550_refs.txt"),
 		"-dir", PathEnquotes(Home, "rust", platform));
 		
