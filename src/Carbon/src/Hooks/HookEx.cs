@@ -94,6 +94,14 @@ public class HookEx : IDisposable, IHook
 			_runtime.Postfix = AccessTools.Method(type, "Postfix") ?? null;
 			_runtime.Transpiler = AccessTools.Method(type, "Transpiler") ?? null;
 
+			if (TargetType == null)
+			{
+				if (string.IsNullOrEmpty(metadata.Target))
+					throw new Exception($"Hook '{HookFullName}' does not specify a target class.");
+
+				throw new Exception($"Hook '{HookFullName}' target class '{metadata.Target}' was not found in the current game assembly. This usually means the Rust/Carbon versions are out of sync.");
+			}
+
 			// Type generics need to handled differently from a standard type.
 			// Harmony/Mono.Cecil will not allow the patching of the generic type
 			// which means we need to find each type matching the constrain and
