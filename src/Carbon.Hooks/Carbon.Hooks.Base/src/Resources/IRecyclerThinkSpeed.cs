@@ -10,7 +10,7 @@ public partial class Category_Fixes
 {
 	public partial class Fixes_Recycler
 	{
-		[HookAttribute.Patch("IRecyclerThinkSpeed", "IRecyclerThinkSpeed", typeof(Recycler), "GetRecyclerStats", new System.Type[] { typeof(float), typeof(float) })]
+		[HookAttribute.Patch("IRecyclerThinkSpeed", "IRecyclerThinkSpeed", typeof(Recycler), "GetRecyclerStats")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
 		public class IRecyclerThinkSpeed : Patch
