@@ -3,10 +3,11 @@
 #pragma warning disable
 
 var input = args[0];
+var carbonManaged = args.Length > 1 ? args[1] : null;
 var patchableFiles = Directory.EnumerateFiles(input);
 
 Config.Init(null!);
-Patch.Init(null!, null!, input);
+Patch.Init(null!, carbonManaged!, input);
 foreach (var file in patchableFiles)
 {
 	try
