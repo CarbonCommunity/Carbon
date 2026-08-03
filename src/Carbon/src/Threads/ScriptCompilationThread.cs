@@ -33,6 +33,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public string[] Requires;
 	public string InternalCallHookSource;
 	public bool IsExtension;
+	public bool IsCompileTestMode;
+	public bool IsCompileSuccess;
 	public List<string> Usings = new();
 	public Dictionary<Type, List<uint>> Hooks = new();
 	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
@@ -42,6 +44,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public Assembly Assembly;
 	public List<CompilerException> Exceptions = new();
 	public List<CompilerException> Warnings = new();
+
 
 	private const string _internalCallHookPattern = @"override object InternalCallHook";
 	private const string _partialPattern = @" partial ";
@@ -363,6 +366,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 	}
 	public override void Start()
 	{
+		IsCompileTestMode = Community.Runtime?.Config?.Compiler?.CompileTestMode ?? false;
+
 		PrewarmInternalHookGenerator();
 		references = _addReferences();
 
@@ -629,6 +634,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				if (emit.Success)
 				{
+					IsCompileSuccess = true;
+
 					var assembly = dllStream.ToArray();
 					if (assembly != null)
 					{
@@ -638,20 +645,32 @@ public class ScriptCompilationThread : BaseThreadedJob
 						}
 
 						_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
-						Assembly = Assembly.Load(assembly);
 
-						try
+						if (IsCompileTestMode)
 						{
-							var name = Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
-								? InitialSource.FileName
-								: InitialSource.ContextFileName);
-
-							var isProfiled = MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly, name, true);
-							Assemblies.Plugins.Update(name, Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath, isProfiled);
+							// Compile-test mode: the emitted IL must never reach the AppDomain, so no Assembly.Load,
+							// no profiler attachment and no registration in Carbon's assembly database. The bytes cached
+							// above are exclusively consumed as Roslyn metadata references (for '// Requires:' chains),
+							// and reading metadata never executes any of the compiled code.
+							Assembly = null;
 						}
-						catch (Exception ex)
+						else
 						{
-							Logger.Error($"Couldn't cache assembly in Carbon's global database", ex);
+							Assembly = Assembly.Load(assembly);
+
+							try
+							{
+								var name = Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
+									? InitialSource.FileName
+									: InitialSource.ContextFileName);
+
+								var isProfiled = MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly, name, true);
+								Assemblies.Plugins.Update(name, Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath, isProfiled);
+							}
+							catch (Exception ex)
+							{
+								Logger.Error($"Couldn't cache assembly in Carbon's global database", ex);
+							}
 						}
 					}
 				}
@@ -666,7 +685,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 			_stopwatch.Reset();
 			Pool.FreeUnsafe(ref _stopwatch);
 
-			if (Assembly == null) return;
+			// Belt-and-braces: never reflect over the compiled types in compile-test mode. Walking them would
+			// resolve the plugin's type graph (and any type initializers hanging off it) inside our AppDomain.
+			if (IsCompileTestMode || Assembly == null) return;
 
 			foreach (var type in Assembly.GetTypes())
 			{
