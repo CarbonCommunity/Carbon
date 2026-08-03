@@ -681,6 +681,18 @@ public class LUI : IDisposable
 			}
 		}
 
+		public void SetBlocksRaycast<T>(bool blocksRaycast) where T : LuiCompBase
+		{
+			if (luiComponents.TryGetValue<T>(LuiPool.GetLuiCompType(typeof(T)), out var component))
+			{
+				component.blocksRaycast = blocksRaycast;
+			}
+			else
+			{
+				Logger.Warn($"[LUI] You're trying to switch blocksRaycast of component '{typeof(T)}' but it isn't present. Ignoring.");
+			}
+		}
+
 		public void SetPlaceholderParentId<T>(string placeholderParentId) where T : LuiCompBase
 		{
 			if (luiComponents.TryGetValue<T>(LuiPool.GetLuiCompType(typeof(T)), out var component))
@@ -2473,8 +2485,11 @@ public class LuiCompBase
 {
 	public LuiCompType type;
 	public bool enabled = true;
-	public float fadeIn; //Present in like 80% of elements but to reduce method list, adding it here.
-	public string placeholderParentId; //Present in like 80% of elements but to reduce method list, adding it here.
+	
+	//All below present in like 80% of elements but to reduce method list, adding it here.
+	public float fadeIn;
+	public bool blocksRaycast = true;
+	public string placeholderParentId;
 }
 
 public class LuiTextComp : LuiCompBase
@@ -2911,6 +2926,7 @@ public static class LuiPool
 		comp.color = null;
 		comp.verticalOverflow = null;
 		comp.fadeIn = 0;
+		comp.blocksRaycast = true;
 		comp.placeholderParentId = null;
 		return comp;
 	}
@@ -2933,6 +2949,7 @@ public static class LuiPool
 		comp.skinid = 0;
 		comp.ppuMultiplier = -1;
 		comp.fadeIn = 0;
+		comp.blocksRaycast = true;
 		comp.placeholderParentId = null;
 		return comp;
 	}
@@ -2951,6 +2968,7 @@ public static class LuiPool
 		comp.png = null;
 		comp.steamid = null;
 		comp.fadeIn = 0;
+		comp.blocksRaycast = true;
 		comp.placeholderParentId = null;
 		return comp;
 	}
@@ -2977,6 +2995,7 @@ public static class LuiPool
 		comp.fadeDuration = -1;
 		comp.interactable = true;
 		comp.fadeIn = 0;
+		comp.blocksRaycast = true;
 		comp.placeholderParentId = null;
 		return comp;
 	}
@@ -3018,6 +3037,7 @@ public static class LuiPool
 		comp.autofocus = false;
 		comp.interactable = true;
 		comp.fadeIn = 0;
+		comp.blocksRaycast = true;
 		comp.placeholderParentId = null;
 		return comp;
 	}

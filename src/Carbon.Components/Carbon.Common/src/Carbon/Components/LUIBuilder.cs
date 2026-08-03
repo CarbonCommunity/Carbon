@@ -464,6 +464,11 @@ public struct LuiBuilderInstance : IDisposable
 		                this.WriteComma();
 		                this.WriteField("fadeIn", component.fadeIn);
 	                }
+	                if (!component.blocksRaycast)
+	                {
+		                this.WriteComma();
+		                this.WriteField("blocksRaycast", false);
+	                }
 	                if (component.placeholderParentId != null)
 	                {
 		                this.WriteComma();
