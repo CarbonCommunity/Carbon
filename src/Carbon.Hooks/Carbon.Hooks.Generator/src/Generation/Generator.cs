@@ -11,7 +11,7 @@ namespace Carbon.Generation;
 
 internal sealed partial class Generator(GeneratorOptions options)
 {
-	private static readonly HashSet<string> LocalBlacklist = new(StringComparer.Ordinal)
+	internal static readonly HashSet<string> LocalBlacklist = new(StringComparer.Ordinal)
 	{
 		"ConsumptionAmountField [AutoTurret]",
 		"SplashThresholdField [SprayCanSpray]",
