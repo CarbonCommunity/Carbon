@@ -533,6 +533,11 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("fillCenter", true);
 		                    }
+		                    if (image.ppuMultiplier != -1)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("ppuMultiplier", image.ppuMultiplier);
+		                    }
 		                    if (image.png != null)
 		                    {
 			                    this.WriteComma();
@@ -552,11 +557,6 @@ public struct LuiBuilderInstance : IDisposable
 		                    {
 			                    this.WriteComma();
 			                    this.WriteField("skinid", image.skinid);
-		                    }
-		                    if (image.ppuMultiplier != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("ppuMultiplier", image.ppuMultiplier);
 		                    }
 		                    break;
 	                    case LuiCompType.RawImage:
@@ -596,6 +596,11 @@ public struct LuiBuilderInstance : IDisposable
 	                    case LuiCompType.Button:
 		                    LuiButtonComp button = component as LuiButtonComp;
 		                    found++;
+		                    if (!button.interactable)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("interactable", false);
+		                    }
 		                    if (button.command != null)
 		                    {
 			                    this.WriteComma();
@@ -660,11 +665,6 @@ public struct LuiBuilderInstance : IDisposable
 		                    {
 			                    this.WriteComma();
 			                    this.WriteField("fadeDuration", button.fadeDuration);
-		                    }
-		                    if (!button.interactable)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("interactable", false);
 		                    }
 		                    break;
 	                    case LuiCompType.Outline:
@@ -1228,6 +1228,11 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("interactable", false);
 		                    }
+		                    if (canvasGroup.fade != LUI.defaultFade)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("fade", canvasGroup.fade);
+		                    }
 		                    break;
 	                    case LuiCompType.Mask:
 		                    LuiMaskComp mask = component as LuiMaskComp;
@@ -1244,7 +1249,7 @@ public struct LuiBuilderInstance : IDisposable
 		                    if (tooltip.tooltipType != null)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("tooltipType", tooltip.tooltipType.ToString());
+			                    this.WriteField("tooltipType", tooltip.tooltipType);
 		                    }
 		                    if (tooltip.offset != null)
 		                    {
@@ -1264,12 +1269,12 @@ public struct LuiBuilderInstance : IDisposable
 		                    if (tooltip.delay != null)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("delay", tooltip.delay.ToString());
+			                    this.WriteField("delay", tooltip.delay);
 		                    }
 		                    if (tooltip.position != null)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("position", tooltip.position.ToString());
+			                    this.WriteField("position", tooltip.position);
 		                    }
 		                    break;
                     }
