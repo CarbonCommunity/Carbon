@@ -130,7 +130,7 @@ public class OxideTypeRef : BaseOxidePatch
 
         if (type.Scope is TypeReference parent)
         {
-            if (parent.FullName is "Oxide.Plugins.Timers" or "Oxide.Plugins.Timer" && type.Name == "TimerInstance")
+            if (parent.FullName is "Oxide.Core.Libraries.Timer" or "Oxide.Plugins.Timer" && type.Name == "TimerInstance")
             {
                 type.Name = "Timer";
                 type.Namespace = "Oxide.Plugins";

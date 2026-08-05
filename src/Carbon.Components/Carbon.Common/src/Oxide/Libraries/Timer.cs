@@ -1,14 +1,14 @@
 ﻿using Logger = Carbon.Logger;
 
-namespace Oxide.Plugins;
+namespace Oxide.Core.Libraries;
 
-public partial class Timers : Library
+public partial class Timer : Library
 {
 	public Plugin Plugin { get; }
-	internal List<Timer> _timers { get; set; } = [];
+	internal List<TimerInstance> _timers { get; set; } = [];
 
-	public Timers() { }
-	public Timers(Plugin plugin)
+	public Timer() { }
+	public Timer(Plugin plugin)
 	{
 		Plugin = plugin;
 	}
@@ -24,7 +24,7 @@ public partial class Timers : Library
 
 	public Plugin.Persistence Persistence => Plugin.persistence;
 
-	internal void TrackTimer(Timer timer)
+	internal void TrackTimer(TimerInstance timer)
 	{
 		timer.OwnerTimers = this;
 		_timers ??= [];
@@ -36,7 +36,7 @@ public partial class Timers : Library
 
 		_timers.Add(timer);
 	}
-	internal void UntrackTimer(Timer timer)
+	internal void UntrackTimer(TimerInstance timer)
 	{
 		if (timer.OwnerTimers != this)
 		{
@@ -46,14 +46,14 @@ public partial class Timers : Library
 		_timers?.Remove(timer);
 	}
 
-	public Timer In(float time, Action action)
+	public TimerInstance In(float time, Action action)
 	{
 		if (!IsValid())
 		{
 			return null;
 		}
 
-		var timer = new Timer(Persistence, action, Plugin);
+		var timer = new TimerInstance(Persistence, action, Plugin);
 		TrackTimer(timer);
 		timer.Repetitions = 1;
 		var activity = new Action(() =>
@@ -92,18 +92,18 @@ public partial class Timers : Library
 
 		return timer;
 	}
-	public Timer Once(float time, Action action)
+	public TimerInstance Once(float time, Action action)
 	{
 		return In(time, action);
 	}
-	public Timer Every(float time, Action action)
+	public TimerInstance Every(float time, Action action)
 	{
 		if (!IsValid())
 		{
 			return null;
 		}
 
-		var timer = new Timer(Persistence, action, Plugin);
+		var timer = new TimerInstance(Persistence, action, Plugin);
 		TrackTimer(timer);
 		var activity = new Action(() =>
 		{
@@ -142,11 +142,11 @@ public partial class Timers : Library
 
 		return timer;
 	}
-	public Timer Repeat(float time, int times, Action action)
+	public TimerInstance Repeat(float time, int times, Action action)
 	{
 		if (!IsValid()) return null;
 
-		var timer = new Timer(Persistence, action, Plugin);
+		var timer = new TimerInstance(Persistence, action, Plugin);
 		TrackTimer(timer);
 		var activity = new Action(() =>
 		{
@@ -193,7 +193,7 @@ public partial class Timers : Library
 
 		return timer;
 	}
-	public void Destroy(ref Timer timer)
+	public void Destroy(ref TimerInstance timer)
 	{
 		if (timer != null)
 		{
@@ -217,160 +217,160 @@ public partial class Timers : Library
 			timer.Destroy();
 		}
 	}
-}
 
-public class Timer : IDisposable
-{
-	public Plugin Plugin { get; set; }
-	internal Timers OwnerTimers { get; set; }
-
-	public Action Activity { get; set; }
-	public Action Callback { get; set; }
-	public Plugin.Persistence Persistence { get; set; }
-	public int Repetitions { get; set; }
-	public float Delay { get; set; }
-	public float ExpiresAt { get; set; }
-	public bool StartupRepeating { get; set; }
-	public int TimesTriggered { get; set; }
-	public bool Destroyed { get; set; }
-
-	public Timer() { }
-	public Timer(Plugin.Persistence persistence, Action activity, Plugin plugin = null)
+	public class TimerInstance : IDisposable
 	{
-		Persistence = persistence;
-		Activity = activity;
-		Plugin = plugin;
-	}
+		public Plugin Plugin { get; set; }
+		internal Timer OwnerTimers { get; set; }
 
-	public void Reset(float delay = -1f, int repetitions = 1)
-	{
-		TimesTriggered = 0;
-		Repetitions = repetitions;
-		StartupRepeating = repetitions != 1;
+		public Action Activity { get; set; }
+		public Action Callback { get; set; }
+		public Plugin.Persistence Persistence { get; set; }
+		public int Repetitions { get; set; }
+		public float Delay { get; set; }
+		public float ExpiresAt { get; set; }
+		public bool StartupRepeating { get; set; }
+		public int TimesTriggered { get; set; }
+		public bool Destroyed { get; set; }
 
-		if (delay < 0)
+		public TimerInstance() { }
+		public TimerInstance(Plugin.Persistence persistence, Action activity, Plugin plugin = null)
 		{
-			delay = Delay;
-		}
-		else
-		{
-			Delay = delay;
-		}
-
-		if (Persistence == null)
-		{
-			Logger.Warn($"Cannot restart a timer for '{Plugin?.ToPrettyString() ?? "unknown plugin"}' because persistence is null.");
-			return;
+			Persistence = persistence;
+			Activity = activity;
+			Plugin = plugin;
 		}
 
-		Timers.RemoveStartupTimer(this);
-
-		if (Callback != null)
+		public void Reset(float delay = -1f, int repetitions = 1)
 		{
-			Persistence.CancelInvoke(Callback);
-			Persistence.CancelInvokeFixedTime(Callback);
-		}
+			TimesTriggered = 0;
+			Repetitions = repetitions;
+			StartupRepeating = repetitions != 1;
 
-		Destroyed = false;
-		OwnerTimers?.TrackTimer(this);
-
-		if (Repetitions == 1)
-		{
-			Action callback = null;
-			callback = () =>
+			if (delay < 0)
 			{
-				try
-				{
-					Activity?.Invoke();
-					if (Destroyed || Callback != callback)
-					{
-						return;
-					}
-
-					TimesTriggered++;
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"Timer of {delay}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
-					Destroy();
-					return;
-				}
-
-				Destroy();
-			};
-			Callback = callback;
-
-			if (Community.IsServerInitialized)
-			{
-				Persistence.Invoke(Callback, delay);
+				delay = Delay;
 			}
 			else
 			{
-				ExpiresAt = UnityEngine.Time.realtimeSinceStartup + delay;
-				Timers.QueueStartupTimer(this);
+				Delay = delay;
 			}
-		}
-		else
-		{
-			Action callback = null;
-			callback = () =>
+
+			if (Persistence == null)
 			{
-				try
+				Logger.Warn($"Cannot restart a timer for '{Plugin?.ToPrettyString() ?? "unknown plugin"}' because persistence is null.");
+				return;
+			}
+
+			Timer.RemoveStartupTimer(this);
+
+			if (Callback != null)
+			{
+				Persistence.CancelInvoke(Callback);
+				Persistence.CancelInvokeFixedTime(Callback);
+			}
+
+			Destroyed = false;
+			OwnerTimers?.TrackTimer(this);
+
+			if (Repetitions == 1)
+			{
+				Action callback = null;
+				callback = () =>
 				{
-					Activity?.Invoke();
-					if (Destroyed || Callback != callback)
+					try
 					{
+						Activity?.Invoke();
+						if (Destroyed || Callback != callback)
+						{
+							return;
+						}
+
+						TimesTriggered++;
+					}
+					catch (Exception ex)
+					{
+						Logger.Error($"Timer of {delay}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+						Destroy();
 						return;
 					}
 
-					TimesTriggered++;
+					Destroy();
+				};
+				Callback = callback;
 
-					if (Repetitions > 0 && TimesTriggered >= Repetitions)
+				if (Community.IsServerInitialized)
+				{
+					Persistence.Invoke(Callback, delay);
+				}
+				else
+				{
+					ExpiresAt = UnityEngine.Time.realtimeSinceStartup + delay;
+					Timer.QueueStartupTimer(this);
+				}
+			}
+			else
+			{
+				Action callback = null;
+				callback = () =>
+				{
+					try
 					{
+						Activity?.Invoke();
+						if (Destroyed || Callback != callback)
+						{
+							return;
+						}
+
+						TimesTriggered++;
+
+						if (Repetitions > 0 && TimesTriggered >= Repetitions)
+						{
+							Destroy();
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.Error($"Timer of {delay}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
 						Destroy();
 					}
-				}
-				catch (Exception ex)
+				};
+				Callback = callback;
+
+				if (Community.IsServerInitialized)
 				{
-					Logger.Error($"Timer of {delay}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
-					Destroy();
+					Persistence.InvokeRepeating(Callback, delay, delay);
 				}
-			};
-			Callback = callback;
-
-			if (Community.IsServerInitialized)
-			{
-				Persistence.InvokeRepeating(Callback, delay, delay);
-			}
-			else
-			{
-				ExpiresAt = UnityEngine.Time.realtimeSinceStartup + Timers.NormalizeStartupRepeatDelay(delay);
-				Timers.QueueStartupTimer(this);
+				else
+				{
+					ExpiresAt = UnityEngine.Time.realtimeSinceStartup + Timer.NormalizeStartupRepeatDelay(delay);
+					Timer.QueueStartupTimer(this);
+				}
 			}
 		}
-	}
-	public bool Destroy()
-	{
-		var wasDestroyed = Destroyed;
-		Destroyed = true;
-
-		Timers.RemoveStartupTimer(this);
-		OwnerTimers?.UntrackTimer(this);
-
-		if (Callback != null)
+		public bool Destroy()
 		{
-			Persistence?.CancelInvoke(Callback);
-			Callback = null;
-		}
+			var wasDestroyed = Destroyed;
+			Destroyed = true;
 
-		return !wasDestroyed;
-	}
-	public void DestroyToPool()
-	{
-		Destroy();
-	}
-	public void Dispose()
-	{
-		Destroy();
+			Timer.RemoveStartupTimer(this);
+			OwnerTimers?.UntrackTimer(this);
+
+			if (Callback != null)
+			{
+				Persistence?.CancelInvoke(Callback);
+				Callback = null;
+			}
+
+			return !wasDestroyed;
+		}
+		public void DestroyToPool()
+		{
+			Destroy();
+		}
+		public void Dispose()
+		{
+			Destroy();
+		}
 	}
 }
