@@ -11,7 +11,7 @@ using ProtoBuf;
 using UnityEngine.UI;
 using static ConsoleSystem;
 using Exception = System.Exception;
-using Timer = Oxide.Plugins.Timer;
+using Timer = Oxide.Core.Libraries.Timer.TimerInstance;
 
 namespace Carbon.Modules;
 

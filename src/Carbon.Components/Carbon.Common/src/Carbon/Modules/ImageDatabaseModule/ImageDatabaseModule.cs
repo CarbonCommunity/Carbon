@@ -1,13 +1,11 @@
 ﻿using System.Drawing.Imaging;
-using System.Management.Instrumentation;
 using System.Net;
 using Facepunch;
 using ProtoBuf;
 using QRCoder;
-using static Carbon.Modules.ImageDatabaseModule;
 using Color = System.Drawing.Color;
 using Defines = Carbon.Core.Defines;
-using Timer = Oxide.Plugins.Timer;
+using Timer = Oxide.Core.Libraries.Timer.TimerInstance;
 
 namespace Carbon.Modules;
 
