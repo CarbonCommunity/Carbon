@@ -254,7 +254,7 @@ public partial class Tests
 		[Integrations.Test.Assert]
 		public void clear_destroys_existing_timers_and_keeps_timer_set_reusable(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Plugins.Timers(singleton);
+			var timers = new Oxide.Core.Libraries.Timer(singleton);
 			var first = timers.In(60f, () => { });
 			var firstCallback = first?.Callback;
 
@@ -294,7 +294,7 @@ public partial class Tests
 		[Integrations.Test.Assert(Timeout = 5_000)]
 		public void destroy_all_handles_stale_destroyed_timer_entries(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Plugins.Timers(singleton);
+			var timers = new Oxide.Core.Libraries.Timer(singleton);
 			var timer = timers.In(60f, () => { });
 			var callback = timer?.Callback;
 
@@ -318,7 +318,7 @@ public partial class Tests
 		[Integrations.Test.Assert(Timeout = 5_000)]
 		public async Task in_timer_destroys_and_untracks_after_firing_once(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Plugins.Timers(singleton);
+			var timers = new Oxide.Core.Libraries.Timer(singleton);
 			var firedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 			var fired = 0;
 
@@ -350,7 +350,7 @@ public partial class Tests
 		[Integrations.Test.Assert(Timeout = 5_000)]
 		public async Task completed_in_timer_can_be_reset(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Plugins.Timers(singleton);
+			var timers = new Oxide.Core.Libraries.Timer(singleton);
 			var firstFireTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 			var secondFireTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 			var fired = 0;
@@ -393,7 +393,7 @@ public partial class Tests
 		[Integrations.Test.Assert(Timeout = 5_000)]
 		public async Task repeat_timer_destroys_and_untracks_after_final_repetition(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Plugins.Timers(singleton);
+			var timers = new Oxide.Core.Libraries.Timer(singleton);
 			var completedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 			var fired = 0;
 
@@ -431,10 +431,10 @@ public partial class Tests
 		[Integrations.Test.Assert(Timeout = 5_000)]
 		public async Task repeat_timer_reset_inside_final_callback_survives_completion(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Plugins.Timers(singleton);
+			var timers = new Oxide.Core.Libraries.Timer(singleton);
 			var resetFireTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 			var fired = 0;
-			Oxide.Plugins.Timer timer = null;
+			Oxide.Core.Libraries.Timer.TimerInstance timer = null;
 
 			timer = timers.Repeat(0.05f, 2, () =>
 			{
