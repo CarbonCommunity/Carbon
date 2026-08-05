@@ -18,16 +18,16 @@ public partial class Tests
 		private static bool StartupTimersQueuedBeforeInit;
 		private static long StartupBurstFirstTick;
 		private static long StartupBurstLastTick;
-		private static Oxide.Plugins.Timer RemainingStartupTimer;
-		private static Oxide.Plugins.Timer RemainingStartupEveryTimer;
-		private static Oxide.Plugins.Timer RemainingStartupRepeatTimer;
+		private static Oxide.Core.Libraries.Timer.TimerInstance RemainingStartupTimer;
+		private static Oxide.Core.Libraries.Timer.TimerInstance RemainingStartupEveryTimer;
+		private static Oxide.Core.Libraries.Timer.TimerInstance RemainingStartupRepeatTimer;
 		private static int StartupResetAttackerCount;
 		private static int StartupResetVictimCount;
 		private static int StartupRepeatLifecycleCount;
 		private static int StartupEveryTickCount;
-		private static Oxide.Plugins.Timer StartupResetVictimTimer;
-		private static Oxide.Plugins.Timer StartupRepeatLifecycleTimer;
-		private static Oxide.Plugins.Timer StartupEveryTickTimer;
+		private static Oxide.Core.Libraries.Timer.TimerInstance StartupResetVictimTimer;
+		private static Oxide.Core.Libraries.Timer.TimerInstance StartupRepeatLifecycleTimer;
+		private static Oxide.Core.Libraries.Timer.TimerInstance StartupEveryTickTimer;
 
 		internal static void QueuePreServerInitializedTimers()
 		{
