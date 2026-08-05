@@ -130,10 +130,10 @@ public class OxideTypeRef : BaseOxidePatch
 
         if (type.Scope is TypeReference parent)
         {
-            if (parent.FullName is "Oxide.Core.Libraries.Timer" or "Oxide.Plugins.Timer" && type.Name == "TimerInstance")
+            if (parent.FullName is "Oxide.Core.Libraries.Timer.TimerInstance" && type.Name == "TimerInstance")
             {
-                type.Name = "Timer";
-                type.Namespace = "Oxide.Plugins";
+                type.Name = "TimerInstance";
+                type.Namespace = "Oxide.Core.Libraries";
                 type.Scope = CompatManager.Common.ImportWith(importer);
                 return;
             }
@@ -198,8 +198,8 @@ public class OxideTypeRef : BaseOxidePatch
 
         if (type.FullName is "Oxide.Core.Libraries.Timer" or "Oxide.Plugins.PluginTimers")
         {
-	        type.Name = "Timers";
-	        type.Namespace = "Oxide.Plugins";
+	        type.Name = "Timer";
+	        type.Namespace = "Oxide.Core.Libraries";
 	        goto common;
         }
 
