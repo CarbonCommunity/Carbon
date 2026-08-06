@@ -1,5 +1,8 @@
-using AsmResolver;
+﻿using AsmResolver;
+using Carbon.Base;
 using HarmonyLib;
+using Assembly = System.Reflection.Assembly;
+using AssemblyName = System.Reflection.AssemblyName;
 
 namespace Carbon.Compat;
 
@@ -15,6 +18,65 @@ public static class Helpers
 	public static bool IsOxideASM(AssemblyReference aref)
 	{
 		return aref.Name.StartsWith("Oxide.") && !aref.Name.ToLower().StartsWith("oxide.ext.");
+	}
+	public static bool TryGetLoadedIdentity(Utf8String name, Assembly[] loaded, out AssemblyName identity)
+	{
+		identity = null;
+
+		foreach (Assembly assembly in loaded)
+		{
+			AssemblyName current = assembly.GetName();
+
+			if (current.Name != name)
+			{
+				continue;
+			}
+
+			if (identity == null || current.Version > identity.Version)
+			{
+				identity = current;
+			}
+		}
+
+		return identity != null;
+	}
+	private static Assembly _newtonsoft;
+
+	private static Assembly Newtonsoft
+	{
+		get
+		{
+			_newtonsoft ??= AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.GetName().Name == "Newtonsoft.Json");
+			return _newtonsoft;
+		}
+	}
+
+	public static IResolutionScope GetNewtonsoftScope(TypeReference type, ReferenceImporter importer)
+	{
+		// Oxide ships a patched Newtonsoft.Json 8.0.0.0 carrying converters the official 13.0.0.0 build
+		// Rust uses doesn't have. Carbon mirrors those in Carbon.Common under their original namespace,
+		// so anything the real assembly can't provide gets pointed there instead of at a type that
+		// would only fail to resolve once the plugin or extension actually runs.
+		if (Newtonsoft == null || Newtonsoft.GetType(type.FullName) != null)
+		{
+			return CompatManager.Newtonsoft.ImportWith(importer);
+		}
+
+		if (typeof(BaseHookable).Assembly.GetType(type.FullName) == null)
+		{
+			Logger.Warn($"Oxide type '{type.FullName}' is missing from Newtonsoft.Json {Newtonsoft.GetName().Version} and Carbon has no equivalent for it");
+		}
+
+		return CompatManager.Common.ImportWith(importer);
+	}
+	public static void AlignIdentityWith(this AssemblyReference reference, AssemblyName identity)
+	{
+		reference.Version = identity.Version;
+
+		byte[] token = identity.GetPublicKeyToken();
+
+		reference.HasPublicKey = false;
+		reference.PublicKeyOrToken = token is { Length: > 0 } ? token : null;
 	}
     public static bool StartsWith(this Utf8String str, string value) => str.Value.StartsWith(value);
     public static bool EndsWith(this Utf8String str, string value) => str.Value.EndsWith(value);

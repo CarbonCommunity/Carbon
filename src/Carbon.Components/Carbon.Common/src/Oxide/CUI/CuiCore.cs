@@ -172,8 +172,7 @@ public class CuiButtonComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICui
 	public string PlaceholderParentId { get; set; }
 
 	[JsonProperty("blocksRaycast")]
-	[DefaultValue(true)]
-	public bool BlocksRaycast { get; set; } = true;
+	public bool? BlocksRaycast { get; set; }
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -328,8 +327,7 @@ public class CuiImageComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiG
 	public string PlaceholderParentId { get; set; }
 
 	[JsonProperty("blocksRaycast")]
-	[DefaultValue(true)]
-	public bool BlocksRaycast { get; set; } = true;
+	public bool? BlocksRaycast { get; set; }
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -392,8 +390,7 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor, ICuiEnableable, 
 	public string PlaceholderParentId { get; set; }
 
 	[JsonProperty("blocksRaycast")]
-	[DefaultValue(true)]
-	public bool BlocksRaycast { get; set; } = true;
+	public bool? BlocksRaycast { get; set; }
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -457,8 +454,7 @@ public class CuiRawImageComponent : ICuiComponent, ICuiColor, ICuiEnableable, IC
 	public string PlaceholderParentId { get; set; }
 
 	[JsonProperty("blocksRaycast")]
-	[DefaultValue(true)]
-	public bool BlocksRaycast { get; set; } = true;
+	public bool? BlocksRaycast { get; set; }
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -492,8 +488,7 @@ public class CuiRectTransform
 	public string SetParent { get; set; }
 
 	[JsonProperty("setTransformIndex")]
-	[DefaultValue(-1)]
-	public int SetTransformIndex { get; set; } = -1;
+	public int SetTransformIndex { get; set; }
 }
 public class CuiCountdownComponent : ICuiComponent, ICuiEnableable
 {
@@ -630,8 +625,7 @@ public class CuiTextComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiGr
 	public string PlaceholderParentId { get; set; }
 
 	[JsonProperty("blocksRaycast")]
-	[DefaultValue(true)]
-	public bool BlocksRaycast { get; set; } = true;
+	public bool? BlocksRaycast { get; set; }
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -935,7 +929,7 @@ public interface ICuiGraphic
 	string PlaceholderParentId { get; set; }
 
 	[JsonProperty("blocksRaycast")]
-	bool BlocksRaycast { get; set; }
+	bool? BlocksRaycast { get; set; }
 }
 public interface ICuiEnableable
 {
