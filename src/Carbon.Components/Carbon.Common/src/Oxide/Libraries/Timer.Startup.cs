@@ -1,11 +1,11 @@
-namespace Oxide.Plugins;
+﻿namespace Oxide.Core.Libraries;
 
 using Facepunch;
 
-public partial class Timers
+public partial class Timer
 {
 	private static readonly object StartupTimerLock = new();
-	private static readonly List<Timer> StartupTimers = [];
+	private static readonly List<TimerInstance> StartupTimers = [];
 	private static float _nextStartupTimerAt = float.PositiveInfinity;
 
 	private const int MaxStartupTimersPerFrame = 256;
@@ -17,7 +17,7 @@ public partial class Timers
 		return delay > MinimumStartupRepeatDelay ? delay : MinimumStartupRepeatDelay;
 	}
 
-	internal static void QueueStartupTimer(Timer timer)
+	internal static void QueueStartupTimer(TimerInstance timer)
 	{
 		lock (StartupTimerLock)
 		{
@@ -32,7 +32,7 @@ public partial class Timers
 		}
 	}
 
-	internal static void RemoveStartupTimer(Timer timer)
+	internal static void RemoveStartupTimer(TimerInstance timer)
 	{
 		if (Community.IsServerInitialized)
 		{
@@ -71,7 +71,7 @@ public partial class Timers
 			return;
 		}
 
-		var timers = Pool.Get<List<Timer>>();
+		var timers = Pool.Get<List<TimerInstance>>();
 		var callbacks = Pool.Get<List<Action>>();
 
 		try
@@ -88,7 +88,7 @@ public partial class Timers
 
 	internal static void ConvertRemainingStartupTimersToInvokes()
 	{
-		var timers = Pool.Get<List<Timer>>();
+		var timers = Pool.Get<List<TimerInstance>>();
 
 		try
 		{
@@ -129,7 +129,7 @@ public partial class Timers
 		}
 	}
 
-	private static bool ShouldRequeueStartupTimer(Timer timer)
+	private static bool ShouldRequeueStartupTimer(TimerInstance timer)
 	{
 		if (!timer.StartupRepeating || timer.Destroyed || Community.IsServerInitialized)
 		{
@@ -147,7 +147,7 @@ public partial class Timers
 		}
 	}
 
-	private static void CollectDueStartupTimers(List<Timer> timers, List<Action> callbacks, float now, int maxTimers)
+	private static void CollectDueStartupTimers(List<TimerInstance> timers, List<Action> callbacks, float now, int maxTimers)
 	{
 		lock (StartupTimerLock)
 		{
@@ -186,7 +186,7 @@ public partial class Timers
 		}
 	}
 
-	private static void FireStartupTimers(List<Timer> timers, List<Action> callbacks)
+	private static void FireStartupTimers(List<TimerInstance> timers, List<Action> callbacks)
 	{
 		for (var i = 0; i < timers.Count; i++)
 		{
@@ -207,7 +207,7 @@ public partial class Timers
 		}
 	}
 
-	private static void TrackNextStartupTimerAt(Timer timer)
+	private static void TrackNextStartupTimerAt(TimerInstance timer)
 	{
 		if (timer.Destroyed)
 		{
