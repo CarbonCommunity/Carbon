@@ -157,7 +157,7 @@ public class OxideTypeRef : BaseOxidePatch
 
         if (type.Namespace.StartsWith("Newtonsoft.Json"))
         {
-	        type.Scope = CompatManager.Newtonsoft.ImportWith(importer);
+	        type.Scope = Helpers.GetNewtonsoftScope(type, importer);
 	        return;
         }
 
