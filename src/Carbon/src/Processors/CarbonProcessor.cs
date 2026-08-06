@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using API.Commands;
 using Carbon.Base;
 using Carbon.Contracts;
+using Oxide.Core.Libraries;
+using Oxide.Plugins;
 
 namespace Carbon.Managers;
 
@@ -44,6 +46,8 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 	}
 	public void Update()
 	{
+		Oxide.Core.Libraries.Timer.UpdateStartupTimers();
+
 		if (CurrentFrameQueue.Count <= 0) return;
 
 		var lockObject = CurrentFrameLock;

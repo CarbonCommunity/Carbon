@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 using Carbon.Core;
 using JetBrains.Annotations;
 using Oxide.Core.Extensions;
+using Oxide.Core.Libraries;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
-using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Compat.Lib;
 
@@ -95,14 +95,14 @@ public static partial class OxideCompat
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Timer TimerOnce(Timers timers, float delay, Action callback, Plugin owner = null)
+    public static Oxide.Plugins.Timer TimerOnce(Oxide.Plugins.PluginTimers timer, float delay, Action callback, Plugin owner = null)
     {
-        return timers.Once(delay, callback);
+        return timer.Once(delay, callback);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Timer TimerRepeat(Timers timers, float delay, int reps, Action callback, Plugin owner = null)
+    public static Oxide.Plugins.Timer TimerRepeat(Oxide.Plugins.PluginTimers timer, float delay, int reps, Action callback, Plugin owner = null)
     {
-        return timers.Repeat(delay, reps, callback);
+        return timer.Repeat(delay, reps, callback);
     }
 }

@@ -83,12 +83,24 @@ public class ComponentConverter : JsonConverter
 				type = typeof(CuiLayoutElementComponent);
 				break;
 
+			case "UnityEngine.UI.CanvasGroup":
+				type = typeof(CuiCanvasGroupComponent);
+				break;
+
+			case "UnityEngine.UI.Mask":
+				type = typeof(CuiMaskComponent);
+				break;
+
 			case "Draggable":
 				type = typeof(CuiDraggableComponent);
 				break;
 
 			case "Slot":
 				type = typeof(CuiSlotComponent);
+				break;
+
+			case "Tooltip":
+				type = typeof(CuiTooltipComponent);
 				break;
 
 			default:
@@ -153,8 +165,15 @@ public class CuiButtonComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICui
 	[JsonProperty("fadeIn")]
 	public float FadeIn { get; set; }
 
+	[JsonProperty("interactable")]
+	public bool? Interactable { get; set; }
+
 	[JsonProperty("placeholderParentId")]
 	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("blocksRaycast")]
+	[DefaultValue(true)]
+	public bool BlocksRaycast { get; set; } = true;
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -287,6 +306,9 @@ public class CuiImageComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiG
 	[JsonProperty("fillCenter")]
 	public bool? FillCenter { get; set; }
 
+	[JsonProperty("ppuMultiplier")]
+	public float? PpuMultiplier { get; set; }
+
 	[JsonProperty("png")]
 	public string Png { get; set; }
 
@@ -304,6 +326,10 @@ public class CuiImageComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiG
 
 	[JsonProperty("placeholderParentId")]
 	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("blocksRaycast")]
+	[DefaultValue(true)]
+	public bool BlocksRaycast { get; set; } = true;
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -359,8 +385,15 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor, ICuiEnableable, 
 	[JsonProperty("fadeIn")]
 	public float FadeIn { get; set; }
 
+	[JsonProperty("interactable")]
+	public bool? Interactable { get; set; }
+
 	[JsonProperty("placeholderParentId")]
 	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("blocksRaycast")]
+	[DefaultValue(true)]
+	public bool BlocksRaycast { get; set; } = true;
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -422,6 +455,10 @@ public class CuiRawImageComponent : ICuiComponent, ICuiColor, ICuiEnableable, IC
 
 	[JsonProperty("placeholderParentId")]
 	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("blocksRaycast")]
+	[DefaultValue(true)]
+	public bool BlocksRaycast { get; set; } = true;
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -493,6 +530,60 @@ public class CuiCountdownComponent : ICuiComponent, ICuiEnableable
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
 }
+public class CuiCanvasGroupComponent : ICuiComponent, ICuiEnableable
+{
+	public string Type => "UnityEngine.UI.CanvasGroup";
+
+	[JsonProperty("alpha")]
+	public float? Alpha { get; set; }
+
+	[JsonProperty("blocksRaycasts")]
+	public bool? BlocksRaycasts { get; set; }
+
+	[JsonProperty("interactable")]
+	public bool? Interactable { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
+}
+public class CuiMaskComponent : ICuiComponent, ICuiEnableable
+{
+	public string Type => "UnityEngine.UI.Mask";
+
+	[JsonProperty("showMaskGraphic")]
+	public bool? ShowMaskGraphic { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
+}
+public class CuiTooltipComponent : ICuiComponent, ICuiEnableable
+{
+	public string Type => "Tooltip";
+
+	[JsonConverter(typeof(StringEnumConverter))]
+	[JsonProperty("tooltipType")]
+	public CommunityEntity.TooltipType? TooltipType { get; set; }
+
+	[JsonProperty("offset")]
+	public string Offset { get; set; }
+
+	[JsonProperty("useCentre")]
+	public bool? UseCentre { get; set; }
+
+	[JsonProperty("text")]
+	public string Text { get; set; }
+
+	[JsonConverter(typeof(StringEnumConverter))]
+	[JsonProperty("delay")]
+	public Tooltip.DelayType? Delay { get; set; }
+
+	[JsonConverter(typeof(StringEnumConverter))]
+	[JsonProperty("position")]
+	public TooltipContainer.PositionMode? Position { get; set; }
+
+	[JsonProperty("enabled")]
+	public bool? Enabled { get; set; }
+}
 
 public enum TimerFormat
 {
@@ -537,6 +628,10 @@ public class CuiTextComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiGr
 
 	[JsonProperty("placeholderParentId")]
 	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("blocksRaycast")]
+	[DefaultValue(true)]
+	public bool BlocksRaycast { get; set; } = true;
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -838,6 +933,9 @@ public interface ICuiGraphic
 
 	[JsonProperty("placeholderParentId")]
 	string PlaceholderParentId { get; set; }
+
+	[JsonProperty("blocksRaycast")]
+	bool BlocksRaycast { get; set; }
 }
 public interface ICuiEnableable
 {

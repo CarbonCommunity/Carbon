@@ -240,7 +240,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		{
 			player.transform.localScale = Vector3.one;
 
-			player.ResetAntiHack(player.ActivePlayerInd, AntiHack.PlayerSpeedhackStates, AntiHack.PlayerFlyhackStates);
+			BasePlayer.ResetAntiHack(player, AntiHack.PlayerStates, AntiHack.PlayerNoclipStates, AntiHack.PlayerSpeedhackStates, AntiHack.PlayerFlyhackStates);
 			player.syncPosition = true;
 			player._limitedNetworking = false;
 			player.isInvisible = false;

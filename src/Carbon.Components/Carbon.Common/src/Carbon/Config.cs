@@ -60,6 +60,7 @@ public class Config
 
 	public class CompilerConfig
 	{
+		public bool CompileTestMode = false;
 		public bool UnloadOnFailure = false;
 		public List<string> ConditionalCompilationSymbols;
 	}

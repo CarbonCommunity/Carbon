@@ -390,6 +390,9 @@ public struct LuiBuilderInstance : IDisposable
 			LuiCompType.Slot  => "Slot",
 			LuiCompType.NeedsKeyboard => "NeedsKeyboard",
 			LuiCompType.ScrollView => "UnityEngine.UI.ScrollView",
+			LuiCompType.CanvasGroup => "UnityEngine.UI.CanvasGroup",
+			LuiCompType.Mask => "UnityEngine.UI.Mask",
+			LuiCompType.Tooltip => "Tooltip",
 			_ => "UnityEngine.UI.Image"
 		};
 	}
@@ -461,6 +464,11 @@ public struct LuiBuilderInstance : IDisposable
 		                this.WriteComma();
 		                this.WriteField("fadeIn", component.fadeIn);
 	                }
+	                if (!component.blocksRaycast)
+	                {
+		                this.WriteComma();
+		                this.WriteField("blocksRaycast", false);
+	                }
 	                if (component.placeholderParentId != null)
 	                {
 		                this.WriteComma();
@@ -530,6 +538,11 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("fillCenter", true);
 		                    }
+		                    if (image.ppuMultiplier != -1)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("ppuMultiplier", image.ppuMultiplier);
+		                    }
 		                    if (image.png != null)
 		                    {
 			                    this.WriteComma();
@@ -588,6 +601,11 @@ public struct LuiBuilderInstance : IDisposable
 	                    case LuiCompType.Button:
 		                    LuiButtonComp button = component as LuiButtonComp;
 		                    found++;
+		                    if (!button.interactable)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("interactable", false);
+		                    }
 		                    if (button.command != null)
 		                    {
 			                    this.WriteComma();
@@ -745,6 +763,11 @@ public struct LuiBuilderInstance : IDisposable
 		                    {
 			                    this.WriteComma();
 			                    this.WriteField("autofocus", true);
+		                    }
+		                    if (!input.interactable)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("interactable", false);
 		                    }
 		                    break;
 	                    case LuiCompType.NeedsCursor:
@@ -1190,6 +1213,73 @@ public struct LuiBuilderInstance : IDisposable
 		                    {
 			                    this.WriteComma();
 			                    this.WriteField("verticalNormalizedPosition", scroll.verticalNormalizedPosition);
+		                    }
+		                    break;
+	                    case LuiCompType.CanvasGroup:
+		                    LuiCanvasGroupComp canvasGroup = component as LuiCanvasGroupComp;
+		                    found++;
+		                    if (canvasGroup.alpha != -1)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("alpha", canvasGroup.alpha);
+		                    }
+		                    if (!canvasGroup.blocksRaycasts)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("blocksRaycasts", false);
+		                    }
+		                    if (!canvasGroup.interactable)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("interactable", false);
+		                    }
+		                    if (canvasGroup.fade != LUI.defaultFade)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("fade", canvasGroup.fade);
+		                    }
+		                    break;
+	                    case LuiCompType.Mask:
+		                    LuiMaskComp mask = component as LuiMaskComp;
+		                    found++;
+		                    if (!mask.showMaskGraphic)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("showMaskGraphic", false);
+		                    }
+		                    break;
+	                    case LuiCompType.Tooltip:
+		                    LuiTooltipComp tooltip = component as LuiTooltipComp;
+		                    found++;
+		                    if (tooltip.tooltipType != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("tooltipType", tooltip.tooltipType);
+		                    }
+		                    if (tooltip.offset != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("offset", tooltip.offset);
+		                    }
+		                    if (tooltip.useCentre)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("useCentre", true);
+		                    }
+		                    if (tooltip.text != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("text", tooltip.text);
+		                    }
+		                    if (tooltip.delay != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("delay", tooltip.delay);
+		                    }
+		                    if (tooltip.position != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("position", tooltip.position);
 		                    }
 		                    break;
                     }

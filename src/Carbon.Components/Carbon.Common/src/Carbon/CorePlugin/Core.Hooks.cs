@@ -14,8 +14,6 @@ public partial class CorePlugin
 	{
 		if (!Community.IsServerInitialized)
 		{
-			Community.IsServerInitialized = true;
-
 			Analytics.on_server_initialized();
 		}
 

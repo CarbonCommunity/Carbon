@@ -31,6 +31,7 @@ public class LUI : IDisposable
 	public string lastName = string.Empty;
 
 	public static readonly Vector2 defaultPivot = new(0.5f, 0.5f);
+	public static readonly Vector2 defaultFade = new(0f, 1f);
 	public static readonly Vector2 defaultCellSize = new(100, 100);
 
 	#region Core Panel
@@ -456,6 +457,48 @@ public class LUI : IDisposable
 		return cont;
 	}
 
+	public LuiContainer CreateCanvasGroup(LuiContainer container, LuiPosition position, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => CreateCanvasGroup(container.name, position, offset, alpha, blocksRaycasts, interactable, name);
+	public LuiContainer CreateCanvasGroup(LuiContainer container, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => CreateCanvasGroup(container.name, LuiPosition.None, offset, alpha, blocksRaycasts, interactable, name);
+	public LuiContainer CreateCanvasGroup(string parent, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => CreateCanvasGroup(parent, LuiPosition.None, offset, alpha, blocksRaycasts, interactable, name);
+
+	public LuiContainer CreateCanvasGroup(string parent, LuiPosition position, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		cont.SetCanvasGroup(alpha, blocksRaycasts, interactable);
+		elements.Add(cont);
+		return cont;
+	}
+
+	public LuiContainer CreateMask(LuiContainer container, LuiPosition position, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => CreateMask(container.name, position, offset, showMaskGraphic, color, name);
+	public LuiContainer CreateMask(LuiContainer container, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => CreateMask(container.name, LuiPosition.None, offset, showMaskGraphic, color, name);
+	public LuiContainer CreateMask(string parent, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => CreateMask(parent, LuiPosition.None, offset, showMaskGraphic, color, name);
+
+	public LuiContainer CreateMask(string parent, LuiPosition position, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		if (color != null)
+			cont.SetColor(color);
+		cont.SetMask(showMaskGraphic);
+		elements.Add(cont);
+		return cont;
+	}
+
+	public LuiContainer CreateTooltip(LuiContainer container, LuiPosition position, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => CreateTooltip(container.name, position, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name);
+	public LuiContainer CreateTooltip(LuiContainer container, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => CreateTooltip(container.name, LuiPosition.None, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name);
+	public LuiContainer CreateTooltip(string parent, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => CreateTooltip(parent, LuiPosition.None, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name);
+
+	public LuiContainer CreateTooltip(string parent, LuiPosition position, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "")
+	{
+		LuiContainer cont = CreateEmptyContainer(parent, name);
+		cont.SetAnchorAndOffset(position, offset);
+		cont.SetColor(LuiColors.Transparent);
+		cont.SetTooltip(text, tooltipType, tooltipOffset, useCentre, delay, positionMode);
+		elements.Add(cont);
+		return cont;
+	}
+
 	#endregion
 
 	/// <summary>
@@ -554,142 +597,6 @@ public class LUI : IDisposable
 		};
 	}
 
-	public static string GetAlign(TextAnchor anchor)
-	{
-		return anchor switch
-		{
-			TextAnchor.UpperLeft => nameof(TextAnchor.UpperLeft),
-			TextAnchor.UpperCenter => nameof(TextAnchor.UpperCenter),
-			TextAnchor.UpperRight => nameof(TextAnchor.UpperRight),
-			TextAnchor.MiddleLeft => nameof(TextAnchor.MiddleLeft),
-			TextAnchor.MiddleCenter => nameof(TextAnchor.MiddleCenter),
-			TextAnchor.MiddleRight => nameof(TextAnchor.MiddleRight),
-			TextAnchor.LowerLeft => nameof(TextAnchor.LowerLeft),
-			TextAnchor.LowerCenter => nameof(TextAnchor.LowerCenter),
-			TextAnchor.LowerRight => nameof(TextAnchor.LowerRight),
-			_ => nameof(TextAnchor.UpperLeft)
-		};
-	}
-
-	public static string GetImageType(UnityEngine.UI.Image.Type imgType)
-	{
-		return imgType switch
-		{
-			Image.Type.Simple => nameof(Image.Type.Simple),
-			Image.Type.Sliced => nameof(Image.Type.Sliced),
-			Image.Type.Tiled => nameof(Image.Type.Tiled),
-			Image.Type.Filled => nameof(Image.Type.Filled),
-			_ => nameof(Image.Type.Simple)
-		};
-	}
-
-	public static string GetWrapMode(VerticalWrapMode mode)
-	{
-		return mode switch
-		{
-			VerticalWrapMode.Truncate => nameof(VerticalWrapMode.Truncate),
-			VerticalWrapMode.Overflow => nameof(VerticalWrapMode.Overflow),
-			_ => nameof(VerticalWrapMode.Truncate)
-		};
-	}
-
-	public static string GetLineType(InputField.LineType lineType)
-	{
-		return lineType switch
-		{
-			InputField.LineType.SingleLine => nameof(InputField.LineType.SingleLine),
-			InputField.LineType.MultiLineSubmit => nameof(InputField.LineType.MultiLineSubmit),
-			InputField.LineType.MultiLineNewline => nameof(InputField.LineType.MultiLineNewline),
-			_ => nameof(InputField.LineType.SingleLine)
-		};
-	}
-
-	public static string GetMovementType(ScrollRect.MovementType movementType)
-	{
-		return movementType switch
-		{
-			ScrollRect.MovementType.Unrestricted => nameof(ScrollRect.MovementType.Unrestricted),
-			ScrollRect.MovementType.Elastic => nameof(ScrollRect.MovementType.Elastic),
-			ScrollRect.MovementType.Clamped => nameof(ScrollRect.MovementType.Clamped),
-			_ => nameof(ScrollRect.MovementType.Unrestricted)
-		};
-	}
-
-	public static string GetTimerFormat(TimerFormat format)
-	{
-		return format switch
-		{
-			TimerFormat.None => nameof(TimerFormat.None),
-			TimerFormat.SecondsHundreth => nameof(TimerFormat.SecondsHundreth),
-			TimerFormat.MinutesSeconds => nameof(TimerFormat.MinutesSeconds),
-			TimerFormat.MinutesSecondsHundreth => nameof(TimerFormat.MinutesSecondsHundreth),
-			TimerFormat.HoursMinutes => nameof(TimerFormat.HoursMinutes),
-			TimerFormat.HoursMinutesSeconds => nameof(TimerFormat.HoursMinutesSeconds),
-			TimerFormat.HoursMinutesSecondsMilliseconds => nameof(TimerFormat.HoursMinutesSecondsMilliseconds),
-			TimerFormat.HoursMinutesSecondsTenths => nameof(TimerFormat.HoursMinutesSecondsTenths),
-			TimerFormat.DaysHoursMinutes => nameof(TimerFormat.DaysHoursMinutes),
-			TimerFormat.DaysHoursMinutesSeconds => nameof(TimerFormat.DaysHoursMinutesSeconds),
-			TimerFormat.Custom => nameof(TimerFormat.Custom),
-			_ => nameof(TimerFormat.None)
-		};
-	}
-
-	public static string GetCorner(GridLayoutGroup.Corner corner)
-	{
-		return corner switch
-		{
-			GridLayoutGroup.Corner.UpperLeft => nameof(GridLayoutGroup.Corner.UpperLeft),
-			GridLayoutGroup.Corner.UpperRight => nameof(GridLayoutGroup.Corner.UpperRight),
-			GridLayoutGroup.Corner.LowerLeft => nameof(GridLayoutGroup.Corner.LowerLeft),
-			GridLayoutGroup.Corner.LowerRight => nameof(GridLayoutGroup.Corner.LowerRight),
-			_ => nameof(GridLayoutGroup.Corner.UpperLeft)
-		};
-	}
-
-	public static string GetAxis(GridLayoutGroup.Axis axis)
-	{
-		return axis switch
-		{
-			GridLayoutGroup.Axis.Horizontal => nameof(GridLayoutGroup.Axis.Horizontal),
-			GridLayoutGroup.Axis.Vertical => nameof(GridLayoutGroup.Axis.Vertical),
-			_ => nameof(GridLayoutGroup.Axis.Vertical)
-		};
-	}
-
-	public static string GetConstraint(GridLayoutGroup.Constraint constraint)
-	{
-		return constraint switch
-		{
-			GridLayoutGroup.Constraint.Flexible => nameof(GridLayoutGroup.Constraint.Flexible),
-			GridLayoutGroup.Constraint.FixedColumnCount => nameof(GridLayoutGroup.Constraint.FixedColumnCount),
-			GridLayoutGroup.Constraint.FixedRowCount => nameof(GridLayoutGroup.Constraint.FixedRowCount),
-			_ => nameof(GridLayoutGroup.Constraint.FixedRowCount)
-		};
-	}
-
-	public static string GetFitMode(ContentSizeFitter.FitMode mode)
-	{
-		return mode switch
-		{
-			ContentSizeFitter.FitMode.Unconstrained => nameof(ContentSizeFitter.FitMode.Unconstrained),
-			ContentSizeFitter.FitMode.MinSize => nameof(ContentSizeFitter.FitMode.MinSize),
-			ContentSizeFitter.FitMode.PreferredSize => nameof(ContentSizeFitter.FitMode.PreferredSize),
-			_ => nameof(ContentSizeFitter.FitMode.Unconstrained)
-		};
-	}
-
-	public static string GetSendType(CommunityEntity.DraggablePositionSendType type)
-	{
-		return type switch
-		{
-			CommunityEntity.DraggablePositionSendType.NormalizedScreen => nameof(CommunityEntity.DraggablePositionSendType.NormalizedScreen),
-			CommunityEntity.DraggablePositionSendType.NormalizedParent => nameof(CommunityEntity.DraggablePositionSendType.NormalizedParent),
-			CommunityEntity.DraggablePositionSendType.Relative => nameof(CommunityEntity.DraggablePositionSendType.Relative),
-			CommunityEntity.DraggablePositionSendType.RelativeAnchor => nameof(CommunityEntity.DraggablePositionSendType.RelativeAnchor),
-			_ => nameof(CommunityEntity.DraggablePositionSendType.NormalizedScreen)
-		};
-	}
-
 	#endregion
 
 	public class LuiContainer
@@ -774,6 +681,18 @@ public class LUI : IDisposable
 			}
 		}
 
+		public void SetBlocksRaycast<T>(bool blocksRaycast) where T : LuiCompBase
+		{
+			if (luiComponents.TryGetValue<T>(LuiPool.GetLuiCompType(typeof(T)), out var component))
+			{
+				component.blocksRaycast = blocksRaycast;
+			}
+			else
+			{
+				Logger.Warn($"[LUI] You're trying to switch blocksRaycast of component '{typeof(T)}' but it isn't present. Ignoring.");
+			}
+		}
+
 		public void SetPlaceholderParentId<T>(string placeholderParentId) where T : LuiCompBase
 		{
 			if (luiComponents.TryGetValue<T>(LuiPool.GetLuiCompType(typeof(T)), out var component))
@@ -800,7 +719,7 @@ public class LUI : IDisposable
 				if (color != null)
 					text.color = color;
 				if (!update)
-					text.align = GetAlign(alignment);
+					text.align = alignment.ToString();
 			}
 			else
 			{
@@ -811,7 +730,7 @@ public class LUI : IDisposable
 				if (color != null)
 					text.color = color;
 				if (!update)
-					text.align = GetAlign(alignment);
+					text.align = alignment.ToString();
 				luiComponents.Add(text.type, text);
 			}
 			return this;
@@ -851,12 +770,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiTextComp>(LuiCompType.Text, out var text))
 			{
-				text.align = GetAlign(align);
+				text.align = align.ToString();
 			}
 			else
 			{
 				text = LuiPool.GetText();
-				text.align = GetAlign(align);
+				text.align = align.ToString();
 				luiComponents.Add(text.type, text);
 			}
 			return this;
@@ -866,12 +785,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiTextComp>(LuiCompType.Text, out var text))
 			{
-				text.verticalOverflow = GetWrapMode(verticalOverflow);
+				text.verticalOverflow = verticalOverflow.ToString();
 			}
 			else
 			{
 				text = LuiPool.GetText();
-				text.verticalOverflow = GetWrapMode(verticalOverflow);
+				text.verticalOverflow = verticalOverflow.ToString();
 				luiComponents.Add(text.type, text);
 			}
 			return this;
@@ -915,12 +834,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiImageComp>(LuiCompType.Image, out var img))
 			{
-				img.imageType = GetImageType(imageType);
+				img.imageType = imageType.ToString();
 			}
 			else
 			{
 				img = LuiPool.GetImage();
-				img.imageType = GetImageType(imageType);
+				img.imageType = imageType.ToString();
 				luiComponents.Add(img.type, img);
 			}
 			return this;
@@ -933,7 +852,7 @@ public class LUI : IDisposable
 				if (sprite != null)
 				{
 					img.sprite = sprite;
-					img.imageType = GetImageType(imageType);
+					img.imageType = imageType.ToString();
 				}
 				if (color != null)
 					img.color = color;
@@ -944,7 +863,7 @@ public class LUI : IDisposable
 				if (sprite != null)
 				{
 					img.sprite = sprite;
-					img.imageType = GetImageType(imageType);
+					img.imageType = imageType.ToString();
 				}
 				if (color != null)
 					img.color = color;
@@ -999,6 +918,21 @@ public class LUI : IDisposable
 			{
 				img = LuiPool.GetImage();
 				img.slice = sliceValue;
+				luiComponents.Add(img.type, img);
+			}
+			return this;
+		}
+
+		public LuiContainer SetPpuMultiplier(float ppuMultiplier)
+		{
+			if (luiComponents.TryGetValue<LuiImageComp>(LuiCompType.Image, out var img))
+			{
+				img.ppuMultiplier = ppuMultiplier;
+			}
+			else
+			{
+				img = LuiPool.GetImage();
+				img.ppuMultiplier = ppuMultiplier;
 				luiComponents.Add(img.type, img);
 			}
 			return this;
@@ -1214,13 +1148,13 @@ public class LUI : IDisposable
 			if (luiComponents.TryGetValue<LuiButtonComp>(LuiCompType.Button, out var button))
 			{
 				button.sprite = sprite;
-				button.imageType = GetImageType(imageType);
+				button.imageType = imageType.ToString();
 			}
 			else
 			{
 				button = LuiPool.GetButton();
 				button.sprite = sprite;
-				button.imageType = GetImageType(imageType);
+				button.imageType = imageType.ToString();
 				luiComponents.Add(button.type, button);
 			}
 			return this;
@@ -1236,6 +1170,21 @@ public class LUI : IDisposable
 			{
 				button = LuiPool.GetButton();
 				button.close = close;
+				luiComponents.Add(button.type, button);
+			}
+			return this;
+		}
+
+		public LuiContainer SetButtonInteractable(bool interactable)
+		{
+			if (luiComponents.TryGetValue<LuiButtonComp>(LuiCompType.Button, out var button))
+			{
+				button.interactable = interactable;
+			}
+			else
+			{
+				button = LuiPool.GetButton();
+				button.interactable = interactable;
 				luiComponents.Add(button.type, button);
 			}
 			return this;
@@ -1284,7 +1233,7 @@ public class LUI : IDisposable
 					input.characterLimit = charLimit;
 				if (!update)
 				{
-					input.align = GetAlign(alignment);
+					input.align = alignment.ToString();
 					input.font = GetFont(font);
 				}
 			}
@@ -1303,7 +1252,7 @@ public class LUI : IDisposable
 					input.characterLimit = charLimit;
 				if (!update)
 				{
-					input.align = GetAlign(alignment);
+					input.align = alignment.ToString();
 					input.font = GetFont(font);
 				}
 				luiComponents.Add(input.type, input);
@@ -1377,12 +1326,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiInputComp>(LuiCompType.InputField, out var input))
 			{
-				input.lineType = GetLineType(lineType);
+				input.lineType = lineType.ToString();
 			}
 			else
 			{
 				input = LuiPool.GetInput();
-				input.lineType = GetLineType(lineType);
+				input.lineType = lineType.ToString();
 				luiComponents.Add(input.type, input);
 			}
 			return this;
@@ -1398,6 +1347,21 @@ public class LUI : IDisposable
 			{
 				input = LuiPool.GetInput();
 				input.placeholderId = placeholderId;
+				luiComponents.Add(input.type, input);
+			}
+			return this;
+		}
+
+		public LuiContainer SetInputInteractable(bool interactable)
+		{
+			if (luiComponents.TryGetValue<LuiInputComp>(LuiCompType.InputField, out var input))
+			{
+				input.interactable = interactable;
+			}
+			else
+			{
+				input = LuiPool.GetInput();
+				input.interactable = interactable;
 				luiComponents.Add(input.type, input);
 			}
 			return this;
@@ -1569,12 +1533,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiCountdownComp>(LuiCompType.Countdown, out var countdown))
 			{
-				countdown.timerFormat = GetTimerFormat(format);
+				countdown.timerFormat = format.ToString();
 			}
 			else
 			{
 				countdown = LuiPool.GetCountdown();
-				countdown.timerFormat = GetTimerFormat(format);
+				countdown.timerFormat = format.ToString();
 				luiComponents.Add(countdown.type, countdown);
 			}
 			return this;
@@ -1603,12 +1567,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiHorizontalLayoutGroupComp>(LuiCompType.HorizontalLayoutGroup, out var layoutGroup))
 			{
-				layoutGroup.childAlignment = GetAlign(anchor);
+				layoutGroup.childAlignment = anchor.ToString();
 			}
 			else
 			{
 				layoutGroup = LuiPool.GetHorizontalLayoutGroup();
-				layoutGroup.childAlignment = GetAlign(anchor);
+				layoutGroup.childAlignment = anchor.ToString();
 				luiComponents.Add(layoutGroup.type, layoutGroup);
 			}
 			return this;
@@ -1704,12 +1668,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiVerticalLayoutGroupComp>(LuiCompType.VerticalLayoutGroup, out var layoutGroup))
 			{
-				layoutGroup.childAlignment = GetAlign(anchor);
+				layoutGroup.childAlignment = anchor.ToString();
 			}
 			else
 			{
 				layoutGroup = LuiPool.GetVerticalLayoutGroup();
-				layoutGroup.childAlignment = GetAlign(anchor);
+				layoutGroup.childAlignment = anchor.ToString();
 				luiComponents.Add(layoutGroup.type, layoutGroup);
 			}
 			return this;
@@ -1819,12 +1783,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
 			{
-				layoutGroup.startCorner = GetCorner(corner);
+				layoutGroup.startCorner = corner.ToString();
 			}
 			else
 			{
 				layoutGroup = LuiPool.GetGridLayoutGroup();
-				layoutGroup.startCorner = GetCorner(corner);
+				layoutGroup.startCorner = corner.ToString();
 				luiComponents.Add(layoutGroup.type, layoutGroup);
 			}
 			return this;
@@ -1834,12 +1798,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
 			{
-				layoutGroup.startAxis = GetAxis(axis);
+				layoutGroup.startAxis = axis.ToString();
 			}
 			else
 			{
 				layoutGroup = LuiPool.GetGridLayoutGroup();
-				layoutGroup.startAxis = GetAxis(axis);
+				layoutGroup.startAxis = axis.ToString();
 				luiComponents.Add(layoutGroup.type, layoutGroup);
 			}
 			return this;
@@ -1849,12 +1813,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
 			{
-				layoutGroup.childAlignment = GetAlign(align);
+				layoutGroup.childAlignment = align.ToString();
 			}
 			else
 			{
 				layoutGroup = LuiPool.GetGridLayoutGroup();
-				layoutGroup.childAlignment = GetAlign(align);
+				layoutGroup.childAlignment = align.ToString();
 				luiComponents.Add(layoutGroup.type, layoutGroup);
 			}
 			return this;
@@ -1864,12 +1828,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiGridLayoutGroupComp>(LuiCompType.GridLayoutGroup, out var layoutGroup))
 			{
-				layoutGroup.constraint = GetConstraint(constraint);
+				layoutGroup.constraint = constraint.ToString();
 			}
 			else
 			{
 				layoutGroup = LuiPool.GetGridLayoutGroup();
-				layoutGroup.constraint = GetConstraint(constraint);
+				layoutGroup.constraint = constraint.ToString();
 				luiComponents.Add(layoutGroup.type, layoutGroup);
 			}
 			return this;
@@ -1913,14 +1877,14 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiContentSizeFitterComp>(LuiCompType.ContentSizeFitter, out var fitterComp))
 			{
-				fitterComp.horizontalFit = GetFitMode(horizontalFit);
-				fitterComp.verticalFit = GetFitMode(verticalFit);
+				fitterComp.horizontalFit = horizontalFit.ToString();
+				fitterComp.verticalFit = verticalFit.ToString();
 			}
 			else
 			{
 				fitterComp = LuiPool.GetContentSizeFitter();
-				fitterComp.horizontalFit = GetFitMode(horizontalFit);
-				fitterComp.verticalFit = GetFitMode(verticalFit);
+				fitterComp.horizontalFit = horizontalFit.ToString();
+				fitterComp.verticalFit = verticalFit.ToString();
 				luiComponents.Add(fitterComp.type, fitterComp);
 			}
 			return this;
@@ -2105,12 +2069,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiDraggableComp>(LuiCompType.Draggable, out var drag))
 			{
-				drag.positionRPC = GetSendType(posSendType);
+				drag.positionRPC = posSendType.ToString();
 			}
 			else
 			{
 				drag = LuiPool.GetDraggable();
-				drag.positionRPC = GetSendType(posSendType);
+				drag.positionRPC = posSendType.ToString();
 				luiComponents.Add(drag.type, drag);
 			}
 			return this;
@@ -2163,7 +2127,7 @@ public class LUI : IDisposable
 				{
 					scroll.vertical = vertical;
 					scroll.horizontal = horizontal;
-					scroll.movementType = GetMovementType(movementType);
+					scroll.movementType = movementType.ToString();
 					scroll.inertia = inertia;
 				}
 				if (elasticity != 0)
@@ -2182,7 +2146,7 @@ public class LUI : IDisposable
 				{
 					scroll.vertical = vertical;
 					scroll.horizontal = horizontal;
-					scroll.movementType = GetMovementType(movementType);
+					scroll.movementType = movementType.ToString();
 					scroll.inertia = inertia;
 				}
 				if (elasticity != 0)
@@ -2247,6 +2211,79 @@ public class LUI : IDisposable
 				if (vertical != 0)
 					scroll.verticalNormalizedPosition = vertical;
 				luiComponents.Add(scroll.type, scroll);
+			}
+			return this;
+		}
+
+		#endregion
+
+		#region Container Methods - LuiCanvasGroupComp
+
+		public LuiContainer SetCanvasGroup(float alpha = -1f, bool blocksRaycasts = true, bool interactable = true)
+		{
+			if (luiComponents.TryGetValue<LuiCanvasGroupComp>(LuiCompType.CanvasGroup, out var canvasGroup))
+			{
+				if (alpha != -1f)
+					canvasGroup.alpha = alpha;
+				canvasGroup.blocksRaycasts = blocksRaycasts;
+				canvasGroup.interactable = interactable;
+			}
+			else
+			{
+				canvasGroup = LuiPool.GetCanvasGroup();
+				if (alpha != -1f)
+					canvasGroup.alpha = alpha;
+				canvasGroup.blocksRaycasts = blocksRaycasts;
+				canvasGroup.interactable = interactable;
+				luiComponents.Add(canvasGroup.type, canvasGroup);
+			}
+			return this;
+		}
+
+		#endregion
+
+		#region Container Methods - LuiMaskComp
+
+		public LuiContainer SetMask(bool showMaskGraphic = true)
+		{
+			if (luiComponents.TryGetValue<LuiMaskComp>(LuiCompType.Mask, out var mask))
+			{
+				mask.showMaskGraphic = showMaskGraphic;
+			}
+			else
+			{
+				mask = LuiPool.GetMask();
+				mask.showMaskGraphic = showMaskGraphic;
+				luiComponents.Add(mask.type, mask);
+			}
+			return this;
+		}
+
+		#endregion
+
+		#region Container Methods - LuiTooltipComp
+
+		public LuiContainer SetTooltip(string text, CommunityEntity.TooltipType? tooltipType = null, string offset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? position = null)
+		{
+			if (luiComponents.TryGetValue<LuiTooltipComp>(LuiCompType.Tooltip, out var tooltip))
+			{
+				tooltip.text = text;
+				tooltip.tooltipType = tooltipType.ToString();
+				tooltip.offset = offset;
+				tooltip.useCentre = useCentre;
+				tooltip.delay = delay.ToString();
+				tooltip.position = position.ToString();
+			}
+			else
+			{
+				tooltip = LuiPool.GetTooltip();
+				tooltip.text = text;
+				tooltip.tooltipType = tooltipType.ToString();
+				tooltip.offset = offset;
+				tooltip.useCentre = useCentre;
+				tooltip.delay = delay.ToString();
+				tooltip.position = position.ToString();
+				luiComponents.Add(tooltip.type, tooltip);
 			}
 			return this;
 		}
@@ -2439,14 +2476,20 @@ public enum LuiCompType
 	Slot,
 	NeedsKeyboard,
 	ScrollView,
+	CanvasGroup,
+	Mask,
+	Tooltip,
 }
 
 public class LuiCompBase
 {
 	public LuiCompType type;
 	public bool enabled = true;
-	public float fadeIn; //Present in like 80% of elements but to reduce method list, adding it here.
-	public string placeholderParentId; //Present in like 80% of elements but to reduce method list, adding it here.
+	
+	//All below present in like 80% of elements but to reduce method list, adding it here.
+	public float fadeIn;
+	public bool blocksRaycast = true;
+	public string placeholderParentId;
 }
 
 public class LuiTextComp : LuiCompBase
@@ -2475,6 +2518,7 @@ public class LuiImageComp : LuiCompBase
 	public string slice;
 	public int itemid;
 	public ulong skinid;
+	public float ppuMultiplier = -1;
 
 	public LuiImageComp()
 	{
@@ -2512,6 +2556,7 @@ public class LuiButtonComp : LuiCompBase
 	public string disabledColor;
 	public float colorMultiplier = -1;
 	public float fadeDuration = -1;
+	public bool interactable = true;
 
 	public LuiButtonComp()
 	{
@@ -2547,6 +2592,7 @@ public class LuiInputComp : LuiCompBase
 	public bool needsKeyboard;
 	public bool hudMenuInput;
 	public bool autofocus;
+	public bool interactable = true;
 
 	public LuiInputComp()
 	{
@@ -2751,6 +2797,44 @@ public struct LuiScrollbar
 	public string trackColor;
 }
 
+public class LuiCanvasGroupComp : LuiCompBase
+{
+	public float alpha = -1;
+	public bool blocksRaycasts = true;
+	public bool interactable = true;
+	public Vector2 fade = LUI.defaultFade;
+
+	public LuiCanvasGroupComp()
+	{
+		type = LuiCompType.CanvasGroup;
+	}
+}
+
+public class LuiMaskComp : LuiCompBase
+{
+	public bool showMaskGraphic = true;
+
+	public LuiMaskComp()
+	{
+		type = LuiCompType.Mask;
+	}
+}
+
+public class LuiTooltipComp : LuiCompBase
+{
+	public string tooltipType;
+	public string offset;
+	public bool useCentre;
+	public string text;
+	public string delay;
+	public string position;
+
+	public LuiTooltipComp()
+	{
+		type = LuiCompType.Tooltip;
+	}
+}
+
 //Uncomment when draggables will be out and there won't be anything like that in CUI.
 /*public enum DraggablePositionSendType
 {
@@ -2797,6 +2881,9 @@ public static class LuiPool
 	private static readonly Stack<LuiCompBase> _slots = new();
 	private static readonly Stack<LuiCompBase> _keyboards = new();
 	private static readonly Stack<LuiCompBase> _scrolls = new();
+	private static readonly Stack<LuiCompBase> _canvasGroups = new();
+	private static readonly Stack<LuiCompBase> _masks = new();
+	private static readonly Stack<LuiCompBase> _tooltips = new();
 
 	public static int poolElements => _containers.Count + _texts.Count + _images.Count + _rawImages.Count + _buttons.Count + _outlines.Count + _inputs.Count + _cursors.Count + _rects.Count + _countdowns.Count + _draggables.Count + _slots.Count + _keyboards.Count + _scrolls.Count;
 
@@ -2819,6 +2906,9 @@ public static class LuiPool
 			case LuiCompType.Slot: _slots.Push(component); break;
 			case LuiCompType.NeedsKeyboard: _keyboards.Push(component); break;
 			case LuiCompType.ScrollView: _scrolls.Push(component); break;
+			case LuiCompType.CanvasGroup: _canvasGroups.Push(component); break;
+			case LuiCompType.Mask: _masks.Push(component); break;
+			case LuiCompType.Tooltip: _tooltips.Push(component); break;
 		}
 	}
 
@@ -2836,6 +2926,7 @@ public static class LuiPool
 		comp.color = null;
 		comp.verticalOverflow = null;
 		comp.fadeIn = 0;
+		comp.blocksRaycast = true;
 		comp.placeholderParentId = null;
 		return comp;
 	}
@@ -2856,7 +2947,9 @@ public static class LuiPool
 		comp.png = null;
 		comp.itemid = 0;
 		comp.skinid = 0;
+		comp.ppuMultiplier = -1;
 		comp.fadeIn = 0;
+		comp.blocksRaycast = true;
 		comp.placeholderParentId = null;
 		return comp;
 	}
@@ -2875,6 +2968,7 @@ public static class LuiPool
 		comp.png = null;
 		comp.steamid = null;
 		comp.fadeIn = 0;
+		comp.blocksRaycast = true;
 		comp.placeholderParentId = null;
 		return comp;
 	}
@@ -2899,7 +2993,9 @@ public static class LuiPool
 		comp.disabledColor = null;
 		comp.colorMultiplier = -1;
 		comp.fadeDuration = -1;
+		comp.interactable = true;
 		comp.fadeIn = 0;
+		comp.blocksRaycast = true;
 		comp.placeholderParentId = null;
 		return comp;
 	}
@@ -2939,7 +3035,9 @@ public static class LuiPool
 		comp.needsKeyboard = false;
 		comp.hudMenuInput = false;
 		comp.autofocus = false;
+		comp.interactable = true;
 		comp.fadeIn = 0;
+		comp.blocksRaycast = true;
 		comp.placeholderParentId = null;
 		return comp;
 	}
@@ -3135,6 +3233,46 @@ public static class LuiPool
 		return comp;
 	}
 
+	public static LuiCanvasGroupComp GetCanvasGroup()
+	{
+		if (_canvasGroups.Count == 0)
+			return new();
+
+		LuiCanvasGroupComp comp = _canvasGroups.Pop() as LuiCanvasGroupComp;
+		comp.enabled = true;
+		comp.alpha = -1;
+		comp.blocksRaycasts = true;
+		comp.interactable = true;
+		return comp;
+	}
+
+	public static LuiMaskComp GetMask()
+	{
+		if (_masks.Count == 0)
+			return new();
+
+		LuiMaskComp comp = _masks.Pop() as LuiMaskComp;
+		comp.enabled = true;
+		comp.showMaskGraphic = true;
+		return comp;
+	}
+
+	public static LuiTooltipComp GetTooltip()
+	{
+		if (_tooltips.Count == 0)
+			return new();
+
+		LuiTooltipComp comp = _tooltips.Pop() as LuiTooltipComp;
+		comp.enabled = true;
+		comp.tooltipType = null;
+		comp.offset = null;
+		comp.useCentre = false;
+		comp.text = null;
+		comp.delay = null;
+		comp.position = null;
+		return comp;
+	}
+
 	public static LuiCompType GetLuiCompType(Type type)
 	{
 		return type switch
@@ -3157,6 +3295,9 @@ public static class LuiPool
 			not null when type == typeof(LuiSlotComp) => LuiCompType.Slot,
 			not null when type == typeof(LuiKeyboardComp) => LuiCompType.NeedsKeyboard,
 			not null when type == typeof(LuiScrollComp) => LuiCompType.ScrollView,
+			not null when type == typeof(LuiCanvasGroupComp) => LuiCompType.CanvasGroup,
+			not null when type == typeof(LuiMaskComp) => LuiCompType.Mask,
+			not null when type == typeof(LuiTooltipComp) => LuiCompType.Tooltip,
 			_ => LuiCompType.Image
 		};
 	}
@@ -3183,6 +3324,9 @@ public static class LuiPool
 			not null when type == typeof(LuiSlotComp) => LuiPool.GetSlot() as T,
 			not null when type == typeof(LuiKeyboardComp) => LuiPool.GetKeyboard() as T,
 			not null when type == typeof(LuiScrollComp) => LuiPool.GetScroll() as T,
+			not null when type == typeof(LuiCanvasGroupComp) => LuiPool.GetCanvasGroup() as T,
+			not null when type == typeof(LuiMaskComp) => LuiPool.GetMask() as T,
+			not null when type == typeof(LuiTooltipComp) => LuiPool.GetTooltip() as T,
 			_ => LuiPool.GetImage() as T,
 		};
 	}

@@ -14,8 +14,8 @@ internal class CommandLineArguments
 	[Option("managed", Required = true, HelpText = "The managed folder where the game libraries can be found")]
 	public required string ManagedFolder { get; set; }
 
-	[Option("output", Required = true, HelpText = "The output C# file location")]
-	public required string OutputFolder { get; set; }
+	[Option("output", Required = false, HelpText = "The output C# file location (required unless running --check/--fix)")]
+	public string? OutputFolder { get; set; }
 
 	[Option("important", Default = false, HelpText = "It's a very important patch")]
 	public bool Important { get; set; }
@@ -40,4 +40,19 @@ internal class CommandLineArguments
 
 	[Option("summary-output", Required = false, HelpText = "Optional path to write a JSON generation summary")]
 	public string? SummaryOutput { get; set; }
+
+	[Option("check", Default = false, HelpText = "Validate the OPJ hooks against the managed folder instead of generating hooks")]
+	public bool Check { get; set; }
+
+	[Option("fix", Default = false, HelpText = "Implies --check; applies the automatic fixes and writes an updated OPJ")]
+	public bool Fix { get; set; }
+
+	[Option("fix-output", Required = false, HelpText = "Path for the fixed OPJ; defaults to '<input>.fixed.opj' next to the input")]
+	public string? FixOutput { get; set; }
+
+	[Option("old-managed", Required = false, HelpText = "Managed folder of the previous game build, used to re-anchor drifted injection indexes")]
+	public string? OldManagedFolder { get; set; }
+
+	[Option("check-output", Required = false, HelpText = "Optional path to write a JSON validation report")]
+	public string? CheckOutput { get; set; }
 }
