@@ -19,6 +19,10 @@ public class Timer
 
 	public Plugin Owner => instance.Plugin;
 
+	public int TimesTriggered => instance.TimesTriggered;
+
+	public Plugin.Persistence Persistence => instance.Persistence;
+
 	public void Reset(float delay = -1, int repetitions = 1) => instance.Reset(delay, repetitions);
 
 	public void Destroy() => instance.Destroy();
