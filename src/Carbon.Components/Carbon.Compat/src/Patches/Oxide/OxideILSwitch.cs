@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Carbon.Compat.Converters;
 using Carbon.Compat.Lib;
 using HarmonyLib;
@@ -153,7 +153,7 @@ public class OxideILSwitch : BaseOxidePatch
                         CIL.Operand is MemberReference fref &&
                         fref.Signature is MethodSignature fsig &&
                         fref.Parent is TypeReference ftw &&
-                        ftw.FullName == "Oxide.Plugins.Timers" &&
+                        ftw.FullName == "Oxide.Core.Libraries.Timer" &&
                         fsig.ParameterTypes[^1].FullName == "Oxide.Core.Plugins.Plugin" &&
                         ftw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
@@ -173,7 +173,7 @@ public class OxideILSwitch : BaseOxidePatch
                         continue;
                     }
 
-                    // change GetLibrary<Oxide.Plugins.Timers> to this.timer
+                    // change GetLibrary<Oxide.Core.Libraries.Timer> to this.timer
                     if (isRustPluginInstance && CIL.OpCode == CilOpCodes.Callvirt &&
                         CIL.Operand is MethodSpecification gspec &&
                         gspec.Method is MemberReference gref &&
@@ -181,7 +181,7 @@ public class OxideILSwitch : BaseOxidePatch
                         gref.Name == "GetLibrary" &&
                         gtw.FullName == "Oxide.Core.OxideMod" &&
                         gspec.Signature.TypeArguments.Count == 1 &&
-                        gspec.Signature.TypeArguments[0].FullName == "Oxide.Plugins.Timers" &&
+                        gspec.Signature.TypeArguments[0].FullName == "Oxide.Core.Libraries.Timer" &&
                         gtw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         CIL.OpCode = CilOpCodes.Pop;

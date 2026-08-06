@@ -10,15 +10,15 @@ public partial class Category_Fixes
 {
 	public partial class Fixes_Recycler
 	{
-		[HookAttribute.Patch("IRecyclerThinkSpeed", "IRecyclerThinkSpeed", typeof(Recycler), "GetRecycleThinkDuration", new System.Type[] { })]
+		[HookAttribute.Patch("IRecyclerThinkSpeed", "IRecyclerThinkSpeed", "Recycler", "GetRecyclerStats", ["System.Single&", "System.Single&"])]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
 		public class IRecyclerThinkSpeed : Patch
 		{
-			private static void Postfix(Recycler __instance, ref float __result)
+			private static void Postfix(Recycler __instance, ref float efficiency, ref float duration)
 			{
 				if (Community.Runtime.Core.IRecyclerThinkSpeed(__instance) is not float value) return;
-				__result *= value;
+				duration *= value;
 			}
 		}
 	}

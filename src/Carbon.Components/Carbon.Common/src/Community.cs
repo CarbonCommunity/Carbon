@@ -71,14 +71,14 @@ public partial class Community
 	{
 		if (wants && !IsServerInitialized)
 		{
-			Timers.FireDueStartupTimers();
+			Oxide.Core.Libraries.Timer.FireDueStartupTimers();
 		}
 
 		IsServerInitialized = wants;
 
 		if (wants)
 		{
-			Timers.ConvertRemainingStartupTimersToInvokes();
+			Oxide.Core.Libraries.Timer.ConvertRemainingStartupTimersToInvokes();
 		}
 	}
 	public void ClearCommands(bool all = false)

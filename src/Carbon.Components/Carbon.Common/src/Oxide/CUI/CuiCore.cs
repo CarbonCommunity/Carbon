@@ -171,6 +171,10 @@ public class CuiButtonComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICui
 	[JsonProperty("placeholderParentId")]
 	public string PlaceholderParentId { get; set; }
 
+	[JsonProperty("blocksRaycast")]
+	[DefaultValue(true)]
+	public bool BlocksRaycast { get; set; } = true;
+
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
 }
@@ -323,6 +327,10 @@ public class CuiImageComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiG
 	[JsonProperty("placeholderParentId")]
 	public string PlaceholderParentId { get; set; }
 
+	[JsonProperty("blocksRaycast")]
+	[DefaultValue(true)]
+	public bool BlocksRaycast { get; set; } = true;
+
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
 
@@ -382,6 +390,10 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor, ICuiEnableable, 
 
 	[JsonProperty("placeholderParentId")]
 	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("blocksRaycast")]
+	[DefaultValue(true)]
+	public bool BlocksRaycast { get; set; } = true;
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -443,6 +455,10 @@ public class CuiRawImageComponent : ICuiComponent, ICuiColor, ICuiEnableable, IC
 
 	[JsonProperty("placeholderParentId")]
 	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("blocksRaycast")]
+	[DefaultValue(true)]
+	public bool BlocksRaycast { get; set; } = true;
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -612,6 +628,10 @@ public class CuiTextComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICuiGr
 
 	[JsonProperty("placeholderParentId")]
 	public string PlaceholderParentId { get; set; }
+
+	[JsonProperty("blocksRaycast")]
+	[DefaultValue(true)]
+	public bool BlocksRaycast { get; set; } = true;
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
@@ -913,6 +933,9 @@ public interface ICuiGraphic
 
 	[JsonProperty("placeholderParentId")]
 	string PlaceholderParentId { get; set; }
+
+	[JsonProperty("blocksRaycast")]
+	bool BlocksRaycast { get; set; }
 }
 public interface ICuiEnableable
 {
