@@ -1,5 +1,7 @@
-using AsmResolver;
+﻿using AsmResolver;
 using HarmonyLib;
+using Assembly = System.Reflection.Assembly;
+using AssemblyName = System.Reflection.AssemblyName;
 
 namespace Carbon.Compat;
 
@@ -15,6 +17,36 @@ public static class Helpers
 	public static bool IsOxideASM(AssemblyReference aref)
 	{
 		return aref.Name.StartsWith("Oxide.") && !aref.Name.ToLower().StartsWith("oxide.ext.");
+	}
+	public static bool TryGetLoadedIdentity(Utf8String name, Assembly[] loaded, out AssemblyName identity)
+	{
+		identity = null;
+
+		foreach (Assembly assembly in loaded)
+		{
+			AssemblyName current = assembly.GetName();
+
+			if (current.Name != name)
+			{
+				continue;
+			}
+
+			if (identity == null || current.Version > identity.Version)
+			{
+				identity = current;
+			}
+		}
+
+		return identity != null;
+	}
+	public static void AlignIdentityWith(this AssemblyReference reference, AssemblyName identity)
+	{
+		reference.Version = identity.Version;
+
+		byte[] token = identity.GetPublicKeyToken();
+
+		reference.HasPublicKey = false;
+		reference.PublicKeyOrToken = token is { Length: > 0 } ? token : null;
 	}
     public static bool StartsWith(this Utf8String str, string value) => str.Value.StartsWith(value);
     public static bool EndsWith(this Utf8String str, string value) => str.Value.EndsWith(value);

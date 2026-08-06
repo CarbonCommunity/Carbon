@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Carbon.Compat.Converters;
 
 namespace Carbon.Compat.Patches;
@@ -18,15 +18,17 @@ public class AssemblyVersionPatch : IAssemblyPatch
 
         foreach (AssemblyReference assemblyReference in assembly.AssemblyReferences)
         {
-            foreach (Assembly lasm in loaded)
+            if (!string.IsNullOrEmpty(assemblyReference.Culture?.Value))
             {
-                AssemblyName name = lasm.GetName();
-
-                if (name.Name == assemblyReference.Name)
-                {
-                    assemblyReference.Version = name.Version;
-                }
+                continue;
             }
+
+            if (!Helpers.TryGetLoadedIdentity(assemblyReference.Name, loaded, out AssemblyName identity))
+            {
+                continue;
+            }
+
+            assemblyReference.AlignIdentityWith(identity);
         }
     }
 }
