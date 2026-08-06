@@ -144,19 +144,5 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 	public class ScriptParser : Parser, IBaseProcessor.IParser
 	{
-		public override void Process(string file, string input, out string output)
-		{
-			using (TimeMeasure.New("ScriptParser.Process"))
-			{
-				try
-				{
-					output = input.Replace("PluginTimers", "Timers");
-				}
-				catch
-				{
-					output = input;
-				}
-			}
-		}
 	}
 }
