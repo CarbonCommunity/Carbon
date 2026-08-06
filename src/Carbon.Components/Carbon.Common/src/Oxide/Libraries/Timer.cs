@@ -46,14 +46,14 @@ public partial class Timer : Library
 		_timers?.Remove(timer);
 	}
 
-	public TimerInstance In(float time, Action action)
+	public TimerInstance In(float time, Action action, Plugin plugin = null)
 	{
 		if (!IsValid())
 		{
 			return null;
 		}
 
-		var timer = new TimerInstance(Persistence, action, Plugin);
+		var timer = new TimerInstance(Persistence, action, plugin ?? Plugin);
 		TrackTimer(timer);
 		timer.Repetitions = 1;
 		var activity = new Action(() =>
@@ -72,7 +72,7 @@ public partial class Timer : Library
 			}
 			catch (Exception ex)
 			{
-				Logger.Error($"Timer of {time}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+				Logger.Error($"Timer of {time}s has failed in '{(plugin ?? Plugin).ToPrettyString()}' [callback]", ex);
 				timer.Destroy();
 			}
 		});
@@ -92,18 +92,18 @@ public partial class Timer : Library
 
 		return timer;
 	}
-	public TimerInstance Once(float time, Action action)
+	public TimerInstance Once(float time, Action action, Plugin plugin = null)
 	{
-		return In(time, action);
+		return In(time, action, plugin);
 	}
-	public TimerInstance Every(float time, Action action)
+	public TimerInstance Every(float time, Action action, Plugin plugin = null)
 	{
 		if (!IsValid())
 		{
 			return null;
 		}
 
-		var timer = new TimerInstance(Persistence, action, Plugin);
+		var timer = new TimerInstance(Persistence, action, plugin ?? Plugin);
 		TrackTimer(timer);
 		var activity = new Action(() =>
 		{
@@ -120,7 +120,7 @@ public partial class Timer : Library
 			}
 			catch (Exception ex)
 			{
-				Logger.Error($"Timer of {time}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+				Logger.Error($"Timer of {time}s has failed in '{(plugin ?? Plugin).ToPrettyString()}' [callback]", ex);
 				timer.Destroy();
 			}
 		});
@@ -142,11 +142,11 @@ public partial class Timer : Library
 
 		return timer;
 	}
-	public TimerInstance Repeat(float time, int times, Action action)
+	public TimerInstance Repeat(float time, int times, Action action, Plugin plugin = null)
 	{
 		if (!IsValid()) return null;
 
-		var timer = new TimerInstance(Persistence, action, Plugin);
+		var timer = new TimerInstance(Persistence, action, plugin ?? Plugin);
 		TrackTimer(timer);
 		var activity = new Action(() =>
 		{
@@ -166,7 +166,7 @@ public partial class Timer : Library
 			}
 			catch (Exception ex)
 			{
-				Logger.Error($"Timer of {time}s has failed in '{Plugin.ToPrettyString()}' [callback]", ex);
+				Logger.Error($"Timer of {time}s has failed in '{(plugin ?? Plugin).ToPrettyString()}' [callback]", ex);
 				timer.Destroy();
 			}
 		});

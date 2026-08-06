@@ -1,7 +1,7 @@
 ﻿using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Game.Rust.Cui;
-using Timer = Oxide.Core.Libraries.Timer.TimerInstance;
+using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Modules;
 

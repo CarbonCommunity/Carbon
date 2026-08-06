@@ -12,7 +12,7 @@ public class RustPlugin : Plugin
 	public Lang lang;
 	public Server server;
 	public Oxide.Core.Libraries.Plugins plugins;
-	public Core.Libraries.Timer timer;
+	public PluginTimers timer;
 	public OxideMod mod;
 	public WebRequests webrequest;
 	public Oxide.Game.Rust.Libraries.Rust rust;
@@ -45,7 +45,7 @@ public class RustPlugin : Plugin
 		server = new Server();
 		Manager = new PluginManager();
 		plugins = new Oxide.Core.Libraries.Plugins(Manager);
-		timer = new Core.Libraries.Timer(this);
+		timer = new PluginTimers(this);
 		lang = new Lang(this);
 		mod = Interface.Oxide;
 		rust = new Game.Rust.Libraries.Rust();

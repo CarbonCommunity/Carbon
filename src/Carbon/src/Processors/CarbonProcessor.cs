@@ -46,7 +46,7 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 	}
 	public void Update()
 	{
-		Timer.UpdateStartupTimers();
+		Oxide.Core.Libraries.Timer.UpdateStartupTimers();
 
 		if (CurrentFrameQueue.Count <= 0) return;
 

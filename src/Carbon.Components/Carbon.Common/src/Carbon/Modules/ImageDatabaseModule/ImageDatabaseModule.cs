@@ -5,7 +5,7 @@ using ProtoBuf;
 using QRCoder;
 using Color = System.Drawing.Color;
 using Defines = Carbon.Core.Defines;
-using Timer = Oxide.Core.Libraries.Timer.TimerInstance;
+using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Modules;
 
