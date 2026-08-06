@@ -18,16 +18,16 @@ public partial class Tests
 		private static bool StartupTimersQueuedBeforeInit;
 		private static long StartupBurstFirstTick;
 		private static long StartupBurstLastTick;
-		private static Oxide.Core.Libraries.Timer.TimerInstance RemainingStartupTimer;
-		private static Oxide.Core.Libraries.Timer.TimerInstance RemainingStartupEveryTimer;
-		private static Oxide.Core.Libraries.Timer.TimerInstance RemainingStartupRepeatTimer;
+		private static Oxide.Plugins.Timer RemainingStartupTimer;
+		private static Oxide.Plugins.Timer RemainingStartupEveryTimer;
+		private static Oxide.Plugins.Timer RemainingStartupRepeatTimer;
 		private static int StartupResetAttackerCount;
 		private static int StartupResetVictimCount;
 		private static int StartupRepeatLifecycleCount;
 		private static int StartupEveryTickCount;
-		private static Oxide.Core.Libraries.Timer.TimerInstance StartupResetVictimTimer;
-		private static Oxide.Core.Libraries.Timer.TimerInstance StartupRepeatLifecycleTimer;
-		private static Oxide.Core.Libraries.Timer.TimerInstance StartupEveryTickTimer;
+		private static Oxide.Plugins.Timer StartupResetVictimTimer;
+		private static Oxide.Plugins.Timer StartupRepeatLifecycleTimer;
+		private static Oxide.Plugins.Timer StartupEveryTickTimer;
 
 		internal static void QueuePreServerInitializedTimers()
 		{
@@ -254,7 +254,7 @@ public partial class Tests
 		[Integrations.Test.Assert]
 		public void clear_destroys_existing_timers_and_keeps_timer_set_reusable(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Core.Libraries.Timer(singleton);
+			var timers = new Oxide.Plugins.Timers(singleton);
 			var first = timers.In(60f, () => { });
 			var firstCallback = first?.Callback;
 
@@ -294,7 +294,7 @@ public partial class Tests
 		[Integrations.Test.Assert(Timeout = 5_000)]
 		public void destroy_all_handles_stale_destroyed_timer_entries(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Core.Libraries.Timer(singleton);
+			var timers = new Oxide.Plugins.Timers(singleton);
 			var timer = timers.In(60f, () => { });
 			var callback = timer?.Callback;
 
@@ -318,7 +318,7 @@ public partial class Tests
 		[Integrations.Test.Assert(Timeout = 5_000)]
 		public async Task in_timer_destroys_and_untracks_after_firing_once(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Core.Libraries.Timer(singleton);
+			var timers = new Oxide.Plugins.Timers(singleton);
 			var firedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 			var fired = 0;
 
@@ -350,7 +350,7 @@ public partial class Tests
 		[Integrations.Test.Assert(Timeout = 5_000)]
 		public async Task completed_in_timer_can_be_reset(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Core.Libraries.Timer(singleton);
+			var timers = new Oxide.Plugins.Timers(singleton);
 			var firstFireTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 			var secondFireTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 			var fired = 0;
@@ -393,7 +393,7 @@ public partial class Tests
 		[Integrations.Test.Assert(Timeout = 5_000)]
 		public async Task repeat_timer_destroys_and_untracks_after_final_repetition(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Core.Libraries.Timer(singleton);
+			var timers = new Oxide.Plugins.Timers(singleton);
 			var completedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 			var fired = 0;
 
@@ -431,10 +431,10 @@ public partial class Tests
 		[Integrations.Test.Assert(Timeout = 5_000)]
 		public async Task repeat_timer_reset_inside_final_callback_survives_completion(Integrations.Test.Assert test)
 		{
-			var timers = new Oxide.Core.Libraries.Timer(singleton);
+			var timers = new Oxide.Plugins.Timers(singleton);
 			var resetFireTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 			var fired = 0;
-			Oxide.Core.Libraries.Timer.TimerInstance timer = null;
+			Oxide.Plugins.Timer timer = null;
 
 			timer = timers.Repeat(0.05f, 2, () =>
 			{
