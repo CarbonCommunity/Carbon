@@ -380,7 +380,9 @@ public class ScriptLoader : IScriptLoader
 
 		yield return null;
 
-		if (AsyncLoader != null && AsyncLoader.Assembly == null)
+		// In compile-test mode the assembly is intentionally never loaded, so bail out before anything
+		// would reflect over, instantiate or otherwise execute the compiled plugin.
+		if (AsyncLoader != null && (AsyncLoader.IsCompileTestMode || AsyncLoader.Assembly == null))
 		{
 			if (AsyncLoader.Exceptions != null && AsyncLoader.Exceptions.Count > 0)
 			{
@@ -433,8 +435,23 @@ public class ScriptLoader : IScriptLoader
 				}
 
 #if DEBUG
-				OsEx.File.Create(Path.Combine(Defines.GetScriptDebugFolder(), $"{AsyncLoader.InitialSource.ContextFileName}.Internal.cs"), AsyncLoader.InternalCallHookSource);
+				OsEx.File.Create(Path.Combine(Defines.GetScriptDebugFolder(), $"{Path.GetFileNameWithoutExtension(AsyncLoader.InitialSource.ContextFilePath)}.Internal.cs"), AsyncLoader.InternalCallHookSource);
 #endif
+			}
+			else if (AsyncLoader.IsCompileTestMode)
+			{
+				var name = AsyncLoader.InitialSource?.ContextFileName ?? "<unknown>";
+
+				if (AsyncLoader.IsCompileSuccess)
+				{
+					var warnings = AsyncLoader.Warnings != null ? AsyncLoader.Warnings.Count : 0;
+
+					Logger.Log($"Compilation of '{name}' complete [{AsyncLoader.CompileTime.TotalMilliseconds:0}ms] (compile-test mode)");
+				}
+				else
+				{
+					Logger.Error($"Compilation of '{name}' failed (compile-test mode)");
+				}
 			}
 
 			AsyncLoader.Exceptions?.Clear();

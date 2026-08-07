@@ -16,6 +16,15 @@ public partial class CorePlugin
 		WebControlPanel.SaveConfig();
 	}
 
+	[ConsoleCommand("webpanel.setport", "Update the WebControlPanel server port")]
+	[AuthLevel(2)]
+	private void SetWebControlPanelPort(ConsoleSystem.Arg arg)
+	{
+		WebControlPanel.config.BridgeServer.Port = arg.GetInt(0, WebControlPanel.config.BridgeServer.Port);
+		WebControlPanel.SaveConfig();
+		WebControlPanel.RestartServer();
+	}
+
 	[ConsoleCommand("webpanel.setenabled", "Should the WebControlPanel server be started/stopped")]
 	[AuthLevel(2)]
 	private void TryToggleWebControlPanelServer(ConsoleSystem.Arg arg)

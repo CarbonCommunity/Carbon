@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+
+    <PropertyGroup>
+        <SolutionDir Condition="'$(SolutionDir)' == ''">$(MSBuildProjectDirectory)\..\</SolutionDir>
+        <TargetFramework>net48</TargetFramework>
+        <LangVersion>preview</LangVersion>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <OutputType>Library</OutputType>
+        <AssemblyName>Carbon.Profiler.Tests.Harness</AssemblyName>
+        <RootNamespace>Carbon.Profiler.Tests.Harness</RootNamespace>
+    </PropertyGroup>
+
+    <Import Project="$(SolutionDir)\.msbuild\Configurations.props"/>
+    <Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props"/>
+
+    <ItemGroup>
+        <Reference Include="$(SolutionDir)\..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\0Harmony.dll" Private="false"/>
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all"/>
+    </ItemGroup>
+
+</Project>

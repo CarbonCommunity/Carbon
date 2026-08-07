@@ -1,0 +1,16 @@
+name: Profiler Test (Staging)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 */4 * *'
+
+concurrency: profiler-test-staging-${{ github.ref }}
+
+jobs:
+  tests:
+    uses: ./.github/workflows/profiler-test-common.yml
+    name: Tests
+    with:
+      rust_branch: staging
+      checkout_ref: ${{ github.sha }}

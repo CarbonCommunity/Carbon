@@ -15,18 +15,12 @@ public partial class Category_Static
 	{
 		[HookAttribute.Patch("IBroadcastOverride", "IBroadcastOverride", typeof(ConVar.Chat), "Broadcast", new System.Type[] { typeof(string), typeof(string), typeof(string), typeof(ulong) })]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden | HookFlags.IgnoreChecksum)]
-
 		public class IBroadcastOverride : Patch
 		{
 			public static bool Prefix(string message, ref string username, ref string color, ref ulong userid)
 			{
 				// OnServerMessage
 				if(HookCaller.CallStaticHook(3155060134, message, username, color, userid) != null)
-				{
-					return false;
-				}
-
-				if (Community.Runtime.Core.NoGiveNoticesCache && username == "SERVER" && message.Contains("gave"))
 				{
 					return false;
 				}
@@ -60,6 +54,34 @@ public partial class Category_Static
 				ce.Time = Epoch.Current;
 				ConVar.Chat.Record(ce);
 				return false;
+			}
+		}
+
+		[HookAttribute.Patch("INoGiveNotices", "INoGiveNotices", typeof(ConVar.Chat), "BroadcastPlayerAction", new System.Type[] { typeof(BasePlayer), typeof(string) })]
+		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden | HookFlags.IgnoreChecksum)]
+		public class INoGiveNotices : Patch
+		{
+			public static bool Prefix(BasePlayer subject, string action)
+			{
+				if (Community.Runtime.Core.NoGiveNoticesCache && (action.Contains("give") || action.Contains("gave")))
+				{
+					return false;
+				}
+				return true;
+			}
+		}
+
+		[HookAttribute.Patch("INoGiveNotices2", "INoGiveNotices2", typeof(ConVar.Chat), "BroadcastPlayerAction", new System.Type[] { typeof(BasePlayer), typeof(string), typeof(BasePlayer), typeof(string) })]
+		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden | HookFlags.IgnoreChecksum)]
+		public class INoGiveNotices2 : Patch
+		{
+			public static bool Prefix(BasePlayer subjectA, string middle, BasePlayer subjectB, string suffix)
+			{
+				if (Community.Runtime.Core.NoGiveNoticesCache && (middle.Contains("give") || middle.Contains("gave")))
+				{
+					return false;
+				}
+				return true;
 			}
 		}
 	}

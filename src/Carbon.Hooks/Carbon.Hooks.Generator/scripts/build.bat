@@ -20,15 +20,19 @@ if "%PROTOCOL%" EQU "" (
 )
 
 if "%1" EQU "" (
-	set TARGET=Debug
+	set /p TARGET=Target: 
 ) else (
 	set TARGET=%1
 )
 
 if "%2" EQU "" (
-	set STEAM_TARGET=public
+	set /p STEAM_TARGET=Steam Branch: 
 ) else (
 	set STEAM_TARGET=%2
+)
+
+if "%STEAM_TARGET%" EQU "public" (
+	set BOOTSTRAP=update
 )
 
 if "%STEAM_TARGET%" EQU "release" (
@@ -45,6 +49,10 @@ if "%STEAM_TARGET%" EQU "aux01" (
 
 if "%STEAM_TARGET%" EQU "aux02" (
 	set BOOTSTRAP=update_aux02
+)
+
+if "%STEAM_TARGET%" EQU "aux03" (
+	set BOOTSTRAP=update_aux03
 )
 
 set TOOLS=%WORKDIR%\src

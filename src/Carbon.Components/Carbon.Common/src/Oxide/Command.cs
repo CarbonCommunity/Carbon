@@ -1,4 +1,5 @@
 ﻿using API.Commands;
+using Facepunch;
 using static ConsoleSystem;
 using Logger = Carbon.Logger;
 using Pool = Facepunch.Pool;
@@ -100,7 +101,7 @@ public class Command : Library
 				switch (arg)
 				{
 					case PlayerArgs playerArgs:
-						try { callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments); }
+						try { callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments.ToStringArray()); }
 						catch (Exception ex) { Logger.Error($"Failed executing chat command '{command}' in '{plugin.ToPrettyString()}' [callback]", ex.InnerException ?? ex); }
 						break;
 				}
@@ -166,7 +167,7 @@ public class Command : Library
 							client.FromRcon = FromRcon;
 							arg.Option = client;
 							arg.FullString = fullString;
-							arg.Args = args;
+							arg.Args = [.. args.Select(x => (StringView)x)];
 
 							arguments.Add(arg);
 						}
@@ -234,7 +235,7 @@ public class Command : Library
 					switch (arg)
 					{
 						case PlayerArgs playerArgs:
-							callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments);
+							callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments.ToStringArray());
 							break;
 					}
 				},
@@ -267,7 +268,7 @@ public class Command : Library
 				Reference = plugin,
 				Callback = arg =>
 				{
-					callback?.Invoke(null, command, arg.Arguments);
+					callback?.Invoke(null, command, arg.Arguments.ToStringArray());
 				},
 				Help = help,
 				Token = reference,
@@ -306,7 +307,7 @@ public class Command : Library
 				if (player != null) option = option.FromConnection(player.net.connection);
 				arg.Option = option;
 				arg.FullString = fullString;
-				arg.Args = args;
+				arg.Args = args.ToStringViewArray();
 				arg.cmd = Community.Runtime.CommandManager.Find(command)?.RustCommand;
 
 				try

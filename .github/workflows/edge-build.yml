@@ -13,6 +13,8 @@ on:
       - ".github/**/*"
       - "**/*.md"
       - "src/Carbon.Tests/**/*"
+      - "src/Carbon.Profiler.Tests/**/*"
+      - "src/Carbon.Profiler.Tests.Harness/**/*"
       - ".gitignore"
 
 jobs:

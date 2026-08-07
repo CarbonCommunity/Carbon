@@ -1,10 +1,8 @@
 ﻿using System.Drawing.Imaging;
-using System.Management.Instrumentation;
 using System.Net;
 using Facepunch;
 using ProtoBuf;
 using QRCoder;
-using static Carbon.Modules.ImageDatabaseModule;
 using Color = System.Drawing.Color;
 using Defines = Carbon.Core.Defines;
 using Timer = Oxide.Plugins.Timer;
@@ -475,7 +473,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 		if (array == null)
 			return;
 
-		CommunityEntity.ServerInstance.ClientRPC(RpcTarget.Player("CL_ReceiveFilePng", player), image, (uint)array.Length, array);
+		CommunityEntity.ServerInstance.ClientRPC(RpcTarget.Player("CL_ReceiveFilePng", player), image, (uint)array.Length, array, 0u, (byte)FileStorage.Type.png);
 	}
 	public bool HasImage(string keyOrUrl)
 	{

@@ -1,5 +1,5 @@
 ﻿using Facepunch;
-using Facepunch.Math;
+using ProtoBuf;
 
 namespace Carbon;
 
@@ -70,6 +70,38 @@ public static partial class WebControlPanel
 		SendRpcResponse(read.Connection, write);
 	}
 
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.MapTerrain)]
+	private static void RPC_LoadTerrain(BridgeRead read)
+	{
+		var heightMap = TerrainMeta.HeightMap.ToByteArray();
+		var write = StartRpcResponse();
+
+		write.WriteObject(TerrainMeta.HeightMap.res);
+		write.WriteObject((int)World.Size);
+		write.WriteObject(TerrainMeta.Position.y);
+		write.WriteObject(TerrainMeta.Size.y);
+		write.WriteObject(heightMap.Length);
+		write.WriteObject(heightMap);
+
+		SendRpcResponse(read.Connection, write);
+	}
+
+	[WebCall]
+	[WebCall.Condition.Permission(PermissionTypes.MapData)]
+	private static void RPC_LoadMap(BridgeRead read)
+	{
+		var heightMap = TerrainMeta.HeightMap.ToByteArray();
+		var write = StartRpcResponse();
+
+		using var mapInfo = MapData.Parse(World.Serialization.world);
+		mapInfo.Serialize(write);
+
+		Debug.Log($"Sending {mapInfo.prefabs.Count} prefabs");
+
+		SendRpcResponse(read.Connection, write);
+	}
+
 	public struct MapInfo
 	{
 		private int imageWidth;
@@ -114,6 +146,68 @@ public static partial class WebControlPanel
 			for (int i = 0; i < monuments.Count; i++)
 			{
 				monuments[i].Serialize(write);
+			}
+		}
+	}
+
+	public struct MapData : IDisposable
+	{
+		public PooledList<PrefabInfo> prefabs;
+
+		public static MapData Parse(WorldData data)
+		{
+			MapData mapInfo = default;
+			mapInfo.prefabs = Pool.Get<PooledList<PrefabInfo>>();
+			for (int i = 0; i < data.prefabs.Count; i++)
+			{
+				var prefab = data.prefabs[i];
+				PrefabInfo info = default;
+				info.category = prefab.category;
+				info.id = prefab.id;
+				info.path = StringPool.Get(prefab.id);
+				info.position = prefab.position;
+				info.rotation = prefab.rotation;
+				info.scale = prefab.scale;
+				mapInfo.prefabs.Add(info);
+			}
+
+			return mapInfo;
+		}
+
+		public void Dispose()
+		{
+			if (prefabs != null)
+			{
+				Pool.Free(ref prefabs);
+			}
+		}
+
+		public void Serialize(BridgeWrite write)
+		{
+			write.WriteObject(prefabs.Count);
+			for (int i = 0; i < prefabs.Count; i++)
+			{
+				prefabs[i].Serialize(write);
+			}
+		}
+
+		public struct PrefabInfo
+		{
+			public string category;
+			public uint id;
+			public string path;
+			public Vector3 position;
+			public Vector3 rotation;
+			public Vector3 scale;
+
+			public void Serialize(BridgeWrite write)
+			{
+				write.WriteObject(category);
+				write.WriteObject(id);
+				write.WriteObject(path);
+				write.WriteObject(position);
+				write.WriteObject(rotation);
+				write.WriteObject(scale);
 			}
 		}
 	}

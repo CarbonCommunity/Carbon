@@ -1,0 +1,94 @@
+name: Common Profiler Test
+
+on:
+  workflow_call:
+    inputs:
+      rust_branch:
+        required: true
+        type: string
+      checkout_ref:
+        required: false
+        type: string
+        default: main
+
+jobs:
+  tests:
+    name: ${{ inputs.rust_branch }} / ${{ matrix.group }}
+    runs-on: ${{ matrix.target }}
+    continue-on-error: false
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: Linux
+            target: ubuntu-latest
+            harness_config: DebugUnix
+            profiler_archive: Carbon.Linux.Profiler.tar.gz
+          - group: Windows
+            target: windows-latest
+            harness_config: Debug
+            profiler_archive: Carbon.Windows.Profiler.zip
+
+    steps:
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global fetch.parallel 0
+          git config --global submodule.fetchJobs 0
+
+      - name: Git Clone
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.checkout_ref }}
+          submodules: recursive
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            10.0.x
+
+      - name: Carbon Bootstrap CS
+        shell: bash
+        run: |
+          dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/bootstrap.cs
+
+      - name: Carbon Update CS
+        shell: bash
+        run: |
+          dotnet run --project src/Carbon.Tools/Carbon.Runner tools/build/runners/update.cs ${{ inputs.rust_branch }}
+
+      - name: Build Test Harness
+        shell: bash
+        run: |
+          dotnet restore src/Carbon.Profiler.Tests.Harness
+          dotnet build src/Carbon.Profiler.Tests.Harness -c ${{ matrix.harness_config }} --no-restore
+
+      - name: Build Test Runner
+        shell: bash
+        run: |
+          dotnet restore src/Carbon.Profiler.Tests
+          dotnet build src/Carbon.Profiler.Tests -c Release --no-restore
+
+      - name: Run Profiler Test
+        shell: bash
+        env:
+          WorkingDir: ${{ runner.temp }}/carbon-profiler-tests
+          BranchName: ${{ inputs.rust_branch }}
+          ProfilerDownloadUrl: https://github.com/CarbonCommunity/Carbon/releases/download/profiler_build/${{ matrix.profiler_archive }}
+          HarnessPath: src/Carbon.Profiler.Tests.Harness/bin/${{ matrix.harness_config }}/net48/Carbon.Profiler.Tests.Harness.dll
+          CarbonProfilerTestGroups: 'true'
+        run: |
+          dotnet run --project src/Carbon.Profiler.Tests -c Release --no-build
+
+      - name: Upload Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: profiler-test-${{ inputs.rust_branch }}-${{ matrix.group }}
+          path: |
+            ${{ runner.temp }}/carbon-profiler-tests/rust-server-output-${{ inputs.rust_branch }}.log
+            ${{ runner.temp }}/carbon-profiler-tests/rust-instance-${{ inputs.rust_branch }}/HarmonyMods/profiler-test-result.json
+            ${{ runner.temp }}/carbon-profiler-tests/rust-instance-${{ inputs.rust_branch }}/HarmonyMods/config.profiler.json
+            ${{ runner.temp }}/carbon-profiler-tests/rust-instance-${{ inputs.rust_branch }}/HarmonyMods/profiles/**

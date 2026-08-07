@@ -24,8 +24,6 @@ public static class HookStringPool
 
 	private static uint ManifestHash(string str)
 	{
-		return string.IsNullOrEmpty(str)
-			? 0
-			: BitConverter.ToUInt32(MD5.HashData(Encoding.UTF8.GetBytes(str)), 0);
+		return string.IsNullOrEmpty(str) ? 0 : BitConverter.ToUInt32(MD5.HashData(Encoding.UTF8.GetBytes(str)), 0);
 	}
 }

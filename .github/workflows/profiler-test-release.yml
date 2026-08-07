@@ -1,0 +1,16 @@
+name: Profiler Test (Release)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 20 * * 4'
+
+concurrency: profiler-test-release-${{ github.ref }}
+
+jobs:
+  tests:
+    uses: ./.github/workflows/profiler-test-common.yml
+    name: Tests
+    with:
+      rust_branch: release
+      checkout_ref: ${{ github.sha }}

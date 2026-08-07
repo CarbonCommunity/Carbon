@@ -388,6 +388,11 @@ public static partial class ModLoader
 
 			foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 			{
+				if (Generator.InternalCallHook.HasRefLikeSignature(method))
+				{
+					continue;
+				}
+
 				var hash = HookStringPool.GetOrAdd(method.Name);
 
 				if (Community.Runtime.HookManager.IsHook(method.Name))

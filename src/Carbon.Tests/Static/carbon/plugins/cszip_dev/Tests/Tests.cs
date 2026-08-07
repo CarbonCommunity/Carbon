@@ -16,6 +16,7 @@ public partial class Tests : CarbonPlugin
 	{
 		singleton = this;
 
+		TimerTests.QueuePreServerInitializedTimers();
 		ToggleAllHookDebugging(false);
 	}
 

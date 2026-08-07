@@ -69,6 +69,9 @@ public static partial class WebControlPanel
 				PermissionTypes.PluginsEdit => account.Permissions.plugins_edit,
 				PermissionTypes.MapView => account.Permissions.map_view,
 				PermissionTypes.MapEntities => account.Permissions.map_entities,
+				PermissionTypes.MapTerrain => account.Permissions.map_terrain,
+				PermissionTypes.MapData => account.Permissions.map_data,
+				PermissionTypes.DrawUi => account.Permissions.draw_ui,
 				_ => false
 			};
 		}
@@ -94,6 +97,9 @@ public static partial class WebControlPanel
 		public bool plugins_edit = enabled;
 		public bool map_view = enabled;
 		public bool map_entities = enabled;
+		public bool map_terrain = enabled;
+		public bool map_data = enabled;
+		public bool draw_ui = enabled;
 
 		public void Serialize(BridgeWrite write)
 		{
@@ -115,6 +121,9 @@ public static partial class WebControlPanel
 			write.WriteObject(plugins_edit);
 			write.WriteObject(map_view);
 			write.WriteObject(map_entities);
+			write.WriteObject(map_terrain);
+			write.WriteObject(map_data);
+			write.WriteObject(draw_ui);
 		}
 	}
 
@@ -138,6 +147,9 @@ public static partial class WebControlPanel
 		PluginsView,
 		PluginsEdit,
 		MapView,
-		MapEntities
+		MapEntities,
+		MapTerrain,
+		MapData,
+		DrawUi
 	}
 }

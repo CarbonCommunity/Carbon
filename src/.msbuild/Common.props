@@ -18,7 +18,15 @@
 		<TargetFramework>net48</TargetFramework>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<CarbonCompilerPolyfillsAccessibility Condition="'$(CarbonCompilerPolyfillsAccessibility)' == ''">internal</CarbonCompilerPolyfillsAccessibility>
 	</PropertyGroup>
+
+	<ItemGroup Condition="!$(Product.Contains('Carbon.CompilerPolyfills.Generator')) and !$(Product.Contains('Carbon.Polyfills'))">
+		<CompilerVisibleProperty Include="CarbonCompilerPolyfillsAccessibility" />
+		<Compile Include="$(SolutionDir)\Carbon.Tools\Carbon.CompilerPolyfills.Shared\Internal\System.Index.cs" Link="CompilerPolyfills\System.Index.cs" />
+		<Compile Include="$(SolutionDir)\Carbon.Tools\Carbon.CompilerPolyfills.Shared\Internal\System.Range.cs" Link="CompilerPolyfills\System.Range.cs" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Tools\Carbon.CompilerPolyfills.Generator\Carbon.CompilerPolyfills.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+	</ItemGroup>
 
 	<PropertyGroup>
 		<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>

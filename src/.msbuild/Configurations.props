@@ -15,7 +15,7 @@
 				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
 				<!-- We want to override corelib to have the new lang features -->
-				<WarningsNotAsErrors>CS1685;CS1573</WarningsNotAsErrors>
+				<WarningsNotAsErrors>CS1685;CS1573;NU1902</WarningsNotAsErrors>
 				<NoWarn>CS1685;CS7035;CS1522;CS0618;CS0162;CS1591;CS1573;CS1712;CS1572;NU1702;NU1701;MSB3245;MSB3277;MSB3026</NoWarn>
 
 				<!-- -->

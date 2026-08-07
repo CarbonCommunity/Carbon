@@ -53,6 +53,8 @@ public partial class Tests
 
 			permission.userdata.Remove(UserId);
 			test.IsTrue(permission.UserExists(UserId), "sql UserExists should query db");
+			permission.userdata.Remove(UserId);
+			test.IsTrue(permission.UserHasAnyGroup(UserId), "sql UserHasAnyGroup loads from db");
 
 			permission.RemoveUserGroup(UserId, "*");
 			permission.userdata.Remove(UserId);
@@ -110,10 +112,14 @@ public partial class Tests
 			test.IsNotNull(permission.GetUserData("SqlMigrationTestNick"), "sql GetUserData(nickname) does not throw");
 			permission.userdata.Remove(UserId);
 			test.IsTrue(permission.UserExists("SqlMigrationTestNick"), "sql UserExists resolves nickname");
+			permission.userdata.Remove(UserId);
+			permission.UpdateNickname(UserId, "SqlMigrationTestNickLazy");
+			permission.userdata.Remove(UserId);
+			test.IsTrue(permission.UserExists("SqlMigrationTestNickLazy"), "sql UpdateNickname loads from db");
 
 			const string NickCmdPerm = "sqlmigrationtest.nickcmdperm";
 			permission.RegisterPermission(NickCmdPerm, singleton);
-			singleton.server.Command($"c.grant user SqlMigrationTestNick {NickCmdPerm}");
+			singleton.server.Command($"c.grant user SqlMigrationTestNickLazy {NickCmdPerm}");
 			test.IsTrue(permission.UserHasPermission(UserId, NickCmdPerm), "sql c.grant user <nickname> <perm> works");
 
 			permission.userdata.Remove(UserId);
@@ -145,8 +151,8 @@ public partial class Tests
 			permission = singleton.permission;
 			test.IsTrue(permission.GetType().Name == "Permission", "permission switched to protobuf");
 			test.IsTrue(permission.UserExists(UserId), "protobuf user exists after migration");
-			test.IsTrue(permission.UserExists("SqlMigrationTestNick"), "protobuf UserExists resolves nickname after migration");
-			test.IsTrue(permission.FindUser("SqlMigrationTestNick").Key == UserId, "protobuf FindUser resolves nickname after migration");
+			test.IsTrue(permission.UserExists("SqlMigrationTestNickLazy"), "protobuf UserExists resolves nickname after migration");
+			test.IsTrue(permission.FindUser("SqlMigrationTestNickLazy").Key == UserId, "protobuf FindUser resolves nickname after migration");
 			test.Log($"proto child group count: {permission.GetUserData(UserId).Groups.Count}");
 			test.Log($"proto child group parent: '{permission.GetGroupParent(ChildGroupId)}'");
 			test.Log($"proto parent group perms: {permission.GetGroupPermissions(ParentGroupId, true).Length}");

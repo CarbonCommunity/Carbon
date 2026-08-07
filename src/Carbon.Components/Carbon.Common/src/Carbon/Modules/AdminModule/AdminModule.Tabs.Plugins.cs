@@ -2126,7 +2126,7 @@ public partial class AdminModule
 			return;
 		}
 
-		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), args.Args[0])));
+		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendorName)));
 		vendor.Refresh();
 		PluginsTab.TagFilter.Clear();
 		PluginsTab.DropdownShow = false;
@@ -2146,7 +2146,7 @@ public partial class AdminModule
 		var tab = Singleton.GetTab(ap.Player);
 		var vendorType = ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed);
 		var vendor = PluginsTab.GetVendor(vendorType);
-		var pluginName = args.Args.Skip(1).ToString(" ").Replace("\"", string.Empty).Trim();
+		var pluginName = args.GetFullString(1).Replace("\"", string.Empty).Trim();
 		var tabPlugin = ap.GetStorage<PluginsTab.Plugin>(tab, "plugin") ?? vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName));
 		var mainTabPlugin = tabPlugin;
 		if (tabPlugin.PreferredVendorPlugin != null)
@@ -2155,7 +2155,10 @@ public partial class AdminModule
 		}
 		var plugin = tabPlugin.ExistentPlugin;
 		var arg = new string[args.Args.Length];
-		Array.Copy(args.Args, arg, args.Args.Length);
+		for (int i = 0; i < args.Args.Length; i++)
+		{
+			arg[i] = args.Args[i].ToString();
+		}
 
 		switch (arg[0])
 		{
@@ -2357,7 +2360,7 @@ public partial class AdminModule
 		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
 
-		var search = ap.SetStorage(tab, "search", args.Args.ToString(" "));
+		var search = ap.SetStorage(tab, "search", args.Args?.Select(x => x.ToString()).ToString(" "));
 		ap.SetStorage(tab, "page", 0);
 
 		if (search == "Search...")
@@ -2553,7 +2556,7 @@ public partial class AdminModule
 		vendor.Refresh();
 
 		var plugins = PluginsTab.GetPlugins(vendor, tab, ap, 15);
-		var nextPage = plugins.IndexOf(ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin")) + args.Args[0].ToInt();
+		var nextPage = plugins.IndexOf(ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin")) + args.GetInt(0);
 		ap.SetStorage(tab, "selectedplugin", plugins[nextPage > plugins.Count - 1 ? 0 : nextPage < 0 ? plugins.Count - 1 : nextPage]);
 		Facepunch.Pool.FreeUnmanaged(ref plugins);
 
@@ -2570,14 +2573,14 @@ public partial class AdminModule
 		var tab = Singleton.GetTab(ap.Player);
 		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 
-		switch (args.Args[0])
+		switch (args.GetString(0))
 		{
 			case "filter_dd":
 				PluginsTab.DropdownShow = !PluginsTab.DropdownShow;
 
 				if (args.HasArgs(4))
 				{
-					var index = args.Args[3].ToInt();
+					var index = args.GetInt(3);
 					var filter = ap.GetStorage(tab, "filter", PluginsTab.FilterTypes.None);
 					var flipFilter = ap.GetStorage<bool>(tab, "flipfilter");
 
@@ -2705,9 +2708,9 @@ public partial class AdminModule
 	[Conditional("!MINIMAL")]
 	[ConsoleCommand("adminmodule.updatevendor", "Downloads latest vendor information. Syntax: adminmodule.updatevendor <codefling|umod>")]
 	[AuthLevel(2)]
-	private void UpdateVendor(Arg args)
+	private void UpdateVendor(Arg arg)
 	{
-		var vendor = PluginsTab.GetVendor(args.Args[0] == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);
+		var vendor = PluginsTab.GetVendor(arg.GetString(0) == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);
 		if (vendor == null)
 		{
 			Singleton.PutsWarn($"Couldn't find that vendor.");

@@ -26,12 +26,17 @@ internal static class Program
 
 		AppDomain.CurrentDomain.AssemblyResolve += Utility.Program.AssemblyResolver;
 
+		if (Arguments.Check || Arguments.Fix)
+		{
+			Environment.Exit(Carbon.Validation.OpjCheckRunner.Run(Arguments, timings));
+		}
+
 		if (!Directory.Exists(Arguments.OutputFolder))
 		{
 			throw new Exception("Output directory not found");
 		}
 
-		var writer = new OutputWriter(Arguments.OutputFolder, Arguments.ManagedFolder, Arguments.Important, Arguments.Deterministic,
+		var writer = new OutputWriter(Arguments.OutputFolder!, Arguments.ManagedFolder, Arguments.Important, Arguments.Deterministic,
 			Arguments is { FormatOutput: true, DisableOutputFormatting: false });
 		timings.Measure("clean output", writer.CleanOutputFolder);
 

@@ -74,6 +74,26 @@ public static class StringArrayEx
 		return str;
 	}
 
+	public static string[] ToStringArray(this object[] array)
+	{
+		var resultArray = new string[array.Length];
+		for (int i = 0; i < array.Length; i++)
+		{
+			resultArray[i] = array[i]?.ToString();
+		}
+		return resultArray;
+	}
+
+	public static StringView[] ToStringViewArray(this object[] array)
+	{
+		var resultArray = new StringView[array.Length];
+		for (int i = 0; i < array.Length; i++)
+		{
+			resultArray[i] = new StringView(array[i]?.ToString());
+		}
+		return resultArray;
+	}
+
 	/// <summary>
 	/// Cuts text into pieces at chunkSize size and returns them each.
 	/// </summary>
