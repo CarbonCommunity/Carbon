@@ -17,7 +17,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("command", typeof(string))]
 		[MetadataAttribute.Parameter("args", typeof(string[]))]
-		[MetadataAttribute.Return(typeof(object))]
+		[MetadataAttribute.Return]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerCommand : Patch;

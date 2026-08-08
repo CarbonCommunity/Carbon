@@ -15,7 +15,7 @@ public partial class Category_Server
 		[MetadataAttribute.Category("Server")]
 		[MetadataAttribute.Info("Gets called when executing a native command.")]
 		[MetadataAttribute.Parameter("arg", typeof(ConsoleSystem.Arg))]
-		[MetadataAttribute.Return(typeof(bool))]
+		[MetadataAttribute.Return]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.OxideCompatible]
 
