@@ -18,6 +18,7 @@ public partial class Category_Player
 		[MetadataAttribute.Info("Called when a player becomes banned.")]
 		[MetadataAttribute.Parameter("invoker", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("target", typeof(BasePlayer))]
+		[MetadataAttribute.Return(Discarded = true)]
 
 		public class OnCarbonUnbanPlayer : Patch;
 	}

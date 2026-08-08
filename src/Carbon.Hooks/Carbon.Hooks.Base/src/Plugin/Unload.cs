@@ -14,6 +14,7 @@ public partial class Category_Plugin
 
 		[MetadataAttribute.Category("Plugin")]
 		[MetadataAttribute.Info("Gets called when the plugin has fully shut down and disposed.")]
+		[MetadataAttribute.Return(Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class Unload : Patch

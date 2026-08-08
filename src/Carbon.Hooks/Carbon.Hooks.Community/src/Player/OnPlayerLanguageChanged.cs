@@ -17,6 +17,7 @@ public partial class Category_Player
 		[MetadataAttribute.Info("Gets called when a player's language gets changed.")]
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("var", typeof(string))]
+		[MetadataAttribute.Return(Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerLanguageChanged_BasePlayer : Patch;
@@ -28,6 +29,7 @@ public partial class Category_Player
 		[MetadataAttribute.Info("Gets called when a player's language gets changed.")]
 		[MetadataAttribute.Parameter("player", typeof(IPlayer))]
 		[MetadataAttribute.Parameter("var", typeof(string))]
+		[MetadataAttribute.Return(Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerLanguageChanged_IPlayer : Patch;

@@ -122,7 +122,18 @@ internal static class HookPolicies
 			return false;
 		}
 
+		var clanType = Tools.TypeByNameEx("LocalClan");
+		if (clanType == null)
+		{
+			Logger.Warning($"{hook.HookName} policy could not resolve 'LocalClan' for the clan parameter");
+		}
+		else
+		{
+			Helper.Parameters.Add(("clan", clanType));
+		}
+
 		Helper.Parameters.Add(("leaderSteamId", typeof(ulong)));
+		Helper.ReturnDiscarded = true;
 		body.AppendLine(
 			"public static void Postfix(ulong leaderSteamId, ref System.Threading.Tasks.ValueTask<ClanValueResult<IClan>> __result) {");
 		body.AppendLine("__result = AwaitHookResult(__result, leaderSteamId);");

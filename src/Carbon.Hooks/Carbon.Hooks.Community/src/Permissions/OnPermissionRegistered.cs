@@ -18,6 +18,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("permission", typeof(string))]
 		[MetadataAttribute.Parameter("plugin", typeof(Plugin))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
+		[MetadataAttribute.Return(Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnPermissionRegistered : Patch;

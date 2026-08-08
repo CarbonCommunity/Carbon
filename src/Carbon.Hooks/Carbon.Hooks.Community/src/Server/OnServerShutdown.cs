@@ -14,6 +14,7 @@ public partial class Category_Server
 
 		[MetadataAttribute.Category("Server")]
 		[MetadataAttribute.Info("Called on server shutdown.")]
+		[MetadataAttribute.Return(Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnServerShutdown : Patch;

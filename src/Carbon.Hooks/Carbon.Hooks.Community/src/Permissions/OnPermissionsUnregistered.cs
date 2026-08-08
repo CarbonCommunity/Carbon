@@ -17,6 +17,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Info("Gets called when all permission of a plugin have been unregistered.")]
 		[MetadataAttribute.Parameter("plugin", typeof(Plugin))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
+		[MetadataAttribute.Return(Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnPermissionsUnregistered : Patch;

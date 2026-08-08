@@ -15,6 +15,7 @@ public partial class Category_Player
 
 		[MetadataAttribute.Category("Player")]
 		[MetadataAttribute.Info("Gets called when a player sends a chat message.")]
+		[MetadataAttribute.Info("Return a bool to block the chat message.")]
 		[MetadataAttribute.Parameter("player", typeof(IPlayer))]
 		[MetadataAttribute.Parameter("message", typeof(string))]
 		[MetadataAttribute.OxideCompatible]

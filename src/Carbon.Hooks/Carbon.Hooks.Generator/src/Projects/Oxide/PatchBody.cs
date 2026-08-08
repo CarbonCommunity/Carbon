@@ -99,12 +99,15 @@ internal static partial class Helper
 
 			IsReturning = true;
 			ReturnType = null;
+			ReturnContinues = false;
+			ReturnDiscarded = false;
 
 			switch (metadata.ReturnBehavior)
 			{
 				case ReturnBehavior.Continue:
 					AddGenericInstruction(ref instructions, "/* ReturnBehavior.Continue */");
 					AddYieldInstruction(ref instructions, nameof(OpCodes.Pop));
+					ReturnDiscarded = true;
 					break;
 
 				case ReturnBehavior.ExitWhenNonNull:
@@ -221,6 +224,9 @@ internal static partial class Helper
 										targetvartype = "object";
 									}
 
+									ReturnType = targetvar.LocalType == typeof(void) ? typeof(object) : targetvar.LocalType;
+									ReturnContinues = true;
+
 									AddYieldInstruction(ref instructions, nameof(OpCodes.Isinst), $"typeof({targetvartype})",
 										false); // check type
 									AddYieldInstruction(ref instructions, nameof(OpCodes.Ldnull));
@@ -255,6 +261,9 @@ internal static partial class Helper
 								var paramtype = parameter.ParameterType.IsByRef
 									? parameter.ParameterType.GetElementType()
 									: parameter.ParameterType;
+
+								ReturnType = paramtype;
+								ReturnContinues = true;
 
 								AddYieldInstruction(ref instructions, nameof(OpCodes.Stloc), "retvar", false); // store result
 								AddYieldInstruction(ref instructions, nameof(OpCodes.Ldloc), "retvar", false);
@@ -299,6 +308,7 @@ internal static partial class Helper
 
 					AddGenericInstruction(ref instructions, "/* oops */");
 					AddYieldInstruction(ref instructions, nameof(OpCodes.Pop)); // oops
+					ReturnDiscarded = true;
 					break;
 
 				default:

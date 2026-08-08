@@ -364,10 +364,40 @@ internal sealed partial class Generator(GeneratorOptions options)
 			}
 		}
 
-		if (Helper.ReturnType != null)
+		if (Helper.ReturnType == null)
 		{
-			body.Insert(metadataIndex, $"[MetadataAttribute.Return(typeof({PrettyName(Helper.ReturnType)}))]");
+			if (Helper.ReturnDiscarded)
+			{
+				body.Insert(metadataIndex, "[MetadataAttribute.Return(Discarded = true)]");
+			}
+
+			return;
 		}
+
+		var continues = Helper.ReturnContinues ? "Continues = true" : string.Empty;
+
+		if (Helper.ReturnType == typeof(void))
+		{
+			if (Helper.ReturnContinues)
+			{
+				Logger.Warning($"{Helper.Metadata?.HookName} skipped return metadata, a cancelling hook cannot also continue execution");
+				return;
+			}
+
+			body.Insert(metadataIndex, "[MetadataAttribute.Return]");
+			return;
+		}
+
+		var returnName = PrettyName(Helper.ReturnType);
+
+		if (returnName.Length == 0)
+		{
+			Logger.Warning($"{Helper.Metadata?.HookName} skipped return metadata for '{Helper.ReturnType}', no representable type name");
+			return;
+		}
+
+		body.Insert(metadataIndex,
+			$"[MetadataAttribute.Return(typeof({returnName}){(continues.Length > 0 ? $", {continues}" : string.Empty)})]");
 	}
 
 	private static string PrettyName(Type type)
@@ -379,15 +409,60 @@ internal sealed partial class Generator(GeneratorOptions options)
 
 		try
 		{
-			if (type.GetGenericArguments().Length == 0)
+			if (type.IsGenericParameter || type.ContainsGenericParameters || type.IsPointer || type.FullName == null)
 			{
-				return Tools.TypeNameSanitizerEx(type.FullName ?? type.Name);
+				return string.Empty;
 			}
 
-			var genericArguments = type.GetGenericArguments();
-			var typeDefinition = type.FullName ?? type.Name;
-			var unmangledName = typeDefinition.Contains('`') ? typeDefinition[..typeDefinition.IndexOf('`')] : typeDefinition;
-			return unmangledName + "<" + string.Join(",", genericArguments.Select(PrettyName)) + ">";
+			if (type.IsByRef || type.IsArray)
+			{
+				var element = PrettyName(type.GetElementType());
+				if (element.Length == 0)
+				{
+					return string.Empty;
+				}
+
+				return type.IsArray ? $"{element}[{new string(',', type.GetArrayRank() - 1)}]" : element;
+			}
+
+			if (type.IsNested && type.DeclaringType != null && type.DeclaringType.IsGenericType)
+			{
+				return string.Empty;
+			}
+
+			var name = Tools.TypeNameSanitizerEx(type.IsGenericType
+				? type.GetGenericTypeDefinition().FullName
+				: type.FullName);
+
+			var arity = name.IndexOf('`');
+			if (arity >= 0)
+			{
+				name = name.Remove(arity);
+			}
+
+			if (name.Contains('`') || name.Contains('[') || name.Contains('<') || name.Contains('>') || name.Contains(", Version="))
+			{
+				return string.Empty;
+			}
+
+			if (!type.IsGenericType)
+			{
+				return name;
+			}
+
+			var arguments = type.GetGenericArguments();
+			var names = new string[arguments.Length];
+
+			for (var index = 0; index < arguments.Length; index++)
+			{
+				names[index] = PrettyName(arguments[index]);
+				if (names[index].Length == 0)
+				{
+					return string.Empty;
+				}
+			}
+
+			return $"{name}<{string.Join(", ", names)}>";
 		}
 		catch (Exception ex)
 		{

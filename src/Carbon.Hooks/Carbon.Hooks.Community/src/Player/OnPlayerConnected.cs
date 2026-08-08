@@ -14,6 +14,7 @@ public partial class Category_Player
 
 		[MetadataAttribute.Category("Player")]
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
+		[MetadataAttribute.Return(Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerConnected : Patch;
