@@ -35,6 +35,9 @@ public class MetadataAttribute : Attribute
 		public bool Optional
 		{ get; }
 
+		public bool ByRef
+		{ get; set; }
+
 		public Parameter(string name, string type, bool optional = false)
 		{
 			Name = name;
@@ -64,6 +67,11 @@ public class MetadataAttribute : Attribute
 	{
 		public Type Type
 		{ get; }
+
+		public bool Continues
+		{ get; set; }
+
+		public Return() { }
 
 		public Return(Type type) => Type = type;
 	}
