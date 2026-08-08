@@ -17,7 +17,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("playerName", typeof(string))]
 		[MetadataAttribute.Parameter("steamId", typeof(ulong))]
 		[MetadataAttribute.Parameter("address", typeof(string))]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerUnbanned : Patch;

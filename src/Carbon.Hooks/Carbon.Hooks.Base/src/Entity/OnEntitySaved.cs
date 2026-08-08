@@ -14,7 +14,7 @@ public partial class Category_Entity
 		[MetadataAttribute.Info("Gets called whenever the entity is about to be saved for streaming.")]
 		[MetadataAttribute.Parameter("networkable", typeof(BaseNetworkable))]
 		[MetadataAttribute.Parameter("info", typeof(BaseNetworkable.SaveInfo))]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnEntitySaved : Patch;

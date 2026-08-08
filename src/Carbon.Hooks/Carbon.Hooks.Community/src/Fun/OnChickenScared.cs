@@ -13,7 +13,7 @@ public partial class Category_Fun
 		[MetadataAttribute.Info("Gets called whenever a chicken gets scared due to the presence of another potential threat.")]
 		[MetadataAttribute.Parameter("chicken", typeof(Chicken))]
 		[MetadataAttribute.Parameter("threat", typeof(BaseEntity))]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnChickenScared : Patch
 		{

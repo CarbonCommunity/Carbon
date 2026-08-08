@@ -19,7 +19,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("target", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("message", typeof(string))]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnCarbonPrivateMessage : Patch;
 	}

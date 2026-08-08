@@ -368,7 +368,7 @@ internal sealed partial class Generator(GeneratorOptions options)
 		{
 			if (Helper.ReturnDiscarded)
 			{
-				body.Insert(metadataIndex, "[MetadataAttribute.Return(Discarded = true)]");
+				body.Insert(metadataIndex, "[MetadataAttribute.Return(typeof(void), Discarded = true)]");
 			}
 
 			return;
@@ -384,7 +384,7 @@ internal sealed partial class Generator(GeneratorOptions options)
 				return;
 			}
 
-			body.Insert(metadataIndex, "[MetadataAttribute.Return]");
+			body.Insert(metadataIndex, "[MetadataAttribute.Return(typeof(void))]");
 			return;
 		}
 

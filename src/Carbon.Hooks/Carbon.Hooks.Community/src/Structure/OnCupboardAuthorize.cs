@@ -16,7 +16,7 @@ public partial class Category_Structure
 		[MetadataAttribute.Info("Called when a cupboard attempts to authorize a player.")]
 		[MetadataAttribute.Parameter("priv", typeof(BuildingPrivlidge))]
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
-		[MetadataAttribute.Return]
+		[MetadataAttribute.Return(typeof(void))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.OxideCompatible]
 

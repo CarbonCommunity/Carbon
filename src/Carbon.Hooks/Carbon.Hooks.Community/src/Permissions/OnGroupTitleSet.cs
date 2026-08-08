@@ -17,7 +17,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("group", typeof(string))]
 		[MetadataAttribute.Parameter("title", typeof(string))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnGroupTitleSet : Patch;

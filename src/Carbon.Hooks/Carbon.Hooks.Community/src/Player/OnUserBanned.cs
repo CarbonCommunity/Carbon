@@ -19,7 +19,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("address", typeof(string))]
 		[MetadataAttribute.Parameter("reason", typeof(string))]
 		[MetadataAttribute.Parameter("expiry", typeof(long))]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserBanned : Patch;

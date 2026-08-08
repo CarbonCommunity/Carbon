@@ -18,7 +18,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("file", typeof(string))]
 		[MetadataAttribute.Parameter("result", typeof(ModLoader.CompilationResult))]
 		[MetadataAttribute.Assembly("Carbon.dll")]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnCompilationFail : Patch
 		{

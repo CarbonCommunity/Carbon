@@ -18,7 +18,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("name", typeof(string))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnDestroyUI : Patch

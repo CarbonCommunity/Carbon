@@ -19,7 +19,7 @@ public partial class Category_Player
 		[MetadataAttribute.Info("Their screen and input will become obscured and blocked.")]
 		[MetadataAttribute.Parameter("invoker", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("target", typeof(BasePlayer))]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnCarbonBlinded : Patch;
 	}

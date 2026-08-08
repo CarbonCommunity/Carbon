@@ -20,7 +20,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("target", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("wants", typeof(bool))]
 		[MetadataAttribute.Parameter("reason", typeof(string))]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnCarbonMutePlayer : Patch;
 	}

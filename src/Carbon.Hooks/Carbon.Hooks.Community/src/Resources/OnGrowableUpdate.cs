@@ -12,7 +12,7 @@ public partial class Category_Resources
 
 		[MetadataAttribute.Parameter("growable", typeof(GrowableEntity))]
 		[MetadataAttribute.Info("Called right before the growable entity is updated.")]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnGrowableUpdate : Patch
 		{

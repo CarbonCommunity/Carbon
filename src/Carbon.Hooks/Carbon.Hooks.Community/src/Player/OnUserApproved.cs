@@ -17,7 +17,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("username", typeof(string))]
 		[MetadataAttribute.Parameter("userid", typeof(string))]
 		[MetadataAttribute.Parameter("ip", typeof(string))]
-		[MetadataAttribute.Return]
+		[MetadataAttribute.Return(typeof(void))]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserApproved : Patch;

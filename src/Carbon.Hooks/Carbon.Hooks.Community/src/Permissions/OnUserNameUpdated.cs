@@ -18,7 +18,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("oldName", typeof(string))]
 		[MetadataAttribute.Parameter("newName", typeof(string))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserNameUpdated : Patch;

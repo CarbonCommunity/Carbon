@@ -17,7 +17,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("playerId", typeof(string))]
 		[MetadataAttribute.Parameter("group", typeof(string))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserGroupRemoved : Patch;

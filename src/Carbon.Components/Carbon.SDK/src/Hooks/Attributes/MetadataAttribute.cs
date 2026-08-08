@@ -74,8 +74,6 @@ public class MetadataAttribute : Attribute
 		public bool Discarded
 		{ get; set; }
 
-		public Return() { }
-
 		public Return(Type type) => Type = type;
 	}
 

@@ -16,7 +16,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Info("Gets called when an UI is about to be sent to a player.")]
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("json", typeof(string))]
-		[MetadataAttribute.Return]
+		[MetadataAttribute.Return(typeof(void))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.OxideCompatible]
 

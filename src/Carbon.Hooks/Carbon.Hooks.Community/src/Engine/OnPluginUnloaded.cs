@@ -17,7 +17,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Info("Gets called when a plugin is unloaded.")]
 		[MetadataAttribute.Parameter("plugin", typeof(RustPlugin))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
-		[MetadataAttribute.Return(Discarded = true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnPluginUnloaded : Patch

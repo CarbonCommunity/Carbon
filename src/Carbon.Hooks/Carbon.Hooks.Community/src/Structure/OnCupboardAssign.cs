@@ -17,7 +17,7 @@ public partial class Category_Structure
 		[MetadataAttribute.Parameter("priv", typeof(BuildingPrivlidge))]
 		[MetadataAttribute.Parameter("targetId", typeof(ulong))]
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
-		[MetadataAttribute.Return]
+		[MetadataAttribute.Return(typeof(void))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.OxideCompatible]
 
