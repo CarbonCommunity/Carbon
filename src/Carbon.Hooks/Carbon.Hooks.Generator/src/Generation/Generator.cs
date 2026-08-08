@@ -416,7 +416,13 @@ internal sealed partial class Generator(GeneratorOptions options)
 
 			if (type.IsByRef || type.IsArray)
 			{
-				var element = PrettyName(type.GetElementType());
+				var elementType = type.GetElementType();
+				if (elementType == null)
+				{
+					return string.Empty;
+				}
+
+				var element = PrettyName(elementType);
 				if (element.Length == 0)
 				{
 					return string.Empty;
@@ -430,9 +436,13 @@ internal sealed partial class Generator(GeneratorOptions options)
 				return string.Empty;
 			}
 
-			var name = Tools.TypeNameSanitizerEx(type.IsGenericType
-				? type.GetGenericTypeDefinition().FullName
-				: type.FullName);
+			var fullName = (type.IsGenericType ? type.GetGenericTypeDefinition() : type).FullName;
+			if (fullName == null)
+			{
+				return string.Empty;
+			}
+
+			var name = Tools.TypeNameSanitizerEx(fullName);
 
 			var arity = name.IndexOf('`');
 			if (arity >= 0)
