@@ -11,6 +11,7 @@ public partial class Category_Entity
 
 		[MetadataAttribute.Info("Called before any networked entity has spawned (including trees).")]
 		[MetadataAttribute.Parameter("networkable", typeof(BaseNetworkable))]
+		[MetadataAttribute.Return(Discarded = true)]
 
 		public class OnEntitySpawn : Patch
 		{

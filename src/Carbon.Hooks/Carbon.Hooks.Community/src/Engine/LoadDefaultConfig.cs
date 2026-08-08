@@ -18,6 +18,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Info("Gets called when a plugin should initialize default config.")]
 		[MetadataAttribute.Info("You should not use this. Override `LoadDefaultConfig` virtual method instead.")]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
+		[MetadataAttribute.Return(Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class LoadDefaultConfig : Patch

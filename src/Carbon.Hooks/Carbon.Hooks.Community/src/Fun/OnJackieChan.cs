@@ -12,6 +12,7 @@ public partial class Category_Fun
 
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Info("Checks if player that connected is Jackie Chan.")]
+		[MetadataAttribute.Return(Discarded = true)]
 
 		public class OnJackieChan : Patch
 		{
