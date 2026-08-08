@@ -15,6 +15,7 @@ public partial class Category_Item
 		[MetadataAttribute.Info("Called right before the condition of the item is modified.")]
 		[MetadataAttribute.Parameter("item", typeof(Item))]
 		[MetadataAttribute.Parameter("amount", typeof(float), ByRef = true)]
+		[MetadataAttribute.Return(Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnLoseCondition : Patch;
