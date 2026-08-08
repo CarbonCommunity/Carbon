@@ -308,6 +308,7 @@ internal static partial class Helper
 
 					AddGenericInstruction(ref instructions, "/* oops */");
 					AddYieldInstruction(ref instructions, nameof(OpCodes.Pop)); // oops
+					ReturnDiscarded = true;
 					break;
 
 				default:
