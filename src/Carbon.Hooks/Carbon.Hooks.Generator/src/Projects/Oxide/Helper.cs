@@ -24,6 +24,7 @@ internal static partial class Helper
 	[ThreadStatic] public static List<(string, Type)> Parameters;
 	[ThreadStatic] public static List<string> ParametersTemp;
 	[ThreadStatic] public static Type ReturnType;
+	[ThreadStatic] public static bool ReturnContinues;
 	[ThreadStatic] public static Type RuntimeType;
 	[ThreadStatic] public static HookDef.Data Metadata;
 	[ThreadStatic] public static bool IsReturning;
@@ -42,6 +43,7 @@ internal static partial class Helper
 		Parameters = [];
 		ParametersTemp = [];
 		ReturnType = null;
+		ReturnContinues = false;
 		RuntimeType = null;
 		Metadata = null;
 		IsReturning = false;

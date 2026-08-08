@@ -99,6 +99,7 @@ internal static partial class Helper
 
 			IsReturning = true;
 			ReturnType = null;
+			ReturnContinues = false;
 
 			switch (metadata.ReturnBehavior)
 			{
@@ -221,6 +222,9 @@ internal static partial class Helper
 										targetvartype = "object";
 									}
 
+									ReturnType = targetvar.LocalType == typeof(void) ? typeof(object) : targetvar.LocalType;
+									ReturnContinues = true;
+
 									AddYieldInstruction(ref instructions, nameof(OpCodes.Isinst), $"typeof({targetvartype})",
 										false); // check type
 									AddYieldInstruction(ref instructions, nameof(OpCodes.Ldnull));
@@ -255,6 +259,9 @@ internal static partial class Helper
 								var paramtype = parameter.ParameterType.IsByRef
 									? parameter.ParameterType.GetElementType()
 									: parameter.ParameterType;
+
+								ReturnType = paramtype;
+								ReturnContinues = true;
 
 								AddYieldInstruction(ref instructions, nameof(OpCodes.Stloc), "retvar", false); // store result
 								AddYieldInstruction(ref instructions, nameof(OpCodes.Ldloc), "retvar", false);
