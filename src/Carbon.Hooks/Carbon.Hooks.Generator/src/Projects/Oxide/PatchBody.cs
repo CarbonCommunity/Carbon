@@ -100,12 +100,14 @@ internal static partial class Helper
 			IsReturning = true;
 			ReturnType = null;
 			ReturnContinues = false;
+			ReturnDiscarded = false;
 
 			switch (metadata.ReturnBehavior)
 			{
 				case ReturnBehavior.Continue:
 					AddGenericInstruction(ref instructions, "/* ReturnBehavior.Continue */");
 					AddYieldInstruction(ref instructions, nameof(OpCodes.Pop));
+					ReturnDiscarded = true;
 					break;
 
 				case ReturnBehavior.ExitWhenNonNull:

@@ -366,6 +366,11 @@ internal sealed partial class Generator(GeneratorOptions options)
 
 		if (Helper.ReturnType == null)
 		{
+			if (Helper.ReturnDiscarded)
+			{
+				body.Insert(metadataIndex, "[MetadataAttribute.Return(Discarded = true)]");
+			}
+
 			return;
 		}
 
