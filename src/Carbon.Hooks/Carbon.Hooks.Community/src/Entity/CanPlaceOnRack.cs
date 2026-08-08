@@ -8,7 +8,7 @@ public partial class Category_Entity
 	{
 		[HookAttribute.Patch("CanPlaceOnRack", "CanPlaceOnRack", typeof(WeaponRack), "MountWeapon", new System.Type[] { typeof(Item), typeof(BasePlayer), typeof(int), typeof(int), typeof(bool) })]
 
-		[MetadataAttribute.Info("Returning a non-null value disallows the weapon to be placed.")]
+		[MetadataAttribute.Info("Return a bool to prevent the weapon from being placed.")]
 		[MetadataAttribute.Parameter("rack", typeof(WeaponRack))]
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("item", typeof(Item))]
