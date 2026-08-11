@@ -18,7 +18,7 @@ public partial class Tests
 	{
 		private const string HttpsGenerate204Url = "https://www.gstatic.com/generate_204";
 		private const string HttpGenerate204Url = "http://www.gstatic.com/generate_204";
-		private const string CustomPluginUserAgent = "Server Armour/2.87.0 <Carbon>";
+		private const string CustomPluginUserAgent = "Custom String";
 
 		[Integrations.Test.Assert]
 		public void validate_library(Integrations.Test.Assert test)
