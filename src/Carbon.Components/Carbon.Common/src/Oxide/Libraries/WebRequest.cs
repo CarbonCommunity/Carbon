@@ -475,7 +475,12 @@ public class WebRequests : Library
 			{
 				var request = base.GetWebRequest(address) as HttpWebRequest;
 
-				request.UserAgent = Community.Runtime.Analytics.UserAgent;
+				// Prefer a plugin-supplied User-Agent from Headers (set in Start before this runs).
+				// Unconditionally overwriting here previously broke Oxide-compatible header behavior.
+				var headerUserAgent = Headers[HttpRequestHeader.UserAgent];
+				request.UserAgent = string.IsNullOrEmpty(headerUserAgent)
+					? Community.Runtime.Analytics.UserAgent
+					: headerUserAgent;
 				request.AutomaticDecompression = AutomaticDecompression;
 
 				if (Community.IsConfigReady && !string.IsNullOrEmpty(Community.Runtime.Config.WebRequestIp))
