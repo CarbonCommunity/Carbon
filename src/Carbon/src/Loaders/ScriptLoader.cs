@@ -40,6 +40,8 @@ public class ScriptLoader : IScriptLoader
 	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new();
 
+	private IEnumerator _compileRoutine;
+
 	public void Load()
 	{
 		if (InitialSource == null || string.IsNullOrEmpty(InitialSource.FilePath))
@@ -53,7 +55,8 @@ public class ScriptLoader : IScriptLoader
 			var directory = Path.GetDirectoryName(InitialSource.FilePath);
 			IsExtension = directory.EndsWith("extensions");
 
-			Community.Runtime.ScriptProcessor.StartCoroutine(Compile());
+			_compileRoutine = Compile();
+			Community.Runtime.ScriptProcessor.StartCoroutine(_compileRoutine);
 		}
 		catch (Exception exception)
 		{
@@ -592,7 +595,11 @@ public class ScriptLoader : IScriptLoader
 
 	public void Dispose()
 	{
-		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
+		if (_compileRoutine != null)
+		{
+			Community.Runtime.ScriptProcessor.StopCoroutine(_compileRoutine);
+			_compileRoutine = null;
+		}
 
 		HasFinished = true;
 
