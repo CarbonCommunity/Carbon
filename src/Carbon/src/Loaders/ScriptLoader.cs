@@ -607,15 +607,6 @@ public class ScriptLoader : IScriptLoader
 			}
 		}
 
-		if (Sources != null)
-		{
-			foreach (var source in Sources)
-			{
-				source.Dispose();
-			}
-		}
-
-		Sources?.Clear();
 		Scripts?.Clear();
 		Sources = null;
 		Scripts = null;
