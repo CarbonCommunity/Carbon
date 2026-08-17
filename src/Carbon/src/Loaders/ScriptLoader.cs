@@ -303,7 +303,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (AsyncLoader != null)
 		{
-			AsyncLoader.Sources = Sources;
+			AsyncLoader.Sources = new List<ISource>(Sources);
 			AsyncLoader.References = resultReferences?.ToArray();
 			AsyncLoader.Requires = resultRequires?.ToArray();
 			AsyncLoader.IsExtension = IsExtension;
