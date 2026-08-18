@@ -362,6 +362,8 @@ public class ScriptLoader : IScriptLoader
 			yield break;
 		}
 
+		Pool.FreeUnmanaged(ref missingRequires);
+
 		yield return null;
 
 		var requiresResult = requires.ToArray();
@@ -377,7 +379,6 @@ public class ScriptLoader : IScriptLoader
 		{
 			HasFinished = true;
 			Pool.FreeUnmanaged(ref requires);
-			Pool.FreeUnmanaged(ref missingRequires);
 			yield break;
 		}
 
@@ -462,7 +463,6 @@ public class ScriptLoader : IScriptLoader
 			AsyncLoader.Exceptions = AsyncLoader.Warnings = null;
 			HasFinished = true;
 			Pool.FreeUnmanaged(ref requires);
-			Pool.FreeUnmanaged(ref missingRequires);
 
 			if (Community.AllProcessorsFinalized)
 			{
@@ -474,7 +474,6 @@ public class ScriptLoader : IScriptLoader
 		if (AsyncLoader == null)
 		{
 			Pool.FreeUnmanaged(ref requires);
-			Pool.FreeUnmanaged(ref missingRequires);
 			yield break;
 		}
 
@@ -589,7 +588,6 @@ public class ScriptLoader : IScriptLoader
 		}
 
 		Pool.FreeUnmanaged(ref requires);
-		Pool.FreeUnmanaged(ref missingRequires);
 		yield return null;
 	}
 
