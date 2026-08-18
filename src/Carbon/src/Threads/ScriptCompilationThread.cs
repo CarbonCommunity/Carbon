@@ -68,27 +68,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		name = name.Replace(" ", string.Empty);
 
-		foreach (var plugin in _compilationCache)
-		{
-			if (plugin.Key == name)
-			{
-				return plugin.Value;
-			}
-		}
-
-		return null;
+		return _compilationCache.TryGetValue(name, out var plugin) ? plugin : null;
 	}
 	private static byte[] _getExtensionPlugin(string name)
 	{
-		foreach (var extension in _extensionCompilationCache)
-		{
-			if (extension.Key == name)
-			{
-				return extension.Value;
-			}
-		}
-
-		return null;
+		return _extensionCompilationCache.TryGetValue(name, out var extension) ? extension : null;
 	}
 	private static void _overridePlugin(string name, byte[] pluginAssembly)
 	{
