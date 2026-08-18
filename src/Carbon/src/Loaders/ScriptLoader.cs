@@ -40,6 +40,8 @@ public class ScriptLoader : IScriptLoader
 	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new();
 
+	private IEnumerator _compileRoutine;
+
 	public void Load()
 	{
 		if (InitialSource == null || string.IsNullOrEmpty(InitialSource.FilePath))
@@ -53,7 +55,8 @@ public class ScriptLoader : IScriptLoader
 			var directory = Path.GetDirectoryName(InitialSource.FilePath);
 			IsExtension = directory.EndsWith("extensions");
 
-			Community.Runtime.ScriptProcessor.StartCoroutine(Compile());
+			_compileRoutine = Compile();
+			Community.Runtime.ScriptProcessor.StartCoroutine(_compileRoutine);
 		}
 		catch (Exception exception)
 		{
@@ -303,7 +306,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (AsyncLoader != null)
 		{
-			AsyncLoader.Sources = Sources;
+			AsyncLoader.Sources = new List<ISource>(Sources);
 			AsyncLoader.References = resultReferences?.ToArray();
 			AsyncLoader.Requires = resultRequires?.ToArray();
 			AsyncLoader.IsExtension = IsExtension;
@@ -359,6 +362,8 @@ public class ScriptLoader : IScriptLoader
 			yield break;
 		}
 
+		Pool.FreeUnmanaged(ref missingRequires);
+
 		yield return null;
 
 		var requiresResult = requires.ToArray();
@@ -374,7 +379,6 @@ public class ScriptLoader : IScriptLoader
 		{
 			HasFinished = true;
 			Pool.FreeUnmanaged(ref requires);
-			Pool.FreeUnmanaged(ref missingRequires);
 			yield break;
 		}
 
@@ -459,7 +463,6 @@ public class ScriptLoader : IScriptLoader
 			AsyncLoader.Exceptions = AsyncLoader.Warnings = null;
 			HasFinished = true;
 			Pool.FreeUnmanaged(ref requires);
-			Pool.FreeUnmanaged(ref missingRequires);
 
 			if (Community.AllProcessorsFinalized)
 			{
@@ -471,7 +474,6 @@ public class ScriptLoader : IScriptLoader
 		if (AsyncLoader == null)
 		{
 			Pool.FreeUnmanaged(ref requires);
-			Pool.FreeUnmanaged(ref missingRequires);
 			yield break;
 		}
 
@@ -586,13 +588,16 @@ public class ScriptLoader : IScriptLoader
 		}
 
 		Pool.FreeUnmanaged(ref requires);
-		Pool.FreeUnmanaged(ref missingRequires);
 		yield return null;
 	}
 
 	public void Dispose()
 	{
-		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
+		if (_compileRoutine != null)
+		{
+			Community.Runtime.ScriptProcessor.StopCoroutine(_compileRoutine);
+			_compileRoutine = null;
+		}
 
 		HasFinished = true;
 
@@ -607,15 +612,6 @@ public class ScriptLoader : IScriptLoader
 			}
 		}
 
-		if (Sources != null)
-		{
-			foreach (var source in Sources)
-			{
-				source.Dispose();
-			}
-		}
-
-		Sources?.Clear();
 		Scripts?.Clear();
 		Sources = null;
 		Scripts = null;
