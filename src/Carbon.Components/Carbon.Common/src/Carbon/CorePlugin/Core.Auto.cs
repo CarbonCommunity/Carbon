@@ -77,6 +77,7 @@ public partial class CorePlugin
 			if (string.IsNullOrEmpty(value))
 			{
 				OvenBlacklistCache.Clear();
+				_ovenBlacklist = string.Empty;
 				return;
 			}
 
