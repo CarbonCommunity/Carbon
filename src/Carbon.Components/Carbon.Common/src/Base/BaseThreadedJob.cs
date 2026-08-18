@@ -9,7 +9,7 @@ public class BaseThreadedJob : IDisposable
 	private CancellationTokenSource cancellationToken;
 	private volatile bool _isAborted;
 
-	internal object _abortHandle = new();
+	internal readonly object _abortHandle = new();
 
 	public CancellationToken CancellationToken => cancellationToken?.Token ?? CancellationToken.None;
 	public bool IsAborted => _isAborted;
@@ -83,8 +83,14 @@ public class BaseThreadedJob : IDisposable
 	}
 	private void Run()
 	{
-		ThreadFunction();
-		IsDone = true;
+		try
+		{
+			ThreadFunction();
+		}
+		finally
+		{
+			IsDone = true;
+		}
 	}
 
 	public virtual void Dispose() { }

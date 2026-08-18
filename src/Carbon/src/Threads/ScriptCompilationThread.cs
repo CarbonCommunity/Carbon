@@ -694,7 +694,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 									: InitialSource.ContextFileName);
 
 								var isProfiled = MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly, name, true);
-								Assemblies.Plugins.Update(name, Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath, isProfiled);
+
+								lock (_abortHandle)
+								{
+									if (!IsAborted)
+									{
+										Assemblies.Plugins.Update(name, Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath, isProfiled);
+									}
+								}
 							}
 							catch (Exception ex)
 							{
