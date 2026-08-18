@@ -440,6 +440,11 @@ public class WebRequests : Library
 				}
 				catch (WebException exp)
 				{
+					if (exp.Response == null)
+					{
+						throw;
+					}
+
 					response = exp.Response;
 
 					if (response is HttpWebResponse httpResponse)
@@ -466,6 +471,11 @@ public class WebRequests : Library
 				}
 				catch (WebException exp)
 				{
+					if (exp.Response == null)
+					{
+						throw;
+					}
+
 					response = exp.Response;
 
 					if (response is HttpWebResponse httpResponse)
