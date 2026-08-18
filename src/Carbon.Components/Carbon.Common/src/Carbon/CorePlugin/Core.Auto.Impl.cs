@@ -98,6 +98,11 @@ public partial class CorePlugin
 	[Conditional("!MINIMAL")]
 	internal object IOvenSmeltSpeedMultiplier(BaseOven oven)
 	{
+		if (OvenSpeedMultiplier == -1 && OvenBlacklistSpeedMultiplier == -1)
+		{
+			return null;
+		}
+
 		var isBlacklisted = false;
 		if (OvenBlacklistCache != null)
 		{
