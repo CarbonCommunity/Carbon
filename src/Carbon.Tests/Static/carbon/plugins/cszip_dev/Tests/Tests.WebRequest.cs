@@ -1,6 +1,7 @@
 #if !TESTS_NO_WEBREQUEST
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -18,7 +19,8 @@ public partial class Tests
 	{
 		private const string HttpsGenerate204Url = "https://www.gstatic.com/generate_204";
 		private const string HttpGenerate204Url = "http://www.gstatic.com/generate_204";
-		private const string CustomPluginUserAgent = "Custom String";
+		private const string CustomUserAgent = "CarbonTests/1.0 (+plugin supplied)";
+		private const string UnreachableBindIp = "203.0.113.1";
 
 		[Integrations.Test.Assert]
 		public void validate_library(Integrations.Test.Assert test)
@@ -197,6 +199,99 @@ public partial class Tests
 				"invalid host request has response error");
 			test.IsTrue(result.CallbackCode == result.Request.ResponseCode,
 				$"invalid host callback/request response code match ({result.CallbackCode}/{result.Request.ResponseCode})");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task default_user_agent_is_carbons(Integrations.Test.Assert test)
+		{
+			using var probe = new LoopbackProbe();
+
+			var result = await ExecuteStringRequest(probe.Url, RequestMethod.GET, null, test);
+			var userAgent = await probe.GetHeader("User-Agent");
+
+			test.IsTrue(result.CallbackCode == 204, $"default user agent request completed ({result.CallbackCode})");
+			test.IsTrue(userAgent == Community.Runtime.Analytics.UserAgent,
+				$"default user agent is Carbon's (got '{userAgent}')");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task custom_user_agent_is_preserved(Integrations.Test.Assert test)
+		{
+			using var probe = new LoopbackProbe();
+
+			var result = await ExecuteStringRequest(probe.Url, RequestMethod.GET, null, test,
+				headers: new Dictionary<string, string> { ["User-Agent"] = CustomUserAgent });
+			var userAgent = await probe.GetHeader("User-Agent");
+
+			test.IsTrue(result.CallbackCode == 204, $"custom user agent request completed ({result.CallbackCode})");
+			test.IsTrue(userAgent == CustomUserAgent, $"custom user agent reached the wire (got '{userAgent}')");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task custom_user_agent_is_case_insensitive(Integrations.Test.Assert test)
+		{
+			using var probe = new LoopbackProbe();
+
+			var result = await ExecuteStringRequest(probe.Url, RequestMethod.GET, null, test,
+				headers: new Dictionary<string, string> { ["user-agent"] = CustomUserAgent });
+			var userAgent = await probe.GetHeader("User-Agent");
+
+			test.IsTrue(result.CallbackCode == 204, $"lowercase user agent request completed ({result.CallbackCode})");
+			test.IsTrue(userAgent == CustomUserAgent, $"lowercase user agent reached the wire (got '{userAgent}')");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task timeout_aborts_a_stalled_request(Integrations.Test.Assert test)
+		{
+			using var probe = new LoopbackProbe(respond: false);
+
+			var started = DateTime.UtcNow;
+			var result = await ExecuteStringRequest(probe.Url, RequestMethod.GET, null, test, 12_000, timeout: 2f);
+			var elapsed = (DateTime.UtcNow - started).TotalMilliseconds;
+
+			test.IsTrue(result.CallbackCount == 1, "stalled request callback invoked once");
+			test.IsTrue(result.Request.ResponseError != null, "stalled request surfaced a response error");
+			test.IsTrue(elapsed >= 1_000, $"stalled request waited for the timeout ({elapsed:0}ms)");
+			test.IsTrue(elapsed < 10_000, $"stalled request gave up on the timeout ({elapsed:0}ms)");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task loopback_request_ignores_webrequest_ip(Integrations.Test.Assert test)
+		{
+			if (!Community.IsConfigReady)
+			{
+				test.Warn("carbon config is not ready, skipping web request ip check");
+				test.Complete();
+				return;
+			}
+
+			using var probe = new LoopbackProbe();
+
+			var previousIp = Community.Runtime.Config.WebRequestIp;
+			Community.Runtime.Config.WebRequestIp = UnreachableBindIp;
+
+			try
+			{
+				var result = await ExecuteStringRequest(probe.Url, RequestMethod.GET, null, test);
+
+				test.IsNull(result.Request.ResponseError, "loopback request has no response error");
+				test.IsTrue(result.CallbackCode == 204,
+					$"loopback request completed while web request ip is set ({result.CallbackCode})");
+			}
+			finally
+			{
+				Community.Runtime.Config.WebRequestIp = previousIp;
+			}
 
 			test.Complete();
 		}
@@ -430,110 +525,6 @@ public partial class Tests
 			}
 		}
 
-		[Integrations.Test.Assert(Timeout = 20_000)]
-		public async Task custom_user_agent_header_is_preserved(Integrations.Test.Assert test)
-		{
-			var capture = await CaptureInboundUserAgent(test, new Dictionary<string, string>
-			{
-				["User-Agent"] = CustomPluginUserAgent,
-			});
-
-			test.IsTrue(capture.CallbackCount == 1, "custom user-agent callback invoked once");
-			test.IsTrue(capture.CallbackCode == 204, "custom user-agent callback status code is 204");
-			test.IsTrue(capture.ReceivedUserAgent == CustomPluginUserAgent,
-				$"custom user-agent was sent (got '{capture.ReceivedUserAgent}')");
-			test.IsTrue(!string.Equals(capture.ReceivedUserAgent, Community.Runtime.Analytics.UserAgent, StringComparison.Ordinal),
-				"custom user-agent is not overwritten by Carbon analytics user-agent");
-
-			test.Complete();
-		}
-
-		[Integrations.Test.Assert(Timeout = 20_000)]
-		public async Task default_user_agent_is_carbon_analytics(Integrations.Test.Assert test)
-		{
-			var expectedUserAgent = Community.Runtime.Analytics.UserAgent;
-			var capture = await CaptureInboundUserAgent(test, headers: null);
-
-			test.IsTrue(capture.CallbackCount == 1, "default user-agent callback invoked once");
-			test.IsTrue(capture.CallbackCode == 204, "default user-agent callback status code is 204");
-			test.IsTrue(!string.IsNullOrEmpty(expectedUserAgent), "carbon analytics user-agent is available");
-			test.IsTrue(capture.ReceivedUserAgent == expectedUserAgent,
-				$"default user-agent is Carbon analytics (got '{capture.ReceivedUserAgent}')");
-
-			test.Complete();
-		}
-
-		private static async Task<UserAgentCaptureResult> CaptureInboundUserAgent(
-			Integrations.Test.Assert test, Dictionary<string, string> headers
-		)
-		{
-			var listener = new TcpListener(IPAddress.Loopback, 0);
-			listener.Start();
-			var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-			var url = $"http://127.0.0.1:{port}/user-agent-probe";
-
-			string receivedUserAgent = null;
-			var acceptTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-			var acceptTask = Task.Run(async () =>
-			{
-				try
-				{
-					using var client = await listener.AcceptTcpClientAsync();
-					using var stream = client.GetStream();
-					using var reader = new System.IO.StreamReader(stream, Encoding.ASCII, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
-
-					string line;
-					while ((line = await reader.ReadLineAsync()) != null)
-					{
-						if (line.Length == 0)
-						{
-							break;
-						}
-
-						const string userAgentPrefix = "User-Agent:";
-						if (line.StartsWith(userAgentPrefix, StringComparison.OrdinalIgnoreCase))
-						{
-							receivedUserAgent = line.Substring(userAgentPrefix.Length).Trim();
-						}
-					}
-
-					var responseBytes = Encoding.ASCII.GetBytes("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
-					await stream.WriteAsync(responseBytes, 0, responseBytes.Length);
-					acceptTcs.TrySetResult(true);
-				}
-				catch (Exception ex)
-				{
-					acceptTcs.TrySetException(ex);
-				}
-			});
-
-			try
-			{
-				var result = await ExecuteStringRequest(url, RequestMethod.GET, null, test, headers: headers);
-				var acceptFinished = await Task.WhenAny(acceptTcs.Task, Task.Delay(8_000));
-				test.IsTrue(acceptFinished == acceptTcs.Task, "local listener accepted inbound request");
-
-				if (acceptTcs.Task.IsFaulted)
-				{
-					await acceptTcs.Task;
-				}
-
-				await Task.WhenAny(acceptTask, Task.Delay(1_000));
-
-				return new UserAgentCaptureResult
-				{
-					CallbackCount = result.CallbackCount,
-					CallbackCode = result.CallbackCode,
-					ReceivedUserAgent = receivedUserAgent,
-				};
-			}
-			finally
-			{
-				listener.Stop();
-			}
-		}
-
 		private static async Task<StringGetResult> ExecuteStringGet(string url, Integrations.Test.Assert test)
 		{
 			return await ExecuteStringRequest(url, RequestMethod.GET, null, test);
@@ -541,7 +532,7 @@ public partial class Tests
 
 		private static async Task<StringGetResult> ExecuteStringRequest(
 			string url, RequestMethod method, string body, Integrations.Test.Assert test, int callbackTimeoutMs = 8_000,
-			Dictionary<string, string> headers = null
+			Dictionary<string, string> headers = null, float timeout = 15f
 		)
 		{
 			var callbackTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -558,7 +549,7 @@ public partial class Tests
 				callbackBody = callbackBodyValue;
 				callbackThreadId = Thread.CurrentThread.ManagedThreadId;
 				callbackTcs.TrySetResult(true);
-			}, singleton, method, headers, timeout: 15f);
+			}, singleton, method, headers, timeout);
 
 			var callbackFinished = await Task.WhenAny(callbackTcs.Task, Task.Delay(callbackTimeoutMs));
 			test.IsTrue(callbackFinished == callbackTcs.Task, $"callback invoked ({method} {url})");
@@ -582,11 +573,99 @@ public partial class Tests
 			public int CallbackThreadId;
 		}
 
-		private struct UserAgentCaptureResult
+		private sealed class LoopbackProbe : IDisposable
 		{
-			public int CallbackCount;
-			public int CallbackCode;
-			public string ReceivedUserAgent;
+			private const int CaptureTimeoutMs = 8_000;
+
+			private readonly TcpListener _listener;
+			private readonly TaskCompletionSource<string> _head =
+				new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+			private TcpClient _accepted;
+			private bool _disposed;
+
+			public string Url { get; }
+
+			public LoopbackProbe(bool respond = true)
+			{
+				_listener = new TcpListener(IPAddress.Loopback, 0);
+				_listener.Start();
+
+				Url = $"http://127.0.0.1:{((IPEndPoint)_listener.LocalEndpoint).Port}/probe";
+
+				_ = Task.Run(() => Capture(respond));
+			}
+
+			public async Task<string> GetHeader(string name)
+			{
+				var captured = await Task.WhenAny(_head.Task, Task.Delay(CaptureTimeoutMs));
+				var head = captured == _head.Task ? _head.Task.Result : null;
+
+				if (string.IsNullOrEmpty(head))
+				{
+					return null;
+				}
+
+				var prefix = $"{name}:";
+				var lines = head.Split('\n');
+
+				for (var i = 0; i < lines.Length; i++)
+				{
+					var line = lines[i].Trim();
+
+					if (line.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+					{
+						return line.Substring(prefix.Length).Trim();
+					}
+				}
+
+				return string.Empty;
+			}
+
+			private async Task Capture(bool respond)
+			{
+				try
+				{
+					_accepted = await _listener.AcceptTcpClientAsync();
+
+					var stream = _accepted.GetStream();
+					var reader = new StreamReader(stream, Encoding.ASCII, false, 256, true);
+					var head = new StringBuilder();
+
+					string line;
+
+					while (!string.IsNullOrEmpty(line = await reader.ReadLineAsync()))
+					{
+						head.AppendLine(line);
+					}
+
+					_head.TrySetResult(head.ToString());
+
+					if (respond)
+					{
+						var response = Encoding.ASCII.GetBytes("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
+						await stream.WriteAsync(response, 0, response.Length);
+						_accepted.Close();
+					}
+				}
+				catch
+				{
+					_head.TrySetResult(null);
+				}
+			}
+
+			public void Dispose()
+			{
+				if (_disposed)
+				{
+					return;
+				}
+
+				_disposed = true;
+				_head.TrySetResult(null);
+				_accepted?.Close();
+				_listener.Stop();
+			}
 		}
 	}
 }
