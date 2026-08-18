@@ -87,16 +87,12 @@ public class InternalCallHook
 
 	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null, List<string> usingsList = null, IEnumerable<MetadataReference> references = null)
 	{
-		BaseNamespaceDeclarationSyntax @namespace;
+		var @namespace = (BaseNamespaceDeclarationSyntax)null;
 
 		if (classes == null)
 		{
 			classes = new List<ClassDeclarationSyntax>();
 			FindPluginInfo(input, out @namespace, out _, out _, classes);
-		}
-		else
-		{
-			@namespace = classes[0].Parent as BaseNamespaceDeclarationSyntax;
 		}
 
 		if (classes.Count == 0)
@@ -104,6 +100,8 @@ public class InternalCallHook
 			output = null;
 			return;
 		}
+
+		@namespace ??= classes[0].Parent as BaseNamespaceDeclarationSyntax;
 
 		var model = CreateModel(input, @namespace, classes, usingsList, references, options);
 		if (model.Methods.Count == 0)
