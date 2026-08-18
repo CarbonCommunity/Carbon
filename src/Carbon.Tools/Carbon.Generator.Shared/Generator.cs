@@ -373,6 +373,14 @@ public class InternalCallHook
 		return conditional?.Replace("\"", string.Empty) ?? string.Empty;
 	}
 
+	private static bool IsInfoAttribute(NameSyntax name) => name switch
+	{
+		QualifiedNameSyntax qualified => IsInfoAttribute(qualified.Right),
+		AliasQualifiedNameSyntax alias => IsInfoAttribute(alias.Name),
+		SimpleNameSyntax simple => simple.Identifier.ValueText is "Info" or "InfoAttribute",
+		_ => false
+	};
+
 	public static bool FindPluginInfo(CompilationUnitSyntax input, out BaseNamespaceDeclarationSyntax @namespace, out int namespaceIndex, out int classIndex, List<ClassDeclarationSyntax> classes)
 	{
 		var @class = (ClassDeclarationSyntax)null;
@@ -398,21 +406,36 @@ public class InternalCallHook
 					continue;
 				}
 
-				if (cls.AttributeLists.Count > 0)
+				var isPluginClass = false;
+
+				foreach (var list in cls.AttributeLists)
 				{
-					foreach (var attribute in cls.AttributeLists)
+					foreach (var attribute in list.Attributes)
 					{
-						if (attribute.Attributes[0].Name is IdentifierNameSyntax nameSyntax && nameSyntax.Identifier.Text.Equals("Info"))
+						if (!IsInfoAttribute(attribute.Name))
 						{
-							namespaceIndex = n;
-							@namespace = ns;
-							classIndex = c;
-							@class = cls;
-							classes?.Insert(0, @class);
+							continue;
 						}
+
+						namespaceIndex = n;
+						@namespace = ns;
+						classIndex = c;
+						@class = cls;
+						isPluginClass = true;
+						break;
+					}
+
+					if (isPluginClass)
+					{
+						break;
 					}
 				}
-				else if (cls.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
+
+				if (isPluginClass)
+				{
+					classes?.Insert(0, @class);
+				}
+				else if (cls.AttributeLists.Count == 0 && cls.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
 				{
 					classes?.Add(cls);
 				}
