@@ -249,6 +249,29 @@ public partial class Tests
 		}
 
 		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task pooled_client_keeps_user_agent_across_requests(Integrations.Test.Assert test)
+		{
+			using var first = new LoopbackServer();
+			using var second = new LoopbackServer();
+			using var client = new WebRequests.WebRequest.Client();
+
+			client.Headers["User-Agent"] = Community.Runtime.Analytics.UserAgent;
+
+			await client.DownloadStringTaskAsync(new Uri(first.Url));
+			await client.DownloadStringTaskAsync(new Uri(second.Url));
+
+			var firstUserAgent = await first.GetHeader("User-Agent");
+			var secondUserAgent = await second.GetHeader("User-Agent");
+
+			test.IsTrue(firstUserAgent == Community.Runtime.Analytics.UserAgent,
+				$"pooled client sent the user agent on its first request (got '{firstUserAgent}')");
+			test.IsTrue(secondUserAgent == Community.Runtime.Analytics.UserAgent,
+				$"pooled client sent the user agent on its second request (got '{secondUserAgent}')");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
 		public async Task timeout_aborts_a_stalled_request(Integrations.Test.Assert test)
 		{
 			using var server = new LoopbackServer(respond: false);
@@ -284,9 +307,10 @@ public partial class Tests
 			{
 				var result = await ExecuteStringRequest(server.Url, RequestMethod.GET, null, test);
 
-				test.IsNull(result.Request.ResponseError, "loopback request has no response error");
+				test.IsTrue(result.CallbackCount == 1, "loopback callback invoked once");
 				test.IsTrue(result.CallbackCode == 204,
 					$"loopback request completed while web request ip is set ({result.CallbackCode})");
+				test.IsNull(result.Request.ResponseError, "loopback request has no response error");
 			}
 			finally
 			{
