@@ -103,19 +103,12 @@ public partial class CorePlugin
 			return null;
 		}
 
-		var isBlacklisted = false;
-		if (OvenBlacklistCache != null)
+		if (!_ovenBlacklistLookup.TryGetValue(oven.prefabID, out var isBlacklisted))
 		{
-			for (int i = 0; i < OvenBlacklistCache.Count; i++)
-			{
-				var item = OvenBlacklistCache[i];
-				if (oven.ShortPrefabName.Contains(item, CompareOptions.IgnoreCase))
-				{
-					isBlacklisted = true;
-					break;
-				}
-			}
+			isBlacklisted = IsOvenBlacklisted(OvenBlacklistCache, oven.ShortPrefabName);
+			_ovenBlacklistLookup[oven.prefabID] = isBlacklisted;
 		}
+
 		if (isBlacklisted)
 		{
 			if (OvenBlacklistSpeedMultiplier != -1)
@@ -132,6 +125,24 @@ public partial class CorePlugin
 		}
 
 		return null;
+	}
+
+	private static bool IsOvenBlacklisted(List<string> cache, string shortPrefabName)
+	{
+		if (cache == null)
+		{
+			return false;
+		}
+
+		for (int i = 0; i < cache.Count; i++)
+		{
+			if (shortPrefabName.Contains(cache[i], CompareOptions.IgnoreCase))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	[Conditional("!MINIMAL")]

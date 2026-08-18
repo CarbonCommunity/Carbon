@@ -65,6 +65,8 @@ public partial class CorePlugin
 
 	public List<string> OvenBlacklistCache = [];
 
+	private Dictionary<uint, bool> _ovenBlacklistLookup = [];
+
 	private string _ovenBlacklist = "furnace,bbq.static,furnace.large";
 
 	[CarbonAutoVar("ovenblacklist", "Oven Blacklist", help: "Blacklisted oven entity prefabs.")]
@@ -74,6 +76,8 @@ public partial class CorePlugin
 		get => _ovenBlacklist;
 		set
 		{
+			_ovenBlacklistLookup.Clear();
+
 			if (string.IsNullOrEmpty(value))
 			{
 				OvenBlacklistCache.Clear();
