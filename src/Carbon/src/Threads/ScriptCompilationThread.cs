@@ -444,13 +444,16 @@ public class ScriptCompilationThread : BaseThreadedJob
 			return;
 		}
 
+		var trees = (List<SyntaxTree>)null;
+		var conditionals = (List<string>)null;
+
 		try
 		{
 			Exceptions.Clear();
 			Warnings.Clear();
 
-			var trees = Pool.Get<List<SyntaxTree>>();
-			var conditionals = Pool.Get<List<string>>();
+			trees = Pool.Get<List<SyntaxTree>>();
+			conditionals = Pool.Get<List<string>>();
 
 			_stopwatch = Pool.Get<Stopwatch>();
 
@@ -676,14 +679,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 			}
 
-			references.Clear();
-			references = null;
-			Pool.FreeUnmanaged(ref conditionals);
-			Pool.FreeUnmanaged(ref trees);
-
 			CompileTime = _stopwatch.Elapsed;
-			_stopwatch.Reset();
-			Pool.FreeUnsafe(ref _stopwatch);
 
 			// Belt-and-braces: never reflect over the compiled types in compile-test mode. Walking them would
 			// resolve the plugin's type graph (and any type initializers hanging off it) inside our AppDomain.
@@ -739,6 +735,27 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			Logger.Error($"Threading compilation failed for '{InitialSource?.ContextFilePath}'", ex);
 			Analytics.plugin_native_compile_fail(InitialSource, ex);
+		}
+		finally
+		{
+			references?.Clear();
+			references = null;
+
+			if (conditionals != null)
+			{
+				Pool.FreeUnmanaged(ref conditionals);
+			}
+
+			if (trees != null)
+			{
+				Pool.FreeUnmanaged(ref trees);
+			}
+
+			if (_stopwatch != null)
+			{
+				_stopwatch.Reset();
+				Pool.FreeUnsafe(ref _stopwatch);
+			}
 		}
 	}
 	public override void Dispose()
