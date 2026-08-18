@@ -503,6 +503,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var containsInternalCallHookOverride = Sources.Any(x =>
 				!string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
 
+			var foundPluginClass = false;
+
 			foreach (var source in Sources)
 			{
 				var tree = CSharpSyntaxTree.ParseText(
@@ -518,6 +520,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				if (InternalCallHook.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
+					foundPluginClass = true;
+
 					var @class = ClassList[0];
 
 					if (!@class.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
@@ -538,7 +542,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				Usings.AddRange(root.Usings.Select(x => x.ToString()));
 			}
 
-			if (!containsInternalCallHookOverride)
+			if (!containsInternalCallHookOverride && foundPluginClass)
 			{
 				_stopwatch.Start();
 
