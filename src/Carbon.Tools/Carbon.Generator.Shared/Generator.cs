@@ -158,6 +158,8 @@ public class InternalCallHook
 		}
 
 		var methods = classes
+			.Where(x => x.Identifier.ValueText == model.TypeName
+				&& ((x.Parent as BaseNamespaceDeclarationSyntax)?.Name.ToString() ?? string.Empty) == model.NamespaceName)
 			.SelectMany(x => x.ChildNodes().OfType<MethodDeclarationSyntax>())
 			.Where(IsHookableMethod)
 			.OrderBy(x => x.Identifier.ValueText)
@@ -435,7 +437,7 @@ public class InternalCallHook
 				{
 					classes?.Insert(0, @class);
 				}
-				else if (cls.AttributeLists.Count == 0 && cls.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
+				else if (cls.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
 				{
 					classes?.Add(cls);
 				}
