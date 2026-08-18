@@ -556,7 +556,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				if (partialTree != null)
 				{
+#if DEBUG
 					InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
+#endif
 					trees.Add(partialTree.SyntaxTree);
 				}
 			}
