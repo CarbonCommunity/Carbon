@@ -366,6 +366,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 	}
 	public override void Start()
 	{
+		if (IsAborted)
+		{
+			IsDone = true;
+			return;
+		}
+
 		IsCompileTestMode = Community.Runtime?.Config?.Compiler?.CompileTestMode ?? false;
 
 		PrewarmInternalHookGenerator();
@@ -438,7 +444,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	}
 	public override void ThreadFunction()
 	{
-		if (Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
+		if (IsAborted || Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
 		{
 			Dispose();
 			return;
@@ -583,7 +589,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			_stopwatch.Restart();
 
-			if (InitialSource == null)
+			if (InitialSource == null || IsAborted)
 			{
 				Dispose();
 				return;
@@ -593,7 +599,17 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			using (var dllStream = new MemoryStream())
 			{
-				var emit = compilation.Emit(dllStream, options: _emitOptions);
+				EmitResult emit;
+
+				try
+				{
+					emit = compilation.Emit(dllStream, options: _emitOptions, cancellationToken: CancellationToken);
+				}
+				catch (OperationCanceledException)
+				{
+					Dispose();
+					return;
+				}
 
 				var errors = Pool.Get<List<string>>();
 				var warnings = Pool.Get<List<string>>();
@@ -640,15 +656,25 @@ public class ScriptCompilationThread : BaseThreadedJob
 					IsCompileSuccess = true;
 
 					var assembly = dllStream.ToArray();
-					if (assembly != null)
+					var published = false;
+
+					lock (_abortHandle)
 					{
-						if (IsExtension)
+						if (assembly != null && !IsAborted)
 						{
-							_overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+							published = true;
+
+							if (IsExtension)
+							{
+								_overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+							}
+
+							_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
 						}
+					}
 
-						_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
-
+					if (published)
+					{
 						if (IsCompileTestMode)
 						{
 							// Compile-test mode: the emitted IL must never reach the AppDomain, so no Assembly.Load,
