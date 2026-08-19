@@ -3,6 +3,7 @@ using Facepunch;
 using static ConsoleSystem;
 using Logger = Carbon.Logger;
 using Pool = Facepunch.Pool;
+using Carbon.Extensions;
 
 namespace Oxide.Game.Rust.Libraries;
 
@@ -11,6 +12,21 @@ public class Command : Library
 	public static bool FromRcon
 	{
 		get; set;
+	}
+
+	private static void LogCommandCompatibilityError(string commandType, string command, BaseHookable plugin, Exception ex, Exception compatEx, string label, BasePlayer player, bool isChat, bool notifyPlayer = true)
+	{
+		Logger.Error($"Failed executing {commandType} command '{command}' in '{plugin.ToPrettyString()}' [{label}]: {ex.GetCompatibilityMessage(compatEx)}", compatEx);
+		if (notifyPlayer && Community.Runtime.Config.Logging.ShowCommandCompatibilityErrors && player != null)
+		{
+			if (isChat) player.ChatMessage(Localisation.Get("cmd_failed_compat", player.UserIDString));
+			else player.ConsoleMessage(Localisation.Get("cmd_failed_compat", player.UserIDString));
+		}
+	}
+
+	private static void LogCommandGenericError(string commandType, string command, BaseHookable plugin, Exception ex, string label)
+	{
+		Logger.Error($"Failed executing {commandType} command '{command}' in '{plugin.ToPrettyString()}' [{label}]", ex is TargetInvocationException invocation ? invocation.InnerException ?? ex : ex);
 	}
 
 	private Func<API.Commands.Command, API.Commands.Command.Args, bool> OnPlayerExecute(bool isChat)
@@ -102,7 +118,11 @@ public class Command : Library
 				{
 					case PlayerArgs playerArgs:
 						try { callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments.ToStringArray()); }
-						catch (Exception ex) { Logger.Error($"Failed executing chat command '{command}' in '{plugin.ToPrettyString()}' [callback]", ex.InnerException ?? ex); }
+						catch (Exception ex)
+						{
+							if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("chat", command, plugin, ex, compatEx, "callback", playerArgs.Player as BasePlayer, isChat: true);
+							else LogCommandGenericError("chat", command, plugin, ex, "callback");
+						}
 						break;
 				}
 			},
@@ -208,7 +228,11 @@ public class Command : Library
 
 				methodInfo?.Invoke(plugin, result);
 			}
-			catch (Exception ex) { Logger.Error($"Failed executing chat command '{command}' in '{plugin.ToPrettyString()}' [callback]", ex.InnerException ?? ex); }
+			catch (Exception ex)
+			{
+				if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("chat", command, plugin, ex, compatEx, "callback", player, isChat: true);
+				else LogCommandGenericError("chat", command, plugin, ex, "callback");
+			}
 
 			if (arguments != null)
 			{
@@ -235,7 +259,12 @@ public class Command : Library
 					switch (arg)
 					{
 						case PlayerArgs playerArgs:
-							callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments.ToStringArray());
+							try { callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments.ToStringArray()); }
+							catch (Exception ex)
+							{
+								if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "callback", playerArgs.Player as BasePlayer, isChat: false);
+								else LogCommandGenericError("console", command, plugin, ex, "callback");
+							}
 							break;
 					}
 				},
@@ -266,9 +295,22 @@ public class Command : Library
 			{
 				Name = command,
 				Reference = plugin,
-				Callback = arg =>
+				Callback = args =>
 				{
-					callback?.Invoke(null, command, arg.Arguments.ToStringArray());
+					try { callback?.Invoke(null, command, args.Arguments.ToStringArray()); }
+					catch (Exception ex)
+					{
+						if (ex.TryGetCompatibilityException(out var compatEx))
+						{
+							LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "callback", null, isChat: false, notifyPlayer: false);
+							if (!args.PrintOutput) args.Reply = $"{ex.GetCompatibilityMessage(compatEx)}\n{compatEx}";
+						}
+						else
+						{
+							LogCommandGenericError("console", command, plugin, ex, "callback");
+							if (!args.PrintOutput) args.Reply = ex.ToString();
+						}
+					}
 				},
 				Help = help,
 				Token = reference,
@@ -395,10 +437,18 @@ public class Command : Library
 						}
 					}
 				}
-				catch (Exception ex) { Logger.Error($"Failed executing console command '{command}' in '{plugin.ToPrettyString()}' [callback]", ex.InnerException ?? ex); }
+				catch (Exception ex)
+				{
+					if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "callback", player, isChat: false);
+					else LogCommandGenericError("console", command, plugin, ex, "callback");
+				}
 			}
 			catch (TargetParameterCountException) { }
-			catch (Exception ex) { Logger.Error ( $"Failed executing console command '{command}' in '{plugin.ToPrettyString ()}' [internal]", ex.InnerException ?? ex ); }
+			catch (Exception ex)
+			{
+				if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "internal", player, isChat: false);
+				else LogCommandGenericError("console", command, plugin, ex, "internal");
+			}
 
 			Pool.FreeUnmanaged(ref arguments);
 
@@ -422,9 +472,17 @@ public class Command : Library
 					{
 						return;
 					}
-					callback?.Invoke(arg);
-					args.Reply = arg.Reply;
-					args.PrintOutput = arg.Option.PrintOutput;
+					try
+					{
+						callback?.Invoke(arg);
+						args.Reply = arg.Reply;
+						args.PrintOutput = arg.Option.PrintOutput;
+					}
+					catch (Exception ex)
+					{
+						if (ex.TryGetCompatibilityException(out var compatEx)) LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "callback", arg.Player(), isChat: false);
+						else LogCommandGenericError("console", command, plugin, ex, "callback");
+					}
 				},
 				Help = help,
 				Token = reference,
@@ -461,8 +519,24 @@ public class Command : Library
 					}
 
 					args.PrintOutput = arg.Option.PrintOutput;
-					callback?.Invoke(arg);
-					args.Reply = arg.Reply;
+					try
+					{
+						callback?.Invoke(arg);
+						args.Reply = arg.Reply;
+					}
+					catch (Exception ex)
+					{
+						if (ex.TryGetCompatibilityException(out var compatEx))
+						{
+							LogCommandCompatibilityError("console", command, plugin, ex, compatEx, "callback", arg.Player(), isChat: false, notifyPlayer: false);
+							if (!args.PrintOutput) args.Reply = $"{ex.GetCompatibilityMessage(compatEx)}\n{compatEx}";
+						}
+						else
+						{
+							LogCommandGenericError("console", command, plugin, ex, "callback");
+							if (!args.PrintOutput) args.Reply = ex.ToString();
+						}
+					}
 				},
 				Help = help,
 				Token = reference,
