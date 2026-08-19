@@ -63,11 +63,13 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	public float ExcavatorBeltSpeedMaxMultiplier = -1;
 
-	public List<string> OvenBlacklistCache = [];
+	private const string DefaultOvenBlacklist = "furnace,bbq.static,furnace.large";
+
+	public List<string> OvenBlacklistCache = [.. DefaultOvenBlacklist.SplitEnumerable(',')];
 
 	private Dictionary<uint, bool> _ovenBlacklistLookup = [];
 
-	private string _ovenBlacklist = "furnace,bbq.static,furnace.large";
+	private string _ovenBlacklist = DefaultOvenBlacklist;
 
 	[CarbonAutoVar("ovenblacklist", "Oven Blacklist", help: "Blacklisted oven entity prefabs.")]
 	[AuthLevel(2)]
