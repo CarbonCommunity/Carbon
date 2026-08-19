@@ -11,6 +11,7 @@
 	<ItemGroup>
 		<PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.7.0" />
 		<ProjectReference Include="$(SolutionDir)\Carbon\Carbon.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Modules\Carbon.Modules.csproj" Private="false" />
 	</ItemGroup>
 
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
