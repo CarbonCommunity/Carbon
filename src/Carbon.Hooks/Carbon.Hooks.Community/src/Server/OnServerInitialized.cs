@@ -16,6 +16,7 @@ public partial class Category_Server
 		[MetadataAttribute.Info("Called after the server startup has been completed and is awaiting connections.")]
 		[MetadataAttribute.Info("Also called for plugins that are hotloaded while the server is already started running.")]
 		[MetadataAttribute.Parameter("initialized", typeof(bool), true)]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnServerInitialized : Patch;

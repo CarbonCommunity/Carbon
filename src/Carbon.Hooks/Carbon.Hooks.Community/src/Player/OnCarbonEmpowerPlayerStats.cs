@@ -18,6 +18,7 @@ public partial class Category_Player
 		[MetadataAttribute.Info("Called when a player's health, metabolism, and stats are maxed out.")]
 		[MetadataAttribute.Parameter("invoker", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("target", typeof(BasePlayer))]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnCarbonEmpowerPlayerStats : Patch;
 	}

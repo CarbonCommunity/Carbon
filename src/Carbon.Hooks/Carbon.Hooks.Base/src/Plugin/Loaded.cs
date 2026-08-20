@@ -14,6 +14,7 @@ public partial class Category_Plugin
 
 		[MetadataAttribute.Category("Plugin")]
 		[MetadataAttribute.Info("Gets called when the plugin executes the Load method on the plugin.")]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class Loaded : Patch

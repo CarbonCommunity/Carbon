@@ -17,6 +17,7 @@ public partial class Category_Plugin
 		[MetadataAttribute.Info("Gets called whenever a plugin compilation fails.")]
 		[MetadataAttribute.Parameter("pluginName", typeof(string))]
 		[MetadataAttribute.Parameter("error", typeof(Exception))]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnPluginCompileFailure : Patch;
 	}

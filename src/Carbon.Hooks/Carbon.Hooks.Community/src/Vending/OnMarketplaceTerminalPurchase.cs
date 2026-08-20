@@ -23,7 +23,7 @@ public partial class Category_Vending
 		[MetadataAttribute.Parameter("sellOrderIndex", typeof(int))]
 		[MetadataAttribute.Parameter("amount", typeof(int))]
 		[MetadataAttribute.Info("Called before making a purchase at the Marketplace terminal.")]
-		[MetadataAttribute.Return(typeof(bool))]
+		[MetadataAttribute.Return(typeof(void))]
 
 		public class OnMarketplaceTerminalPurchase : Patch
 		{

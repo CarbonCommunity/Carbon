@@ -18,6 +18,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("title", typeof(string))]
 		[MetadataAttribute.Parameter("rank", typeof(int))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnGroupCreated : Patch;
