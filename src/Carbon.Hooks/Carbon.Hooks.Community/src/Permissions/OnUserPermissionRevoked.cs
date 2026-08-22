@@ -17,6 +17,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("playerId", typeof(string))]
 		[MetadataAttribute.Parameter("permission", typeof(string))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserPermissionRevoked : Patch;

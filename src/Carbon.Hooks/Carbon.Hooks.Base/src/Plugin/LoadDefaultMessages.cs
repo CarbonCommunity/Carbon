@@ -15,6 +15,7 @@ public partial class Category_Plugin
 		[MetadataAttribute.Category("Plugin")]
 		[MetadataAttribute.Info("Gets called when originally there aren't message found in the `carbon/lang` folder.")]
 		[MetadataAttribute.Info("Gets called when it initially creates the `carbon/lang` files for the plugin.")]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class LoadDefaultMessages : Patch

@@ -22,6 +22,7 @@ public partial class Category_Plugin
 		[MetadataAttribute.Parameter("newVersion", typeof(VersionNumber))]
 		[MetadataAttribute.Parameter("plugin", typeof(Plugin))]
 		[MetadataAttribute.Parameter("vendorName", typeof(string))]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnPluginOutdated : Patch;
 	}

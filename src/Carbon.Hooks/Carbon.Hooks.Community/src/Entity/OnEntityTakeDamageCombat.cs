@@ -16,7 +16,7 @@ public partial class Category_Entity
 		[MetadataAttribute.Info("Called when a player gets attacked.")]
 		[MetadataAttribute.Parameter("entity", typeof(BaseCombatEntity))]
 		[MetadataAttribute.Parameter("info", typeof(HitInfo))]
-		[MetadataAttribute.Return(typeof(bool))]
+		[MetadataAttribute.Return(typeof(void))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.OxideCompatible]
 

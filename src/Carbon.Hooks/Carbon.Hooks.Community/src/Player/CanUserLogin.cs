@@ -15,10 +15,10 @@ public partial class Category_Player
 
 		[MetadataAttribute.Category("Player")]
 		[MetadataAttribute.Info("Gets called when a client should or not should join the server.")]
+		[MetadataAttribute.Info("Return false to reject the connection, or a string to reject it with that message.")]
 		[MetadataAttribute.Parameter("username", typeof(string))]
 		[MetadataAttribute.Parameter("userid", typeof(string))]
 		[MetadataAttribute.Parameter("ip", typeof(string))]
-		[MetadataAttribute.Return(typeof(bool))]
 		[MetadataAttribute.OxideCompatible]
 
 		public class CanUserLogin : Patch;
