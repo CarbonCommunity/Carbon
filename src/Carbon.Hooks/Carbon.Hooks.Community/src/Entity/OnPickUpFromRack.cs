@@ -16,6 +16,7 @@ public partial class Category_Entity
 		[MetadataAttribute.Parameter("mountSlotIndex", typeof(int))]
 		[MetadataAttribute.Parameter("playerBeltIndex", typeof(int))]
 		[MetadataAttribute.Parameter("tryHold", typeof(bool))]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnPickupFromRack
 		{

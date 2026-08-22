@@ -8,14 +8,13 @@ public partial class Category_Entity
 	{
 		[HookAttribute.Patch("CanPickupFromRack", "CanPickupFromRack", typeof(WeaponRack), "GivePlayerWeapon", new System.Type[] { typeof(BasePlayer), typeof(int), typeof(int), typeof(bool), typeof(bool) })]
 
-		[MetadataAttribute.Info("Returning a non-null value disallows the weapon to be picked up.")]
+		[MetadataAttribute.Info("Return false to prevent the weapon from being picked up.")]
 		[MetadataAttribute.Parameter("rack", typeof(WeaponRack))]
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("item", typeof(Item))]
 		[MetadataAttribute.Parameter("mountSlotIndex", typeof(int))]
 		[MetadataAttribute.Parameter("playerBeltIndex", typeof(int))]
 		[MetadataAttribute.Parameter("tryHold", typeof(bool))]
-		[MetadataAttribute.Return(typeof(bool))]
 
 		public class CanPickupFromRack : Patch
 		{

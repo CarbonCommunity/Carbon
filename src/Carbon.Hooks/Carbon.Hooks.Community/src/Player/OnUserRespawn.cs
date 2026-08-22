@@ -15,6 +15,7 @@ public partial class Category_Player
 
 		[MetadataAttribute.Category("Player")]
 		[MetadataAttribute.Info("Gets called when a covalence player respawns.")]
+		[MetadataAttribute.Info("Return a BasePlayer.SpawnPoint, or a SleepingBag when respawning at a bag, to change where the player respawns.")]
 		[MetadataAttribute.Parameter("player", typeof(IPlayer))]
 		[MetadataAttribute.OxideCompatible]
 

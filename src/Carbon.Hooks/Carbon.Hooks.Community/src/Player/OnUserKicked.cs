@@ -17,6 +17,7 @@ public partial class Category_Player
 		[MetadataAttribute.Info("Gets called when a covalence player gets kicked.")]
 		[MetadataAttribute.Parameter("player", typeof(IPlayer))]
 		[MetadataAttribute.Parameter("reason", typeof(string))]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserKicked : Patch;

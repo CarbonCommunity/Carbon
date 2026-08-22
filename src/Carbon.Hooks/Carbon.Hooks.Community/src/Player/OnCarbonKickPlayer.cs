@@ -19,6 +19,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("invoker", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("target", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("reason", typeof(string))]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnCarbonKickPlayer : Patch;
 	}

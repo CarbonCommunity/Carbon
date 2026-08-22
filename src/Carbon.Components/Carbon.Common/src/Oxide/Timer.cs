@@ -41,6 +41,8 @@ public class PluginTimers
 		timer = new Core.Libraries.Timer(plugin);
 	}
 
+	public Core.Libraries.Timer Library => timer;
+
 	public Timer Once(float seconds, Action callback)
 	{
 		return new Timer(timer.Once(seconds, callback, plugin));

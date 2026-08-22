@@ -20,6 +20,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("plugin", typeof(RustPlugin))]
 		[MetadataAttribute.Parameter("exception", typeof(Exception))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnConstructorFail : Patch
 		{

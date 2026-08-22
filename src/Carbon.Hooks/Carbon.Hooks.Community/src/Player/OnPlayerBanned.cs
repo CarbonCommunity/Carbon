@@ -17,6 +17,7 @@ public partial class Category_Player
 		[MetadataAttribute.Info("Gets called when a connection gets banned.")]
 		[MetadataAttribute.Parameter("connection", typeof(Connection))]
 		[MetadataAttribute.Parameter("reason", typeof(string))]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerBanned : Patch;

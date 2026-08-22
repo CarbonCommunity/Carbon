@@ -23,6 +23,7 @@ public partial class Category_Static
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
 		[MetadataAttribute.Info("Called whenever a Carbon server command is called.")]
+		[MetadataAttribute.Return(typeof(void))]
 
 		public class IOnConsoleCommand : Patch
 		{

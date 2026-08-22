@@ -18,7 +18,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("command", typeof(string))]
 		[MetadataAttribute.Parameter("args", typeof(string[]))]
-		[MetadataAttribute.Return(typeof(object))]
+		[MetadataAttribute.Return(typeof(void))]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserCommand_BasePlayer : Patch;
@@ -31,7 +31,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("player", typeof(IPlayer))]
 		[MetadataAttribute.Parameter("command", typeof(string))]
 		[MetadataAttribute.Parameter("args", typeof(string[]))]
-		[MetadataAttribute.Return(typeof(object))]
+		[MetadataAttribute.Return(typeof(void))]
 		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserCommand_IPlayer : Patch;

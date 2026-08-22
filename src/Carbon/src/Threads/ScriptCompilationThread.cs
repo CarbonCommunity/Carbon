@@ -68,27 +68,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		name = name.Replace(" ", string.Empty);
 
-		foreach (var plugin in _compilationCache)
-		{
-			if (plugin.Key == name)
-			{
-				return plugin.Value;
-			}
-		}
-
-		return null;
+		return _compilationCache.TryGetValue(name, out var plugin) ? plugin : null;
 	}
 	private static byte[] _getExtensionPlugin(string name)
 	{
-		foreach (var extension in _extensionCompilationCache)
-		{
-			if (extension.Key == name)
-			{
-				return extension.Value;
-			}
-		}
-
-		return null;
+		return _extensionCompilationCache.TryGetValue(name, out var extension) ? extension : null;
 	}
 	private static void _overridePlugin(string name, byte[] pluginAssembly)
 	{
@@ -366,6 +350,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 	}
 	public override void Start()
 	{
+		if (IsAborted)
+		{
+			IsDone = true;
+			return;
+		}
+
 		IsCompileTestMode = Community.Runtime?.Config?.Compiler?.CompileTestMode ?? false;
 
 		PrewarmInternalHookGenerator();
@@ -438,19 +428,22 @@ public class ScriptCompilationThread : BaseThreadedJob
 	}
 	public override void ThreadFunction()
 	{
-		if (Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
+		if (IsAborted || Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
 		{
 			Dispose();
 			return;
 		}
+
+		var trees = (List<SyntaxTree>)null;
+		var conditionals = (List<string>)null;
 
 		try
 		{
 			Exceptions.Clear();
 			Warnings.Clear();
 
-			var trees = Pool.Get<List<SyntaxTree>>();
-			var conditionals = Pool.Get<List<string>>();
+			trees = Pool.Get<List<SyntaxTree>>();
+			conditionals = Pool.Get<List<string>>();
 
 			_stopwatch = Pool.Get<Stopwatch>();
 
@@ -510,6 +503,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var containsInternalCallHookOverride = Sources.Any(x =>
 				!string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
 
+			var foundPluginClass = false;
+
 			foreach (var source in Sources)
 			{
 				var tree = CSharpSyntaxTree.ParseText(
@@ -525,6 +520,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				if (InternalCallHook.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
+					foundPluginClass = true;
+
 					var @class = ClassList[0];
 
 					if (!@class.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
@@ -545,7 +542,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				Usings.AddRange(root.Usings.Select(x => x.ToString()));
 			}
 
-			if (!containsInternalCallHookOverride)
+			if (!containsInternalCallHookOverride && foundPluginClass)
 			{
 				_stopwatch.Start();
 
@@ -559,7 +556,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				if (partialTree != null)
 				{
+#if DEBUG
 					InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
+#endif
 					trees.Add(partialTree.SyntaxTree);
 				}
 			}
@@ -580,7 +579,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			_stopwatch.Restart();
 
-			if (InitialSource == null)
+			if (InitialSource == null || IsAborted)
 			{
 				Dispose();
 				return;
@@ -590,7 +589,17 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			using (var dllStream = new MemoryStream())
 			{
-				var emit = compilation.Emit(dllStream, options: _emitOptions);
+				EmitResult emit;
+
+				try
+				{
+					emit = compilation.Emit(dllStream, options: _emitOptions, cancellationToken: CancellationToken);
+				}
+				catch (OperationCanceledException)
+				{
+					Dispose();
+					return;
+				}
 
 				var errors = Pool.Get<List<string>>();
 				var warnings = Pool.Get<List<string>>();
@@ -637,15 +646,25 @@ public class ScriptCompilationThread : BaseThreadedJob
 					IsCompileSuccess = true;
 
 					var assembly = dllStream.ToArray();
-					if (assembly != null)
+					var published = false;
+
+					lock (_abortHandle)
 					{
-						if (IsExtension)
+						if (assembly != null && !IsAborted)
 						{
-							_overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+							published = true;
+
+							if (IsExtension)
+							{
+								_overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+							}
+
+							_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
 						}
+					}
 
-						_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
-
+					if (published)
+					{
 						if (IsCompileTestMode)
 						{
 							// Compile-test mode: the emitted IL must never reach the AppDomain, so no Assembly.Load,
@@ -665,7 +684,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 									: InitialSource.ContextFileName);
 
 								var isProfiled = MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly, name, true);
-								Assemblies.Plugins.Update(name, Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath, isProfiled);
+
+								lock (_abortHandle)
+								{
+									if (!IsAborted)
+									{
+										Assemblies.Plugins.Update(name, Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath, isProfiled);
+									}
+								}
 							}
 							catch (Exception ex)
 							{
@@ -676,14 +702,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 			}
 
-			references.Clear();
-			references = null;
-			Pool.FreeUnmanaged(ref conditionals);
-			Pool.FreeUnmanaged(ref trees);
-
 			CompileTime = _stopwatch.Elapsed;
-			_stopwatch.Reset();
-			Pool.FreeUnsafe(ref _stopwatch);
 
 			// Belt-and-braces: never reflect over the compiled types in compile-test mode. Walking them would
 			// resolve the plugin's type graph (and any type initializers hanging off it) inside our AppDomain.
@@ -739,6 +758,27 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			Logger.Error($"Threading compilation failed for '{InitialSource?.ContextFilePath}'", ex);
 			Analytics.plugin_native_compile_fail(InitialSource, ex);
+		}
+		finally
+		{
+			references?.Clear();
+			references = null;
+
+			if (conditionals != null)
+			{
+				Pool.FreeUnmanaged(ref conditionals);
+			}
+
+			if (trees != null)
+			{
+				Pool.FreeUnmanaged(ref trees);
+			}
+
+			if (_stopwatch != null)
+			{
+				_stopwatch.Reset();
+				Pool.FreeUnsafe(ref _stopwatch);
+			}
 		}
 	}
 	public override void Dispose()

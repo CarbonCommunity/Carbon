@@ -15,6 +15,7 @@ public partial class Category_Player
 
 		[MetadataAttribute.Category("Player")]
 		[MetadataAttribute.Info("Gets called when a player sends an offline chat message.")]
+		[MetadataAttribute.Info("Return a bool to block the chat message.")]
 		[MetadataAttribute.Parameter("playerid", typeof(ulong))]
 		[MetadataAttribute.Parameter("username", typeof(string))]
 		[MetadataAttribute.Parameter("message", typeof(string))]

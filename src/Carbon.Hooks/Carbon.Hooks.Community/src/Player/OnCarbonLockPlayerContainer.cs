@@ -20,6 +20,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("target", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("container", typeof(ItemContainer))]
 		[MetadataAttribute.Parameter("locked", typeof(bool))]
+		[MetadataAttribute.Return(typeof(void), Discarded = true)]
 
 		public class OnCarbonLockPlayerContainer : Patch;
 	}
