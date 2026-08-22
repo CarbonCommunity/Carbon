@@ -221,6 +221,10 @@ public partial class Timer : Library
 	public class TimerInstance : IDisposable
 	{
 		public Plugin Plugin { get; set; }
+
+		// Oxide binary compat - Oxide's TimerInstance exposes the owning plugin as 'Owner'
+		public Plugin Owner => Plugin;
+
 		internal Timer OwnerTimers { get; set; }
 
 		public Action Activity { get; set; }

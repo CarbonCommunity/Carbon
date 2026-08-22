@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using Carbon.Core;
 using JetBrains.Annotations;
 using Oxide.Core.Extensions;
-using Oxide.Core.Libraries;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
@@ -92,17 +91,5 @@ public static partial class OxideCompat
     public static string GetExtensionDirectory(global::Oxide.Core.OxideMod _)
     {
         return Defines.GetExtensionsFolder();
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Oxide.Plugins.Timer TimerOnce(Oxide.Plugins.PluginTimers timer, float delay, Action callback, Plugin owner = null)
-    {
-        return timer.Once(delay, callback);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Oxide.Plugins.Timer TimerRepeat(Oxide.Plugins.PluginTimers timer, float delay, int reps, Action callback, Plugin owner = null)
-    {
-        return timer.Repeat(delay, reps, callback);
     }
 }
