@@ -191,7 +191,7 @@ public class OxideMod
 		Community.Runtime.ScriptProcessor.Clear(skip);
 		Community.Runtime.ZipScriptProcessor.Clear(skip);
 #if DEBUG
-		Community.Runtime.ZipScriptProcessor.Clear(skip);
+		Community.Runtime.ZipDevScriptProcessor.Clear(skip);
 #endif
 	}
 
