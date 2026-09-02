@@ -162,7 +162,7 @@ public class OxideMod
 				continue;
 			}
 
-			plugin.Value.MarkDirty();
+			plugin.Value?.MarkDirty();
 		}
 		foreach (var plugin in Community.Runtime.ZipScriptProcessor.InstanceBuffer)
 		{
@@ -171,7 +171,7 @@ public class OxideMod
 				continue;
 			}
 
-			plugin.Value.MarkDirty();
+			plugin.Value?.MarkDirty();
 		}
 #if DEBUG
 		foreach (var plugin in Community.Runtime.ZipDevScriptProcessor.InstanceBuffer)
@@ -181,7 +181,7 @@ public class OxideMod
 				continue;
 			}
 
-			plugin.Value.MarkDirty();
+			plugin.Value?.MarkDirty();
 		}
 #endif
 	}
