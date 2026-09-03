@@ -37,6 +37,10 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 	private Func<Process> _processFactory;
 	private readonly ConcurrentQueue<WatchFileEvent> _events = new();
+	private readonly List<string> _sourceChanges = new(32);
+	private readonly HashSet<string> _sourceChangeSet = [];
+	private readonly List<string> _pendingSources = new(16);
+	private readonly List<string> _drainedSources = new(16);
 
 	public bool IsInitialized { get; set; }
 
@@ -53,6 +57,10 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 		InstanceBuffer = new Dictionary<string, IBaseProcessor.IProcess>();
 		IgnoreList = new List<string>();
+		_sourceChanges.Clear();
+		_sourceChangeSet.Clear();
+		_pendingSources.Clear();
+		_drainedSources.Clear();
 
 		DontDestroyOnLoad(gameObject);
 
@@ -156,9 +164,17 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 		return Activator.CreateInstance(IndexedType) as Process;
 	}
 
-	protected virtual string GetInstanceKey(string sourcePath)
+	public virtual string GetInstanceKey(string sourcePath)
 	{
 		return Path.GetFileNameWithoutExtension(sourcePath);
+	}
+	protected virtual string GetSourcePath(string eventPath)
+	{
+		return eventPath;
+	}
+	protected virtual bool SourceExists(string sourcePath)
+	{
+		return OsEx.File.Exists(sourcePath);
 	}
 
 	private void DrainEventQueue()
@@ -180,6 +196,8 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 				Logger.Error($"Watcher dispatch error for '{evt.Path}' ({evt.Type})", ex);
 			}
 		}
+
+		ReconcileSourceChanges();
 	}
 
 	public virtual IEnumerator Run()
@@ -197,12 +215,6 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 				{
 					_runtimeCache.Add(element.Key, value);
 				}
-			}
-
-			if (_runtimeCache.Count == 0)
-			{
-				yield return null;
-				continue;
 			}
 
 			foreach (var element in _runtimeCache)
@@ -226,6 +238,8 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 			_runtimeCache.Clear();
 
+			ProcessPendingSources();
+
 			yield return null;
 		}
 	}
@@ -234,18 +248,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	{
 		if (value == null)
 		{
-			var instance = CreateProcess();
-
-			if (instance != null)
-			{
-				instance.File = key;
-				instance.Execute(this);
-
-				var id = GetInstanceKey(key);
-				InstanceBuffer.Remove(key);
-				InstanceBuffer[id] = instance;
-			}
-
+			InstanceBuffer.Remove(key);
 			return false;
 		}
 
@@ -284,7 +287,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 		}
 		else
 		{
-			Prepare(Path.GetFileNameWithoutExtension(file), file);
+			Prepare(GetInstanceKey(file), file);
 		}
 	}
 	public virtual void Prepare(string id, string file)
@@ -299,6 +302,10 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 			return;
 		}
 
+		InstallProcess(id, file);
+	}
+	private void InstallProcess(string id, string file)
+	{
 		Remove(id);
 
 		var instance = CreateProcess();
@@ -311,6 +318,8 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	}
 	public virtual void Remove(string id)
 	{
+		CancelPendingSource(id);
+
 		if (InstanceBuffer.TryGetValue(id, out var existent))
 		{
 			existent?.Clear();
@@ -329,6 +338,18 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 			{
 				Pool.FreeUnmanaged(ref exceptList);
 				exceptList = null;
+			}
+		}
+
+		if (exceptList == null)
+		{
+			_pendingSources.Clear();
+		}
+		else
+		{
+			for (int i = _pendingSources.Count - 1; i >= 0; i--)
+			{
+				if (!FileMatchesAny(_pendingSources[i], exceptList)) _pendingSources.RemoveAt(i);
 			}
 		}
 
@@ -391,67 +412,142 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 	public virtual void OnCreated(WatchFileEvent e)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
+		if (!EnableWatcher) return;
 
-		if (InstanceBuffer.TryGetValue(e.Path, out var instance1))
-		{
-			instance1?.MarkDirty();
-			return;
-		}
-
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Path), out var instance2))
-		{
-			instance2?.MarkDirty();
-			return;
-		}
-
-		InstanceBuffer.Add(e.Path, null);
+		QueueSourceChange(e.Path);
 	}
 	public virtual void OnChanged(WatchFileEvent e)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
+		if (!EnableWatcher) return;
 
-		var name = Path.GetFileNameWithoutExtension(e.Path);
-
-		if (InstanceBuffer.TryGetValue(name, out var mod))
-		{
-			mod.MarkDirty();
-		}
+		QueueSourceChange(e.Path);
 	}
 	public virtual void OnRenamed(WatchFileEvent e)
 	{
 		if (!EnableWatcher) return;
 
-		if (!string.IsNullOrEmpty(e.OldPath))
-		{
-			var oldName = Path.GetFileNameWithoutExtension(e.OldPath);
-			if (InstanceBuffer.TryGetValue(oldName, out var oldMod))
-			{
-				oldMod?.MarkDeleted();
-			}
-		}
-
-		if (IsBlacklisted(e.Path)) return;
-
-		var newName = Path.GetFileNameWithoutExtension(e.Path);
-		if (InstanceBuffer.TryGetValue(newName, out var existing) && existing != null)
-		{
-			existing.MarkDirty();
-		}
-		else
-		{
-			InstanceBuffer[newName] = null;
-		}
+		QueueSourceChange(e.OldPath);
+		QueueSourceChange(e.Path);
 	}
 	public virtual void OnRemoved(WatchFileEvent e)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
+		if (!EnableWatcher) return;
 
-		var name = Path.GetFileNameWithoutExtension(e.Path);
+		QueueSourceChange(e.Path);
+	}
 
-		if (InstanceBuffer.TryGetValue(name, out var mod))
+	private void QueueSourceChange(string path)
+	{
+		if (string.IsNullOrEmpty(path) || IsBlacklisted(path)) return;
+		if (!string.IsNullOrEmpty(Extension) && !PathEx.HasExtension(path, Extension)) return;
+
+		var sourcePath = GetSourcePath(path);
+		if (string.IsNullOrEmpty(sourcePath) || !_sourceChangeSet.Add(sourcePath)) return;
+
+		_sourceChanges.Add(sourcePath);
+	}
+
+	private void ReconcileSourceChanges()
+	{
+		for (int i = 0; i < _sourceChanges.Count; i++)
 		{
-			mod.MarkDeleted();
+			var sourcePath = _sourceChanges[i];
+
+			try
+			{
+				ReconcileSource(sourcePath);
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Watcher source error for '{sourcePath}'", ex);
+			}
+		}
+
+		_sourceChanges.Clear();
+		_sourceChangeSet.Clear();
+	}
+
+	private void ReconcileSource(string sourcePath)
+	{
+		var key = GetInstanceKey(sourcePath);
+		if (string.IsNullOrEmpty(key)) return;
+
+		var exists = SourceExists(sourcePath);
+
+		if (InstanceBuffer.TryGetValue(key, out var process) && process != null)
+		{
+			if (PathEx.Equals(process.File, sourcePath))
+			{
+				if (exists) process.MarkDirty();
+				else process.MarkDeleted();
+				return;
+			}
+
+			if (!exists) return;
+
+			if (!SourceExists(process.File))
+			{
+				process.File = sourcePath;
+				process.MarkDirty();
+				return;
+			}
+
+			WarnDuplicateSource(sourcePath, process.File);
+			return;
+		}
+
+		if (exists)
+		{
+			_pendingSources.Add(sourcePath);
+		}
+	}
+
+	private void ProcessPendingSources()
+	{
+		if (_pendingSources.Count == 0) return;
+
+		_drainedSources.AddRange(_pendingSources);
+		_pendingSources.Clear();
+
+		for (int i = 0; i < _drainedSources.Count; i++)
+		{
+			var sourcePath = _drainedSources[i];
+			if (!SourceExists(sourcePath)) continue;
+
+			try
+			{
+				var key = GetInstanceKey(sourcePath);
+
+				if (InstanceBuffer.TryGetValue(key, out var existing) && existing != null)
+				{
+					if (!PathEx.Equals(existing.File, sourcePath)) WarnDuplicateSource(sourcePath, existing.File);
+					continue;
+				}
+
+				InstallProcess(key, sourcePath);
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Processor run error for '{sourcePath}'", ex);
+			}
+		}
+
+		_drainedSources.Clear();
+	}
+
+	private static void WarnDuplicateSource(string sourcePath, string existingFile)
+	{
+		Logger.Warn($"Skipping '{sourcePath}': '{existingFile}' is already loaded under the same name.");
+	}
+
+	private void CancelPendingSource(string key)
+	{
+		for (int i = _pendingSources.Count - 1; i >= 0; i--)
+		{
+			if (GetInstanceKey(_pendingSources[i]) == key)
+			{
+				_pendingSources.RemoveAt(i);
+			}
 		}
 	}
 

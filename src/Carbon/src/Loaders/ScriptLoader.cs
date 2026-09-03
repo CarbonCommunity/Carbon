@@ -72,12 +72,12 @@ public class ScriptLoader : IScriptLoader
 		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cszip", option: config.Watchers.ScriptWatcherOption);
 		var count = 0;
 
-		ExecuteProcess(Community.Runtime.ScriptProcessor, false, except, ref count, extensionPlugins, plugins);
-		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, except, ref count, zipPlugins);
+		ExecuteProcess(Community.Runtime.ScriptProcessor, except, ref count, extensionPlugins, plugins);
+		ExecuteProcess(Community.Runtime.ZipScriptProcessor, except, ref count, zipPlugins);
 
 #if DEBUG
 		var zipDevPlugins = Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly);
-		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, except, ref count, zipDevPlugins);
+		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, except, ref count, zipDevPlugins);
 #endif
 
 		if (count == 0)
@@ -87,7 +87,7 @@ public class ScriptLoader : IScriptLoader
 			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsInitialized, EventArgs.Empty);
 		}
 
-		static void ExecuteProcess(IScriptProcessor processor, bool folderMode, IEnumerable<string> except, ref int count, params string[][] folders)
+		static void ExecuteProcess(IScriptProcessor processor, IEnumerable<string> except, ref int count, params string[][] folders)
 		{
 			processor.Clear();
 
@@ -100,9 +100,7 @@ public class ScriptLoader : IScriptLoader
 						continue;
 					}
 
-					var folder = folderMode ? file : Path.GetDirectoryName(file);
-
-					var id = folderMode ? folder : Path.GetFileNameWithoutExtension(file);
+					var id = processor.GetInstanceKey(file);
 
 					if (processor.InstanceBuffer.ContainsKey(id))
 					{
