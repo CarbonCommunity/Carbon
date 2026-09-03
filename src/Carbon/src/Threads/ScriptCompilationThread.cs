@@ -200,6 +200,21 @@ public class ScriptCompilationThread : BaseThreadedJob
 			}
 		}
 
+		if (Community.Runtime.Config.Compiler.EnableProxy)
+		{
+			foreach (var item in Community.Runtime.AssemblyEx.RefProxy)
+			{
+				try
+				{
+					_injectReference(id, item, references, _libraryDirectories);
+				}
+				catch (Exception ex)
+				{
+					Logger.Debug(id, $"Error loading proxy reference '{item}': {ex}", 4);
+				}
+			}
+		}
+
 		foreach (var item in Community.Runtime.AssemblyEx.Modules.Loaded)
 		{
 			try
