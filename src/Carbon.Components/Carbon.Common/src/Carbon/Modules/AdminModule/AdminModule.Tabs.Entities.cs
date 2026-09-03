@@ -682,7 +682,11 @@ public partial class AdminModule
 
 				currentButtons.Add(new Tab.OptionButton(flag, ap =>
 				{
-					DoAll<BaseEntity>(e => e.SetFlag(flagValue, !hasFlag));
+					DoAll<BaseEntity>(e =>
+					{
+						using var flags = e.StartSetFlags(BaseEntity.FlagsUpdateMode.SendNetworkUpdate);
+						flags.Set(flagValue, !hasFlag);
+					});
 					DrawEntitySettings(tab, 0, ap);
 					DrawEntityFlags(tab, ap, column);
 				}, ap => isDifferent ? Tab.OptionButton.Types.Warned : hasFlag ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
@@ -715,8 +719,10 @@ public partial class AdminModule
 			station.currentlyControllingEnt.uid = camera.net.ID;
 			station.currentPlayerID = player.userID;
 			var b = camera.InitializeControl(new CameraViewerId(station.currentPlayerID, 0L));
-			station.SetFlag(BaseEntity.Flags.Reserved2, b, recursive: false, networkupdate: false);
-			station.SendNetworkUpdateImmediate();
+			using(var flagChange = station.StartSetFlags(BaseEntity.FlagsUpdateMode.SendNetworkUpdateImmediate))
+			{
+				flagChange.Set(BaseEntity.Flags.Reserved2, b);
+			}
 			station.SendControlBookmarks(player);
 		}
 		internal static void SendEntityToPlayer(BasePlayer player, BaseEntity entity)
