@@ -2,13 +2,14 @@
 
 public static class ItemContainerEx
 {
-	public static int TakeSkinned(this ItemContainer container, int itemid, ulong skinId, bool onlyUsableAmounts)
+	public static int TakeSkinned(this ItemContainer container, int itemid, ulong skinId)
 	{
 		var num = 0;
 
-		foreach (var item in container.itemList)
+		for(int i = 0; i < container.itemList.Count; i++)
 		{
-			if (item.info.itemid == itemid && item.skin == skinId && (!onlyUsableAmounts || !item.IsBusy()))
+			var item = container.itemList[i];
+			if (item.info.itemid == itemid && item.skin == skinId)
 			{
 				num += item.amount;
 			}

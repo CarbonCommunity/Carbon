@@ -20,6 +20,9 @@
         <Reference Include="$(RustPatchedManagedPath)/*">
           <Private>false</Private>
         </Reference>
+        <Reference Include="$(CarbonManagedPath)/Carbon.Proxy.dll">
+            <Private>false</Private>
+        </Reference>
         <Reference Include="$(CarbonManagedPath)/Carbon.SDK.dll">
             <Private>false</Private>
         </Reference>

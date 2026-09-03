@@ -20,6 +20,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 
 	public IReadOnlyList<string> RefBlacklist => _blacklistLibs;
 	public IReadOnlyList<string> RefWhitelist => _whitelistLibs;
+	public IReadOnlyList<string> RefProxy => _proxyLibs;
 
 	public IAddonManager Components { get; private set; }
 	public IExtensionManager Extensions { get; private set; }
@@ -249,5 +250,9 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 #elif UNIX
 		"Facepunch.Steamworks.Posix",
 #endif
+	];
+
+	private static readonly IReadOnlyList<string> _proxyLibs = [
+		"Carbon.Proxy",
 	];
 }
