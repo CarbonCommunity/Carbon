@@ -1,4 +1,6 @@
-﻿public static class RustEx
+﻿using System;
+
+public static class RustProxies 
 {
 	[Obsolete("Use BasePlayer.SendCompleteSnapshot instead.")]
 	public static void SendFullSnapshot(this BasePlayer player) => player.SendCompleteSnapshot();
