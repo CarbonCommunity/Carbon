@@ -50,8 +50,10 @@ public partial class Category_Static
 						return true;
 					}
 
-					var player = options.Connection?.player as BasePlayer;
-					var commands = player == null ? Community.Runtime.CommandManager.RCon : Community.Runtime.CommandManager.ClientConsole;
+					var connection = options.Connection;
+					var player = connection?.player as BasePlayer;
+					var isServer = connection == null;
+					var commands = isServer ? Community.Runtime.CommandManager.RCon : Community.Runtime.CommandManager.ClientConsole;
 
 					if (Community.Runtime.Config.Aliases.TryGetValue(command, out var alias))
 					{
@@ -61,6 +63,12 @@ public partial class Category_Static
 
 					if (Community.Runtime.CommandManager.Contains(commands, command, out var commandInstance))
 					{
+						if (!isServer && player == null)
+						{
+							__result = new CommandResult(CommandResultType.CommandNotFound, null, null);
+							return false;
+						}
+
 						var argString = " ";
 						if (args != null && args.Length > 0)
 						{
@@ -83,7 +91,7 @@ public partial class Category_Static
 						commandArgs.Type = commandInstance.Type;
 						commandArgs.Arguments = arguments;
 						commandArgs.Player = player;
-						commandArgs.IsServer = player == null;
+						commandArgs.IsServer = isServer;
 						commandArgs.PrintOutput = options.PrintOutput || player != null;
 
 						Command.FromRcon = false;

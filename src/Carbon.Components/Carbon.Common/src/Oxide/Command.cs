@@ -20,6 +20,8 @@ public class Command : Library
 			if (args is PlayerArgs playerArgs && playerArgs != null)
 			{
 				var player = playerArgs.Player as BasePlayer;
+				if (player == null && !args.IsServer && !args.IsRCon) return false;
+
 				var authenticatedCommand = cmd as AuthenticatedCommand;
 
 				if (player != null && authenticatedCommand != null)
