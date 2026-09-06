@@ -140,6 +140,8 @@ public partial class CorePlugin
 				commandArgs.Type = cmd.Type;
 				commandArgs.Arguments = args;
 				commandArgs.Player = player;
+				commandArgs.IsServer = false;
+				commandArgs.IsRCon = false;
 				commandArgs.PrintOutput = true;
 
 				Community.Runtime.CommandManager.Execute(cmd, commandArgs);
