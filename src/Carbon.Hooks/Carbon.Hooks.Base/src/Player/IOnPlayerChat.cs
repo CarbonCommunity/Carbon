@@ -23,7 +23,7 @@ public partial class Category_Player
 			{
 				prefix = null;
 
-				if (string.IsNullOrEmpty(input))
+				if (player == null || string.IsNullOrEmpty(input))
 				{
 					return false;
 				}

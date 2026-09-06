@@ -140,6 +140,9 @@ public class Command : IDisposable
 			Reply = null;
 			Token = null;
 			Arguments = null;
+			IsRCon = false;
+			IsServer = false;
+			PrintOutput = false;
 		}
 
 		public virtual void LeavePool()
