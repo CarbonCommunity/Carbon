@@ -357,12 +357,16 @@ internal sealed partial class Generator(GeneratorOptions options)
 				}
 
 				var name = fixedName[..1].ToLower() + fixedName[1..];
-				var multiCount = Helper.ParametersTemp.Count(x => x == name);
-				var finalName = multiCount > 0 ? $"{name}{multiCount}" : name;
+				var finalName = name;
+				for (var suffix = 1; Helper.ParametersTemp.Contains(finalName); suffix++)
+				{
+					finalName = $"{name}{suffix}";
+				}
+
 				var index = $"""[MetadataAttribute.Parameter("{finalName}", "{parameter.Item2}")]""";
 				body.Insert(metadataIndex, index);
 				metadataIndex += index.Length;
-				Helper.ParametersTemp.Add(name);
+				Helper.ParametersTemp.Add(finalName);
 			}
 			catch (Exception ex)
 			{
