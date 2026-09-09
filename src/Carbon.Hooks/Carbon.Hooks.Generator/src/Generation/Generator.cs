@@ -350,6 +350,12 @@ internal sealed partial class Generator(GeneratorOptions options)
 			try
 			{
 				var fixedName = parameter.Item1.Replace("`", string.Empty).Replace("[]", string.Empty);
+				var nameEnd = fixedName.IndexOf('>');
+				if (fixedName.StartsWith('<') && nameEnd > 1)
+				{
+					fixedName = fixedName[1..nameEnd];
+				}
+
 				var name = fixedName[..1].ToLower() + fixedName[1..];
 				var multiCount = Helper.ParametersTemp.Count(x => x == name);
 				var finalName = multiCount > 0 ? $"{name}{multiCount}" : name;
