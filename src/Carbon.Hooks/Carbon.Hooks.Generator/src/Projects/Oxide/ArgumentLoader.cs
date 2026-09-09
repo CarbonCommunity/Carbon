@@ -255,6 +255,7 @@ internal static partial class Helper
 							var var = vars[index];
 
 							LoadLocalEx(ref instructions, var, target);
+							var memberType = RuntimeType;
 
 							if (var.LocalType is null)
 							{
@@ -265,14 +266,14 @@ internal static partial class Helper
 								? var.LocalType.GetElementType()
 								: var.LocalType;
 
-							if (var.LocalType.IsByRef)
+							if (memberType == null && var.LocalType.IsByRef)
 							{
 								AddYieldInstruction(ref instructions, nameof(OpCodes.Ldobj),
 									$"typeof({(Nullable.GetUnderlyingType(typeref) == null ? Tools.TypeNameSanitizerEx(typeref.FullName) : $"{typeref.FullName}?")})",
 									false);
 							}
 
-							if (!metadata.IsInternal && var.LocalType.IsValueType)
+							if (!metadata.IsInternal && memberType == null && var.LocalType.IsValueType)
 							{
 								var genericTypes = typeref.GenericTypeArguments;
 
@@ -283,11 +284,11 @@ internal static partial class Helper
 								}
 								else
 								{
-									AddYieldInstruction(ref instructions, nameof(OpCodes.Box), $"Carbon.Extensions.AccessToolsEx.TypeByName(\"{(RuntimeType ?? typeref).FullName}\")", false);
+									AddYieldInstruction(ref instructions, nameof(OpCodes.Box), $"Carbon.Extensions.AccessToolsEx.TypeByName(\"{typeref.FullName}\")", false);
 								}
 							}
 
-							Parameters.Add((target == null ? $"local{var.LocalIndex}" : target[^1], RuntimeType ?? typeref));
+							Parameters.Add((target == null ? $"local{var.LocalIndex}" : target[^1], memberType ?? typeref));
 						}
 					}
 					catch (Exception e)
