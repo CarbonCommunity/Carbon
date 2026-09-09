@@ -142,7 +142,7 @@ internal static partial class Helper
 					return false;
 				}
 
-				Parameters.Add(("self", type));
+				Parameters.Add((target == null ? "self" : target[^1].Replace("()", string.Empty), RuntimeType ?? type));
 			}
 
 			// method's arguments
