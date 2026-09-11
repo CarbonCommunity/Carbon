@@ -105,10 +105,10 @@ public class HookCallerInternal : HookCallerCommon
 
 		var result = (object)null;
 		List<Conflict> conflicts = null;
-		var hasRescaledBuffer = false;
 
 		if (hookable.InternalCallHookOverriden)
 		{
+			var hasRescaledBuffer = false;
 			var hook = (CachedHook)default;
 
 			if (hookInstance != null && hookInstance.IsValid())
@@ -190,11 +190,11 @@ public class HookCallerInternal : HookCallerCommon
 					{
 						if (cachedHook.IsAsync)
 						{
-							DoCall(hookable, hookId, cachedHook, args, ref hasRescaledBuffer);
+							DoCall(hookable, hookId, cachedHook, args);
 						}
 						else
 						{
-							var currentResult = DoCall(hookable, hookId, cachedHook, args, ref hasRescaledBuffer);
+							var currentResult = DoCall(hookable, hookId, cachedHook, args);
 
 							if (currentResult != null)
 							{
@@ -216,8 +216,13 @@ public class HookCallerInternal : HookCallerCommon
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
 			FrameDispose(false, args, ref conflicts);
 
-			static object DoCall(T hookable, uint hookId, CachedHook hook, object[] args, ref bool hasRescaledBuffer)
+			static object DoCall(T hookable, uint hookId, CachedHook hook, object[] args)
 			{
+				// Must stay local to this call: the buffer is only ours to return when this
+				// particular overload rescaled it. Sharing the flag between overloads returns
+				// the caller-owned buffer, putting it in the pool twice.
+				var hasRescaledBuffer = false;
+
 				if (args != null)
 				{
 					var actualLength = hook.Parameters.Length;
@@ -233,7 +238,16 @@ public class HookCallerInternal : HookCallerCommon
 					}
 				}
 
-				if (args != null && !SequenceEqual(hook.Parameters, args)) return null;
+				if (args != null && !SequenceEqual(hook.Parameters, args))
+				{
+					if (hasRescaledBuffer)
+					{
+						HookCaller.Caller.ReturnBuffer(args);
+					}
+
+					return null;
+				}
+
 				var result2 = (object)default;
 				hookable.TrackStart();
 				var beforeMemory = hookable.TotalMemoryUsed;
