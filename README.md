@@ -3,7 +3,7 @@
 
 <p align="center">
   <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/edge_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/edge-build.yml/badge.svg" /></a>
-  <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/preview_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/preview-build.yml/badge.svg" /></a>
+  <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/experimental_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/experimental-build.yml/badge.svg" /></a>
   <a href="https://github.com/CarbonCommunity/Carbon/releases/latest"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/production-build.yml/badge.svg" /></a>
   <br />
     <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/rustbeta_staging_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/rust-staging-build.yml/badge.svg" /></a>
@@ -12,7 +12,7 @@
     <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/rustbeta_aux02_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/rust-aux02-build.yml/badge.svg" /></a>
   <br />
   <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/profiler_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/profiler-build.yml/badge.svg" /></a>
-  <a href="https://github.com/CarbonCommunity/Carbon/blob/develop/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/CarbonCommunity/Carbon" /></a>
+  <a href="https://github.com/CarbonCommunity/Carbon/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/CarbonCommunity/Carbon" /></a>
   <a href="https://www.nuget.org/packages/Carbon.Community"><img alt="NuGet" src="https://img.shields.io/nuget/v/Carbon.Community.svg" /></a>
   <a href="https://github.com/GameServerManagers/LinuxGSM/releases/latest"><img src="https://img.shields.io/badge/LinuxGSM-v23.2.0-informational" /></a>
   <hr />
@@ -29,30 +29,30 @@ We also provide a [quick start script][quick-start] to get your server running i
 ## :blue_book: Documentation
 For more in-depth Carbon documentation, from builds and deployment, check [here][documentation].
 Find all currently available hooks [here][hooks].
-If you are a developer take a look at our [Wiki page][wiki].
+If you are a developer take a look at our [Developer Documentation][developer-doc].
 
 ## :question: Support
 Join our official [Discord server][discord] for support, more frequent development info, discussions and future plans.
 
 ## ⚙️ Development
 To help us and work with us on the project, or get started with Carbon's structure, follow this for understanding how it works.
-The project is split in various essential and mostly independent [components](https://github.com/CarbonCommunity/Carbon/tree/develop/Carbon.Core/Carbon.Components), making it easier to organise and follow.
+The project is split in various essential and mostly independent [components](./src/Carbon.Components), making it easier to organize and follow.
 
 ### Getting Started
-Upon cloning Carbon, all you need to execute is [`setup.bat`](https://github.com/CarbonCommunity/Carbon/blob/develop/setup.bat) to initialize the entire project and its dependencies.
+Upon cloning Carbon, all you need to execute is [`setup.bat`](./setup.bat) to initialize the entire project and its dependencies.
 
 ### Branches
 The following branches are shared across all Component and Hook projects and synchronized accordingly with the main project ([this one](https://github.com/CarbonCommunity/Carbon)) and its branches.
-- `develop` branch is the primary base branch of Carbon. It's used to be merged into Rust beta branches as well as the `production` (live) branch.
+- `main` branch is the primary base branch of Carbon. It's used to be merged into Rust beta branches as well as the `production` (live) branch.
   - Used against Rust `public` branch.
   - Public [build](https://github.com/CarbonCommunity/Carbon/releases/tag/edge_build), gets updated every time we commit changes to Carbon.
-- `preview` branch is usually synced up with `develop` and has experimental features that may or may not be brought into `develop`.
-  - Used against Rust `public` branch.
+- `experimental` branch is usually synced up with `main` and has experimental features that may or may not be brought into `main`.
+  - Used against Rust `release` branch (usually).
   - Public [build](https://github.com/CarbonCommunity/Carbon/releases/tag/preview_build), gets manually triggered to get updated, not very often.
 - `production` branch is the primary (live) branch of Carbon and [main release](https://github.com/CarbonCommunity/Carbon/releases/tag/production_build) is built off of.
   - Used against Rust `public` branch or `release` on Rust wipe day.
   - Public [build](https://github.com/CarbonCommunity/Carbon/releases/tag/production_build), gets updated twice times a month, excluding important hotfix patches.
-- `rust_beta/staging` is often times synced up with `develop` and has changes that might come to Rust `release|public` branch in a future update, which can contain mandatory changes to Carbon to address the Rust changes.
+- `rust_beta/staging` is often times synced up with `main` and has changes that might come to Rust `release|public` branch in a future update, which can contain mandatory changes to Carbon to address the Rust changes.
   - Used against Rust `staging` branch.
   - Public [build](https://github.com/CarbonCommunity/Carbon/releases/tag/rustbeta_staging_build), gets updated a few times a month. Usually only hooks get updated. Mainly merged from `develop`.
 - `rust_beta/aux01` is often times synced up with `rust_beta/staging` and is minimally supported, just enough to be able to run Carbon on AUX01. This Rust branch is extremely unstable and contains things that may or may not ever be merged to the main version of Rust.
@@ -63,23 +63,24 @@ The following branches are shared across all Component and Hook projects and syn
   - Public [build](https://github.com/CarbonCommunity/Carbon/releases/tag/rustbeta_aux02_build), gets updated a few times a month. Usually only hooks get updated.
 
 ### Components
-- [Carbon.Preloader](https://github.com/CarbonCommunity/Carbon.Preloader/tree/develop): Runtime preloader of dependencies and responsible for the self-updating process. It invokes Carbon.Startup.
-- [Carbon.Startup](https://github.com/CarbonCommunity/Carbon.Startup/tree/main): Handles in-memory Rust assembly patching and publicizing and exporting if Developer Mode is enabled in the config.
-- [Carbon.Bootstrap](https://github.com/CarbonCommunity/Carbon.Bootstrap/tree/develop): Initial Carbon execution and boot in the primary app-domain.
-- [Carbon.Common](https://github.com/CarbonCommunity/Carbon.Common/tree/develop): The very basis of Carbon, tools and extensions for overall use and functionality. Primarily a center piece for all dependant sub-components.
-- [Carbon.SDK](https://github.com/CarbonCommunity/Carbon.SDK/tree/develop): Infrastructural and contractual features with no implementation. An easy way to identify and organise the structure of our systems.
-- [Carbon.Modules](https://github.com/CarbonCommunity/Carbon.Modules/tree/develop): Carbon optional modules expanding functionality, enhanced QoL and tools.
-- [Carbon.Compat](https://github.com/CarbonCommunity/Carbon.Compat/tree/develop): Previously known as Carbon Compatibility Loader written by Patrette (community member).
-- [Carbon.Test](https://github.com/CarbonCommunity/Carbon.Test/tree/main): Integral implementation for automated testing rules and events.
+- [Carbon.Preloader](./src/Carbon.Components/Carbon.Preloader): Runtime preloader of dependencies and responsible for the self-updating process. It invokes Carbon.Startup.
+- [Carbon.Startup](./src/Carbon.Components/Carbon.Startup): Handles in-memory Rust assembly patching and publicizing and exporting if Developer Mode is enabled in the config.
+- [Carbon.Bootstrap](./src/Carbon.Components/Carbon.Bootstrap): Initial Carbon execution and boot in the primary app-domain.
+- [Carbon.Common](./src/Carbon.Components/Carbon.Common): The very basis of Carbon, tools and extensions for overall use and functionality. Primarily a centerpiece for all dependant subcomponents.
+- [Carbon.SDK](./src/Carbon.Components/Carbon.SDK): Infrastructural and contractual features with no implementation. An easy way to identify and organize the structure of our systems.
+- [Carbon.Modules](./src/Carbon.Components/Carbon.Modules): Carbon optional modules expanding functionality, enhanced QoL and tools.
+- [Carbon.Compat](./src/Carbon.Components/Carbon.Compat): Previously known as Carbon Compatibility Loader written by Patrette (community member).
+- [Carbon.Test](./src/Carbon.Components/Carbon.Test): Integral implementation for automated testing rules and events.
 
 ### Hooks
-Carbon's hooks are managed in a separate location:
-- [Carbon.Hooks.Base](https://github.com/CarbonCommunity/Carbon.Hooks.Base/tree/develop): Includes ground level dynamic and static patching instructions supplementing necessary events for Carbon's own runtime.
-- [Carbon.Hooks.Community](https://github.com/CarbonCommunity/Carbon.Hooks.Community/tree/develop): Community curated patches and hooks.
-- [Carbon.Hooks.Oxide](https://github.com/CarbonCommunity/Carbon.Hooks.Oxide/tree/develop): Oxide compatibility package, primarily utilized for internal use whenever going through the automatic patch code generation process.
+Carbon's hooks are managed in [`src/Carbon.Hooks`](./src/Carbon.Hooks):
+- [Carbon.Hooks.Base](./src/Carbon.Hooks/Carbon.Hooks.Base): Includes ground level dynamic and static patching instructions supplementing necessary events for Carbon's own runtime.
+- [Carbon.Hooks.Community](./src/Carbon.Hooks/Carbon.Hooks.Community): Community curated patches and hooks.
+- [Carbon.Hooks.Generator](./src/Carbon.Hooks/Carbon.Hooks.Generator): Generates Carbon Harmony hooks based on an Oxide `.opj` file.
+- [Carbon.Hooks.Oxide](./src/Carbon.Hooks/Carbon.Hooks.Oxide): Oxide compatibility package, primarily utilized for internal use whenever going through the automatic patch code generation process.
 
 ### Building
-To locally build Carbon from scratch, execute the [`build.bat`](https://github.com/CarbonCommunity/Carbon/tree/develop/Tools/Build/win) file, and find the results in the root of Carbon, under `./Release`.
+To locally build Carbon from scratch, execute the [`setup.bat`](./setup.bat) or [`setup.sh`](./setup.sh) file, and find the results in the root of Carbon, under `./release`.
 
 ## :heart: Sponsor
 
@@ -87,9 +88,10 @@ If you would like to [sponsor][patreon] the project the best way is to use [Patr
 
 We would like to thank everyone who sponsors us.
 
-[hooks]: https://docs.carbonmod.gg/docs/core/hooks
+[hooks]: https://carbonmod.gg/references/hooks/
 [discord]: https://discord.gg/carbonmod
-[documentation]: https://docs.carbonmod.gg/
+[documentation]: https://carbonmod.gg/
 [patreon]: https://patreon.com/CarbonMod
-[production]: https://github.com/CarbonCommunity/Carbon.Core/releases/tag/production_build
+[production]: https://github.com/CarbonCommunity/Carbon/releases/tag/production_build
 [quick-start]: https://github.com/CarbonCommunity/Carbon.QuickStart
+[developer-doc]: https://carbonmod.gg/devs/creating-your-project

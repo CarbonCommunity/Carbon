@@ -1,0 +1,2076 @@
+{
+  "input": "P:\\Repositories\\Carbon\\src\\Carbon.Hooks\\Carbon.Hooks.Generator\\.rust\\Rust.opj",
+  "managed": "P:\\Repositories\\Carbon\\rust\\windows\\RustDedicated_Data\\Managed",
+  "oldManaged": null,
+  "fixOutput": "P:\\Repositories\\Carbon\\src\\Carbon.Hooks\\Carbon.Hooks.Generator\\.rust\\Rust.fixed.opj",
+  "totals": {
+    "hooks": 845,
+    "clean": 761,
+    "info": 49,
+    "warning": 35,
+    "autoFixable": 0,
+    "needsHuman": 0
+  },
+  "hooks": [
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "CanBeTargeted [FlameTurret] [cleanup]",
+      "hookName": "CanBeTargeted [patch]",
+      "typeName": "FlameTurret",
+      "method": "CheckTrigger",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 1 (brfalse_s) target 71 cannot be translated through base hook \u0027CanBeTargeted [FlameTurret]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Carbon.Pooling.PoolEx\u0027 from \u0027Carbon.Common\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "CanBeTargeted [GunTrap] [patch]",
+      "hookName": "CanBeTargeted",
+      "typeName": "GunTrap",
+      "method": "CheckTrigger",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (leave) target 145 cannot be translated through base hook \u0027CanBeTargeted [GunTrap]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnExplosiveDud",
+      "hookName": "OnExplosiveDud",
+      "typeName": "DudTimedExplosive",
+      "method": "Explode",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 2 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnWireClear",
+      "hookName": "OnWireClear",
+      "typeName": "WireTool",
+      "method": "AttemptClearSlot",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "NotImplemented",
+          "severity": "Info",
+          "message": "hook is blacklisted in the generator; not validated",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnWireClear [patch]",
+      "hookName": "OnWireClear [patch]",
+      "typeName": "WireTool",
+      "method": "AttemptClearSlot",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "NotImplemented",
+          "severity": "Info",
+          "message": "hook is blacklisted in the generator; not validated",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnSamSiteTarget",
+      "hookName": "OnSamSiteTarget",
+      "typeName": "SamSite",
+      "method": "TargetScan",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "CanLootEntity [StorageContainer]",
+      "hookName": "CanLootEntity",
+      "typeName": "StorageContainer",
+      "method": "PlayerOpenLoot",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnQuarryGather",
+      "hookName": "OnQuarryGather",
+      "typeName": "MiningQuarry",
+      "method": "ProcessResources",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnMapMarkerAdd",
+      "hookName": "OnMapMarkerAdd",
+      "typeName": "BasePlayer",
+      "method": "Server_AddMarker",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 8 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "FixItemKeyId [patch]",
+      "hookName": "FixItemKeyId [patch]",
+      "typeName": "ItemCrafter",
+      "method": "CraftItem",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse_s) target 96 cannot be translated through base hook \u0027OnItemCraft\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 2 (brfalse_s) target 93 cannot be translated through base hook \u0027OnItemCraft\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 5 (brfalse_s) target 93 cannot be translated through base hook \u0027OnItemCraft\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "CanLootEntity [ContainerIOEntity]",
+      "hookName": "CanLootEntity",
+      "typeName": "ContainerIOEntity",
+      "method": "PlayerOpenLoot",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnPlayerSpawn",
+      "hookName": "OnPlayerSpawn",
+      "typeName": "ServerMgr",
+      "method": "SpawnNewPlayer",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnPlayerCorpseSpawn",
+      "hookName": "OnPlayerCorpseSpawn",
+      "typeName": "BasePlayer",
+      "method": "CreateCorpse",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 2 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnSleepingBagDestroy",
+      "hookName": "OnSleepingBagDestroy",
+      "typeName": "SleepingBag",
+      "method": "DestroyBag",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnConstructionPlace",
+      "hookName": "OnConstructionPlace",
+      "typeName": "Planner",
+      "method": "DoPlacement",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 6 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 16 (stloc_s) references local slot 8 beyond the method body (8 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 17 (ldloc_s) references local slot 8 beyond the method body (8 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 20 (ldloc_s) references local slot 8 beyond the method body (8 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnItemLock",
+      "hookName": "OnItemLock",
+      "typeName": "Item",
+      "method": "LockUnlock",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnItemUnlock",
+      "hookName": "OnItemUnlock",
+      "typeName": "Item",
+      "method": "LockUnlock",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnCounterTargetChange",
+      "hookName": "OnCounterTargetChange",
+      "typeName": "PowerCounter",
+      "method": "SERVER_SetTarget",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 10 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnCounterModeToggle",
+      "hookName": "OnCounterModeToggle",
+      "typeName": "PowerCounter",
+      "method": "ToggleDisplayMode",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 10 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnEngineStart [MotorRowboat]",
+      "hookName": "OnEngineStart",
+      "typeName": "MotorRowboat",
+      "method": "EngineToggle",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 8 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnVehicleModuleSelectedFix [patch]",
+      "hookName": "OnVehicleModuleSelectedFix [patch]",
+      "typeName": "ModularCarGarage",
+      "method": "RPC_SelectedLootItem",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse_s) target 105 cannot be translated through base hook \u0027OnVehicleModuleSelected\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnElevatorMove",
+      "hookName": "OnElevatorMove",
+      "typeName": "Elevator",
+      "method": "RequestMoveLiftTo",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnIORefCleared",
+      "hookName": "OnIORefCleared",
+      "typeName": "IOEntity/IORef",
+      "method": "Clear",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "argument \u0027l0\u0027 references local slot 0 beyond the method body (0 locals); requires synthetic-local remapping via its base hook",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnPlayerAddModifiers",
+      "hookName": "OnPlayerAddModifiers",
+      "typeName": "ItemModConsume",
+      "method": "DoAction",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnCargoPlaneSignaled [Patch]",
+      "hookName": "OnCargoPlaneSignaled [Patch]",
+      "typeName": "SupplySignal",
+      "method": "Explode",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse_s) target 42 cannot be translated through base hook \u0027OnCargoPlaneSignaled\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnSupplyDropDropped [patch 1]",
+      "hookName": "OnSupplyDropDropped [patch 1]",
+      "typeName": "CargoPlane",
+      "method": "Update",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brtrue_s) target 52 cannot be translated through base hook \u0027OnSupplyDropDropped\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "3 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnSupplyDropDropped [patch 2]",
+      "hookName": "OnSupplyDropDropped [patch 2]",
+      "typeName": "CargoPlane",
+      "method": "Update",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (blt_un_s) target 52 cannot be translated through base hook \u0027OnSupplyDropDropped [patch 1]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "3 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnSupplyDropDropped [patch 3]",
+      "hookName": "OnSupplyDropDropped [patch 3]",
+      "typeName": "CargoPlane",
+      "method": "Update",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse_s) target 52 cannot be translated through base hook \u0027OnSupplyDropDropped [patch 2]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "3 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnBookmarkControlEnded [2] [patch]",
+      "hookName": "OnBookmarkControlEnded [2] [patch]",
+      "typeName": "ComputerStation",
+      "method": "BeginControllingBookmark",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse_s) target 96 cannot be translated through base hook \u0027OnBookmarkControlEnded [2]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "3 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "LimitNetworkingNoEffect [patch 1]",
+      "hookName": "LimitNetworkingNoEffect [patch 1]",
+      "typeName": "Effect/server",
+      "method": "ImpactEffect",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 3 (brfalse_s) target 7 cannot be translated through base hook \u0027OnImpactEffectCreate\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 7 (brfalse_s) target 7 cannot be translated through base hook \u0027OnImpactEffectCreate\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "LimitNetworkingNoEffect [patch 2]",
+      "hookName": "LimitNetworkingNoEffect [patch 2]",
+      "typeName": "BaseProjectile",
+      "method": "CLProject",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 2 (brtrue_s) target 273 cannot be translated through base hook \u0027OnWeaponFired\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "LimitNetworkingNoEffect [patch 3]",
+      "hookName": "LimitNetworkingNoEffect [patch 3]",
+      "typeName": "BasePlayer",
+      "method": "OnAttacked",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 2 (brfalse_s) target 242 cannot be translated through base hook \u0027IOnBasePlayerAttacked\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 5 (brtrue_s) target 264 cannot be translated through base hook \u0027IOnBasePlayerAttacked\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnCentralizedBanCheck",
+      "hookName": "OnCentralizedBanCheck",
+      "typeName": "Auth_CentralizedBans/\u003CRun\u003Ed__0",
+      "method": "MoveNext",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnNpcTarget [AIBrainSenses]",
+      "hookName": "OnNpcTarget",
+      "typeName": "AIBrainSenses",
+      "method": "GetNearest",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "ConsumptionAmountField [AutoTurret] [2]",
+      "hookName": "ConsumptionAmountField [AutoTurret]",
+      "typeName": "AutoTurret",
+      "method": "ConsumptionAmount",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "NotImplemented",
+          "severity": "Info",
+          "message": "hook is blacklisted in the generator; not validated",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "ConsumptionAmountField [AutoTurret]",
+      "hookName": "ConsumptionAmountField [AutoTurret]",
+      "typeName": "AutoTurret",
+      "method": ".ctor",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "NotImplemented",
+          "severity": "Info",
+          "message": "hook is blacklisted in the generator; not validated",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnBigWheelLoss",
+      "hookName": "OnBigWheelLoss",
+      "typeName": "BigWheelGame",
+      "method": "Payout",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnBigWheelWin",
+      "hookName": "OnBigWheelWin",
+      "typeName": "BigWheelGame",
+      "method": "Payout",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 6 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "CanCastFishingRod",
+      "hookName": "CanCastFishingRod",
+      "typeName": "BaseFishingRod",
+      "method": "Server_RequestCast",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 6 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 7 (stloc_s) references local slot 11 beyond the method body (11 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 8 (ldloc_s) references local slot 11 beyond the method body (11 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 11 (ldloc_s) references local slot 11 beyond the method body (11 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "CanCatchFish",
+      "hookName": "CanCatchFish",
+      "typeName": "BaseFishingRod",
+      "method": "CatchProcessBudgeted",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 5 (stloc) references local slot 18 beyond the method body (18 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 6 (ldloc) references local slot 18 beyond the method body (18 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 9 (ldloc) references local slot 18 beyond the method body (18 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnFishCatch",
+      "hookName": "OnFishCatch",
+      "typeName": "BaseFishingRod",
+      "method": "CatchProcessBudgeted",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 5 (stloc_s) references local slot 19 beyond the method body (18 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 6 (ldloc_s) references local slot 19 beyond the method body (18 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 9 (ldloc_s) references local slot 19 beyond the method body (18 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 16 (ldloc_s) references local slot 19 beyond the method body (18 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnSamSiteTargetScan",
+      "hookName": "OnSamSiteTargetScan",
+      "typeName": "SamSite",
+      "method": "TargetScan",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnSendModelState",
+      "hookName": "OnSendModelState",
+      "typeName": "BasePlayer",
+      "method": "SendModelState",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 5 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnEngineStart",
+      "hookName": "OnEngineStart",
+      "typeName": "VehicleEngineController\u00601",
+      "method": "TryStartEngine",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnEngineStarted",
+      "hookName": "OnEngineStarted",
+      "typeName": "VehicleEngineController\u00601",
+      "method": "TryStartEngine",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnEngineStop",
+      "hookName": "OnEngineStop",
+      "typeName": "VehicleEngineController\u00601",
+      "method": "StopEngine",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnEngineStopped",
+      "hookName": "OnEngineStopped",
+      "typeName": "VehicleEngineController\u00601",
+      "method": "StopEngine",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnNpcTarget [HumanNPC]",
+      "hookName": "OnNpcTarget",
+      "typeName": "HumanNPC",
+      "method": "GetBestTarget",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnXmasGiftsDistribute",
+      "hookName": "OnXmasGiftsDistribute",
+      "typeName": "XMasRefill",
+      "method": "DistributeGiftsForPlayer",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnEngineStartFinished",
+      "hookName": "OnEngineStartFinished",
+      "typeName": "VehicleEngineController\u00601",
+      "method": "FinishStartingEngine",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "CanBeAwardedAdventGift",
+      "hookName": "CanBeAwardedAdventGift",
+      "typeName": "AdventCalendar",
+      "method": "WasAwardedTodaysGift",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 4 (stloc_s) references local slot 2 beyond the method body (2 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 5 (ldloc_s) references local slot 2 beyond the method body (2 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "instruction 8 (ldloc_s) references local slot 2 beyond the method body (2 locals); requires synthetic-local remapping",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "SplashThresholdField [SprayCanSpray]",
+      "hookName": "SplashThresholdField [SprayCanSpray]",
+      "typeName": "SprayCanSpray",
+      "method": "WantsSplash",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "NotImplemented",
+          "severity": "Info",
+          "message": "hook is blacklisted in the generator; not validated",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnRandomItemAward",
+      "hookName": "OnRandomItemAward",
+      "typeName": "RandomItemDispenser",
+      "method": "TryAward",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 7 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "CanLootEntity [IndustrialCrafter]",
+      "hookName": "CanLootEntity",
+      "typeName": "IndustrialCrafter",
+      "method": "PlayerOpenLoot",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnBonusItemDropped [patch 1]",
+      "hookName": "OnBonusItemDropped [patch 1]",
+      "typeName": "LootContainer",
+      "method": "DropBonusItems",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (ble) target 130 cannot be translated through base hook \u0027OnBonusItemDropped\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "6 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnBonusItemDropped [patch 2]",
+      "hookName": "OnBonusItemDropped [patch 2]",
+      "typeName": "LootContainer",
+      "method": "DropBonusItems",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse) target 130 cannot be translated through base hook \u0027OnBonusItemDropped [patch 1]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "6 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnBonusItemDropped [patch 3]",
+      "hookName": "OnBonusItemDropped [patch 3]",
+      "typeName": "LootContainer",
+      "method": "DropBonusItems",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (ble_un) target 130 cannot be translated through base hook \u0027OnBonusItemDropped [patch 2]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "6 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnBonusItemDropped [patch 4]",
+      "hookName": "OnBonusItemDropped [patch 4]",
+      "typeName": "LootContainer",
+      "method": "DropBonusItems",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (ble_s) target 130 cannot be translated through base hook \u0027OnBonusItemDropped [patch 3]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "6 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnBonusItemDropped [patch 5]",
+      "hookName": "OnBonusItemDropped [patch 5]",
+      "typeName": "LootContainer",
+      "method": "DropBonusItems",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse_s) target 130 cannot be translated through base hook \u0027OnBonusItemDropped [patch 4]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "6 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "IOnPlayerChat",
+      "hookName": "IOnPlayerChat",
+      "typeName": "ConVar.Chat/\u003CsayAs\u003Ed__22",
+      "method": "MoveNext",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "NotImplemented",
+          "severity": "Info",
+          "message": "hook is blacklisted in the generator; not validated",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "IOnPlayerChat[patch]",
+      "hookName": "IOnPlayerChat[patch]",
+      "typeName": "ConVar.Chat/\u003CsayAs\u003Ed__22",
+      "method": "MoveNext",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "NotImplemented",
+          "severity": "Info",
+          "message": "hook is blacklisted in the generator; not validated",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "IOnPlayerChat[patch2]",
+      "hookName": "IOnPlayerChat[patch2]",
+      "typeName": "ConVar.Chat/\u003CsayAs\u003Ed__22",
+      "method": "MoveNext",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (beq_s) target 99 cannot be translated through base hook \u0027IOnPlayerChat[patch]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnCoalingTowerGather",
+      "hookName": "OnCoalingTowerGather",
+      "typeName": "CoalingTower",
+      "method": "EmptyTenPercent",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnNearbyTurretsScan",
+      "hookName": "OnNearbyTurretsScan",
+      "typeName": "AutoTurret",
+      "method": "AddNearbyTurrets",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnQuarryToggled [off] [patch]",
+      "hookName": "OnQuarryToggled",
+      "typeName": "EngineSwitch",
+      "method": "StopEngine",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse_s) target 14 cannot be translated through base hook \u0027OnQuarryToggled [off]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnQuarryToggled [on] [patch]",
+      "hookName": "OnQuarryToggled",
+      "typeName": "EngineSwitch",
+      "method": "StartEngine",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse_s) target 14 cannot be translated through base hook \u0027OnQuarryToggled [on]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnRfListenerRemoved [patch]",
+      "hookName": "OnRfListenerRemoved [patch]",
+      "typeName": "RFManager",
+      "method": "RemoveListener",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse_s) target 25 cannot be translated through base hook \u0027OnRfListenerRemoved\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnItemSubmit [patch]",
+      "hookName": "OnItemSubmit",
+      "typeName": "Mailbox",
+      "method": "SubmitInputItems",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (beq_s) target 18 cannot be translated through base hook \u0027OnItemSubmit\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 1 (br_s) target 64 cannot be translated through base hook \u0027OnItemSubmit\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnAnimalDungProduced [RidableHorse]",
+      "hookName": "OnAnimalDungProduced",
+      "typeName": "RidableHorse",
+      "method": "DoDung",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "argument \u0027l2\u0027 references local slot 2 beyond the method body (2 locals); requires synthetic-local remapping via its base hook",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnTeamMemberInvite [sendinvite]",
+      "hookName": "OnTeamMemberInvite",
+      "typeName": "RelationshipManager",
+      "method": "sendinvite",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "PolicyHandled",
+          "severity": "Info",
+          "message": "a generator policy in HookPolicies.cs special-cases this hook by its exact OPJ values; if the OPJ entry is changed, update the policy too",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 9 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnPlayerUnvanished [Patch]",
+      "hookName": "OnPlayerUnvanished",
+      "typeName": "ConVar.Debugging",
+      "method": "invis",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (br) target 148 cannot be translated through base hook \u0027OnPlayerUnvanished\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 2 (brtrue) target 148 cannot be translated through base hook \u0027OnPlayerUnvanished\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 5 (brfalse) target 148 cannot be translated through base hook \u0027OnPlayerUnvanished\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "4 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnBoatGroupSpawned [Patch]",
+      "hookName": "OnBoatGroupSpawned",
+      "typeName": "BoatGroupSpawner",
+      "method": "SpawnBoatGroup",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse) target 108 cannot be translated through base hook \u0027OnBoatGroupSpawned\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "CanBeTargeted [GunTrap] [patch2]",
+      "hookName": "CanBeTargeted",
+      "typeName": "GunTrap",
+      "method": "CheckTrigger",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (beq_s) target 57 cannot be translated through base hook \u0027CanBeTargeted [GunTrap] [patch]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnCorpsePopulate [Rust.Ai.Gen2.State_Dead] [Patch]",
+      "hookName": "OnCorpsePopulate",
+      "typeName": "Rust.Ai.Gen2.State_Dead",
+      "method": "StartRagdoll",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (bne_un_s) target 121 cannot be translated through base hook \u0027OnCorpsePopulate [Rust.Ai.Gen2.State_Dead]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnSensorDetect",
+      "hookName": "OnSensorDetect",
+      "typeName": "HBHFSensor",
+      "method": "CountDetectedPlayers",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnPlayerAttack [Projectile] [Patch]",
+      "hookName": "OnPlayerAttack",
+      "typeName": "BasePlayer",
+      "method": "OnProjectileAttack",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "NotImplemented",
+          "severity": "Info",
+          "message": "hook is blacklisted in the generator; not validated",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnEngineStarted [MotorRowboat]",
+      "hookName": "OnEngineStarted",
+      "typeName": "MotorRowboat",
+      "method": "EngineToggle",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "LocalOutOfRange",
+          "severity": "Warning",
+          "message": "argument \u0027l1\u0027 references local slot 1 beyond the method body (1 locals); requires synthetic-local remapping via its base hook",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnApartmentRoomCheckout",
+      "hookName": "OnApartmentRoomCheckout",
+      "typeName": "ApartmentBuilding",
+      "method": "TryCheckout",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Facepunch.Rcon.dll",
+      "action": "Modify",
+      "name": "OnRconConnection [web, patch]",
+      "hookName": "OnRconConnection",
+      "typeName": "Facepunch.Rcon.Listener/\u003C\u003Ec__DisplayClass27_0",
+      "method": "\u003CStart\u003Eb__0",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (bne_un_s) target 69 cannot be translated through base hook \u0027OnRconConnection [web]\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Facepunch.Rcon.dll",
+      "action": "Simple",
+      "name": "IOnRconMessage",
+      "hookName": "IOnRconMessage",
+      "typeName": "Facepunch.Rcon.Listener/\u003C\u003Ec__DisplayClass27_1",
+      "method": "\u003CStart\u003Eb__3",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "NotImplemented",
+          "severity": "Info",
+          "message": "hook is blacklisted in the generator; not validated",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Facepunch.Network.dll",
+      "action": "Modify",
+      "name": "OnNetworkSubscriptionsUpdate",
+      "hookName": "OnNetworkSubscriptionsUpdate",
+      "typeName": "Network.Networkable",
+      "method": "UpdateSubscriptions",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Facepunch.Network.dll",
+      "action": "Modify",
+      "name": "OnNetworkSubscriptionsUpdate [2]",
+      "hookName": "OnNetworkSubscriptionsUpdate",
+      "typeName": "Network.Networkable",
+      "method": "UpdateHighPrioritySubscriptions",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "OperandMissing",
+          "severity": "Info",
+          "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Rust.Clans.Local.dll",
+      "action": "Simple",
+      "name": "OnClanCreated",
+      "hookName": "OnClanCreated",
+      "typeName": "LocalClanBackend/\u003CCreate\u003Ed__11",
+      "method": "MoveNext",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "PolicyHandled",
+          "severity": "Info",
+          "message": "a generator policy in HookPolicies.cs special-cases this hook by its exact OPJ values; if the OPJ entry is changed, update the policy too",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Rust.Clans.Local.dll",
+      "action": "Modify",
+      "name": "OnClanLogoChanged [patch]",
+      "hookName": "OnClanLogoChanged [patch]",
+      "typeName": "LocalClan/\u003CSetLogo\u003Ed__60",
+      "method": "MoveNext",
+      "severity": "Info",
+      "diagnostics": [
+        {
+          "kind": "PolicyHandled",
+          "severity": "Info",
+          "message": "a generator policy in HookPolicies.cs special-cases this hook by its exact OPJ values; if the OPJ entry is changed, update the policy too",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    }
+  ]
+}

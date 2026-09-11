@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AssemblyName>Carbon.CompilerPolyfills.Generator</AssemblyName>
+		<RootNamespace>Carbon.CompilerPolyfills</RootNamespace>
+		<Configurations>Debug;Release;ReleaseUnix;DebugUnix;Minimal;MinimalUnix</Configurations>
+		<NoWarn>$(NoWarn);RS1036;RS1042</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
+	</ItemGroup>
+
+	<Import Project="..\Carbon.CompilerPolyfills.Shared\Carbon.CompilerPolyfills.Shared.projitems" Label="Shared" />
+</Project>

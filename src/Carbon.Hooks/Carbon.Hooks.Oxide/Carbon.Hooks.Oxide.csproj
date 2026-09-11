@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
+
+	<PropertyGroup>
+		<Product>Carbon.Hooks.Oxide</Product>
+		<OutputType>Library</OutputType>
+		<DebugType>none</DebugType>
+	</PropertyGroup>
+
+	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
+
+	<ItemGroup>
+		<ProjectReference Include="$(SolutionDir)\Carbon\Carbon.csproj" Private="false" />
+	</ItemGroup>
+
+	<Target Name="NormalRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="!($(DefineConstants.Contains('HOOKGEN')))">
+		<DownloadFile DestinationFolder="$(c_hooks)" SourceUrl="https://cdn.carbonmod.gg/hooks/server/$(Configuration.ToLower().Replace('minimal', 'release'))/$(CarbonProtocol)/carbon/managed/hooks/Carbon.Hooks.Oxide.dll" ContinueOnError="true" />
+	</Target>
+
+	<Target Name="HookRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="$(DefineConstants.Contains('HOOKGEN'))">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_hooks)" />
+	</Target>
+</Project>

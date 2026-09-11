@@ -1,0 +1,35 @@
+name: Pull Request
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+    paths-ignore:
+      - "**/*.md"
+      - ".gitignore"
+
+concurrency:
+  group: pr-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/common-build.yml
+    with:
+      GIT_BRANCH: ${{ github.base_ref }}
+      CHECKOUT_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+      CHECKOUT_REF: ${{ github.event.pull_request.head.sha }}
+      VERSION_OVERRIDE: 0.${{ github.event.pull_request.number }}.${{ github.run_number }}
+
+  tests:
+    name: Tests
+    needs: build
+    uses: ./.github/workflows/common-test.yml
+    with:
+      build_identifier: ${{ github.base_ref }}
+      checkout_repository: ${{ github.event.pull_request.head.repo.full_name }}
+      checkout_ref: ${{ github.event.pull_request.head.sha }}
+      use_build_artifacts: true
