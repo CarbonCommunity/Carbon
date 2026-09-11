@@ -113,7 +113,7 @@ jobs:
               API_ID="aux01"
               BUILD_DEFINE="RUST_AUX01"
               TAG_NAME="rustbeta_aux01_build"
-              UPDATE_ARG="aux01-staging"
+              UPDATE_ARG="aux01"
               MAJOR_VER="2.5"
               RELEASE_NAME="Rust (Aux01)"
               ;;
