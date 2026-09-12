@@ -151,7 +151,48 @@ public class Player : Library
 		player._name = name;
 		player.SendNetworkUpdateImmediate();
 		permission.UpdateNickname(player.UserIDString, name);
-		Teleport(player, player.transform.position);
+
+		RefreshForOtherClients(player);
+	}
+
+	public static void RefreshForOtherClients(BasePlayer player)
+	{
+		if (player == null || player.net == null || player.net.group == BaseNetworkable.LimboNetworkGroup)
+		{
+			return;
+		}
+
+		var connections = Facepunch.Pool.Get<List<Connection>>();
+
+		for (int i = 0; i < Net.sv.connections.Count; i++)
+		{
+			var connection = Net.sv.connections[i];
+			if (connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player)
+			{
+				connections.Add(connection);
+			}
+		}
+
+		player.OnNetworkSubscribersLeave(connections);
+		Facepunch.Pool.FreeUnmanaged(ref connections);
+
+		if (player.limitNetworking)
+		{
+			return;
+		}
+
+		var syncPosition = player.syncPosition;
+
+		player.syncPosition = false;
+		player._limitedNetworking = true;
+
+		Interface.Oxide.NextTick(() =>
+		{
+			player.syncPosition = syncPosition;
+			player._limitedNetworking = false;
+			player.UpdateNetworkGroup();
+			player.SendNetworkUpdate();
+		});
 	}
 
 	public void Teleport(BasePlayer player, Vector3 destination)
