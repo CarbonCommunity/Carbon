@@ -89,7 +89,6 @@ public partial class Community
 
 	public void RefreshConsoleInfo()
 	{
-#if WIN
 		if (!IsConfigReady || !Config.Misc.ShowConsoleInfo)
 		{
 			return;
@@ -119,7 +118,6 @@ public partial class Community
 			$" Minimal" +
 #endif
 	$" v{version}, {ModLoader.Packages.Count:n0} mods, {ModLoader.Packages.Sum(x => x.Plugins.Count):n0} plgs, {ModuleProcessor.Modules.Count(x => x is BaseModule module && module.IsEnabled()):n0}/{ModuleProcessor.Modules.Count:n0} mdls, {AssemblyEx.Extensions.Loaded.Count:n0} exts, {StoredModifiers.Entities?.Count:n0} mdfs";
-#endif
 		}
 		else
 		{
