@@ -1,4 +1,6 @@
-﻿namespace Carbon.Core;
+﻿using Carbon.Base.Interfaces;
+
+namespace Carbon.Core;
 
 public partial class CorePlugin
 {
@@ -74,7 +76,7 @@ public partial class CorePlugin
 		for (int i = 0; i < subscribers.Length; i++)
 		{
 			var hookable = subscribers[i];
-			table.AddRow(i + 1, hookable.Name, hookable is BaseModule ? "module" : "plugin", hookable.Version);
+			table.AddRow(i + 1, hookable.Name, hookable is not IModule module ? "plugin" : module.IsEnabled() ? "module" : "module (disabled)", hookable.Version);
 		}
 
 		arg.ReplyWith(table.Write(StringTable.FormatTypes.None));

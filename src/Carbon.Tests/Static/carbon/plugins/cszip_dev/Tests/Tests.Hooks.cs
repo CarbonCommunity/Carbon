@@ -71,7 +71,7 @@ public partial class Tests
 
             foreach (var module in Community.Runtime.ModuleProcessor.Modules)
             {
-                Check(module, module is not IModule imodule || imodule.IsEnabled());
+                Check(module, true);
             }
 
             foreach (var package in ModLoader.Packages)
@@ -140,6 +140,92 @@ public partial class Tests
             HookCaller.CallStaticHook(hookId, test);
             test.IsTrue(hasFired, "hasFired after resubscribe");
             test.IsFalse(hasFired = false, "hasFired reset");
+        }
+
+        [Integrations.Test.Assert]
+        public void index_invalidation(Integrations.Test.Assert test)
+        {
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(hookId), singleton) != -1, "warm cache contains singleton");
+
+            var unknownId = HookStringPool.GetOrAdd("HookSubscriberIndexUnknownHook");
+            test.IsTrue(HookSubscriberIndex.Get(unknownId).Length == 0, "unknown hook has no implementers");
+            test.IsTrue(HookSubscriberIndex.Current.ContainsKey(unknownId), "empty result is cached");
+
+            var version = HookSubscriberIndex.Version;
+            HookSubscriberIndex.Invalidate();
+            test.IsTrue(HookSubscriberIndex.Version == version + 1, "Invalidate bumps the version once");
+            test.IsTrue(HookSubscriberIndex.BuiltVersion != HookSubscriberIndex.Version, "cache is stale after Invalidate");
+
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(hookId), singleton) != -1, "rebuilt cache contains singleton");
+            test.IsTrue(HookSubscriberIndex.BuiltVersion == HookSubscriberIndex.Version, "cache is fresh after Get");
+            test.IsFalse(HookSubscriberIndex.Current.ContainsKey(unknownId), "stale entries are dropped");
+        }
+
+        [Integrations.Test.Assert]
+        public void index_module_toggle(Integrations.Test.Assert test)
+        {
+            var module = FindToggleableModule();
+
+            if (module == null)
+            {
+                test.Warn("no toggleable module found");
+                return;
+            }
+
+            test.Log($"toggling {module.GetType().Name}");
+            test.IsTrue(module.IsEnabled(), "module starts enabled");
+
+            uint moduleHook = 0;
+
+            foreach (var key in module.HookPool.Keys)
+            {
+                moduleHook = key;
+                break;
+            }
+
+            test.IsTrue(moduleHook != 0, "module has a hook cache");
+
+            var version = HookSubscriberIndex.Version;
+            module.Save();
+            test.IsTrue(HookSubscriberIndex.Version == version, "Save without state change does not invalidate");
+
+            module.SetEnabled(false);
+            test.IsFalse(module.IsEnabled(), "module disabled");
+            test.IsTrue(HookSubscriberIndex.Version > version, "SetEnabled(false) invalidates");
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(moduleHook), module) != -1, "disabled module stays indexed as implementer");
+
+            version = HookSubscriberIndex.Version;
+            module.SetEnabled(true);
+            test.IsTrue(module.IsEnabled(), "module re-enabled");
+            test.IsTrue(HookSubscriberIndex.Version > version, "SetEnabled(true) invalidates");
+
+            version = HookSubscriberIndex.Version;
+            module.Save();
+            test.IsTrue(HookSubscriberIndex.Version == version, "Save after toggle does not invalidate");
+        }
+
+        private static BaseModule FindToggleableModule()
+        {
+            BaseModule fallback = null;
+
+            foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+            {
+                if (hookable is not BaseModule module || module.ForceDisabled || module.ModuleConfiguration == null || !module.IsEnabled() || module.HookPool == null || module.HookPool.Count == 0)
+                {
+                    continue;
+                }
+
+                var name = module.GetType().Name;
+
+                if (name.StartsWith("Modal") || name.StartsWith("ColorPicker") || name.StartsWith("DatePicker"))
+                {
+                    return module;
+                }
+
+                fallback ??= module;
+            }
+
+            return fallback;
         }
 
         [Integrations.Test.Assert(Timeout = 20_000)]

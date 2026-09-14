@@ -1,4 +1,5 @@
-﻿using Facepunch;
+﻿using Carbon.Base.Interfaces;
+using Facepunch;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -199,6 +200,8 @@ public static class HookCaller
 
 			try
 			{
+				if (hookable is IModule module && !module.IsEnabled()) continue;
+
 				var methodResult = Caller.CallHook(hookable, hookId, flags: flag, args: args);
 
 				if (methodResult == null) continue;

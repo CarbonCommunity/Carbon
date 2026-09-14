@@ -103,11 +103,6 @@ public static class HookSubscriberIndex
 		{
 			var hookable = modules[i];
 
-			if (hookable is IModule module && !module.IsEnabled())
-			{
-				continue;
-			}
-
 			if (hookable.HookPool != null && hookable.HookPool.ContainsKey(hookId))
 			{
 				list.Add(hookable);
