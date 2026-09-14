@@ -1,4 +1,5 @@
 #if !TESTS_NO_HOOKS
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Hooks;
@@ -6,6 +7,9 @@ using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Pooling;
 using Carbon.Test;
+using Carbon.Base;
+using Carbon.Base.Interfaces;
+using Carbon.Core;
 
 namespace Carbon.Plugins;
 
@@ -53,6 +57,88 @@ public partial class Tests
             var result = (bool)HookCaller.CallStaticHook(hook2Id, test);
             test.IsTrue(result, $"(bool)HookCaller.CallStaticHook({hook2Id}, test);");
             test.IsTrue(hasFired, "hasFired");
+            test.IsFalse(hasFired = false, "hasFired reset");
+        }
+
+        [Integrations.Test.Assert]
+        public void index_consistency(Integrations.Test.Assert test)
+        {
+            HookSubscriberIndex.Get(hookId);
+            test.IsTrue(HookSubscriberIndex.BuiltVersion == HookSubscriberIndex.Version, "index is up to date");
+
+            var mismatches = 0;
+            var checkedHookables = 0;
+
+            foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+            {
+                Check(module, module is not IModule imodule || imodule.IsEnabled());
+            }
+
+            foreach (var package in ModLoader.Packages)
+            {
+                foreach (var plugin in package.Plugins)
+                {
+                    Check(plugin, true);
+                }
+            }
+
+            test.Log($"checked {checkedHookables} hookables, {HookSubscriberIndex.Current.Count} cached hooks");
+            test.IsTrue(checkedHookables > 0, "checkedHookables > 0");
+            test.IsTrue(mismatches == 0, $"index mismatches: {mismatches}");
+
+            var orphans = 0;
+
+            foreach (var entry in HookSubscriberIndex.Current)
+            {
+                foreach (var hookable in entry.Value)
+                {
+                    if (hookable.HookPool == null || !hookable.HookPool.ContainsKey(entry.Key))
+                    {
+                        orphans++;
+                    }
+                }
+            }
+
+            test.IsTrue(orphans == 0, $"index orphans: {orphans}");
+
+            void Check(BaseHookable hookable, bool eligible)
+            {
+                if (hookable.HookPool == null)
+                {
+                    return;
+                }
+
+                checkedHookables++;
+
+                foreach (var entry in hookable.HookPool)
+                {
+                    var expected = eligible;
+                    var indexed = Array.IndexOf(HookSubscriberIndex.Get(entry.Key), hookable) != -1;
+
+                    if (expected != indexed)
+                    {
+                        mismatches++;
+                        test.Warn($"{hookable.Name} {HookStringPool.GetOrAdd(entry.Key)} expected={expected} indexed={indexed}");
+                    }
+                }
+            }
+        }
+
+        [Integrations.Test.Assert]
+        public void static_call_unsubscribed(Integrations.Test.Assert test)
+        {
+            test.IsFalse(hasFired, "hasFired");
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(hookId), singleton) != -1, "subscribed plugin is indexed");
+
+            singleton.Unsubscribe(nameof(TestingHook));
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(hookId), singleton) != -1, "unsubscribed plugin stays indexed");
+            HookCaller.CallStaticHook(hookId, test);
+            test.IsFalse(hasFired, "hasFired while unsubscribed");
+
+            singleton.Subscribe(nameof(TestingHook));
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(hookId), singleton) != -1, "resubscribed plugin stays indexed");
+            HookCaller.CallStaticHook(hookId, test);
+            test.IsTrue(hasFired, "hasFired after resubscribe");
             test.IsFalse(hasFired = false, "hasFired reset");
         }
 

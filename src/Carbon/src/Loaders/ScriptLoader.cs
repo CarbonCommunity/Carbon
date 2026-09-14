@@ -136,7 +136,7 @@ public class ScriptLoader : IScriptLoader
 					continue;
 				}
 
-				plugin.Instance.Package.Plugins?.RemoveAll(x => x == plugin.Instance);
+				plugin.Instance.Package.RemovePlugin(plugin.Instance);
 
 				if (plugin.Instance.IsExtension)
 				{

@@ -29,6 +29,7 @@ public static partial class ModLoader
 
 			Plugins.Add(plugin);
 			if (Index != null && plugin.Name != null) Index[plugin.Name] = plugin;
+			HookSubscriberIndex.Invalidate();
 			return this;
 		}
 		public Package RemovePlugin(RustPlugin plugin)
@@ -43,6 +44,7 @@ public static partial class ModLoader
 			{
 				Index.Remove(plugin.Name);
 			}
+			HookSubscriberIndex.Invalidate();
 			return this;
 		}
 		public RustPlugin FindPlugin(string name)

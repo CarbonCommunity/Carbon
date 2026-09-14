@@ -331,6 +331,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	private void RefreshEnabledCache()
 	{
 		_isEnabledCached = !ForceDisabled && ModuleConfiguration is { Enabled: true };
+		HookSubscriberIndex.Invalidate();
 	}
 
 	public virtual void OnDisabled(bool initialized)
