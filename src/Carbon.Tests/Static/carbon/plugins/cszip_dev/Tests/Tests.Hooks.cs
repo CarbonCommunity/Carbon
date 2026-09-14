@@ -15,7 +15,10 @@ public partial class Tests
     {
         internal static uint hookId = HookStringPool.GetOrAdd(nameof(TestingHook));
         internal static uint hook2Id = HookStringPool.GetOrAdd(nameof(ConflictTest));
+        internal static uint tupleHookId = HookStringPool.GetOrAdd(nameof(TupleTest));
+        internal static uint defaultedTupleHookId = HookStringPool.GetOrAdd(nameof(DefaultedTupleTest));
         public static bool hasFired;
+        public static string tupleResult;
 
         [Integrations.Test.Assert]
         public void validate(Integrations.Test.Assert test)
@@ -54,6 +57,44 @@ public partial class Tests
             test.IsTrue(result, $"(bool)HookCaller.CallStaticHook({hook2Id}, test);");
             test.IsTrue(hasFired, "hasFired");
             test.IsFalse(hasFired = false, "hasFired reset");
+        }
+
+        [Integrations.Test.Assert]
+        public void tuple_call(Integrations.Test.Assert test)
+        {
+            test.IsTrue(tupleHookId != 0, "tupleHookId != 0");
+
+            tupleResult = null;
+            test.Log($"HookCaller.CallStaticHook({tupleHookId}, (\"carbon\", 5, [\"a\", \"b\"]));");
+            HookCaller.CallStaticHook(tupleHookId, ("carbon", (int?)5, new[] { "a", "b" }));
+            test.IsTrue(tupleResult == "carbon/5/a,b", $"tupleResult == \"carbon/5/a,b\" (is \"{tupleResult}\")");
+
+            tupleResult = null;
+            test.Log($"HookCaller.CallStaticHook({tupleHookId}, (\"carbon\", null, null));");
+            HookCaller.CallStaticHook(tupleHookId, ("carbon", (int?)null, (string[])null));
+            test.IsTrue(tupleResult == "carbon//", $"tupleResult == \"carbon//\" (is \"{tupleResult}\")");
+
+            // A non-nullable second element is a different runtime type and must not be matched
+            tupleResult = null;
+            test.Log($"HookCaller.CallStaticHook({tupleHookId}, (\"carbon\", 5, [\"a\", \"b\"])); // mismatched tuple");
+            HookCaller.CallStaticHook(tupleHookId, ("carbon", 5, new[] { "a", "b" }));
+            test.IsTrue(tupleResult == null, $"tupleResult == null (is \"{tupleResult}\")");
+        }
+
+        [Integrations.Test.Assert]
+        public void defaulted_tuple_call(Integrations.Test.Assert test)
+        {
+            test.IsTrue(defaultedTupleHookId != 0, "defaultedTupleHookId != 0");
+
+            tupleResult = null;
+            test.Log($"HookCaller.CallStaticHook({defaultedTupleHookId}, (\"carbon\", 5));");
+            HookCaller.CallStaticHook(defaultedTupleHookId, ("carbon", 5));
+            test.IsTrue(tupleResult == "carbon/5", $"tupleResult == \"carbon/5\" (is \"{tupleResult}\")");
+
+            tupleResult = null;
+            test.Log($"HookCaller.CallStaticHook({defaultedTupleHookId});");
+            HookCaller.CallStaticHook(defaultedTupleHookId);
+            test.IsTrue(tupleResult == "/0", $"tupleResult == \"/0\" (is \"{tupleResult}\")");
         }
 
         [Integrations.Test.Assert(Timeout = 20_000)]
@@ -115,6 +156,18 @@ public partial class Tests
         test.Log("ConflictTest was fired (True)");
         Hooks.hasFired = true;
         return true;
+    }
+
+    // Tuple parameters cannot be emitted with tuple syntax in the InternalCallHook patterns, and a
+    // nullable element additionally makes such a pattern illegal (CS8116) - keep both covered here.
+    private void TupleTest((string Name, int? Index, string[] Values) spec)
+    {
+        Hooks.tupleResult = $"{spec.Name}/{spec.Index}/{(spec.Values == null ? string.Empty : string.Join(",", spec.Values))}";
+    }
+
+    private void DefaultedTupleTest((string Name, int Index) spec = default)
+    {
+        Hooks.tupleResult = $"{spec.Name}/{spec.Index}";
     }
 }
 #endif
