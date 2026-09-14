@@ -210,7 +210,7 @@ public partial class Tests
 
             foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
             {
-                if (hookable is not BaseModule module || module.ForceDisabled || module.ModuleConfiguration == null || !module.IsEnabled() || module.HookPool == null || module.HookPool.Count == 0)
+                if (hookable is not BaseModule module || module.ForceDisabled || !module.IsEnabled() || module.HookPool == null || module.HookPool.Count == 0)
                 {
                     continue;
                 }
