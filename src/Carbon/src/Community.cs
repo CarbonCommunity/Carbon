@@ -161,6 +161,8 @@ public class CommunityInternal : Community
 		LoadConfig();
 		LoadMonoProfilerConfig();
 
+		RefreshConsoleInfo();
+
 		if (!Config.Logging.ReducedLogging)
 		{
 			Logger.Log(Environment.NewLine +
@@ -230,8 +232,6 @@ public class CommunityInternal : Community
 		Logger.Log($"Rust   {Facepunch.BuildInfo.Current.Build.Number}/{Rust.Protocol.printable} on {Facepunch.BuildInfo.Current.Scm.Branch} ({Facepunch.BuildInfo.Current.Scm.Date}) {Facepunch.BuildInfo.Current.Scm.ChangeId}");
 
 		Interface.Initialize();
-
-		RefreshConsoleInfo();
 
 		IsInitialized = true;
 

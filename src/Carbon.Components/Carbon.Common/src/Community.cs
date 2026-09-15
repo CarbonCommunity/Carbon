@@ -1,4 +1,5 @@
 ﻿using API.Events;
+using Terminal;
 using Application = UnityEngine.Application;
 
 namespace Carbon;
@@ -88,30 +89,40 @@ public partial class Community
 
 	public void RefreshConsoleInfo()
 	{
-#if WIN
 		if (!IsConfigReady || !Config.Misc.ShowConsoleInfo)
 		{
 			return;
 		}
-		if (!IsServerInitialized || ServerConsole.Instance == null || ServerConsole.Instance.input == null)
+		if (ServerConsole.Instance == null || ServerConsole.Instance.input == null)
 		{
 			return;
 		}
-		if (ServerConsole.Instance.input.statusText.Length != 4) ServerConsole.Instance.input.statusText = new string[4];
+		if (ServerConsole.Instance.input.statusText.Length != 4)
+		{
+			ServerConsole.Instance.input.statusText = new string[4];
+			ServerConsole.Instance.input.Initialize();
+		}
 
-		var version =
+
+		if (IsServerInitialized)
+		{
+			var version =
 #if DEBUG
-			Analytics.InformationalVersion;
+	Analytics.InformationalVersion;
 #else
             Analytics.Version;
 #endif
 
-		ServerConsole.Instance.input.statusText[3] = $" Carbon" +
+			ServerConsole.Instance.input.statusText[3] = $" Carbon" +
 #if MINIMAL
 			$" Minimal" +
 #endif
-			$" v{version}, {ModLoader.Packages.Count:n0} mods, {ModLoader.Packages.Sum(x => x.Plugins.Count):n0} plgs, {ModuleProcessor.Modules.Count(x => x is BaseModule module && module.IsEnabled()):n0}/{ModuleProcessor.Modules.Count:n0} mdls, {AssemblyEx.Extensions.Loaded.Count:n0} exts, {StoredModifiers.Entities?.Count:n0} mdfs";
-#endif
+	$" v{version}, {ModLoader.Packages.Count:n0} mods, {ModLoader.Packages.Sum(x => x.Plugins.Count):n0} plgs, {ModuleProcessor.Modules.Count(x => x is BaseModule module && module.IsEnabled()):n0}/{ModuleProcessor.Modules.Count:n0} mdls, {AssemblyEx.Extensions.Loaded.Count:n0} exts, {StoredModifiers.Entities?.Count:n0} mdfs";
+		}
+		else
+		{
+			ServerConsole.Instance.input.statusText[3] = string.Empty;
+		}
 	}
 
 	public virtual void Initialize()

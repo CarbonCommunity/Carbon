@@ -127,8 +127,6 @@ public class Config
 
 	public class MiscConfig
 	{
-#if WIN
 		public bool ShowConsoleInfo = true;
-#endif
 	}
 }
