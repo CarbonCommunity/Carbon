@@ -1,4 +1,5 @@
 #if !TESTS_NO_HOOKS
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Hooks;
@@ -6,6 +7,9 @@ using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Pooling;
 using Carbon.Test;
+using Carbon.Base;
+using Carbon.Base.Interfaces;
+using Carbon.Core;
 
 namespace Carbon.Plugins;
 
@@ -15,12 +19,12 @@ public partial class Tests
     {
         internal static uint hookId = HookStringPool.GetOrAdd(nameof(TestingHook));
         internal static uint hook2Id = HookStringPool.GetOrAdd(nameof(ConflictTest));
-        internal static uint tupleHookId = HookStringPool.GetOrAdd(nameof(TupleTest));
-        internal static uint defaultedTupleHookId = HookStringPool.GetOrAdd(nameof(DefaultedTupleTest));
-        public static bool hasFired;
-        public static string tupleResult;
+		internal static uint tupleHookId = HookStringPool.GetOrAdd(nameof(TupleTest));
+		internal static uint defaultedTupleHookId = HookStringPool.GetOrAdd(nameof(DefaultedTupleTest));
+		public static bool hasFired;
+		public static string tupleResult;
 
-        [Integrations.Test.Assert]
+		[Integrations.Test.Assert]
         public void validate(Integrations.Test.Assert test)
         {
             test.IsTrue(singleton.HookPool.Count > 0, "singleton.HookPool.Count > 0");
@@ -59,42 +63,210 @@ public partial class Tests
             test.IsFalse(hasFired = false, "hasFired reset");
         }
 
-        [Integrations.Test.Assert]
-        public void tuple_call(Integrations.Test.Assert test)
+		[Integrations.Test.Assert]
+		public void tuple_call(Integrations.Test.Assert test)
+		{
+			test.IsTrue(tupleHookId != 0, "tupleHookId != 0");
+
+			tupleResult = null;
+			test.Log($"HookCaller.CallStaticHook({tupleHookId}, (\"carbon\", 5, [\"a\", \"b\"]));");
+			HookCaller.CallStaticHook(tupleHookId, ("carbon", (int?)5, new[] { "a", "b" }));
+			test.IsTrue(tupleResult == "carbon/5/a,b", $"tupleResult == \"carbon/5/a,b\" (is \"{tupleResult}\")");
+
+			tupleResult = null;
+			test.Log($"HookCaller.CallStaticHook({tupleHookId}, (\"carbon\", null, null));");
+			HookCaller.CallStaticHook(tupleHookId, ("carbon", (int?)null, (string[])null));
+			test.IsTrue(tupleResult == "carbon//", $"tupleResult == \"carbon//\" (is \"{tupleResult}\")");
+
+			// A non-nullable second element is a different runtime type and must not be matched
+			tupleResult = null;
+			test.Log($"HookCaller.CallStaticHook({tupleHookId}, (\"carbon\", 5, [\"a\", \"b\"])); // mismatched tuple");
+			HookCaller.CallStaticHook(tupleHookId, ("carbon", 5, new[] { "a", "b" }));
+			test.IsTrue(tupleResult == null, $"tupleResult == null (is \"{tupleResult}\")");
+		}
+
+		[Integrations.Test.Assert]
+		public void defaulted_tuple_call(Integrations.Test.Assert test)
+		{
+			test.IsTrue(defaultedTupleHookId != 0, "defaultedTupleHookId != 0");
+
+			tupleResult = null;
+			test.Log($"HookCaller.CallStaticHook({defaultedTupleHookId}, (\"carbon\", 5));");
+			HookCaller.CallStaticHook(defaultedTupleHookId, ("carbon", 5));
+			test.IsTrue(tupleResult == "carbon/5", $"tupleResult == \"carbon/5\" (is \"{tupleResult}\")");
+
+			tupleResult = null;
+			test.Log($"HookCaller.CallStaticHook({defaultedTupleHookId});");
+			HookCaller.CallStaticHook(defaultedTupleHookId);
+			test.IsTrue(tupleResult == "/0", $"tupleResult == \"/0\" (is \"{tupleResult}\")");
+		}
+
+		[Integrations.Test.Assert]
+        public void index_consistency(Integrations.Test.Assert test)
         {
-            test.IsTrue(tupleHookId != 0, "tupleHookId != 0");
+            HookSubscriberIndex.Get(hookId);
+            test.IsTrue(HookSubscriberIndex.BuiltVersion == HookSubscriberIndex.Version, "index is up to date");
 
-            tupleResult = null;
-            test.Log($"HookCaller.CallStaticHook({tupleHookId}, (\"carbon\", 5, [\"a\", \"b\"]));");
-            HookCaller.CallStaticHook(tupleHookId, ("carbon", (int?)5, new[] { "a", "b" }));
-            test.IsTrue(tupleResult == "carbon/5/a,b", $"tupleResult == \"carbon/5/a,b\" (is \"{tupleResult}\")");
+            var mismatches = 0;
+            var checkedHookables = 0;
 
-            tupleResult = null;
-            test.Log($"HookCaller.CallStaticHook({tupleHookId}, (\"carbon\", null, null));");
-            HookCaller.CallStaticHook(tupleHookId, ("carbon", (int?)null, (string[])null));
-            test.IsTrue(tupleResult == "carbon//", $"tupleResult == \"carbon//\" (is \"{tupleResult}\")");
+            foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+            {
+                Check(module, true);
+            }
 
-            // A non-nullable second element is a different runtime type and must not be matched
-            tupleResult = null;
-            test.Log($"HookCaller.CallStaticHook({tupleHookId}, (\"carbon\", 5, [\"a\", \"b\"])); // mismatched tuple");
-            HookCaller.CallStaticHook(tupleHookId, ("carbon", 5, new[] { "a", "b" }));
-            test.IsTrue(tupleResult == null, $"tupleResult == null (is \"{tupleResult}\")");
+            foreach (var package in ModLoader.Packages)
+            {
+                foreach (var plugin in package.Plugins)
+                {
+                    Check(plugin, true);
+                }
+            }
+
+            test.Log($"checked {checkedHookables} hookables, {HookSubscriberIndex.Current.Count} cached hooks");
+            test.IsTrue(checkedHookables > 0, "checkedHookables > 0");
+            test.IsTrue(mismatches == 0, $"index mismatches: {mismatches}");
+
+            var orphans = 0;
+
+            foreach (var entry in HookSubscriberIndex.Current)
+            {
+                foreach (var hookable in entry.Value)
+                {
+                    if (hookable.HookPool == null || !hookable.HookPool.ContainsKey(entry.Key))
+                    {
+                        orphans++;
+                    }
+                }
+            }
+
+            test.IsTrue(orphans == 0, $"index orphans: {orphans}");
+
+            void Check(BaseHookable hookable, bool eligible)
+            {
+                if (hookable.HookPool == null)
+                {
+                    return;
+                }
+
+                checkedHookables++;
+
+                foreach (var entry in hookable.HookPool)
+                {
+                    var expected = eligible;
+                    var indexed = Array.IndexOf(HookSubscriberIndex.Get(entry.Key), hookable) != -1;
+
+                    if (expected != indexed)
+                    {
+                        mismatches++;
+                        test.Warn($"{hookable.Name} {HookStringPool.GetOrAdd(entry.Key)} expected={expected} indexed={indexed}");
+                    }
+                }
+            }
         }
 
         [Integrations.Test.Assert]
-        public void defaulted_tuple_call(Integrations.Test.Assert test)
+        public void static_call_unsubscribed(Integrations.Test.Assert test)
         {
-            test.IsTrue(defaultedTupleHookId != 0, "defaultedTupleHookId != 0");
+            test.IsFalse(hasFired, "hasFired");
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(hookId), singleton) != -1, "subscribed plugin is indexed");
 
-            tupleResult = null;
-            test.Log($"HookCaller.CallStaticHook({defaultedTupleHookId}, (\"carbon\", 5));");
-            HookCaller.CallStaticHook(defaultedTupleHookId, ("carbon", 5));
-            test.IsTrue(tupleResult == "carbon/5", $"tupleResult == \"carbon/5\" (is \"{tupleResult}\")");
+            singleton.Unsubscribe(nameof(TestingHook));
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(hookId), singleton) != -1, "unsubscribed plugin stays indexed");
+            HookCaller.CallStaticHook(hookId, test);
+            test.IsFalse(hasFired, "hasFired while unsubscribed");
 
-            tupleResult = null;
-            test.Log($"HookCaller.CallStaticHook({defaultedTupleHookId});");
-            HookCaller.CallStaticHook(defaultedTupleHookId);
-            test.IsTrue(tupleResult == "/0", $"tupleResult == \"/0\" (is \"{tupleResult}\")");
+            singleton.Subscribe(nameof(TestingHook));
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(hookId), singleton) != -1, "resubscribed plugin stays indexed");
+            HookCaller.CallStaticHook(hookId, test);
+            test.IsTrue(hasFired, "hasFired after resubscribe");
+            test.IsFalse(hasFired = false, "hasFired reset");
+        }
+
+        [Integrations.Test.Assert]
+        public void index_invalidation(Integrations.Test.Assert test)
+        {
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(hookId), singleton) != -1, "warm cache contains singleton");
+
+            var unknownId = HookStringPool.GetOrAdd("HookSubscriberIndexUnknownHook");
+            test.IsTrue(HookSubscriberIndex.Get(unknownId).Length == 0, "unknown hook has no implementers");
+            test.IsTrue(HookSubscriberIndex.Current.ContainsKey(unknownId), "empty result is cached");
+
+            var version = HookSubscriberIndex.Version;
+            HookSubscriberIndex.Invalidate();
+            test.IsTrue(HookSubscriberIndex.Version == version + 1, "Invalidate bumps the version once");
+            test.IsTrue(HookSubscriberIndex.BuiltVersion != HookSubscriberIndex.Version, "cache is stale after Invalidate");
+
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(hookId), singleton) != -1, "rebuilt cache contains singleton");
+            test.IsTrue(HookSubscriberIndex.BuiltVersion == HookSubscriberIndex.Version, "cache is fresh after Get");
+            test.IsFalse(HookSubscriberIndex.Current.ContainsKey(unknownId), "stale entries are dropped");
+        }
+
+        [Integrations.Test.Assert]
+        public void index_module_toggle(Integrations.Test.Assert test)
+        {
+            var module = FindToggleableModule();
+
+            if (module == null)
+            {
+                test.Warn("no toggleable module found");
+                return;
+            }
+
+            test.Log($"toggling {module.GetType().Name}");
+            test.IsTrue(module.IsEnabled(), "module starts enabled");
+
+            uint moduleHook = 0;
+
+            foreach (var key in module.HookPool.Keys)
+            {
+                moduleHook = key;
+                break;
+            }
+
+            test.IsTrue(moduleHook != 0, "module has a hook cache");
+
+            var version = HookSubscriberIndex.Version;
+            module.Save();
+            test.IsTrue(HookSubscriberIndex.Version == version, "Save without state change does not invalidate");
+
+            module.SetEnabled(false);
+            test.IsFalse(module.IsEnabled(), "module disabled");
+            test.IsTrue(HookSubscriberIndex.Version > version, "SetEnabled(false) invalidates");
+            test.IsTrue(Array.IndexOf(HookSubscriberIndex.Get(moduleHook), module) != -1, "disabled module stays indexed as implementer");
+
+            version = HookSubscriberIndex.Version;
+            module.SetEnabled(true);
+            test.IsTrue(module.IsEnabled(), "module re-enabled");
+            test.IsTrue(HookSubscriberIndex.Version > version, "SetEnabled(true) invalidates");
+
+            version = HookSubscriberIndex.Version;
+            module.Save();
+            test.IsTrue(HookSubscriberIndex.Version == version, "Save after toggle does not invalidate");
+        }
+
+        private static BaseModule FindToggleableModule()
+        {
+            BaseModule fallback = null;
+
+            foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+            {
+                if (hookable is not BaseModule module || module.ForceDisabled || !module.IsEnabled() || module.HookPool == null || module.HookPool.Count == 0)
+                {
+                    continue;
+                }
+
+                var name = module.GetType().Name;
+
+                if (name.StartsWith("Modal") || name.StartsWith("ColorPicker") || name.StartsWith("DatePicker"))
+                {
+                    return module;
+                }
+
+                fallback ??= module;
+            }
+
+            return fallback;
         }
 
         [Integrations.Test.Assert(Timeout = 20_000)]
@@ -158,16 +330,14 @@ public partial class Tests
         return true;
     }
 
-    // Tuple parameters cannot be emitted with tuple syntax in the InternalCallHook patterns, and a
-    // nullable element additionally makes such a pattern illegal (CS8116) - keep both covered here.
-    private void TupleTest((string Name, int? Index, string[] Values) spec)
-    {
-        Hooks.tupleResult = $"{spec.Name}/{spec.Index}/{(spec.Values == null ? string.Empty : string.Join(",", spec.Values))}";
-    }
+	private void TupleTest((string Name, int? Index, string[] Values) spec)
+	{
+		Hooks.tupleResult = $"{spec.Name}/{spec.Index}/{(spec.Values == null ? string.Empty : string.Join(",", spec.Values))}";
+	}
 
-    private void DefaultedTupleTest((string Name, int Index) spec = default)
-    {
-        Hooks.tupleResult = $"{spec.Name}/{spec.Index}";
-    }
+	private void DefaultedTupleTest((string Name, int Index) spec = default)
+	{
+		Hooks.tupleResult = $"{spec.Name}/{spec.Index}";
+	}
 }
 #endif

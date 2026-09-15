@@ -249,6 +249,7 @@ public class CommunityInternal : Community
 			ClearCommands(all: true);
 			ClearPlugins(all: true);
 			ModLoader.Packages.Clear();
+			HookSubscriberIndex.Invalidate();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
 
 #if WIN
