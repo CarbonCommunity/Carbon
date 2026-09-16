@@ -87,71 +87,17 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 		return Path.Combine(cszipDevDir, source.Replace(cszipDevDir, string.Empty).Split(DirectorySeparators, StringSplitOptions.RemoveEmptyEntries)[0]);
 	}
 
-	protected override string GetInstanceKey(string sourcePath)
+	public override string GetInstanceKey(string sourcePath)
 	{
-		return GetZipScriptName(sourcePath);
+		return Path.GetFileName(sourcePath);
 	}
-
-	public override void OnCreated(WatchFileEvent e)
+	protected override string GetSourcePath(string eventPath)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
-
-		var directory = GetZipScriptName(e.Path);
-
-		if (InstanceBuffer.TryGetValue(directory, out var instance1))
-		{
-			instance1?.MarkDirty();
-			return;
-		}
-
-		InstanceBuffer[directory] = null;
+		return GetZipScriptName(eventPath);
 	}
-	public override void OnChanged(WatchFileEvent e)
+	protected override bool SourceExists(string sourcePath)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
-
-		var directory = GetZipScriptName(e.Path);
-
-		if (InstanceBuffer.TryGetValue(directory, out var mod))
-		{
-			mod.MarkDirty();
-		}
-	}
-	public override void OnRenamed(WatchFileEvent e)
-	{
-		if (!EnableWatcher) return;
-
-		if (!string.IsNullOrEmpty(e.OldPath))
-		{
-			var oldDirectory = GetZipScriptName(e.OldPath);
-			if (InstanceBuffer.TryGetValue(oldDirectory, out var oldMod))
-			{
-				oldMod?.MarkDeleted();
-			}
-		}
-
-		if (IsBlacklisted(e.Path)) return;
-
-		var newDirectory = GetZipScriptName(e.Path);
-		if (InstanceBuffer.TryGetValue(newDirectory, out var existing) && existing != null)
-		{
-			existing.MarkDirty();
-		}
-		else
-		{
-			InstanceBuffer[newDirectory] = null;
-		}
-	}
-	public override void OnRemoved(WatchFileEvent e)
-	{
-		if (!EnableWatcher || IsBlacklisted(e.Path)) return;
-
-		var directory = GetZipScriptName(e.Path);
-
-		if (InstanceBuffer.TryGetValue(directory, out var mod))
-		{
-			mod.MarkDeleted();
-		}
+		return OsEx.Folder.Exists(sourcePath);
 	}
 
 	public class ZipDevScript : Process, IScriptProcessor.IScript

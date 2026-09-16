@@ -87,16 +87,12 @@ public class InternalCallHook
 
 	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null, List<string> usingsList = null, IEnumerable<MetadataReference> references = null)
 	{
-		BaseNamespaceDeclarationSyntax @namespace;
+		var @namespace = (BaseNamespaceDeclarationSyntax)null;
 
 		if (classes == null)
 		{
 			classes = new List<ClassDeclarationSyntax>();
 			FindPluginInfo(input, out @namespace, out _, out _, classes);
-		}
-		else
-		{
-			@namespace = classes[0].Parent as BaseNamespaceDeclarationSyntax;
 		}
 
 		if (classes.Count == 0)
@@ -104,6 +100,8 @@ public class InternalCallHook
 			output = null;
 			return;
 		}
+
+		@namespace ??= classes[0].Parent as BaseNamespaceDeclarationSyntax;
 
 		var model = CreateModel(input, @namespace, classes, usingsList, references, options);
 		if (model.Methods.Count == 0)
@@ -160,6 +158,8 @@ public class InternalCallHook
 		}
 
 		var methods = classes
+			.Where(x => x.Identifier.ValueText == model.TypeName
+				&& ((x.Parent as BaseNamespaceDeclarationSyntax)?.Name.ToString() ?? string.Empty) == model.NamespaceName)
 			.SelectMany(x => x.ChildNodes().OfType<MethodDeclarationSyntax>())
 			.Where(IsHookableMethod)
 			.OrderBy(x => x.Identifier.ValueText)
@@ -375,6 +375,14 @@ public class InternalCallHook
 		return conditional?.Replace("\"", string.Empty) ?? string.Empty;
 	}
 
+	private static bool IsInfoAttribute(NameSyntax name) => name switch
+	{
+		QualifiedNameSyntax qualified => IsInfoAttribute(qualified.Right),
+		AliasQualifiedNameSyntax alias => IsInfoAttribute(alias.Name),
+		SimpleNameSyntax simple => simple.Identifier.ValueText is "Info" or "InfoAttribute",
+		_ => false
+	};
+
 	public static bool FindPluginInfo(CompilationUnitSyntax input, out BaseNamespaceDeclarationSyntax @namespace, out int namespaceIndex, out int classIndex, List<ClassDeclarationSyntax> classes)
 	{
 		var @class = (ClassDeclarationSyntax)null;
@@ -400,19 +408,34 @@ public class InternalCallHook
 					continue;
 				}
 
-				if (cls.AttributeLists.Count > 0)
+				var isPluginClass = false;
+
+				foreach (var list in cls.AttributeLists)
 				{
-					foreach (var attribute in cls.AttributeLists)
+					foreach (var attribute in list.Attributes)
 					{
-						if (attribute.Attributes[0].Name is IdentifierNameSyntax nameSyntax && nameSyntax.Identifier.Text.Equals("Info"))
+						if (!IsInfoAttribute(attribute.Name))
 						{
-							namespaceIndex = n;
-							@namespace = ns;
-							classIndex = c;
-							@class = cls;
-							classes?.Insert(0, @class);
+							continue;
 						}
+
+						namespaceIndex = n;
+						@namespace = ns;
+						classIndex = c;
+						@class = cls;
+						isPluginClass = true;
+						break;
 					}
+
+					if (isPluginClass)
+					{
+						break;
+					}
+				}
+
+				if (isPluginClass)
+				{
+					classes?.Insert(0, @class);
 				}
 				else if (cls.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
 				{

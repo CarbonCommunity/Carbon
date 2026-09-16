@@ -1,5 +1,10 @@
 #if !TESTS_NO_WEBREQUEST
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Carbon.Extensions;
@@ -14,6 +19,8 @@ public partial class Tests
 	{
 		private const string HttpsGenerate204Url = "https://www.gstatic.com/generate_204";
 		private const string HttpGenerate204Url = "http://www.gstatic.com/generate_204";
+		private const string CustomUserAgent = "CarbonTests/1.0 (+plugin supplied)";
+		private const string UnreachableBindIp = "203.0.113.1";
 
 		[Integrations.Test.Assert]
 		public void validate_library(Integrations.Test.Assert test)
@@ -196,83 +203,131 @@ public partial class Tests
 			test.Complete();
 		}
 
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task default_user_agent_is_carbons(Integrations.Test.Assert test)
+		{
+			using var server = new LoopbackServer();
+
+			var result = await ExecuteStringRequest(server.Url, RequestMethod.GET, null, test);
+			var userAgent = await server.GetHeader("User-Agent");
+
+			test.IsTrue(result.CallbackCode == 204, $"default user agent request completed ({result.CallbackCode})");
+			test.IsTrue(userAgent == Community.Runtime.Analytics.UserAgent,
+				$"default user agent is Carbon's (got '{userAgent}')");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task custom_user_agent_is_preserved(Integrations.Test.Assert test)
+		{
+			using var server = new LoopbackServer();
+
+			var result = await ExecuteStringRequest(server.Url, RequestMethod.GET, null, test,
+				headers: new Dictionary<string, string> { ["User-Agent"] = CustomUserAgent });
+			var userAgent = await server.GetHeader("User-Agent");
+
+			test.IsTrue(result.CallbackCode == 204, $"custom user agent request completed ({result.CallbackCode})");
+			test.IsTrue(userAgent == CustomUserAgent, $"custom user agent reached the wire (got '{userAgent}')");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task custom_user_agent_is_case_insensitive(Integrations.Test.Assert test)
+		{
+			using var server = new LoopbackServer();
+
+			var result = await ExecuteStringRequest(server.Url, RequestMethod.GET, null, test,
+				headers: new Dictionary<string, string> { ["user-agent"] = CustomUserAgent });
+			var userAgent = await server.GetHeader("User-Agent");
+
+			test.IsTrue(result.CallbackCode == 204, $"lowercase user agent request completed ({result.CallbackCode})");
+			test.IsTrue(userAgent == CustomUserAgent, $"lowercase user agent reached the wire (got '{userAgent}')");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task pooled_client_keeps_user_agent_across_requests(Integrations.Test.Assert test)
+		{
+			using var first = new LoopbackServer();
+			using var second = new LoopbackServer();
+			using var client = new WebRequests.WebRequest.Client();
+
+			client.Headers["User-Agent"] = Community.Runtime.Analytics.UserAgent;
+
+			await client.DownloadStringTaskAsync(new Uri(first.Url));
+			await client.DownloadStringTaskAsync(new Uri(second.Url));
+
+			var firstUserAgent = await first.GetHeader("User-Agent");
+			var secondUserAgent = await second.GetHeader("User-Agent");
+
+			test.IsTrue(firstUserAgent == Community.Runtime.Analytics.UserAgent,
+				$"pooled client sent the user agent on its first request (got '{firstUserAgent}')");
+			test.IsTrue(secondUserAgent == Community.Runtime.Analytics.UserAgent,
+				$"pooled client sent the user agent on its second request (got '{secondUserAgent}')");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task timeout_aborts_a_stalled_request(Integrations.Test.Assert test)
+		{
+			using var server = new LoopbackServer(respond: false);
+
+			var started = DateTime.UtcNow;
+			var result = await ExecuteStringRequest(server.Url, RequestMethod.GET, null, test, 12_000, timeout: 2f);
+			var elapsed = (DateTime.UtcNow - started).TotalMilliseconds;
+
+			test.IsTrue(result.CallbackCount == 1, "stalled request callback invoked once");
+			test.IsTrue(result.Request.ResponseError != null, "stalled request surfaced a response error");
+			test.IsTrue(elapsed >= 1_000, $"stalled request waited for the timeout ({elapsed:0}ms)");
+			test.IsTrue(elapsed < 10_000, $"stalled request gave up on the timeout ({elapsed:0}ms)");
+
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 20_000)]
+		public async Task loopback_request_ignores_webrequest_ip(Integrations.Test.Assert test)
+		{
+			if (!Community.IsConfigReady)
+			{
+				test.Warn("carbon config is not ready, skipping web request ip check");
+				test.Complete();
+				return;
+			}
+
+			using var server = new LoopbackServer();
+
+			var previousIp = Community.Runtime.Config.WebRequestIp;
+			Community.Runtime.Config.WebRequestIp = UnreachableBindIp;
+
+			try
+			{
+				var result = await ExecuteStringRequest(server.Url, RequestMethod.GET, null, test);
+
+				test.IsTrue(result.CallbackCount == 1, "loopback callback invoked once");
+				test.IsTrue(result.CallbackCode == 204,
+					$"loopback request completed while web request ip is set ({result.CallbackCode})");
+				test.IsNull(result.Request.ResponseError, "loopback request has no response error");
+			}
+			finally
+			{
+				Community.Runtime.Config.WebRequestIp = previousIp;
+			}
+
+			test.Complete();
+		}
+
 		[Integrations.Test.Assert(Timeout = 30_000)]
 		public async Task enqueue_burst_callbacks_once_and_main_thread(Integrations.Test.Assert test)
 		{
 			const int requestCount = 48;
 
-			var allCallbacksTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-			var mainThreadId = ThreadEx.MainThread.ManagedThreadId;
+			using var server = new LoopbackServer();
 
-			var completed = 0;
-			var callbackCounts = new int[requestCount];
-			var callbackCodes = new int[requestCount];
-			var callbackThreadIds = new int[requestCount];
-			var callbackBodies = new string[requestCount];
-
-			for (var i = 0; i < requestCount; i++)
-			{
-				callbackCodes[i] = -1;
-				callbackThreadIds[i] = -1;
-				var requestIndex = i;
-
-				singleton.webrequest.Enqueue(HttpsGenerate204Url, null, (code, body) =>
-				{
-					Interlocked.Increment(ref callbackCounts[requestIndex]);
-					callbackCodes[requestIndex] = code;
-					callbackThreadIds[requestIndex] = Thread.CurrentThread.ManagedThreadId;
-					callbackBodies[requestIndex] = body;
-
-					if (Interlocked.Increment(ref completed) == requestCount)
-					{
-						allCallbacksTcs.TrySetResult(true);
-					}
-				}, singleton, timeout: 15f);
-			}
-
-			var callbacksFinished = await Task.WhenAny(allCallbacksTcs.Task, Task.Delay(12_000));
-
-			test.IsTrue(callbacksFinished == allCallbacksTcs.Task,
-				$"burst callbacks completed ({completed}/{requestCount})");
-
-			var missingCallbacks = 0;
-			var duplicateCallbacks = 0;
-			var wrongStatusCodes = 0;
-			var wrongThreadCallbacks = 0;
-			var nonEmptyBodies = 0;
-
-			for (var i = 0; i < requestCount; i++)
-			{
-				if (callbackCounts[i] == 0)
-				{
-					missingCallbacks++;
-				}
-				else if (callbackCounts[i] > 1)
-				{
-					duplicateCallbacks += callbackCounts[i] - 1;
-				}
-
-				if (callbackCodes[i] != 204)
-				{
-					wrongStatusCodes++;
-				}
-
-				if (callbackThreadIds[i] != mainThreadId)
-				{
-					wrongThreadCallbacks++;
-				}
-
-				if (!string.IsNullOrEmpty(callbackBodies[i]))
-				{
-					nonEmptyBodies++;
-				}
-			}
-
-			test.IsTrue(missingCallbacks == 0, $"burst has no missing callbacks ({missingCallbacks})");
-			test.IsTrue(duplicateCallbacks == 0, $"burst has no duplicate callbacks ({duplicateCallbacks})");
-			test.IsTrue(wrongStatusCodes == 0, $"burst callback status codes are 204 ({wrongStatusCodes} wrong)");
-			test.IsTrue(wrongThreadCallbacks == 0, $"burst callbacks are on main thread ({wrongThreadCallbacks} wrong)");
-			test.IsTrue(nonEmptyBodies == 0, $"burst callback bodies are empty ({nonEmptyBodies} non-empty)");
+			AssertBurst(test, "burst", requestCount, await ExecuteBurst(server.Url, requestCount, 12_000));
 
 			test.Complete();
 		}
@@ -282,146 +337,59 @@ public partial class Tests
 		{
 			const int requestCount = 16;
 
-			ThreadPool.GetMaxThreads(out var maxWorkerThreads, out _);
-			ThreadPool.GetAvailableThreads(out var availableBeforeWorkers, out _);
+			using var server = new LoopbackServer();
 
-			var pressureWorkers = Math.Clamp(Environment.ProcessorCount * 2, 8, 32);
-			var pressureStartTarget = Math.Min(pressureWorkers, 4);
+			var workerCount = Math.Clamp(Environment.ProcessorCount * 2, 8, 32);
+			var startTarget = Math.Min(workerCount, 4);
+			var release = new ManualResetEventSlim(false);
+			var workers = new Task[workerCount];
+			var started = 0;
+			var faults = 0;
 
-			var pressureStarted = 0;
-			var pressureFaults = 0;
-			var pressureTasks = new Task[pressureWorkers];
-			var pressureRelease = new ManualResetEventSlim(false);
-
-			for (var i = 0; i < pressureWorkers; i++)
+			for (var i = 0; i < workerCount; i++)
 			{
-				pressureTasks[i] = Task.Run(() =>
+				workers[i] = Task.Run(() =>
 				{
 					try
 					{
-						Interlocked.Increment(ref pressureStarted);
-						pressureRelease.Wait(1_500);
+						Interlocked.Increment(ref started);
+						release.Wait(1_500);
 					}
 					catch
 					{
-						Interlocked.Increment(ref pressureFaults);
+						Interlocked.Increment(ref faults);
 					}
 				});
 			}
 
 			try
 			{
-				var pressureReadyTask = Task.Run(async () =>
+				var ready = Task.Run(async () =>
 				{
-					while (Volatile.Read(ref pressureStarted) < pressureStartTarget)
+					while (Volatile.Read(ref started) < startTarget)
 					{
 						await Task.Delay(10);
 					}
 				});
-				await Task.WhenAny(pressureReadyTask, Task.Delay(600));
 
-				ThreadPool.GetAvailableThreads(out var availableDuringWorkers, out _);
+				await Task.WhenAny(ready, Task.Delay(600));
 
-				if (pressureReadyTask.IsCompleted)
+				if (!ready.IsCompleted)
 				{
-					test.Log($"threadpool pressure workers reached startup target ({pressureStarted}/{pressureStartTarget})");
-				}
-				else
-				{
-					test.Warn($"threadpool pressure workers did not reach startup target in time ({pressureStarted}/{pressureStartTarget})");
+					test.Warn($"threadpool pressure did not reach its startup target ({started}/{startTarget})");
 				}
 
-				if (availableDuringWorkers < availableBeforeWorkers)
-				{
-					test.Log($"threadpool pressure reduced available workers ({availableBeforeWorkers} -> {availableDuringWorkers})");
-				}
-				else
-				{
-					test.Warn($"threadpool pressure did not reduce available workers ({availableBeforeWorkers} -> {availableDuringWorkers})");
-				}
+				AssertBurst(test, "pressure burst", requestCount, await ExecuteBurst(server.Url, requestCount, 6_000));
 
-				var allCallbacksTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-				var mainThreadId = ThreadEx.MainThread.ManagedThreadId;
-
-				var completed = 0;
-				var callbackCounts = new int[requestCount];
-				var callbackCodes = new int[requestCount];
-				var callbackThreadIds = new int[requestCount];
-				var callbackBodies = new string[requestCount];
-
-				for (var i = 0; i < requestCount; i++)
-				{
-					callbackCodes[i] = -1;
-					callbackThreadIds[i] = -1;
-					var requestIndex = i;
-
-					singleton.webrequest.Enqueue(HttpsGenerate204Url, null, (code, body) =>
-					{
-						Interlocked.Increment(ref callbackCounts[requestIndex]);
-						callbackCodes[requestIndex] = code;
-						callbackThreadIds[requestIndex] = Thread.CurrentThread.ManagedThreadId;
-						callbackBodies[requestIndex] = body;
-
-						if (Interlocked.Increment(ref completed) == requestCount)
-						{
-							allCallbacksTcs.TrySetResult(true);
-						}
-					}, singleton, timeout: 15f);
-				}
-
-				var callbacksFinished = await Task.WhenAny(allCallbacksTcs.Task, Task.Delay(6_000));
-
-				test.IsTrue(callbacksFinished == allCallbacksTcs.Task,
-					$"pressure burst callbacks completed ({completed}/{requestCount})");
-
-				var missingCallbacks = 0;
-				var duplicateCallbacks = 0;
-				var wrongStatusCodes = 0;
-				var wrongThreadCallbacks = 0;
-				var nonEmptyBodies = 0;
-
-				for (var i = 0; i < requestCount; i++)
-				{
-					if (callbackCounts[i] == 0)
-					{
-						missingCallbacks++;
-					}
-					else if (callbackCounts[i] > 1)
-					{
-						duplicateCallbacks += callbackCounts[i] - 1;
-					}
-
-					if (callbackCodes[i] != 204)
-					{
-						wrongStatusCodes++;
-					}
-
-					if (callbackThreadIds[i] != mainThreadId)
-					{
-						wrongThreadCallbacks++;
-					}
-
-					if (!string.IsNullOrEmpty(callbackBodies[i]))
-					{
-						nonEmptyBodies++;
-					}
-				}
-
-				test.IsTrue(missingCallbacks == 0, $"pressure burst has no missing callbacks ({missingCallbacks})");
-				test.IsTrue(duplicateCallbacks == 0, $"pressure burst has no duplicate callbacks ({duplicateCallbacks})");
-				test.IsTrue(wrongStatusCodes == 0, $"pressure burst callback status codes are 204 ({wrongStatusCodes} wrong)");
-				test.IsTrue(wrongThreadCallbacks == 0, $"pressure burst callbacks are on main thread ({wrongThreadCallbacks} wrong)");
-				test.IsTrue(nonEmptyBodies == 0, $"pressure burst callback bodies are empty ({nonEmptyBodies} non-empty)");
-
-				test.IsTrue(pressureFaults == 0, $"threadpool pressure workers faulted ({pressureFaults})");
+				test.IsTrue(faults == 0, $"threadpool pressure workers faulted ({faults})");
 
 				test.Complete();
 			}
 			finally
 			{
-				pressureRelease.Set();
-				await Task.WhenAny(Task.WhenAll(pressureTasks), Task.Delay(2_000));
-				pressureRelease.Dispose();
+				release.Set();
+				await Task.WhenAny(Task.WhenAll(workers), Task.Delay(2_000));
+				release.Dispose();
 			}
 		}
 
@@ -431,7 +399,8 @@ public partial class Tests
 		}
 
 		private static async Task<StringGetResult> ExecuteStringRequest(
-			string url, RequestMethod method, string body, Integrations.Test.Assert test, int callbackTimeoutMs = 8_000
+			string url, RequestMethod method, string body, Integrations.Test.Assert test, int callbackTimeoutMs = 8_000,
+			Dictionary<string, string> headers = null, float timeout = 15f
 		)
 		{
 			var callbackTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -448,7 +417,7 @@ public partial class Tests
 				callbackBody = callbackBodyValue;
 				callbackThreadId = Thread.CurrentThread.ManagedThreadId;
 				callbackTcs.TrySetResult(true);
-			}, singleton, method, timeout: 15f);
+			}, singleton, method, headers, timeout);
 
 			var callbackFinished = await Task.WhenAny(callbackTcs.Task, Task.Delay(callbackTimeoutMs));
 			test.IsTrue(callbackFinished == callbackTcs.Task, $"callback invoked ({method} {url})");
@@ -470,6 +439,234 @@ public partial class Tests
 			public int CallbackCode;
 			public string CallbackBody;
 			public int CallbackThreadId;
+		}
+
+		private static async Task<BurstResult> ExecuteBurst(string url, int requestCount, int callbackTimeoutMs)
+		{
+			var allCallbacksTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+			var mainThreadId = ThreadEx.MainThread.ManagedThreadId;
+
+			var callbackCounts = new int[requestCount];
+			var callbackCodes = new int[requestCount];
+			var callbackThreadIds = new int[requestCount];
+			var callbackBodies = new string[requestCount];
+			var completed = 0;
+
+			for (var i = 0; i < requestCount; i++)
+			{
+				var requestIndex = i;
+
+				callbackCodes[requestIndex] = -1;
+				callbackThreadIds[requestIndex] = -1;
+
+				singleton.webrequest.Enqueue(url, null, (code, body) =>
+				{
+					Interlocked.Increment(ref callbackCounts[requestIndex]);
+					callbackCodes[requestIndex] = code;
+					callbackThreadIds[requestIndex] = Thread.CurrentThread.ManagedThreadId;
+					callbackBodies[requestIndex] = body;
+
+					if (Interlocked.Increment(ref completed) == requestCount)
+					{
+						allCallbacksTcs.TrySetResult(true);
+					}
+				}, singleton, timeout: 15f);
+			}
+
+			var callbacksFinished = await Task.WhenAny(allCallbacksTcs.Task, Task.Delay(callbackTimeoutMs));
+			var result = new BurstResult
+			{
+				AllCompleted = callbacksFinished == allCallbacksTcs.Task,
+				Completed = completed,
+			};
+
+			for (var i = 0; i < requestCount; i++)
+			{
+				if (callbackCounts[i] == 0)
+				{
+					result.Missing++;
+				}
+				else if (callbackCounts[i] > 1)
+				{
+					result.Duplicates += callbackCounts[i] - 1;
+				}
+
+				if (callbackCodes[i] != 204)
+				{
+					result.WrongCodes++;
+				}
+
+				if (callbackThreadIds[i] != mainThreadId)
+				{
+					result.WrongThreads++;
+				}
+
+				if (!string.IsNullOrEmpty(callbackBodies[i]))
+				{
+					result.NonEmptyBodies++;
+				}
+			}
+
+			return result;
+		}
+
+		private static void AssertBurst(Integrations.Test.Assert test, string label, int requestCount, BurstResult result)
+		{
+			test.IsTrue(result.AllCompleted, $"{label} callbacks completed ({result.Completed}/{requestCount})");
+			test.IsTrue(result.Missing == 0, $"{label} has no missing callbacks ({result.Missing})");
+			test.IsTrue(result.Duplicates == 0, $"{label} has no duplicate callbacks ({result.Duplicates})");
+			test.IsTrue(result.WrongCodes == 0, $"{label} callback status codes are 204 ({result.WrongCodes} wrong)");
+			test.IsTrue(result.WrongThreads == 0, $"{label} callbacks are on main thread ({result.WrongThreads} wrong)");
+			test.IsTrue(result.NonEmptyBodies == 0, $"{label} callback bodies are empty ({result.NonEmptyBodies} non-empty)");
+		}
+
+		private struct BurstResult
+		{
+			public bool AllCompleted;
+			public int Completed;
+			public int Missing;
+			public int Duplicates;
+			public int WrongCodes;
+			public int WrongThreads;
+			public int NonEmptyBodies;
+		}
+
+		private sealed class LoopbackServer : IDisposable
+		{
+			private const int CaptureTimeoutMs = 8_000;
+
+			private static readonly byte[] NoContentResponse =
+				Encoding.ASCII.GetBytes("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
+
+			private readonly TcpListener _listener;
+			private readonly bool _respond;
+			private readonly List<TcpClient> _clients = new List<TcpClient>();
+			private readonly TaskCompletionSource<string> _firstHead =
+				new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+			private bool _disposed;
+
+			public string Url { get; }
+
+			public LoopbackServer(bool respond = true)
+			{
+				_respond = respond;
+				_listener = new TcpListener(IPAddress.Loopback, 0);
+				_listener.Start();
+
+				Url = $"http://127.0.0.1:{((IPEndPoint)_listener.LocalEndpoint).Port}/probe";
+
+				_ = Task.Run(Accept);
+			}
+
+			public async Task<string> GetHeader(string name)
+			{
+				var captured = await Task.WhenAny(_firstHead.Task, Task.Delay(CaptureTimeoutMs));
+				var head = captured == _firstHead.Task ? _firstHead.Task.Result : null;
+
+				if (string.IsNullOrEmpty(head))
+				{
+					return null;
+				}
+
+				var prefix = $"{name}:";
+				var lines = head.Split('\n');
+
+				for (var i = 0; i < lines.Length; i++)
+				{
+					var line = lines[i].Trim();
+
+					if (line.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+					{
+						return line.Substring(prefix.Length).Trim();
+					}
+				}
+
+				return string.Empty;
+			}
+
+			private async Task Accept()
+			{
+				while (true)
+				{
+					TcpClient client;
+
+					try
+					{
+						client = await _listener.AcceptTcpClientAsync();
+					}
+					catch
+					{
+						_firstHead.TrySetResult(null);
+						return;
+					}
+
+					lock (_clients)
+					{
+						if (_disposed)
+						{
+							client.Close();
+							return;
+						}
+
+						_clients.Add(client);
+					}
+
+					_ = Task.Run(() => Serve(client));
+				}
+			}
+
+			private async Task Serve(TcpClient client)
+			{
+				try
+				{
+					var stream = client.GetStream();
+					var reader = new StreamReader(stream, Encoding.ASCII, false, 256, true);
+					var head = new StringBuilder();
+
+					string line;
+
+					while (!string.IsNullOrEmpty(line = await reader.ReadLineAsync()))
+					{
+						head.AppendLine(line);
+					}
+
+					_firstHead.TrySetResult(head.ToString());
+
+					if (_respond)
+					{
+						await stream.WriteAsync(NoContentResponse, 0, NoContentResponse.Length);
+						client.Close();
+					}
+				}
+				catch
+				{
+					_firstHead.TrySetResult(null);
+				}
+			}
+
+			public void Dispose()
+			{
+				lock (_clients)
+				{
+					if (_disposed)
+					{
+						return;
+					}
+
+					_disposed = true;
+
+					for (var i = 0; i < _clients.Count; i++)
+					{
+						_clients[i].Close();
+					}
+
+					_clients.Clear();
+				}
+
+				_firstHead.TrySetResult(null);
+				_listener.Stop();
+			}
 		}
 	}
 }

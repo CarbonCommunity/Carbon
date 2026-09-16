@@ -7,6 +7,12 @@ public class BaseThreadedJob : IDisposable
 	internal Task _task = null;
 
 	private CancellationTokenSource cancellationToken;
+	private volatile bool _isAborted;
+
+	internal readonly object _abortHandle = new();
+
+	public CancellationToken CancellationToken => cancellationToken?.Token ?? CancellationToken.None;
+	public bool IsAborted => _isAborted;
 
 	public bool IsDone
 	{
@@ -30,6 +36,12 @@ public class BaseThreadedJob : IDisposable
 
 	public virtual void Start()
 	{
+		if (IsAborted)
+		{
+			IsDone = true;
+			return;
+		}
+
 		if (Community.IsServerInitialized)
 		{
 			cancellationToken = new CancellationTokenSource();
@@ -42,6 +54,11 @@ public class BaseThreadedJob : IDisposable
 	}
 	public virtual void Abort()
 	{
+		lock (_abortHandle)
+		{
+			_isAborted = true;
+		}
+
 		cancellationToken?.Cancel();
 	}
 
@@ -66,8 +83,14 @@ public class BaseThreadedJob : IDisposable
 	}
 	private void Run()
 	{
-		ThreadFunction();
-		IsDone = true;
+		try
+		{
+			ThreadFunction();
+		}
+		finally
+		{
+			IsDone = true;
+		}
 	}
 
 	public virtual void Dispose() { }

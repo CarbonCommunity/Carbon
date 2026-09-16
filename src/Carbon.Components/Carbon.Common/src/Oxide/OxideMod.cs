@@ -162,7 +162,7 @@ public class OxideMod
 				continue;
 			}
 
-			plugin.Value.MarkDirty();
+			plugin.Value?.MarkDirty();
 		}
 		foreach (var plugin in Community.Runtime.ZipScriptProcessor.InstanceBuffer)
 		{
@@ -171,7 +171,7 @@ public class OxideMod
 				continue;
 			}
 
-			plugin.Value.MarkDirty();
+			plugin.Value?.MarkDirty();
 		}
 #if DEBUG
 		foreach (var plugin in Community.Runtime.ZipDevScriptProcessor.InstanceBuffer)
@@ -181,7 +181,7 @@ public class OxideMod
 				continue;
 			}
 
-			plugin.Value.MarkDirty();
+			plugin.Value?.MarkDirty();
 		}
 #endif
 	}
@@ -191,7 +191,7 @@ public class OxideMod
 		Community.Runtime.ScriptProcessor.Clear(skip);
 		Community.Runtime.ZipScriptProcessor.Clear(skip);
 #if DEBUG
-		Community.Runtime.ZipScriptProcessor.Clear(skip);
+		Community.Runtime.ZipDevScriptProcessor.Clear(skip);
 #endif
 	}
 
@@ -421,7 +421,7 @@ public class OxideMod
 		if (type == typeof(Command)) return Community.Runtime.Core.cmd as T;
 		if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.Core.rust as T;
 		if (type == typeof(WebRequests)) return Community.Runtime.Core.webrequest as T;
-		if (type == typeof(Libraries.Timer)) return Community.Runtime.Core.timer as T;
+		if (type == typeof(Libraries.Timer)) return Community.Runtime.Core.timer?.Library as T;
 
 		name ??= type.Name;
 

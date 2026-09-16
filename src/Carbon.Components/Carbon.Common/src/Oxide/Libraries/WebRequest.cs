@@ -17,6 +17,8 @@ public enum RequestMethod
 
 public class WebRequests : Library
 {
+	public static float Timeout = 30f;
+
 	public WebRequests()
 	{
 		ServicePointManager.Expect100Continue = false;
@@ -183,6 +185,9 @@ public class WebRequests : Library
 			_client.Proxy = null;
 			_client.Encoding = Encoding.UTF8;
 			_client.AutomaticDecompression = DecompressionMethod;
+
+			var milliseconds = (Timeout <= 0f ? WebRequests.Timeout : Timeout) * 1000f;
+			_client.Timeout = milliseconds >= int.MaxValue ? int.MaxValue : (int)milliseconds;
 
 			if (RequestHeaders != null && RequestHeaders.Count > 0)
 			{
@@ -412,6 +417,7 @@ public class WebRequests : Library
 		public class Client : WebClient
 		{
 			public int StatusCode { get; private set; }
+			public int Timeout { get; set; }
 			public DecompressionMethods AutomaticDecompression { get; set; } = DecompressionMethods.GZip;
 
 			public Client()
@@ -434,6 +440,11 @@ public class WebRequests : Library
 				}
 				catch (WebException exp)
 				{
+					if (exp.Response == null)
+					{
+						throw;
+					}
+
 					response = exp.Response;
 
 					if (response is HttpWebResponse httpResponse)
@@ -460,6 +471,11 @@ public class WebRequests : Library
 				}
 				catch (WebException exp)
 				{
+					if (exp.Response == null)
+					{
+						throw;
+					}
+
 					response = exp.Response;
 
 					if (response is HttpWebResponse httpResponse)
@@ -475,12 +491,23 @@ public class WebRequests : Library
 			{
 				var request = base.GetWebRequest(address) as HttpWebRequest;
 
-				request.UserAgent = Community.Runtime.Analytics.UserAgent;
+				if (string.IsNullOrEmpty(request.UserAgent))
+				{
+					request.UserAgent = Community.Runtime.Analytics.UserAgent;
+				}
+
 				request.AutomaticDecompression = AutomaticDecompression;
 
-				if (Community.IsConfigReady && !string.IsNullOrEmpty(Community.Runtime.Config.WebRequestIp))
+				if (Timeout > 0)
 				{
-					request.ServicePoint.BindIPEndPointDelegate = (_, _, _) => new IPEndPoint(IPAddress.Parse(Community.Runtime.Config.WebRequestIp), 0);
+					request.Timeout = Timeout;
+				}
+
+				if (!address.IsLoopback && Community.IsConfigReady &&
+					IPAddress.TryParse(Community.Runtime.Config.WebRequestIp, out var bindAddress))
+				{
+					var bindEndPoint = new IPEndPoint(bindAddress, 0);
+					request.ServicePoint.BindIPEndPointDelegate = (_, _, _) => bindEndPoint;
 				}
 
 				return request;

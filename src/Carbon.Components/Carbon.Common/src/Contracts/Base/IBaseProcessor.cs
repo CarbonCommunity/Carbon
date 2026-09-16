@@ -13,6 +13,7 @@ public interface IBaseProcessor
 	public string Folder { get; }
 	public string Extension { get; }
 
+	string GetInstanceKey(string path);
 	void Prepare(string path);
 	void Prepare(string name, string path);
 	void Ignore(string path);

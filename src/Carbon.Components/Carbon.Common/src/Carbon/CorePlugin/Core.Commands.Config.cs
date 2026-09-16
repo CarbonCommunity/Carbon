@@ -137,6 +137,10 @@ public partial class CorePlugin
 		}
 	}
 
+	[CommandVar("enableproxy", "Enabling proxies will make certain plugins to compile on Carbon and not Oxide; adds proxies for features Rust no longer supports. (Enabled by default)")]
+	[AuthLevel(2)]
+	private bool EnableProxy { get { return Community.Runtime.Config.Compiler.EnableProxy; } set { Community.Runtime.Config.Compiler.EnableProxy = value; Community.Runtime.SaveConfig(); } }
+
 #if WIN
 	[CommandVar("consoleinfo", "Show the Windows-only Carbon information at the bottom of the console.")]
 	[AuthLevel(2)]

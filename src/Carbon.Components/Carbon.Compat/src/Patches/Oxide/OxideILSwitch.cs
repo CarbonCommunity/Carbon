@@ -2,7 +2,6 @@
 using Carbon.Compat.Converters;
 using Carbon.Compat.Lib;
 using HarmonyLib;
-using Oxide.Core.Libraries;
 using Oxide.Plugins;
 
 namespace Carbon.Compat.Patches.Oxide;
@@ -16,28 +15,17 @@ namespace Carbon.Compat.Patches.Oxide;
 
 public class OxideILSwitch : BaseOxidePatch
 {
-	public static CompatManager Singleton => Community.Runtime.Compat as CompatManager;
-
     private static MethodInfo pluginLoaderMethod = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.RegisterPluginLoader));
     private static MethodInfo consoleCommand1 = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.AddConsoleCommand1));
     private static MethodInfo chatCommand1 = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.AddChatCommand1));
     private static MethodInfo getExtensionDirectory = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.GetExtensionDirectory));
-    private static MethodInfo timerOnce = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.TimerOnce));
-    private static MethodInfo timerRepeat = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.TimerRepeat));
 
     private static MethodInfo onAddedToManagerCompat = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.OnAddedToManagerCompat));
     private static MethodInfo onRemovedFromManagerCompat = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.OnRemovedFromManagerCompat));
 
     private static FieldInfo rustPluginTimer = AccessTools.Field(typeof(RustPlugin), "timer");
+    private static MethodInfo pluginTimersLibrary = AccessTools.PropertyGetter(typeof(PluginTimers), nameof(PluginTimers.Library));
 
-    private static readonly MethodInfo carbonLangGetMessage;
-    private static int carbonLangGetMessageArgLength;
-
-    static OxideILSwitch()
-    {
-        carbonLangGetMessage = typeof(Lang).GetMethods().First(x => x.Name == "GetMessage" && x.ReturnType == typeof(string));
-        carbonLangGetMessageArgLength = carbonLangGetMessage.GetParameters().Length;
-    }
     public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, ref BaseConverter.Context context)
     {
         foreach (TypeDefinition type in assembly.GetAllTypes())
@@ -148,32 +136,8 @@ public class OxideILSwitch : BaseOxidePatch
                         continue;
                     }
 
-                    // timer call fix
-                    if (CIL.OpCode == CilOpCodes.Callvirt &&
-                        CIL.Operand is MemberReference fref &&
-                        fref.Signature is MethodSignature fsig &&
-                        fref.Parent is TypeReference ftw &&
-                        ftw.FullName == "Oxide.Core.Libraries.Timer" &&
-                        fsig.ParameterTypes[^1].FullName == "Oxide.Core.Plugins.Plugin" &&
-                        ftw.DefinitionAssembly().Name == CompatManager.Common.Name)
-                    {
-                        switch (fref.Name.ToString())
-                        {
-                            case "Once":
-                                CIL.Operand = importer.ImportMethod(timerOnce);
-                                goto cend;
-                            case "Repeat":
-                                CIL.Operand = importer.ImportMethod(timerRepeat);
-                                goto cend;
-                            default:
-                                continue;
-                        }
-                        cend:
-                        CIL.OpCode = CilOpCodes.Call;
-                        continue;
-                    }
-
-                    // change GetLibrary<Oxide.Core.Libraries.Timer> to this.timer
+                    // change GetLibrary<Oxide.Core.Libraries.Timer> to this.timer.Library
+                    // (Once/Repeat member refs resolve directly against Carbon.Common's Timer library, signatures match Oxide's)
                     if (isRustPluginInstance && CIL.OpCode == CilOpCodes.Callvirt &&
                         CIL.Operand is MethodSpecification gspec &&
                         gspec.Method is MemberReference gref &&
@@ -190,7 +154,8 @@ public class OxideILSwitch : BaseOxidePatch
                         {
                             new CilInstruction(CilOpCodes.Pop),
                             new CilInstruction(CilOpCodes.Ldarg_0),
-                            new CilInstruction(CilOpCodes.Ldfld, importer.ImportField(rustPluginTimer))
+                            new CilInstruction(CilOpCodes.Ldfld, importer.ImportField(rustPluginTimer)),
+                            new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(pluginTimersLibrary))
                         });
                         continue;
                     }

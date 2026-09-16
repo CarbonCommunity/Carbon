@@ -1,9 +1,4 @@
-﻿using API.Analytics;
-using API.Assembly;
-using API.Commands;
-using API.Contracts;
-using API.Events;
-using Carbon.Profiler;
+﻿using Carbon.Profiler;
 using Facepunch;
 using Newtonsoft.Json;
 
