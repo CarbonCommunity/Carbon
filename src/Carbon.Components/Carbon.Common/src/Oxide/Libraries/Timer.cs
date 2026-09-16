@@ -6,7 +6,7 @@ namespace Oxide.Core.Libraries;
 public partial class Timer : Library
 {
 	public Plugin Plugin { get; }
-	internal HashSet<TimerInstance> _timers { get; set; } = [];
+	internal readonly HashSet<TimerInstance> _timers = [];
 
 	public Timer() { }
 	public Timer(Plugin plugin)
@@ -28,7 +28,6 @@ public partial class Timer : Library
 	internal void TrackTimer(TimerInstance timer)
 	{
 		timer.OwnerTimers = this;
-		_timers ??= [];
 
 		lock (SchedulerLock)
 		{
@@ -37,7 +36,7 @@ public partial class Timer : Library
 	}
 	internal void UntrackTimer(TimerInstance timer)
 	{
-		if (timer.OwnerTimers != this || _timers == null)
+		if (timer.OwnerTimers != this)
 		{
 			return;
 		}
@@ -113,11 +112,6 @@ public partial class Timer : Library
 	}
 	public void DestroyAll()
 	{
-		if (_timers == null)
-		{
-			return;
-		}
-
 		var timers = Pool.Get<List<TimerInstance>>();
 
 		try

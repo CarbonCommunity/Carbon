@@ -319,10 +319,6 @@ public partial class Timer
 				var next = now <= timer.DueAt
 					? timer.DueAt + delay
 					: now + delay - ((now - timer.DueAt) % delay);
-				if (double.IsNaN(next) || double.IsInfinity(next))
-				{
-					next = now + delay;
-				}
 				Schedule(timer, next);
 			}
 			else
