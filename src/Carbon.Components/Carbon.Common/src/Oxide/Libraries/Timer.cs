@@ -61,7 +61,7 @@ public partial class Timer : Library
 		timer.Callback = action;
 
 		TrackTimer(timer);
-		Schedule(timer, CurrentTime + time);
+		ScheduleIn(timer, time);
 
 		return timer;
 	}
@@ -83,7 +83,7 @@ public partial class Timer : Library
 		timer.Callback = action;
 
 		TrackTimer(timer);
-		Schedule(timer, CurrentTime + NormalizeRepeatDelay(time));
+		ScheduleIn(timer, NormalizeRepeatDelay(time));
 
 		return timer;
 	}
@@ -98,7 +98,7 @@ public partial class Timer : Library
 		timer.Callback = action;
 
 		TrackTimer(timer);
-		Schedule(timer, CurrentTime + (timer.Repeating ? NormalizeRepeatDelay(time) : time));
+		ScheduleIn(timer, timer.Repeating ? NormalizeRepeatDelay(time) : time);
 
 		return timer;
 	}
@@ -211,7 +211,7 @@ public partial class Timer : Library
 				Callback = Activity;
 				OwnerTimers?.TrackTimer(this);
 
-				Timer.Schedule(this, Timer.CurrentTime + (Repeating ? Timer.NormalizeRepeatDelay(delay) : delay));
+				Timer.ScheduleIn(this, Repeating ? Timer.NormalizeRepeatDelay(delay) : delay);
 			}
 		}
 		public bool Destroy()

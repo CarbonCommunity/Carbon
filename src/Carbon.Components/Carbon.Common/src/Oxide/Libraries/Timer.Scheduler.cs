@@ -82,48 +82,50 @@ public partial class Timer
 		return delay > MinimumRepeatDelay ? delay : MinimumRepeatDelay;
 	}
 
+	internal static void ScheduleIn(TimerInstance timer, float delay)
+	{
+		lock (SchedulerLock)
+		{
+			Schedule(timer, CurrentTime + delay);
+		}
+	}
+
 	internal static void Schedule(TimerInstance timer, double at)
 	{
+		if (timer.Destroyed)
+		{
+			return;
+		}
+
 		if (double.IsNaN(at))
 		{
 			at = double.NegativeInfinity;
 		}
 
-		lock (SchedulerLock)
+		if (timer.HeapIndex >= 0)
 		{
-			if (timer.Destroyed)
-			{
-				return;
-			}
-
-			if (timer.HeapIndex >= 0)
-			{
-				RemoveAt(timer.HeapIndex);
-			}
-
-			timer.ExpiresAtDouble = at;
-
-			Push(new ScheduledEntry
-			{
-				At = at,
-				Sequence = ++HeapSequence,
-				Instance = timer
-			});
+			RemoveAt(timer.HeapIndex);
 		}
+
+		timer.ExpiresAtDouble = at;
+
+		Push(new ScheduledEntry
+		{
+			At = at,
+			Sequence = ++HeapSequence,
+			Instance = timer
+		});
 	}
 
 	internal static void Unschedule(TimerInstance timer)
 	{
-		lock (SchedulerLock)
+		if (timer.HeapIndex < 0)
 		{
-			if (timer.HeapIndex < 0)
-			{
-				return;
-			}
-
-			RemoveAt(timer.HeapIndex);
-			timer.HeapIndex = -1;
+			return;
 		}
+
+		RemoveAt(timer.HeapIndex);
+		timer.HeapIndex = -1;
 	}
 
 	internal static void ProcessTimers(int maxTimers = MaxTimersPerFrame)
