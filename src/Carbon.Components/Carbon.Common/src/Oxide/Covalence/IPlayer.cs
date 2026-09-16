@@ -286,8 +286,7 @@ public class RustPlayer : IPlayer
 		iPlayer.Name = name;
 		perms.UpdateNickname(BasePlayer.UserIDString, name);
 
-		var position = BasePlayer.transform.position;
-		Teleport(position.x, position.y, position.z);
+		Player.RefreshForOtherClients(BasePlayer);
 	}
 
 	public void Reply(string message, string prefix, params object[] args)
