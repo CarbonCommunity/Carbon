@@ -71,15 +71,10 @@ public partial class Community
 	{
 		if (wants && !IsServerInitialized)
 		{
-			Oxide.Core.Libraries.Timer.FireDueStartupTimers();
+			Oxide.Core.Libraries.Timer.ProcessTimers(int.MaxValue);
 		}
 
 		IsServerInitialized = wants;
-
-		if (wants)
-		{
-			Oxide.Core.Libraries.Timer.ConvertRemainingStartupTimersToInvokes();
-		}
 	}
 	public void ClearCommands(bool all = false)
 	{
