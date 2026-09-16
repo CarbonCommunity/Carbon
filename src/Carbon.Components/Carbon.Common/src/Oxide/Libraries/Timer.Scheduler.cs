@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Threading;
 using Facepunch;
 using Logger = Carbon.Logger;
 
@@ -27,17 +28,8 @@ public partial class Timer
 		public TimerInstance Instance;
 	}
 
-	private sealed class ClockSample
-	{
-		public double Realtime;
-		public long Timestamp;
-	}
-
-	private static volatile ClockSample Clock = new()
-	{
-		Realtime = 0d,
-		Timestamp = Stopwatch.GetTimestamp()
-	};
+	private static readonly double TimestampToSeconds = 1d / Stopwatch.Frequency;
+	private static double ClockOffset = -Stopwatch.GetTimestamp() * TimestampToSeconds;
 
 	static Timer()
 	{
@@ -55,50 +47,35 @@ public partial class Timer
 
 	internal static void PrimeClock()
 	{
-		var sample = new ClockSample
-		{
-			Realtime = UnityEngine.Time.realtimeSinceStartupAsDouble,
-			Timestamp = Stopwatch.GetTimestamp()
-		};
+		var realtime = UnityEngine.Time.realtimeSinceStartupAsDouble;
+		var timestamp = Stopwatch.GetTimestamp();
 
 		lock (SchedulerLock)
 		{
-			if (!ClockPrimed)
+			UpdateClock(realtime, timestamp);
+		}
+	}
+
+	private static void UpdateClock(double realtime, long timestamp)
+	{
+		var offset = realtime - timestamp * TimestampToSeconds;
+
+		if (!ClockPrimed)
+		{
+			ClockPrimed = true;
+			var adjustment = offset - ClockOffset;
+
+			for (var i = 0; i < HeapCount; i++)
 			{
-				RebaseDeadlines(sample);
+				Heap[i].At += adjustment;
+				Heap[i].Instance.ExpiresAtDouble += adjustment;
 			}
-
-			Clock = sample;
 		}
+
+		Volatile.Write(ref ClockOffset, offset);
 	}
 
-	private static void RebaseDeadlines(ClockSample sample)
-	{
-		ClockPrimed = true;
-
-		var clock = Clock;
-		var offset = sample.Realtime - (clock.Realtime + (sample.Timestamp - clock.Timestamp) / (double)Stopwatch.Frequency);
-
-		if (offset == 0)
-		{
-			return;
-		}
-
-		for (var i = 0; i < HeapCount; i++)
-		{
-			Heap[i].At += offset;
-			Heap[i].Instance.ExpiresAtDouble += offset;
-		}
-	}
-
-	internal static double CurrentTime
-	{
-		get
-		{
-			var clock = Clock;
-			return clock.Realtime + (Stopwatch.GetTimestamp() - clock.Timestamp) / (double)Stopwatch.Frequency;
-		}
-	}
+	internal static double CurrentTime => Stopwatch.GetTimestamp() * TimestampToSeconds + Volatile.Read(ref ClockOffset);
 
 	internal static float NormalizeRepeatDelay(float delay)
 	{
@@ -177,22 +154,13 @@ public partial class Timer
 			return;
 		}
 
-		var sample = new ClockSample
-		{
-			Realtime = UnityEngine.Time.realtimeSinceStartupAsDouble,
-			Timestamp = Stopwatch.GetTimestamp()
-		};
-		var now = sample.Realtime;
+		var now = UnityEngine.Time.realtimeSinceStartupAsDouble;
+		var timestamp = Stopwatch.GetTimestamp();
 		var hasDue = false;
 
 		lock (SchedulerLock)
 		{
-			if (!ClockPrimed)
-			{
-				RebaseDeadlines(sample);
-			}
-
-			Clock = sample;
+			UpdateClock(now, timestamp);
 			hasDue = HasDueTimers(now);
 		}
 
