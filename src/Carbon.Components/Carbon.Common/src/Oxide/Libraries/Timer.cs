@@ -59,7 +59,6 @@ public partial class Timer : Library
 		timer.Delay = time;
 		timer.Repetitions = 1;
 		timer.Callback = action;
-		timer.Tracking = ResolveTracking(action);
 
 		TrackTimer(timer);
 		Schedule(timer, CurrentTime + time);
@@ -82,7 +81,6 @@ public partial class Timer : Library
 		timer.Repetitions = 0;
 		timer.Repeating = true;
 		timer.Callback = action;
-		timer.Tracking = ResolveTracking(action);
 
 		TrackTimer(timer);
 		Schedule(timer, CurrentTime + NormalizeRepeatDelay(time));
@@ -98,7 +96,6 @@ public partial class Timer : Library
 		timer.Repetitions = times;
 		timer.Repeating = times != 1;
 		timer.Callback = action;
-		timer.Tracking = ResolveTracking(action);
 
 		TrackTimer(timer);
 		Schedule(timer, CurrentTime + (timer.Repeating ? NormalizeRepeatDelay(time) : time));
@@ -175,7 +172,6 @@ public partial class Timer : Library
 		internal int HeapIndex = -1;
 		internal int Generation;
 		internal int CollectedGeneration;
-		internal InvokeTrackingData Tracking;
 
 		public TimerInstance() { }
 		public TimerInstance(Plugin.Persistence persistence, Action activity, Plugin plugin = null)
@@ -214,7 +210,6 @@ public partial class Timer : Library
 				Destroyed = false;
 				Callback = Activity;
 				OwnerTimers?.TrackTimer(this);
-				Tracking ??= Timer.ResolveTracking(Activity);
 
 				Timer.Schedule(this, Timer.CurrentTime + (Repeating ? Timer.NormalizeRepeatDelay(delay) : delay));
 			}

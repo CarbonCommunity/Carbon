@@ -82,12 +82,7 @@ public partial class Timer
 		return delay > MinimumRepeatDelay ? delay : MinimumRepeatDelay;
 	}
 
-	internal static InvokeTrackingData ResolveTracking(Action action)
-	{
-		return ThreadEx.IsOnMainThread() ? InvokeProfiler.update.GetTrackingData(new InvokeTrackingKey(action)) : null;
-	}
-
-	internal static void Schedule(TimerInstance timer, double at, bool requeue = false)
+	internal static void Schedule(TimerInstance timer, double at)
 	{
 		if (double.IsNaN(at))
 		{
@@ -104,15 +99,6 @@ public partial class Timer
 			if (timer.HeapIndex >= 0)
 			{
 				RemoveAt(timer.HeapIndex);
-			}
-			else if (timer.Tracking != null)
-			{
-				timer.Tracking.InvokeCount++;
-			}
-
-			if (!requeue)
-			{
-				InvokeProfiler.update.addCount++;
 			}
 
 			timer.ExpiresAtDouble = at;
@@ -137,13 +123,6 @@ public partial class Timer
 
 			RemoveAt(timer.HeapIndex);
 			timer.HeapIndex = -1;
-
-			InvokeProfiler.update.deletedCount++;
-
-			if (timer.Tracking != null)
-			{
-				timer.Tracking.InvokeCount--;
-			}
 		}
 	}
 
@@ -154,30 +133,29 @@ public partial class Timer
 			return;
 		}
 
-		var now = UnityEngine.Time.realtimeSinceStartupAsDouble;
-		var timestamp = Stopwatch.GetTimestamp();
-		var hasDue = false;
-
-		lock (SchedulerLock)
-		{
-			UpdateClock(now, timestamp);
-			hasDue = HasDueTimers(now);
-		}
-
-		PurgeDeadTimers();
-
-		if (!hasDue)
-		{
-			return;
-		}
-
 		var timers = (List<TimerInstance>)null;
 		ProcessingTimers = true;
 
 		try
 		{
-			timers = Pool.Get<List<TimerInstance>>();
+			var now = UnityEngine.Time.realtimeSinceStartupAsDouble;
+			var timestamp = Stopwatch.GetTimestamp();
+			bool hasDue;
 
+			lock (SchedulerLock)
+			{
+				UpdateClock(now, timestamp);
+				hasDue = HasDueTimers(now);
+			}
+
+			PurgeDeadTimers();
+
+			if (!hasDue)
+			{
+				return;
+			}
+
+			timers = Pool.Get<List<TimerInstance>>();
 			CollectDueTimers(timers, now, maxTimers);
 			FireTimers(timers, now);
 		}
@@ -251,14 +229,8 @@ public partial class Timer
 				RemoveAt(0);
 				timer.HeapIndex = -1;
 
-				if (timer.Tracking != null)
-				{
-					timer.Tracking.InvokeCount--;
-				}
-
 				if (timer.Destroyed || timer.Persistence == null || timer.Callback == null)
 				{
-					InvokeProfiler.update.deletedCount++;
 					timer.Destroyed = true;
 					timer.Callback = null;
 					timer.OwnerTimers?.UntrackTimer(timer);
@@ -273,22 +245,19 @@ public partial class Timer
 
 	private static void FireTimers(List<TimerInstance> timers, double now)
 	{
-		var profiler = InvokeProfiler.update;
-		var trackExecution = profiler.mode > 1;
-
 		for (var i = 0; i < timers.Count; i++)
 		{
-			FireTimer(timers[i], profiler, trackExecution, now);
+			FireTimer(timers[i], now);
 		}
 	}
 
-	private static void FireTimer(TimerInstance timer, InvokeProfiler profiler, bool trackExecution, double now)
+	private static void FireTimer(TimerInstance timer, double now)
 	{
 		var generation = timer.CollectedGeneration;
 
 		try
 		{
-			FireCollectedTimer(timer, generation, profiler, trackExecution, now);
+			FireCollectedTimer(timer, generation, now);
 		}
 		catch (Exception ex)
 		{
@@ -296,7 +265,6 @@ public partial class Timer
 			{
 				if (!timer.Destroyed && timer.Generation == generation)
 				{
-					profiler.deletedCount++;
 					timer.Destroy();
 				}
 			}
@@ -311,44 +279,22 @@ public partial class Timer
 		}
 	}
 
-	private static void FireCollectedTimer(TimerInstance timer, int generation, InvokeProfiler profiler, bool trackExecution, double now)
+	private static void FireCollectedTimer(TimerInstance timer, int generation, double now)
 	{
 		if (timer.Destroyed || timer.Generation != generation)
 		{
-			profiler.deletedCount++;
 			return;
 		}
 
 		if (timer.Persistence == null)
 		{
-			profiler.deletedCount++;
 			timer.Destroy();
 			return;
 		}
 
-		var activity = timer.Activity;
-		timer.Tracking ??= ResolveTracking(activity);
-
 		try
 		{
-			if (trackExecution && timer.Tracking != null)
-			{
-				var started = Stopwatch.GetTimestamp();
-				try
-				{
-					activity?.Invoke();
-				}
-				finally
-				{
-					var elapsed = Stopwatch.GetTimestamp() - started;
-					timer.Tracking.ExecutionTime += TimeSpan.FromSeconds(elapsed / (double)Stopwatch.Frequency);
-					timer.Tracking.Calls++;
-				}
-			}
-			else
-			{
-				activity?.Invoke();
-			}
+			timer.Activity?.Invoke();
 		}
 		catch (Exception ex)
 		{
@@ -360,7 +306,6 @@ public partial class Timer
 		{
 			if (timer.Destroyed || timer.Generation != generation)
 			{
-				profiler.deletedCount++;
 				return;
 			}
 
@@ -376,11 +321,10 @@ public partial class Timer
 				{
 					next = now + delay;
 				}
-				Schedule(timer, next, requeue: true);
+				Schedule(timer, next);
 			}
 			else
 			{
-				profiler.deletedCount++;
 				timer.Destroy();
 			}
 		}
