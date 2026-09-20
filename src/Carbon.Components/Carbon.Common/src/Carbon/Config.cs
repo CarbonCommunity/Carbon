@@ -63,6 +63,7 @@ public class Config
 		public bool EnableProxy = true;
 		public bool CompileTestMode = false;
 		public bool UnloadOnFailure = false;
+		public bool GenerateInternalCallHookSourceOnFailure = true;
 		public List<string> ConditionalCompilationSymbols;
 	}
 
@@ -127,8 +128,6 @@ public class Config
 
 	public class MiscConfig
 	{
-#if WIN
 		public bool ShowConsoleInfo = true;
-#endif
 	}
 }

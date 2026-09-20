@@ -184,18 +184,23 @@ public static class HookCaller
 			return null;
 		}
 
+		var subscribers = HookSubscriberIndex.Get(hookId, flag);
+
+		if (subscribers.Length == 0)
+		{
+			return null;
+		}
+
 		var result = (object)null;
 		List<Conflict> conflicts = null;
 
-		var moduleList = Community.Runtime.ModuleProcessor.Modules;
-
-		for (int i = 0; i < moduleList.Count; i++)
+		for (int i = 0; i < subscribers.Length; i++)
 		{
-			var hookable = moduleList[i];
+			var hookable = subscribers[i];
 
 			try
 			{
-				if (hookable is IModule modules && !modules.IsEnabled()) continue;
+				if (hookable is IModule module && !module.IsEnabled()) continue;
 
 				var methodResult = Caller.CallHook(hookable, hookId, flags: flag, args: args);
 
@@ -209,37 +214,7 @@ public static class HookCaller
 			{
 				var exception = ex.InnerException ?? ex;
 				var readableHook = HookStringPool.GetOrAdd(hookId);
-				Logger.Error($"Failed to call hook '{readableHook}' on module '{hookable.Name} v{hookable.Version}'", exception);
-			}
-		}
-
-		for (int i = 0; i < ModLoader.Packages.Count; i++)
-		{
-			var package = ModLoader.Packages[i];
-
-			for(int o = 0; o < package.Plugins.Count; o++)
-			{
-				var plugin = package.Plugins[o];
-
-				try
-				{
-					var methodResult = Caller.CallHook(plugin, hookId, flags: flag, args: args);
-
-					if (methodResult == null)
-					{
-						continue;
-					}
-
-					conflicts ??= Facepunch.Pool.Get<List<Conflict>>();
-					result = methodResult;
-					ResultOverride(conflicts, plugin, hookId, result);
-				}
-				catch (Exception ex)
-				{
-					var exception = ex.InnerException ?? ex;
-					var readableHook = HookStringPool.GetOrAdd(hookId);
-					Logger.Error($"Failed to call hook '{readableHook}' on plugin '{plugin.Name} v{plugin.Version}'", exception);
-				}
+				Logger.Error($"Failed to call hook '{readableHook}' on {(hookable is BaseModule ? "module" : "plugin")} '{hookable.Name} v{hookable.Version}'", exception);
 			}
 		}
 
