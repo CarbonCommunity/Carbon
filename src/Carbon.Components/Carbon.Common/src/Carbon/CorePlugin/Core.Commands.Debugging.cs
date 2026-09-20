@@ -1,6 +1,4 @@
-﻿using Carbon.Base.Interfaces;
-
-namespace Carbon.Core;
+﻿namespace Carbon.Core;
 
 public partial class CorePlugin
 {
@@ -41,44 +39,6 @@ public partial class CorePlugin
 			var value = argument.Value;
 			table.AddRow(argument.Key, value.Rented, value.RentedExtra, value.Returned, value.Count, HookCallerCommon.HookArgPool.BufferSize);
 		}
-		arg.ReplyWith(table.Write(StringTable.FormatTypes.None));
-	}
-
-	[ConsoleCommand("hookindex", "Prints the static hook subscriber cache summary, or the subscribers of the given hook")]
-	[AuthLevel(2)]
-	private void HookIndex(ConsoleSystem.Arg arg)
-	{
-		var hookName = arg.GetString(0);
-
-		if (string.IsNullOrEmpty(hookName))
-		{
-			var entries = 0;
-
-			foreach (var entry in HookSubscriberIndex.Current)
-			{
-				entries += entry.Value.Length;
-			}
-
-			arg.ReplyWith($"Hook index: {HookSubscriberIndex.Current.Count:n0} cached {HookSubscriberIndex.Current.Count.Plural("hook", "hooks")}, {entries:n0} subscriber {entries.Plural("entry", "entries")}, invalidations {HookSubscriberIndex.Version:n0}, cache built at {HookSubscriberIndex.BuiltVersion:n0}");
-			return;
-		}
-
-		var subscribers = HookSubscriberIndex.Get(HookStringPool.GetOrAdd(hookName));
-
-		if (subscribers.Length == 0)
-		{
-			arg.ReplyWith($"No subscribers for hook '{hookName}'.");
-			return;
-		}
-
-		using var table = new StringTable("#", "hookable", "type", "version");
-
-		for (int i = 0; i < subscribers.Length; i++)
-		{
-			var hookable = subscribers[i];
-			table.AddRow(i + 1, hookable.Name, hookable is not IModule module ? "plugin" : module.IsEnabled() ? "module" : "module (disabled)", hookable.Version);
-		}
-
 		arg.ReplyWith(table.Write(StringTable.FormatTypes.None));
 	}
 }

@@ -499,7 +499,6 @@ public class BaseHookable : Integrations.ITestable
 		HasBuiltHookCache = true;
 
 		InternalCallHook(0, null);
-		HookSubscriberIndex.Invalidate();
 	}
 	public virtual object InternalCallHook(uint hook, object[] args)
 	{

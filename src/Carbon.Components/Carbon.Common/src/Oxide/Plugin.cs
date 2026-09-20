@@ -692,7 +692,6 @@ public class Plugin : BaseHookable, IDisposable
 				Hooks = null;
 				HookMethods = null;
 				PluginReferences = null;
-				HookSubscriberIndex.Invalidate();
 			}
 		}
 		catch (Exception ex)

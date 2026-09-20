@@ -123,7 +123,6 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 	public void Setup(BaseHookable hookable)
 	{
 		_modules.Add(hookable);
-		HookSubscriberIndex.Invalidate();
 	}
 	public void Build(params Type[] types)
 	{
@@ -245,7 +244,6 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 	public void Uninstall(IModule module)
 	{
 		_modules.RemoveAll(x => x == module);
-		HookSubscriberIndex.Invalidate();
 	}
 
 	public void Save()
@@ -284,7 +282,6 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 		}
 
 		_modules.Clear();
-		HookSubscriberIndex.Invalidate();
 
 		base.Dispose();
 	}

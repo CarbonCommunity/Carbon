@@ -136,7 +136,7 @@ public class ScriptLoader : IScriptLoader
 					continue;
 				}
 
-				plugin.Instance.Package.RemovePlugin(plugin.Instance);
+				plugin.Instance.Package.Plugins?.RemoveAll(x => x == plugin.Instance);
 
 				if (plugin.Instance.IsExtension)
 				{
@@ -437,10 +437,7 @@ public class ScriptLoader : IScriptLoader
 				}
 
 #if DEBUG
-				if (Community.Runtime.Config.Compiler.GenerateInternalCallHookSourceOnFailure)
-				{
-					OsEx.File.Create(Path.Combine(Defines.GetScriptDebugFolder(), $"{Path.GetFileNameWithoutExtension(AsyncLoader.InitialSource.ContextFilePath)}.Internal.cs"), AsyncLoader.InternalCallHookSource);
-				}
+				OsEx.File.Create(Path.Combine(Defines.GetScriptDebugFolder(), $"{Path.GetFileNameWithoutExtension(AsyncLoader.InitialSource.ContextFilePath)}.Internal.cs"), AsyncLoader.InternalCallHookSource);
 #endif
 			}
 			else if (AsyncLoader.IsCompileTestMode)
