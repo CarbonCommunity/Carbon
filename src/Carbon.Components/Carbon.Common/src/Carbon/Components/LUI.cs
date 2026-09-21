@@ -3354,6 +3354,7 @@ public static class LuiPool
 			cont.destroyUi = null;
 			cont.fadeOut = 0;
 			cont.update = false;
+			cont.activeSelf = true;
 			return cont;
 		}
 	}
