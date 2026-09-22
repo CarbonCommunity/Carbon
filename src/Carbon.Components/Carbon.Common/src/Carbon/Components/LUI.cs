@@ -608,6 +608,7 @@ public class LUI : IDisposable
 		public float fadeOut;
 		public bool update;
 		public bool activeSelf = true;
+		public bool activeSelfSet;
 
 		#region Container Methods - Global
 
@@ -632,6 +633,7 @@ public class LUI : IDisposable
 		public LuiContainer SetActiveSelf(bool active)
 		{
 			activeSelf = active;
+			activeSelfSet = true;
 			return this;
 		}
 
@@ -3343,6 +3345,7 @@ public static class LuiPool
 			cont.fadeOut = 0;
 			cont.update = false;
 			cont.activeSelf = true;
+			cont.activeSelfSet = false;
 			return cont;
 		}
 		else
@@ -3355,6 +3358,7 @@ public static class LuiPool
 			cont.fadeOut = 0;
 			cont.update = false;
 			cont.activeSelf = true;
+			cont.activeSelfSet = false;
 			return cont;
 		}
 	}
