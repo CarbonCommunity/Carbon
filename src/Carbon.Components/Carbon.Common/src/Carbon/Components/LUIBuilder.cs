@@ -439,11 +439,10 @@ public struct LuiBuilderInstance : IDisposable
 	            this.WriteComma();
 	            this.WriteField("update", true);
             }
-            if (!element.activeSelf)
-            {
-	            this.WriteComma();
-	            this.WriteField("activeSelf", false);
-            }
+            
+			this.WriteComma();
+            this.WriteField("activeSelf", false);
+			
             if (element.luiComponents.Count > 0)
             {
 	            this.WriteComma();
