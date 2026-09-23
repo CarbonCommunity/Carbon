@@ -151,7 +151,33 @@ public class Player : Library
 		player._name = name;
 		player.SendNetworkUpdateImmediate();
 		permission.UpdateNickname(player.UserIDString, name);
-		Teleport(player, player.transform.position);
+		RefreshForOtherClients(player);
+	}
+
+	internal static void RefreshForOtherClients(BasePlayer player)
+	{
+		if (global::Rust.Application.isLoading || global::Rust.Application.isLoadingSave || player.IsDestroyed || !player.isSpawned || player.net?.group == BaseNetworkable.LimboNetworkGroup)
+		{
+			return;
+		}
+
+		var connections = player.GetSubscribers();
+		if (connections == null)
+		{
+			return;
+		}
+
+		for (int i = 0; i < connections.Count; i++)
+		{
+			var connection = connections[i];
+			if (!connection.connected || connection.player is not BasePlayer viewer || viewer == null || viewer == player || !player.ShouldNetworkTo(viewer))
+			{
+				continue;
+			}
+
+			player.DestroyOnClient(connection);
+			player.SendAsSnapshotWithChildren(viewer);
+		}
 	}
 
 	public void Teleport(BasePlayer player, Vector3 destination)
