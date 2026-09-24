@@ -278,7 +278,10 @@ public class RustPlayer : IPlayer
 
 		name = (string.IsNullOrEmpty(name.Trim()) ? BasePlayer.displayName : name);
 		SingletonComponent<ServerMgr>.Instance.persistance.SetPlayerName(BasePlayer.userID, name);
-		BasePlayer.net.connection.username = name;
+		if (BasePlayer.net?.connection != null)
+		{
+			BasePlayer.net.connection.username = name;
+		}
 		BasePlayer.displayName = name;
 		BasePlayer._name = name;
 		BasePlayer.SendNetworkUpdateImmediate();
@@ -286,8 +289,7 @@ public class RustPlayer : IPlayer
 		iPlayer.Name = name;
 		perms.UpdateNickname(BasePlayer.UserIDString, name);
 
-		var position = BasePlayer.transform.position;
-		Teleport(position.x, position.y, position.z);
+		Player.RefreshForOtherClients(BasePlayer);
 	}
 
 	public void Reply(string message, string prefix, params object[] args)
