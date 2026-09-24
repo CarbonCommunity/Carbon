@@ -475,6 +475,23 @@ public class ScriptLoader : IScriptLoader
 			yield break;
 		}
 
+		// A required plugin that reloaded while this one compiled leaves the assembly bound to its dead instance
+		if (Process != null && HasStaleRequires(requiresResult))
+		{
+			Logger.Warn($" A required plugin of '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}' reloaded during compilation, recompiling..");
+
+			AsyncLoader?.Dispose();
+			HasFinished = true;
+			Pool.FreeUnmanaged(ref requires);
+			Process.MarkDirty();
+
+			if (Community.AllProcessorsFinalized)
+			{
+				ModLoader.OnPluginProcessFinished();
+			}
+			yield break;
+		}
+
 		var assembly = AsyncLoader.Assembly;
 		var firstPlugin = true;
 
@@ -587,6 +604,21 @@ public class ScriptLoader : IScriptLoader
 
 		Pool.FreeUnmanaged(ref requires);
 		yield return null;
+	}
+
+	internal static bool HasStaleRequires(Plugin[] requires)
+	{
+		if (requires == null) return false;
+
+		foreach (var require in requires)
+		{
+			if (require == null || !require.IsLoaded || Community.Runtime.Core.plugins.Find(require.Name) != require)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void Dispose()
