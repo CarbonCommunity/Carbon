@@ -278,7 +278,10 @@ public class RustPlayer : IPlayer
 
 		name = (string.IsNullOrEmpty(name.Trim()) ? BasePlayer.displayName : name);
 		SingletonComponent<ServerMgr>.Instance.persistance.SetPlayerName(BasePlayer.userID, name);
-		BasePlayer.net.connection.username = name;
+		if (BasePlayer.net?.connection != null)
+		{
+			BasePlayer.net.connection.username = name;
+		}
 		BasePlayer.displayName = name;
 		BasePlayer._name = name;
 		BasePlayer.SendNetworkUpdateImmediate();

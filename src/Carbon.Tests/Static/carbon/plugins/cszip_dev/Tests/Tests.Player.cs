@@ -24,6 +24,31 @@ public partial class Tests
 			return VerifyRename(test, (player, name) => new RustPlayer(player).Rename(name));
 		}
 
+		[Integrations.Test.Assert(Timeout = 5000)]
+		public void rename_without_connection_does_not_throw(Integrations.Test.Assert test)
+		{
+			var player = GameManager.server.CreateEntity("assets/prefabs/player/player.prefab", new Vector3(0, 1000, 0)) as BasePlayer;
+			try
+			{
+				player.enableSaving = false;
+				player.Spawn();
+
+				new PlayerLibrary().Rename(player, "SleeperLibrary");
+				test.IsTrue(player.displayName == "SleeperLibrary", "library rename updated display name");
+
+				new RustPlayer(player).Rename("SleeperCovalence");
+				test.IsTrue(player.displayName == "SleeperCovalence", "covalence rename updated display name");
+			}
+			finally
+			{
+				if (player != null && !player.IsDestroyed)
+				{
+					player.Kill();
+				}
+			}
+			test.Complete();
+		}
+
 		private static async Task VerifyRename(Integrations.Test.Assert test, Action<BasePlayer, string> rename)
 		{
 			var parent = GameManager.server.CreateEntity("assets/prefabs/player/player.prefab", new Vector3(0, 1000, 0));

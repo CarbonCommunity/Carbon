@@ -146,7 +146,10 @@ public class Player : Library
 		name = (string.IsNullOrEmpty(name.Trim()) ? player.displayName : name);
 
 		SingletonComponent<ServerMgr>.Instance.persistance.SetPlayerName(player.userID, name);
-		player.net.connection.username = name;
+		if (player.net?.connection != null)
+		{
+			player.net.connection.username = name;
+		}
 		player.displayName = name;
 		player._name = name;
 		player.SendNetworkUpdateImmediate();
