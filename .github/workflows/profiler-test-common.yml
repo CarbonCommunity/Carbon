@@ -22,7 +22,7 @@ jobs:
       matrix:
         include:
           - group: Linux
-            target: ubuntu-latest
+            target: ubuntu-24.04
             harness_config: DebugUnix
             profiler_archive: Carbon.Linux.Profiler.tar.gz
           - group: Windows

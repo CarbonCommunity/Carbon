@@ -35,7 +35,7 @@ on:
 jobs:
   configure:
     name: Setup (${{ inputs.GIT_BRANCH }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       api_id: ${{ steps.config.outputs.api_id }}
       update_arg: ${{ steps.config.outputs.update_arg }}
@@ -213,7 +213,7 @@ jobs:
   build:
     name: Build
     needs: configure
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     continue-on-error: false
 
     strategy:
@@ -455,7 +455,7 @@ jobs:
     name: Release (${{ needs.configure.outputs.release_name }}) (${{ needs.configure.outputs.tag_name }})
     if: github.event_name != 'pull_request'
     needs: [ "configure", "build" ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Git Clone
         uses: actions/checkout@v6
