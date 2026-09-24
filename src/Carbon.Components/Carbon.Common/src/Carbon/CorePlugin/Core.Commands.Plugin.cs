@@ -210,7 +210,8 @@ public partial class CorePlugin
 								return;
 							}
 
-							if (!Community.Runtime.Config.Watchers.ScriptWatchers ||
+							// Re-instancing the old type would keep it bound to a required plugin that has since reloaded
+							if (!Community.Runtime.Config.Watchers.ScriptWatchers || HasStaleRequires(plugin) ||
 							    (Assemblies.Plugins.Get(plugin.Name) is Assemblies.RuntimeAssembly pluginAssembly &&
 							     Community.Runtime.MonoProfilerConfig.IsWhitelisted(Profiler.MonoProfilerConfig.ProfileTypes.Plugin, plugin.Name) != pluginAssembly.IsProfiledAssembly))
 							{
@@ -784,5 +785,20 @@ public partial class CorePlugin
 					break;
 				}
 		}
+	}
+
+	private static bool HasStaleRequires(RustPlugin plugin)
+	{
+		if (plugin.Requires == null) return false;
+
+		foreach (var require in plugin.Requires)
+		{
+			if (require == null || !require.IsLoaded || Community.Runtime.Core.plugins.Find(require.Name) != require)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
