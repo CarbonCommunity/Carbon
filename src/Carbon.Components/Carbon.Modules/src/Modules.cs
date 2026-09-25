@@ -1,5 +1,4 @@
 ﻿using System;
-using API.Assembly;
 
 namespace Carbon.Modules;
 

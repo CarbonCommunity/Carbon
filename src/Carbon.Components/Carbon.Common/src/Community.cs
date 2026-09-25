@@ -1,4 +1,4 @@
-﻿using API.Events;
+﻿using Carbon.Events;
 using Terminal;
 using Application = UnityEngine.Application;
 
@@ -51,7 +51,7 @@ public partial class Community
 
 							Array.Clear(trace, 0, trace.Length);
 							resultTrace = resultTrace.TrimEnd();
-							Logger.Write(API.Logger.Severity.Error, $"Unhandled error occurred ({condition})\n{resultTrace}", nativeLog: false);
+							Logger.Write(Carbon.Logging.Severity.Error, $"Unhandled error occurred ({condition})\n{resultTrace}", nativeLog: false);
 #if WIN
 							ServerConsole.Instance.HandleLog(resultTrace, null, type);
 #else
@@ -72,14 +72,14 @@ public partial class Community
 	{
 		if (wants && !IsServerInitialized)
 		{
-			Oxide.Core.Libraries.Timer.ProcessTimers(int.MaxValue);
+			TimerLibrary.ProcessTimers(int.MaxValue);
 		}
 
 		IsServerInitialized = wants;
 	}
 	public void ClearCommands(bool all = false)
 	{
-		CommandManager.ClearCommands(command => all || command.Reference is RustPlugin plugin && !plugin.IsCorePlugin);
+		CommandManager.ClearCommands(command => all || command.Reference is Plugin plugin && !plugin.IsCorePlugin);
 	}
 
 	public void RefreshConsoleInfo()
@@ -112,7 +112,7 @@ public partial class Community
 #if MINIMAL
 			$" Minimal" +
 #endif
-	$" v{version}, {ModLoader.Packages.Count:n0} mods, {ModLoader.Packages.Sum(x => x.Plugins.Count):n0} plgs, {ModuleProcessor.Modules.Count(x => x is BaseModule module && module.IsEnabled()):n0}/{ModuleProcessor.Modules.Count:n0} mdls, {AssemblyEx.Extensions.Loaded.Count:n0} exts, {StoredModifiers.Entities?.Count:n0} mdfs";
+	$" v{version}, {ModLoader.Packages.Count:n0} mods, {ModLoader.Packages.Sum(x => x.Plugins.Count):n0} plgs, {Modules.EnabledCount:n0}/{Modules.Count:n0} mdls, {AssemblyEx.Extensions.Loaded.Count:n0} exts, {StoredModifiers.Entities?.Count:n0} mdfs";
 		}
 		else
 		{
@@ -120,12 +120,4 @@ public partial class Community
 		}
 	}
 
-	public virtual void Initialize()
-	{
-		StoredModifiers.Init();
-	}
-	public virtual void Uninitialize()
-	{
-		Runtime = null;
-	}
 }

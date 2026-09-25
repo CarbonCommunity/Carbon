@@ -1,7 +1,6 @@
 ﻿using System.Text;
-using API.Hooks;
+using Carbon.Hooks;
 using Facepunch;
-using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Core;
 
@@ -24,7 +23,7 @@ public partial class CorePlugin
 		{
 			case "loaded":
 				{
-					IEnumerable<IHook> hooks;
+					IEnumerable<HookEx> hooks;
 
 					switch (option2)
 					{
@@ -94,7 +93,7 @@ public partial class CorePlugin
 
 			default: // list installed
 				{
-					IEnumerable<IHook> hooks;
+					IEnumerable<HookEx> hooks;
 
 					switch (option1)
 					{
@@ -223,7 +222,7 @@ public partial class CorePlugin
 
 			var modules = Pool.Get<Dictionary<BaseHookable, CachedHookInstance>>();
 			{
-				foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+				foreach (var module in Community.Runtime.Modules.All)
 				{
 					foreach (var hookCache in module.HookPool.Where(hookCache => hookCache.Key == hookId))
 					{
@@ -326,7 +325,7 @@ public partial class CorePlugin
 				ProcessHookable(plugin, hookId, alreadyDebugging, ref hooksFound);
 			}
 
-			foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+			foreach (var module in Community.Runtime.Modules.All)
 			{
 				ProcessHookable(module, hookId, alreadyDebugging, ref hooksFound);
 			}
@@ -367,7 +366,7 @@ public partial class CorePlugin
 		{
 			plugin.HookPool.EnableDebugging(!EnforceHookDebugging);
 		}
-		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var module in Community.Runtime.Modules.All)
 		{
 			module.HookPool.EnableDebugging(!EnforceHookDebugging);
 		}

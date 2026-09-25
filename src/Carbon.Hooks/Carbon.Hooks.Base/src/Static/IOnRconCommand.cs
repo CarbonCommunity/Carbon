@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
-using API.Hooks;
+using Carbon.Hooks;
 using Carbon.Components;
 using Carbon.Extensions;
 using Facepunch;
 using Facepunch.Extend;
 using static ConsoleSystem;
-using Command = Oxide.Game.Rust.Libraries.Command;
 using Exception = System.Exception;
 
 namespace Carbon.Hooks;
@@ -28,14 +27,13 @@ public partial class Category_Static
 		[MetadataAttribute.Parameter("command", typeof(string))]
 		[MetadataAttribute.Parameter("arguments", typeof(string[]))]
 		[MetadataAttribute.Return(typeof(void))]
-		[MetadataAttribute.OxideCompatible]
 
 		public class IOnRconCommand : Patch
 		{
 			internal static string Space = " ";
 
 			private static readonly Action _resetFromRconAction = static () =>
-				Command.FromRcon = API.Commands.Command.FromRcon = false;
+				Carbon.Plugins.CommandLibrary.FromRcon = Carbon.Commands.Command.FromRcon = false;
 
 			public static bool Prefix(RCon.Command cmd)
 			{
@@ -76,7 +74,7 @@ public partial class Category_Static
 					{
 						if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.RCon, command, out var outCommand))
 						{
-							Command.FromRcon = API.Commands.Command.FromRcon = true;
+							Carbon.Plugins.CommandLibrary.FromRcon = Carbon.Commands.Command.FromRcon = true;
 
 							var views = new StringView[arguments.Length];
 							for (var i = 0; i < arguments.Length; i++)
@@ -87,7 +85,7 @@ public partial class Category_Static
 							consoleArg.Args = views;
 							consoleArg.cmd = outCommand.RustCommand;
 
-							var commandArgs = Pool.Get<API.Commands.Command.Args>();
+							var commandArgs = Pool.Get<Carbon.Commands.Command.Args>();
 							commandArgs.Token = consoleArg;
 							commandArgs.Type = outCommand.Type;
 							commandArgs.Arguments = arguments;

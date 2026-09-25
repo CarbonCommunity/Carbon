@@ -1,4 +1,4 @@
-﻿using API.Events;
+﻿using Carbon.Events;
 using Facepunch;
 
 namespace Carbon.Core;
@@ -31,7 +31,7 @@ public partial class CorePlugin
 		Logger.Log($"Saving plugin configuration and data..");
 
 		var temp = Pool.Get<List<BaseHookable>>();
-		temp.AddRange(Community.Runtime.ModuleProcessor.Modules);
+		temp.AddRange(Community.Runtime.Modules.All);
 
 		foreach (var module in temp)
 		{
@@ -57,11 +57,11 @@ public partial class CorePlugin
 		HookCaller.CallStaticHook(2396958305);
 
 		Logger.Log($"Shutting down Carbon..");
-		Interface.Oxide.OnShutdown();
+		Community.Runtime.Permission?.SaveData();
 
 		WebControlPanel.Shutdown();
 
-		using var plugins = Pool.Get<PooledList<RustPlugin>>();
+		using var plugins = Pool.Get<PooledList<Plugin>>();
 		ModLoader.Packages.GetAllHookables(plugins);
 		foreach (var plugin in plugins)
 		{

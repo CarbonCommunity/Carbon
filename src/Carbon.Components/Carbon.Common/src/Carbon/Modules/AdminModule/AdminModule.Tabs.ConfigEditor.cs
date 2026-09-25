@@ -19,7 +19,7 @@ public partial class AdminModule
 		internal Dictionary<string, int> LegendIndex;
 		internal Dictionary<string, string[]> LegendOptions;
 
-		public ConfigEditor(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
+		public ConfigEditor(string id, string name, Plugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
 		{
 			LegendIndex = Facepunch.Pool.Get<Dictionary<string, int>>();
 			LegendOptions = Facepunch.Pool.Get<Dictionary<string, string[]>>();

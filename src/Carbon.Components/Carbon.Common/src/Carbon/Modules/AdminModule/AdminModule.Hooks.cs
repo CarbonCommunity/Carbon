@@ -1,5 +1,4 @@
-﻿using ExtensionMethods = Oxide.Core.ExtensionMethods;
-
+﻿
 namespace Carbon.Modules;
 
 public partial class AdminModule
@@ -71,7 +70,7 @@ public partial class AdminModule
 	{
 		var owner = container.playerOwner;
 
-		if (owner == null || container != owner.inventory.containerBelt || !ExtensionMethods.Contains(_backpacks, item.info.itemid))
+		if (owner == null || container != owner.inventory.containerBelt || Array.IndexOf(_backpacks, item.info.itemid) < 0)
 		{
 			return null;
 		}

@@ -1,35 +1,27 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using API.Events;
-using Components;
+using Carbon.Compat;
+using Carbon.Core;
+using Carbon.Events;
+using Carbon.Managers;
 using Patches;
-using Utility;
 
 namespace Carbon;
 
+/// <summary>
+/// First Carbon code to run, injected into Rust's Bootstrap.Init_Tier0 by the publicizer.
+/// Installs the core <see cref="Services"/> and waits for the shared startup to boot Carbon.dll.
+/// </summary>
 public sealed class Bootstrap
 {
 	private static readonly string identifier;
 	private static readonly string assemblyName;
-	private static UnityEngine.GameObject _gameObject;
 	private static HarmonyLib.Harmony _harmonyInstance;
 
-	public static string Name =>  assemblyName;
+	public static string Name => assemblyName;
 
 	internal static HarmonyLib.Harmony Harmony => _harmonyInstance;
-
-	internal static AnalyticsManager Analytics;
-
-	internal static AssemblyManager AssemblyEx;
-
-	internal static CommandManager Commands;
-
-	internal static DownloadManager Downloader;
-
-	internal static EventManager Events;
-
-	internal static FileWatcherManager Watcher;
 
 	static Bootstrap()
 	{
@@ -41,10 +33,10 @@ public sealed class Bootstrap
 
 	public static void Initialize()
 	{
-		Utility.Logger.Log($"{assemblyName} loaded.");
+		Logger.Log($"{assemblyName} loaded.");
 		_harmonyInstance = new HarmonyLib.Harmony(identifier);
 
-		var logPath = Path.Combine(Context.CarbonLogs, "Carbon.Harmony.log");
+		var logPath = Path.Combine(Defines.GetLogsFolder(), "Carbon.Harmony.log");
 
 		Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", logPath);
 		typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
@@ -54,45 +46,36 @@ public sealed class Bootstrap
 		HarmonyLib.Harmony.DEBUG = false;
 #endif
 
-		if(File.Exists(logPath))
+		if (File.Exists(logPath))
 		{
 			File.Delete(logPath);
 		}
 
-		_gameObject = new UnityEngine.GameObject("Carbon");
-		UnityEngine.Object.DontDestroyOnLoad(_gameObject);
+		Services.Install();
 
-		// top priority
-		Commands = _gameObject.AddComponent<CommandManager>();
-		Events = _gameObject.AddComponent<EventManager>();
-		Watcher = _gameObject.AddComponent<FileWatcherManager>();
-
-		// standard priority
-		Analytics = _gameObject.AddComponent<AnalyticsManager>();
-		Downloader = _gameObject.AddComponent<DownloadManager>();
-
-		Events.Subscribe(CarbonEvent.StartupShared, x =>
+		Services.Events.Subscribe(CarbonEvent.StartupShared, _ =>
 		{
-			AssemblyEx = _gameObject.AddComponent<AssemblyManager>();
-			AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
-		});
+			Services.InstallAssemblies();
 
-		Events.Subscribe(CarbonEvent.CarbonStartupComplete, x =>
-		{
-			Watcher.enabled = true;
+			// Harmony mod compatibility is always present
+			Services.GameObject.AddComponent<CompatManager>();
+
+			// Optional packages load first so they can register into Carbon's extension points
+			Services.Assemblies.Components.LoadPackages();
+			Services.Assemblies.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
 		});
 
 		try
 		{
-			Utility.Logger.Log("Applying Harmony patches");
+			Logger.Log("Applying Harmony patches");
 			Harmony.PatchAll(Assembly.GetExecutingAssembly());
 		}
 		catch (Exception e)
 		{
-			Utility.Logger.Error("Unable to apply all patches", e);
+			Logger.Error("Unable to apply all patches", e);
 		}
 
-		Events.Subscribe(CarbonEvent.HooksInstalled, x =>
+		Services.Events.Subscribe(CarbonEvent.HooksInstalled, _ =>
 		{
 			FileSystem_WarmupHalt.IsReady = true;
 		});

@@ -15,7 +15,6 @@
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
 	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
 	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
-	<Import Project="$(SolutionDir)\Carbon.Tools\Carbon.CompilerPolyfills.Shared\Carbon.CompilerPolyfills.Shared.projitems" Label="Shared" />
 
 	<ItemGroup>
 		<None Include="$(SolutionDir)\.msbuild\Protocol.props" Link="msbuild\Protocol.props" />
@@ -42,7 +41,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
-		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Startup\Carbon.Startup.csproj" Private="false" />
 	</ItemGroup>
 
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">

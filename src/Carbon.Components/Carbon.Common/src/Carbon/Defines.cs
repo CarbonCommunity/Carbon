@@ -212,6 +212,18 @@ public class Defines
 
 		return folder;
 	}
+	/// <summary>
+	/// carbon/managed/packages: optional component packages (e.g. compatibility layers).
+	/// They load before Carbon.dll and are referenced by the plugin compiler.
+	/// </summary>
+	public static string GetPackagesFolder()
+	{
+		_initializeCommandLine();
+		var folder = Path.Combine(GetManagedFolder(), "packages");
+		Directory.CreateDirectory(folder);
+
+		return folder;
+	}
 	public static string GetHooksFolder()
 	{
 		_initializeCommandLine();

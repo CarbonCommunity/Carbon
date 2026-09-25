@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using Network;
-using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
 
 namespace Carbon.Components;
@@ -2846,7 +2845,7 @@ public class LuiTooltipComp : LuiCompBase
 	RelativeAnchor = 3,
 }*/
 
-//Currently it relies on Oxide CUI enum, uncomment if it shouldn't.
+// TimerFormat lives next to the CUI element types, uncomment if LUI should own it.
 /*public enum TimerFormat
 {
 	None,

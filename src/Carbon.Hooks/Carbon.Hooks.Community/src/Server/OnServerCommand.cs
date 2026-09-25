@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 
 namespace Carbon.Hooks;
@@ -17,7 +17,6 @@ public partial class Category_Server
 		[MetadataAttribute.Parameter("arg", typeof(ConsoleSystem.Arg))]
 		[MetadataAttribute.Return(typeof(void))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnServerCommand : Patch;
 	}

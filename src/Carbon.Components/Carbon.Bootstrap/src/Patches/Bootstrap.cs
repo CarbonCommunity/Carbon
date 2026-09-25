@@ -1,5 +1,5 @@
 ﻿using System;
-using API.Events;
+using Carbon.Events;
 using HarmonyLib;
 
 namespace Patches;
@@ -9,11 +9,11 @@ internal static class __StartupShared
 {
 	public static void Prefix()
 	{
-		Carbon.Bootstrap.Events.Trigger(CarbonEvent.StartupShared, EventArgs.Empty);
+		Carbon.Managers.Services.Events.Trigger(CarbonEvent.StartupShared, EventArgs.Empty);
 	}
 
 	public static void Postfix()
 	{
-		Carbon.Bootstrap.Events.Trigger(CarbonEvent.StartupSharedComplete, EventArgs.Empty);
+		Carbon.Managers.Services.Events.Trigger(CarbonEvent.StartupSharedComplete, EventArgs.Empty);
 	}
 }

@@ -23,7 +23,7 @@ public partial class CorePlugin
 			plugin.HookPool.Reset();
 		}
 
-		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var module in Community.Runtime.Modules.All)
 		{
 			module.HookPool.Reset();
 		}

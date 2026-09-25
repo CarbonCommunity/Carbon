@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using API.Assembly;
 
 namespace Carbon.Core;
 
@@ -63,39 +62,6 @@ public class Initializer : ICarbonComponent
 
 		try
 		{
-			if (Type.GetType("Oxide.Core.Interface, Oxide.Core") is not null)
-			{
-				Logger.Log(Environment.NewLine +
-					@"                                                          " + Environment.NewLine +
-					@"  ________ _______ ______ _______ _______ _______ _______ " + Environment.NewLine +
-					@" |  |  |  |   _   |   __ \    |  |_     _|    |  |     __|" + Environment.NewLine +
-					@" |  |  |  |       |      <       |_|   |_|       |    |  |" + Environment.NewLine +
-					@" |________|___|___|___|__|__|____|_______|__|____|_______|" + Environment.NewLine +
-					@"                                                          " + Environment.NewLine +
-					@"    WE HAVE DETECTED YOUR SERVER IS STILL PATCHED WITH    " + Environment.NewLine +
-					@"    OXIDE. CARBON WILL NOT WORK IN THIS ENVIRONMENT.		" + Environment.NewLine +
-					@"                                                          " + Environment.NewLine +
-					@"    PLEASE VERIFY YOUR GAME FILES WITH STEAMCMD THEN		" + Environment.NewLine +
-					@"    REBOOT THE SERVER.									" + Environment.NewLine +
-					@"                                                          " + Environment.NewLine +
-					@"    THIS SERVER WILL BE TERMINATED IN 60 SECONDS.         " + Environment.NewLine +
-					@"    THANK YOU <3                                          " + Environment.NewLine +
-					@"                                                          " + Environment.NewLine
-				);
-
-				Thread.Sleep(60000);
-				UnityEngine.Application.Quit();
-				return;
-			}
-		}
-		catch (Exception e)
-		{
-			Logger.Error("Unable to assert assembly status.", e);
-			return;
-		}
-
-		try
-		{
 			Type t = Type.GetType("ServerMgr, Assembly-CSharp");
 			MethodInfo method = t.GetMethod("Shutdown", (BindingFlags)62) ?? null;
 
@@ -134,10 +100,9 @@ public class Initializer : ICarbonComponent
 
 		try
 		{
-			if (CommunityInternal.InternalRuntime == null) CommunityInternal.InternalRuntime = new CommunityInternal();
-			else CommunityInternal.InternalRuntime?.Uninitialize();
-
-			CommunityInternal.InternalRuntime.Initialize();
+			Community.Runtime?.Uninitialize();
+			Community.Runtime = new Community();
+			Community.Runtime.Initialize();
 		}
 		catch (System.Exception e)
 		{
@@ -148,7 +113,7 @@ public class Initializer : ICarbonComponent
 	public void OnUnloaded(EventArgs args)
 	{
 		Logger.Log("Uninitalizing...");
-		CommunityInternal.InternalRuntime?.Uninitialize();
-		CommunityInternal.InternalRuntime = null;
+		Community.Runtime?.Uninitialize();
+		Community.Runtime = null;
 	}
 }

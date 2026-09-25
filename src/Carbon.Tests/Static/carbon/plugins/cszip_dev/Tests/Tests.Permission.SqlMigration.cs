@@ -1,4 +1,4 @@
-#if !TESTS_NO_PERMISSION_SQL_MIGRATION
+﻿#if !TESTS_NO_PERMISSION_SQL_MIGRATION
 using Carbon.Test;
 
 namespace Carbon.Plugins;
@@ -42,7 +42,7 @@ public partial class Tests
 			test.IsTrue(permission.UserHasPermission(UserId, UserPerm), "protobuf user has perm");
 			test.IsTrue(permission.GroupHasPermission(GroupId, GroupPerm), "protobuf group has perm");
 
-			singleton.server.Command("c.migrate_perms_sql");
+			ConsoleSystem.Run(ConsoleSystem.Option.Server.FromServerConsole(), "c.migrate_perms_sql");
 
 			permission = singleton.permission;
 			test.IsTrue(permission.GetType().Name == "PermissionSql", "permission switched to sql");
@@ -119,7 +119,7 @@ public partial class Tests
 
 			const string NickCmdPerm = "sqlmigrationtest.nickcmdperm";
 			permission.RegisterPermission(NickCmdPerm, singleton);
-			singleton.server.Command($"c.grant user SqlMigrationTestNickLazy {NickCmdPerm}");
+			ConsoleSystem.Run(ConsoleSystem.Option.Server.FromServerConsole(), $"c.grant user SqlMigrationTestNickLazy {NickCmdPerm}");
 			test.IsTrue(permission.UserHasPermission(UserId, NickCmdPerm), "sql c.grant user <nickname> <perm> works");
 
 			permission.userdata.Remove(UserId);
@@ -147,7 +147,7 @@ public partial class Tests
 			test.Log($"sql groups before proto: {string.Join(",", sqlReloadedBeforeProto.Groups)}");
 			test.IsTrue(sqlReloadedBeforeProto.Groups.Count > 0, "sql has groups before proto migration");
 
-			singleton.server.Command("c.migrate_perms_proto");
+			ConsoleSystem.Run(ConsoleSystem.Option.Server.FromServerConsole(), "c.migrate_perms_proto");
 			permission = singleton.permission;
 			test.IsTrue(permission.GetType().Name == "Permission", "permission switched to protobuf");
 			test.IsTrue(permission.UserExists(UserId), "protobuf user exists after migration");

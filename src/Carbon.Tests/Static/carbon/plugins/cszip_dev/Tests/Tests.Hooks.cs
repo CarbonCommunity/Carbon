@@ -1,8 +1,8 @@
-#if !TESTS_NO_HOOKS
+﻿#if !TESTS_NO_HOOKS
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using API.Hooks;
+using Carbon.Hooks;
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Pooling;
@@ -110,7 +110,7 @@ public partial class Tests
             var mismatches = 0;
             var checkedHookables = 0;
 
-            foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+            foreach (var module in Community.Runtime.Modules.All)
             {
                 Check(module, true);
             }
@@ -249,7 +249,7 @@ public partial class Tests
         {
             BaseModule fallback = null;
 
-            foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+            foreach (var hookable in Community.Runtime.Modules.All)
             {
                 if (hookable is not BaseModule module || module.ForceDisabled || !module.IsEnabled() || module.HookPool == null || module.HookPool.Count == 0)
                 {
@@ -307,12 +307,12 @@ public partial class Tests
 
 	        void PrintOutHooksInfo()
 	        {
-		        test.Log($"{nameof(IPatchManager.LoadedPatches)}: {hookManager.LoadedPatches.Count()}");
-		        test.Log($"{nameof(IPatchManager.InstalledPatches)}: {hookManager.InstalledPatches.Count()}");
-		        test.Log($"{nameof(IPatchManager.LoadedDynamicHooks)}: {hookManager.LoadedDynamicHooks.Count()}");
-		        test.Log($"{nameof(IPatchManager.InstalledDynamicHooks)}: {hookManager.InstalledDynamicHooks.Count()}");
-		        test.Log($"{nameof(IPatchManager.LoadedStaticHooks)}: {hookManager.LoadedStaticHooks.Count()}");
-		        test.Log($"{nameof(IPatchManager.InstalledStaticHooks)}: {hookManager.InstalledStaticHooks.Count()}");
+		        test.Log($"{nameof(PatchManager.LoadedPatches)}: {hookManager.LoadedPatches.Count()}");
+		        test.Log($"{nameof(PatchManager.InstalledPatches)}: {hookManager.InstalledPatches.Count()}");
+		        test.Log($"{nameof(PatchManager.LoadedDynamicHooks)}: {hookManager.LoadedDynamicHooks.Count()}");
+		        test.Log($"{nameof(PatchManager.InstalledDynamicHooks)}: {hookManager.InstalledDynamicHooks.Count()}");
+		        test.Log($"{nameof(PatchManager.LoadedStaticHooks)}: {hookManager.LoadedStaticHooks.Count()}");
+		        test.Log($"{nameof(PatchManager.InstalledStaticHooks)}: {hookManager.InstalledStaticHooks.Count()}");
         }
     }
     }

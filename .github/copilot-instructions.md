@@ -1,9 +1,10 @@
-﻿# Copilot Instructions
+# Copilot Instructions
 
 Carbon is a self-updating, lightweight, Harmony-based mod loader for the game **Rust**,
-written in modern C#. It is the spiritual successor to / replacement for Oxide and keeps
-backward compatibility with Oxide plugins. It provides a permission system, user system,
-in-game GUI, modules, and an automated hook-generation pipeline.
+written in modern C#. It provides its own plugin API, a permission system, user system,
+in-game GUI, modules, and an automated hook-generation pipeline. It ships in two flavors:
+**Carbon** (standalone, no Oxide code) and **Carbon with Oxide** (adds the `Carbon.Oxide`
+compatibility package so Oxide plugins/extensions keep working). See `docs/CARBON-3.md`.
 
 - **Repository:** https://github.com/CarbonCommunity/Carbon
 - **License:** GNU GPL v3
@@ -22,19 +23,20 @@ in-game GUI, modules, and an automated hook-generation pipeline.
 
 | Path | Purpose |
 | --- | --- |
-| `src/Carbon` | Main Carbon entry assembly, loaders, managers, processors, threads. |
+| `src/Carbon` | Carbon entry component (`Initializer`), creates `Community.Runtime`. |
 | `src/Carbon.Components/Carbon.Preloader` | Runtime preloader of dependencies; handles self-updating. Invokes Carbon.Startup. |
 | `src/Carbon.Components/Carbon.Startup` | In-memory Rust assembly patching, publicizing and exporting (Developer Mode). |
-| `src/Carbon.Components/Carbon.Bootstrap` | Initial Carbon boot in the primary app-domain. |
-| `src/Carbon.Components/Carbon.Common` | Core of Carbon — tools, extensions, base types. Centerpiece all other components depend on. |
-| `src/Carbon.Components/Carbon.SDK` | Contracts/infrastructure with **no implementation** (interfaces, abstractions). |
+| `src/Carbon.Components/Carbon.Bootstrap` | Initial boot in the primary app-domain: installs `Services`, loads packages, then Carbon. |
+| `src/Carbon.Components/Carbon.Common` | Core of Carbon: plugin API (`Carbon.Plugins`), plugin sources/compiler, hooks, managers, modules, CUI, tools. |
+| `src/Carbon.Components/Carbon.SDK` | Low-level shared types (events, commands, hook attributes, addon contracts, package attributes). |
 | `src/Carbon.Components/Carbon.Modules` | Optional modules expanding functionality / QoL. |
-| `src/Carbon.Components/Carbon.Compat` | Compatibility loader (Oxide extensions/plugins compatibility). |
+| `src/Carbon.Components/Carbon.Compat` | HarmonyMod conversion (Rust HarmonyMods loadable under Carbon). |
+| `src/Carbon.Components/Carbon.Oxide` | Oxide compatibility package ("Carbon with Oxide" only), loaded from `carbon/managed/packages`. |
 | `src/Carbon.Components/Carbon.Test` | Automated testing rules and events infrastructure. |
 | `src/Carbon.Hooks/Carbon.Hooks.Base` | Ground-level dynamic & static patches for Carbon's own runtime. |
 | `src/Carbon.Hooks/Carbon.Hooks.Community` | Community-curated patches and hooks. |
 | `src/Carbon.Hooks/Carbon.Hooks.Generator` | Generates Carbon Harmony hooks from an Oxide `.opj` file. |
-| `src/Carbon.Hooks/Carbon.Hooks.Oxide` | Oxide compatibility package, used internally during patch code generation. |
+| `src/Carbon.Hooks/Carbon.Hooks.Oxide` | Generated Oxide hooks ("Carbon with Oxide" only). |
 | `src/Carbon.Tools` | Source generators, compiler polyfills, the publicizer, and the test runner. |
 | `src/Carbon.Profiler*` | Mono profiler and its tests/harness. |
 | `src/Carbon.Tests` | Automated end-to-end test runner suite (used in CI). |
@@ -64,6 +66,22 @@ Carbon is split into mostly-independent **components** (`src/Carbon.Components`)
 - **Conditional compilation:** guard platform/config-specific code with `#if WIN` / `#if UNIX`,
   `#if DEBUG`, and `#if MINIMAL` — these symbols are set per configuration.
 - Release/Minimal builds set `TreatWarningsAsErrors=true`. Keep code warning-clean for those configs.
+- **Flavors:** the default build is Carbon only. `-oxide` on the build runner (or the `build_*_oxide` scripts)
+  passes `-p:CarbonOxide=true`, ships `Carbon.Oxide.dll` to `carbon/managed/packages` and the generated
+  Oxide hooks, outputs to `release/.tmp/<Config>.Oxide` and suffixes archives with `.Oxide`.
+
+## Architecture (3.0)
+
+- `Services` (static, `Carbon.Managers`) holds the process-wide managers created at early boot:
+  events, commands, file watcher, analytics, downloads, assemblies.
+- `Community.Runtime` owns the Carbon runtime: `PluginSources` (plugin file sources + compilation),
+  `HookManager` (`PatchManager`), `Scheduler` (main-thread queue), `Modules` (`ModuleRegistry`),
+  `Permission`, `DataFileSystem`, `Core` (`CorePlugin`).
+- Plugins derive from `Carbon.Plugins.CarbonPlugin` (: `Plugin` : `BaseHookable`). Oxide's `RustPlugin`
+  lives in `Carbon.Oxide` and derives from `CarbonPlugin`.
+- **Carbon.Common, SDK, Bootstrap, Carbon, Compat, Modules and the Base/Community hooks must not reference
+  Oxide.** Anything Oxide-specific goes into `Carbon.Oxide` and plugs into Carbon's public extension points
+  (listed in `docs/CARBON-3.md`). Add a new extension point rather than an Oxide special case.
 
 ## Tests
 
@@ -109,12 +127,14 @@ Preserve existing headers when editing; match the surrounding file when adding n
 
 - **Match the surrounding code.** This is a large, established codebase — mirror local naming,
   patterns, and structure rather than introducing new idioms.
-- Carbon mirrors / extends the **Oxide** API surface for plugin compatibility. When touching
-  plugin-facing or Oxide-compat code, preserve backward compatibility.
+- The native plugin API keeps Oxide's member names (`timer`, `permission`, `lang`, `Puts`..) so plugins port
+  easily. When touching plugin-facing or `Carbon.Oxide` code, preserve backward compatibility; types Carbon
+  provides natively are mapped for Oxide plugins in `OxideTypeMap`.
 - **Hooks** are largely **generated** (`Carbon.Hooks.Generator` from Oxide `.opj` files). Prefer
   understanding the generation pipeline over hand-editing generated hook output.
-- The `Carbon.SDK` project is contracts-only — put interfaces/abstractions there, implementations
-  in the appropriate component.
+- The `Carbon.SDK` project holds only low-level shared types needed below `Carbon.Common`; prefer concrete,
+  public classes in `Carbon.Common` over single-implementation interfaces. Keep systems public and overridable,
+  plugin developers are expected to extend or replace them.
 - Some Rust types are made accessible via the **publicizer** (`Carbon.Tools/Carbon.Publicizer`) and
   source generators (`Carbon.Tools/Carbon.SourceGenerators`). Compiler polyfills
   (`Carbon.CompilerPolyfills.*`) backfill newer language constructs onto net48.

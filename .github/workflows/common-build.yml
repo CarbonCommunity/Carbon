@@ -76,7 +76,7 @@ jobs:
           CREATE_GIT_TAG="false"
           GIT_TAG_SUFFIX=""
           PRERELEASE="true"
-          MAJOR_VER="2.1"
+          MAJOR_VER="3.1"
           RELEASE_NAME="Edge"
 
           case "$REF" in
@@ -84,7 +84,7 @@ jobs:
               API_ID="edge"
               BUILD_DEFINE="EDGE"
               TAG_NAME="edge_build"
-              MAJOR_VER="2.1"
+              MAJOR_VER="3.1"
               RELEASE_NAME="Edge"
               ;;
             "experimental")
@@ -94,7 +94,7 @@ jobs:
               UPDATE_ARG="release"
               NATIVE_MODE="both"
               CS_MODE="full"
-              MAJOR_VER="2.9"
+              MAJOR_VER="3.9"
               RELEASE_NAME="Experimental"
               ;;
             "production")
@@ -106,7 +106,7 @@ jobs:
               RUN_NUGET="true"
               CREATE_GIT_TAG="true"
               PRERELEASE="false"
-              MAJOR_VER="2.0"
+              MAJOR_VER="3.0"
               RELEASE_NAME="Production"
               ;;
             "rust_beta/aux01")
@@ -114,7 +114,7 @@ jobs:
               BUILD_DEFINE="RUST_AUX01"
               TAG_NAME="rustbeta_aux01_build"
               UPDATE_ARG="aux01"
-              MAJOR_VER="2.5"
+              MAJOR_VER="3.5"
               RELEASE_NAME="Rust (Aux01)"
               ;;
             "rust_beta/aux02")
@@ -122,7 +122,7 @@ jobs:
               BUILD_DEFINE="RUST_AUX02"
               TAG_NAME="rustbeta_aux02_build"
               UPDATE_ARG="aux02"
-              MAJOR_VER="2.6"
+              MAJOR_VER="3.6"
               RELEASE_NAME="Rust (Aux02)"
               ;;
             "rust_beta/aux03")
@@ -130,7 +130,7 @@ jobs:
               BUILD_DEFINE="RUST_AUX03"
               TAG_NAME="rustbeta_aux03_build"
               UPDATE_ARG="aux03"
-              MAJOR_VER="2.7"
+              MAJOR_VER="3.7"
               RELEASE_NAME="Rust (Aux03)"
               ;;
             "rust_beta/aux04")
@@ -138,7 +138,7 @@ jobs:
               BUILD_DEFINE="RUST_AUX04"
               TAG_NAME="rustbeta_aux04_build"
               UPDATE_ARG="aux04"
-              MAJOR_VER="2.8"
+              MAJOR_VER="3.8"
               RELEASE_NAME="Rust (Aux04)"
               ;;
             "rust_beta/staging")
@@ -146,7 +146,7 @@ jobs:
               BUILD_DEFINE="RUST_STAGING"
               TAG_NAME="rustbeta_staging_build"
               UPDATE_ARG="staging"
-              MAJOR_VER="2.3"
+              MAJOR_VER="3.3"
               RELEASE_NAME="Rust (Staging)"
               ;;
             "rust_beta/release")
@@ -158,7 +158,7 @@ jobs:
               CS_MODE="full"
               CREATE_GIT_TAG="true"
               GIT_TAG_SUFFIX="-beta"
-              MAJOR_VER="2.4"
+              MAJOR_VER="3.4"
               RELEASE_NAME="Rust (Release)"
               ;;
             *)
@@ -411,18 +411,24 @@ jobs:
           ARG: ${{ matrix.build_arg }}
           MODE: ${{ needs.configure.outputs.cs_mode }}
         run: |
+          # Every configuration ships in two flavors: Carbon, and "Carbon with Oxide" (*.Oxide archives)
+          build() {
+            dotnet ./runner-bin/Carbon.Runner.dll tools/build/runners/build.cs "$1$ARG" $DEFINE $TAG -noclean
+            dotnet ./runner-bin/Carbon.Runner.dll tools/build/runners/build.cs "$1$ARG" $DEFINE $TAG -noclean -oxide
+          }
+
           # Debug Build
           if [[ "$MODE" == "debug" || "$MODE" == "full" ]]; then
-            dotnet ./runner-bin/Carbon.Runner.dll tools/build/runners/build.cs Debug$ARG $DEFINE $TAG -noclean
+            build Debug
           fi
-          
+
           # Release Build
           if [[ "$MODE" == "release" || "$MODE" == "full" ]]; then
-            dotnet ./runner-bin/Carbon.Runner.dll tools/build/runners/build.cs Release$ARG $DEFINE $TAG -noclean
+            build Release
           fi
-          
+
           # Minimal is always built
-          dotnet ./runner-bin/Carbon.Runner.dll tools/build/runners/build.cs Minimal$ARG $DEFINE $TAG -noclean
+          build Minimal
 
       - name: Carbon Nuget Publish (Cond)
         if: needs.configure.outputs.run_nuget == 'true' && matrix.group == 'Windows' && github.event_name != 'pull_request'

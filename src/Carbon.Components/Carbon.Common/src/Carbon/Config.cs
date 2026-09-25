@@ -1,5 +1,5 @@
-﻿using API.Logger;
-using Command = API.Commands.Command;
+﻿using Carbon.Logging;
+using Command = Carbon.Commands.Command;
 
 namespace Carbon.Core;
 

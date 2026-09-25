@@ -1,6 +1,6 @@
-﻿using API.Commands;
+﻿using Carbon.Commands;
 using ConVar;
-using Command = API.Commands.Command;
+using Command = Carbon.Commands.Command;
 
 namespace Carbon.Core;
 
@@ -118,13 +118,6 @@ public partial class CorePlugin
 				return Cache.False;
 			}
 
-			// OnUserCommand
-			if (HookCaller.CallStaticHook(2198880635, player.AsIPlayer(), command, stringArgs) != null)
-			{
-				ReturnBuffer(stringArgs);
-				return Cache.False;
-			}
-
 			// OnPlayerCommand
 			if (HookCaller.CallStaticHook(2915735597, player, command, stringArgs) != null)
 			{
@@ -205,12 +198,7 @@ public partial class CorePlugin
 		}
 
 		// OnPlayerChat
-		var hook1 = HookCaller.CallStaticHook(2032160890, basePlayer, message, channel);
-
-		// OnUserChat
-		var hook2 = HookCaller.CallStaticHook(2894159933, basePlayer.AsIPlayer(), message);
-
-		return hook1 ?? hook2;
+		return HookCaller.CallStaticHook(2032160890, basePlayer, message, channel);
 	}
 
 	internal static object IOnRconInitialize()

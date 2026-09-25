@@ -79,7 +79,8 @@ public partial class CorePlugin
 		set
 		{
 			Community.Runtime.Config.Watchers.ScriptWatcherOption = (SearchOption)value;
-			Community.Runtime.ScriptProcessor.IncludeSubdirectories = value == (int)SearchOption.AllDirectories;
+			Community.Runtime.PluginSources.Scripts.IncludeSubdirectories = value == (int)SearchOption.AllDirectories;
+			Community.Runtime.PluginSources.Zips.IncludeSubdirectories = value == (int)SearchOption.AllDirectories;
 			Community.Runtime.SaveConfig();
 		}
 	}
@@ -116,7 +117,6 @@ public partial class CorePlugin
 		set
 		{
 			Community.Runtime.Config.Processors.ScriptProcessingRate = value;
-			Community.Runtime.ScriptProcessor.RefreshRate();
 			Community.Runtime.SaveConfig();
 		}
 	}
@@ -129,15 +129,11 @@ public partial class CorePlugin
 		set
 		{
 			Community.Runtime.Config.Processors.ZipScriptProcessingRate = value;
-			Community.Runtime.ZipScriptProcessor.RefreshRate();
-#if DEBUG
-			Community.Runtime.ZipDevScriptProcessor.RefreshRate();
-#endif
 			Community.Runtime.SaveConfig();
 		}
 	}
 
-	[CommandVar("enableproxy", "Enabling proxies will make certain plugins to compile on Carbon and not Oxide; adds proxies for features Rust no longer supports. (Enabled by default)")]
+	[CommandVar("enableproxy", "Enabling proxies adds compatibility shims for features Rust no longer supports. (Enabled by default)")]
 	[AuthLevel(2)]
 	private bool EnableProxy { get { return Community.Runtime.Config.Compiler.EnableProxy; } set { Community.Runtime.Config.Compiler.EnableProxy = value; Community.Runtime.SaveConfig(); } }
 

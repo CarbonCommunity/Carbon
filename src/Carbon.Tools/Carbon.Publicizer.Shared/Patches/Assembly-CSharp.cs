@@ -18,7 +18,7 @@ public class AssemblyCSharp() : Patch(RustManagedDirectory, "Assembly-CSharp.dll
 		try
 		{
 			InjectBootstrap();
-			InjectIPlayer();
+			InjectPackageFields();
 		}
 		catch (Exception ex)
 		{
@@ -54,21 +54,26 @@ public class AssemblyCSharp() : Patch(RustManagedDirectory, "Assembly-CSharp.dll
 		method2.Body.OptimizeMacros();
 	}
 
-	private void InjectIPlayer()
+	/// <summary>Adds the fields declared by packages through [InjectField].</summary>
+	private void InjectPackageFields()
 	{
-		var iplayer = assembly.MainModule.GetType("BasePlayer").Fields.FirstOrDefault(x => x.Name == "IPlayer");
-
-		if (iplayer is not null)
+		foreach (var (targetType, fieldName, fieldType) in InjectedFields)
 		{
-			return;
-		}
+			try
+			{
+				var type = assembly.MainModule.GetType(targetType) ?? throw new Exception($"Unable to get a type for '{targetType}'");
 
-		try
-		{
-			var iPlayerType = common.MainModule.GetType("Oxide.Core.Libraries.Covalence", "IPlayer") ?? throw new Exception("Unable to get a type for 'API.Contracts.IPlayer'");
-			var basePlayerType = assembly.MainModule.GetType("BasePlayer") ?? throw new Exception("Unable to get a type for 'BasePlayer'");
-			basePlayerType.Fields.Add(item: new FieldDefinition("IPlayer", Mono.Cecil.FieldAttributes.Public | Mono.Cecil.FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(iPlayerType)));
+				if (type.Fields.Any(x => x.Name == fieldName))
+				{
+					continue;
+				}
+
+				type.Fields.Add(new FieldDefinition(fieldName, Mono.Cecil.FieldAttributes.Public | Mono.Cecil.FieldAttributes.NotSerialized, assembly.MainModule.ImportReference(fieldType)));
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed injecting field '{targetType}.{fieldName}': {ex.Message}");
+			}
 		}
-		catch { }
 	}
 }

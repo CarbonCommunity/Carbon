@@ -23,6 +23,23 @@ public static class PathEx
 	public static bool Equals(string a, string b)
 		=> string.Equals(a, b, PathComparison);
 
+	/// <summary>Swaps any slash for the platform's directory separator.</summary>
+	public static string CleanPath(string path)
+		=> path?.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+
+	/// <summary>Directory part of a path, tolerant to either slash. Null when there is none.</summary>
+	public static string GetDirectoryName(string name)
+	{
+		if (string.IsNullOrEmpty(name))
+		{
+			return null;
+		}
+
+		name = name.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+		var index = name.LastIndexOf(Path.DirectorySeparatorChar);
+		return index < 0 ? null : name.Substring(0, index);
+	}
+
 	private static bool IsRootDirectory(string path)
 	{
 		if (path.Length == 1) return IsSeparator(path[0]);

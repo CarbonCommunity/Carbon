@@ -3,8 +3,10 @@
 /// <summary>
 /// Synonymous to Rust's own 'serverauto' tweakable ConVar variables. Carbon expands on Rust or Carbon-related features designed for customisation.
 /// </summary>
-public class CarbonAuto : API.Abstracts.CarbonAuto
+public class CarbonAuto
 {
+	public static CarbonAuto Singleton { get; private set; }
+
 	public static Dictionary<string, AutoVar> AutoCache = new();
 
 	internal bool _initialized;
@@ -69,7 +71,7 @@ public class CarbonAuto : API.Abstracts.CarbonAuto
 		Singleton = new CarbonAuto();
 		Singleton.Refresh();
 	}
-	public override void Refresh()
+	public virtual void Refresh()
 	{
 		if (_initialized)
 		{
@@ -108,7 +110,7 @@ public class CarbonAuto : API.Abstracts.CarbonAuto
 			AutoCache.Add($"c.{attribute.Name}", var);
 		}
 	}
-	public override bool IsForceModded()
+	public virtual bool IsForceModded()
 	{
 		using (TimeMeasure.New("CarbonAuto.IsChanged"))
 		{
@@ -125,7 +127,7 @@ public class CarbonAuto : API.Abstracts.CarbonAuto
 
 		return false;
 	}
-	public override void Save()
+	public virtual void Save()
 	{
 		using (TimeMeasure.New("CarbonAuto.Save"))
 		{
@@ -148,7 +150,7 @@ public class CarbonAuto : API.Abstracts.CarbonAuto
 			}
 		}
 	}
-	public override void Load()
+	public virtual void Load()
 	{
 		using (TimeMeasure.New("CarbonAuto.Load"))
 		{

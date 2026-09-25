@@ -115,7 +115,7 @@ public partial class CorePlugin
 			table.AddRow($"IsModded option is true", "Config", "c.modding 0");
 		}
 
-		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var hookable in Community.Runtime.Modules.All)
 		{
 			if (hookable is BaseModule { ForceModded: true } module && module.IsEnabled())
 			{
@@ -143,7 +143,7 @@ public partial class CorePlugin
 			changes++;
 		}
 
-		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var hookable in Community.Runtime.Modules.All)
 		{
 			if (hookable is BaseModule { ForceModded: true } module && module.IsEnabled())
 			{

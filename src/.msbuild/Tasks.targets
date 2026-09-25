@@ -47,7 +47,9 @@
 	<Target Name="PrepareRelease" AfterTargets="PostBuildEvent">
 		<Message Text="[$(AssemblyName)] Preparing the release folder ($(OperatingSystem))" Importance="high" />
 		<PropertyGroup>
-			<CarbonBaseDir>$(SolutionDir)..\release\.tmp\$(Configuration)</CarbonBaseDir>
+			<!-- "Carbon with Oxide" builds (-p:CarbonOxide=true) go to their own folder -->
+			<CarbonFlavorSuffix Condition="'$(CarbonOxide)' == 'true'">.Oxide</CarbonFlavorSuffix>
+			<CarbonBaseDir>$(SolutionDir)..\release\.tmp\$(Configuration)$(CarbonFlavorSuffix)</CarbonBaseDir>
 
 			<c_profiler>$(CarbonBaseDir)\profiler</c_profiler>
 
@@ -59,6 +61,7 @@
 			<c_hooks>$(CarbonBaseDir)\carbon\managed\hooks</c_hooks>
 			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
 			<c_modules>$(CarbonBaseDir)\carbon\managed\modules</c_modules>
+			<c_packages>$(CarbonBaseDir)\carbon\managed\packages</c_packages>
 
 			<c_plugins>$(CarbonBaseDir)\carbon\plugins</c_plugins>
 			<c_data>$(CarbonBaseDir)\carbon\data</c_data>
@@ -68,7 +71,7 @@
 		<Message Text="[$(AssemblyName)] Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
 		<MakeDir Directories="$(CarbonBaseDir)" />
 		<MakeDir Directories="$(c_tools);$(c_ext)" />
-		<MakeDir Directories="$(c_managed);$(c_native);$(c_hooks);$(c_lib);$(c_modules)" />
+		<MakeDir Directories="$(c_managed);$(c_native);$(c_hooks);$(c_lib);$(c_modules);$(c_packages)" />
 		<MakeDir Directories="$(c_plugins);$(c_data);$(c_cfg)" />
 		<MakeDir Directories="$(c_profiler);$(c_profiler)\native" />
 	</Target>

@@ -1,6 +1,5 @@
-﻿using API.Hooks;
-using Oxide.Core.Libraries;
-using Oxide.Core.Plugins;
+﻿using Carbon.Hooks;
+using Carbon.Plugins;
 
 namespace Carbon.Hooks;
 
@@ -19,7 +18,6 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("plugin", typeof(Plugin))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnPermissionRegistered : Patch;
 	}

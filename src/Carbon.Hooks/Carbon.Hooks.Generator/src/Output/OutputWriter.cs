@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -73,7 +73,7 @@ internal sealed class OutputWriter(string outputFolder, string managedFolder, bo
 		body.AppendLine("using System.Reflection;");
 		body.AppendLine("using System.Reflection.Emit;");
 		body.AppendLine("using System.Security.Cryptography;");
-		body.AppendLine("using API.Hooks;");
+		body.AppendLine("using Carbon.Hooks;");
 		body.AppendLine("using Carbon;");
 		body.AppendLine("using HarmonyLib;");
 		body.AppendLine("using Oxide.Core;");

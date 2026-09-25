@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -47,7 +47,7 @@ public partial class Tests : CarbonPlugin
 		{
 			plugin.HookPool.EnableDebugging(wants);
 		}
-		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var module in Community.Runtime.Modules.All)
 		{
 			module.HookPool.EnableDebugging(wants);
 		}

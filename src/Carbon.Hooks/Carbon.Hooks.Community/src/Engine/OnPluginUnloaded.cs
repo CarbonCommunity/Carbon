@@ -1,6 +1,6 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
-using Oxide.Plugins;
+using Carbon.Plugins;
 
 namespace Carbon.Hooks;
 
@@ -15,10 +15,9 @@ public partial class Category_Engine
 
 		[MetadataAttribute.Category("Engine")]
 		[MetadataAttribute.Info("Gets called when a plugin is unloaded.")]
-		[MetadataAttribute.Parameter("plugin", typeof(RustPlugin))]
+		[MetadataAttribute.Parameter("plugin", typeof(Plugin))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnPluginUnloaded : Patch
 		{

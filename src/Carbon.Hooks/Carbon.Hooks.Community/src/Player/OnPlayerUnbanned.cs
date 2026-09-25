@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 
 namespace Carbon.Hooks;
@@ -18,7 +18,6 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("steamId", typeof(ulong))]
 		[MetadataAttribute.Parameter("address", typeof(string))]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerUnbanned : Patch;
 	}

@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 
 namespace Carbon.Hooks;
@@ -15,7 +15,6 @@ public partial class Category_Server
 		[MetadataAttribute.Category("Server")]
 		[MetadataAttribute.Info("Called on server shutdown.")]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnServerShutdown : Patch;
 	}

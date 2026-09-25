@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using API.Hooks;
+using Carbon.Hooks;
 using Carbon.Base;
 using Carbon.Core;
 using ConVar;
@@ -39,7 +39,7 @@ public partial class Category_Static
 			{
 				_isQuitting = true;
 
-				foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+				foreach (var module in Community.Runtime.Modules.All)
 				{
 					if (module is BaseModule baseModule && baseModule.IsEnabled())
 					{

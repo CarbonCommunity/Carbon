@@ -1,12 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using API.Abstracts;
-using API.Assembly;
-using API.Events;
+using Carbon.Events;
 using AsmResolver;
 using AsmResolver.DotNet.Serialized;
 using Carbon.Compat.Converters;
 using Carbon.Extensions;
+using Carbon.Managers;
 using Facepunch;
 using Defines = Carbon.Core.Defines;
 
@@ -21,13 +20,11 @@ namespace Carbon.Compat;
  *
  */
 
-public class CompatManager : CarbonBehaviour, ICompatManager
+public class CompatManager : FacepunchBehaviour
 {
-	private readonly BaseConverter oxideConverter = new OxideConverter();
-
 	private readonly BaseConverter harmonyConverter = new HarmonyConverter();
 
-	private static readonly ModuleReaderParameters readerArgs = new ModuleReaderParameters(EmptyErrorListener.Instance);
+	public static readonly ModuleReaderParameters readerArgs = new ModuleReaderParameters(EmptyErrorListener.Instance);
 
 	private static readonly Version zeroVersion = new Version(0,0,0,0);
 
@@ -43,7 +40,8 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 
     public static readonly AssemblyReference wsSharp = new AssemblyReference("websocket-sharp", zeroVersion);
 
-    private bool ConvertAssembly(ModuleDefinition md, BaseConverter converter, ref byte[] buffer, bool noEntrypoint = false)
+    /// <summary>Runs <paramref name="converter"/> over an assembly, replacing <paramref name="buffer"/> with the result.</summary>
+    public static bool ConvertAssembly(ModuleDefinition md, BaseConverter converter, ref byte[] buffer, bool noEntrypoint = false)
     {
 	    Stopwatch stopwatch = Pool.Get<Stopwatch>();
 	    stopwatch.Restart();
@@ -87,33 +85,25 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 	    return true;
     }
 
-    ConversionResult ICompatManager.AttemptOxideConvert(ref byte[] data)
-    {
-	    ModuleDefinition asm = ModuleDefinition.FromBytes(data, readerArgs);
-
-	    if (!asm.AssemblyReferences.Any(Helpers.IsOxideASM))
-	    {
-		    return ConversionResult.Skip;
-	    }
-
-	    return ConvertAssembly(asm, oxideConverter, ref data) ? ConversionResult.Success : ConversionResult.Fail;
-    }
-
-    bool ICompatManager.ConvertHarmonyMod(ref byte[] data, bool noEntrypoint)
+    internal bool ConvertHarmonyMod(ref byte[] data, bool noEntrypoint = false)
     {
 	    return ConvertAssembly(ModuleDefinition.FromBytes(data, readerArgs), harmonyConverter, ref data, noEntrypoint);
     }
 
-    public void Init()
+    private void Awake()
     {
-	    Community.Runtime.Events.Subscribe(CarbonEvent.HookFetchStart, args =>
-	    {
-		    HookProcessor.HookClear();
-	    });
+	    Services.Assemblies.Converters.Add(new HarmonyModConverter(this));
 
-	    Community.Runtime.Events.Subscribe(CarbonEvent.HookFetchEnd, args =>
-	    {
-		    HookProcessor.HookReload();
-	    });
+	    Services.Events.Subscribe(CarbonEvent.HookFetchStart, _ => HookProcessor.HookClear());
+	    Services.Events.Subscribe(CarbonEvent.HookFetchEnd, _ => HookProcessor.HookReload());
+    }
+
+    /// <summary>Makes Rust HarmonyMods loadable under Carbon.</summary>
+    private sealed class HarmonyModConverter(CompatManager compat) : AssemblyConverter
+    {
+	    public override string Name => "HarmonyMod";
+	    public override bool Handles(AddonType type) => type == AddonType.HarmonyMod;
+	    public override ConversionResult Convert(string file, AddonType type, ref byte[] raw)
+		    => compat.ConvertHarmonyMod(ref raw) ? ConversionResult.Success : ConversionResult.Fail;
     }
 }

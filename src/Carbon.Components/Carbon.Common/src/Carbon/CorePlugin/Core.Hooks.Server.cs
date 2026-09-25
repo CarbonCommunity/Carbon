@@ -13,14 +13,10 @@ public partial class CorePlugin
 	{
 		if (Community.IsServerInitialized && group == ServerUsers.UserGroup.Banned)
 		{
-			var playerId = steamId.ToString();
-			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
+			var address = GetAddress(BasePlayer.FindByID(steamId));
 
 			// OnPlayerBanned
-			HookCaller.CallStaticHook(140408349, playerName, steamId, player == null ? _blankZero : player.Address, reason, expiry);
-
-			// OnUserBanned
-			HookCaller.CallStaticHook(3042565959, playerName, playerId, player == null ? _blankZero : player.Address, reason, expiry);
+			HookCaller.CallStaticHook(140408349, playerName, steamId, address, reason, expiry);
 		}
 	}
 	private void OnServerUserRemove(ulong steamId)
@@ -29,16 +25,28 @@ public partial class CorePlugin
 		    ServerUsers.users.ContainsKey(steamId) &&
 		    ServerUsers.users[steamId].group == ServerUsers.UserGroup.Banned)
 		{
-			var playerId = steamId.ToString();
-			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
+			var player = BasePlayer.FindByID(steamId);
+			var name = player == null || string.IsNullOrEmpty(player.displayName) ? _blankUnnamed : player.displayName;
 
 			// OnPlayerUnbanned
-			HookCaller.CallStaticHook(1455743240, player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, steamId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
-
-			// OnUserUnbanned
-			HookCaller.CallStaticHook(339730350, player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, playerId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
+			HookCaller.CallStaticHook(1455743240, name, steamId, GetAddress(player));
 		}
 	}
+	/// <summary>IP (without port) of a connected player, "0" otherwise.</summary>
+	internal static string GetAddress(BasePlayer player) => GetAddress(player?.net?.connection?.ipaddress);
+
+	/// <summary>Strips the port off an "ip:port" address. "0" when empty.</summary>
+	internal static string GetAddress(string address)
+	{
+		if (string.IsNullOrEmpty(address))
+		{
+			return _blankZero;
+		}
+
+		var portIndex = address.LastIndexOf(':');
+		return portIndex > 0 ? address.Substring(0, portIndex) : address;
+	}
+
 	private void OnSaveLoad()
 	{
 		StoredModifiers.Load();

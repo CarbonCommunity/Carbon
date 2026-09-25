@@ -3,6 +3,9 @@ using Defines = Carbon.Core.Defines;
 
 namespace Carbon.Base;
 
+/// <summary>
+/// Base of Carbon modules: built-in features with their own config, data, lang and enable toggle.
+/// </summary>
 public abstract class BaseModule : BaseHookable
 {
 	public string Context { get; set; }
@@ -29,7 +32,7 @@ public abstract class BaseModule : BaseHookable
 
 	public static T GetModule<T>()
 	{
-		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var module in Community.Runtime.Modules.All)
 		{
 			if (module.GetType() == typeof(T) && module is T result) return result;
 		}
@@ -38,7 +41,7 @@ public abstract class BaseModule : BaseHookable
 	}
 	public static BaseModule FindModule(string name)
 	{
-		return Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase) || x.Name.Contains(name, CompareOptions.OrdinalIgnoreCase)) as BaseModule;
+		return Community.Runtime.Modules.All.FirstOrDefault(x => x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase) || x.Name.Contains(name, CompareOptions.OrdinalIgnoreCase)) as BaseModule;
 	}
 }
 
@@ -62,9 +65,9 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	public new virtual string Name => "Not set";
 	public Permission Permissions;
 
-	protected void Puts(object message) => Logger.Log($"[{Name}] {message}");
-	protected void PutsError(object message, Exception ex = null) => Logger.Error($"[{Name}] {message}", ex);
-	protected void PutsWarn(object message) => Logger.Warn($"[{Name}] {message}");
+	public void Puts(object message) => Logger.Log($"[{Name}] {message}");
+	public void PutsError(object message, Exception ex = null) => Logger.Error($"[{Name}] {message}", ex);
+	public void PutsWarn(object message) => Logger.Warn($"[{Name}] {message}");
 
 	public virtual void Dispose()
 	{
@@ -84,7 +87,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			return;
 		}
 
-		SetPermissions(Interface.Oxide.Permission);
+		SetPermissions(Community.Runtime.Permission);
 
 		TrackInit();
 	}
@@ -425,7 +428,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			OnUnload();
 		}
 
-		Community.Runtime.ModuleProcessor.Uninstall(this);
+		Community.Runtime.Modules.Uninstall(this);
 	}
 	public override void SetPermissions(Permission perms)
 	{

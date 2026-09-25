@@ -1,6 +1,6 @@
 ﻿using System.Text;
-using API.Commands;
-using API.Events;
+using Carbon.Commands;
+using Carbon.Events;
 using Facepunch;
 
 namespace Carbon.Core;
@@ -15,11 +15,7 @@ public partial class CorePlugin
 
 		var mode = arg.GetString(0);
 		var flip = arg.GetString(0).Equals("-asc") || arg.GetString(1).Equals("-asc");
-		var ignoredPlugins = Community.Runtime.ScriptProcessor.IgnoreList.Concat(Community.Runtime.ZipScriptProcessor.IgnoreList)
-#if DEBUG
-			.Concat(Community.Runtime.ZipDevScriptProcessor.IgnoreList)
-#endif
-		;
+		var ignoredPlugins = Community.Runtime.PluginSources.All.SelectMany(x => x.IgnoreList);
 
 		switch (mode)
 		{
@@ -47,7 +43,7 @@ public partial class CorePlugin
 							string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
 							string.Empty, string.Empty, string.Empty);
 
-						IEnumerable<RustPlugin> array = mode switch
+						IEnumerable<Plugin> array = mode switch
 						{
 							"-abc" => mod.Plugins.OrderBy(x => x.Name),
 							"-t" => (flip
@@ -148,7 +144,7 @@ public partial class CorePlugin
 		{
 			case "*":
 			{
-				using var plugins = Pool.Get<PooledList<RustPlugin>>();
+				using var plugins = Pool.Get<PooledList<Plugin>>();
 				ModLoader.Packages.GetAllHookables(plugins, true);
 
 				foreach (var plugin in plugins)
@@ -173,18 +169,14 @@ public partial class CorePlugin
 					ProcessInput(name, arg);
 				}
 
-				static bool ProcessProcessor(ProcessableFile file, IBaseProcessor processor)
+				// Ignored or previously failed units get a clean recompile
+				static bool ProcessSource(ProcessableFile file, PluginSource source)
 				{
-					if (processor.IgnoreList.Contains(file.Path) || ModLoader.GetCompilationResult(file.Path).HasFailed())
+					if (source.IgnoreList.Contains(file.Path) || ModLoader.GetCompilationResult(file.Path).HasFailed())
 					{
-						processor.ClearIgnore(file.Path);
-
-						if (processor.InstanceBuffer.TryGetValue(file.Id, out var instance))
-						{
-							instance.Clear();
-						}
-
-						processor.Prepare(file.Id, file.Path);
+						source.ClearIgnore(file.Path);
+						source.Get(file.Id)?.Unload();
+						source.Prepare(file.Id, file.Path);
 						return true;
 					}
 					return false;
@@ -194,11 +186,11 @@ public partial class CorePlugin
 				{
 					var file = GetPluginFile(name);
 					var plugin = ModLoader.FindPlugin(name);
-					var processor = file.GetProcessor();
+					var source = file.Source;
 
-					if (!string.IsNullOrEmpty(file.Path))
+					if (file.IsValid)
 					{
-						if (ProcessProcessor(file, processor))
+						if (ProcessSource(file, source))
 						{
 							return;
 						}
@@ -212,21 +204,16 @@ public partial class CorePlugin
 
 							if (!Community.Runtime.Config.Watchers.ScriptWatchers)
 							{
-								processor.ClearIgnore(file.Path);
-
-								if (processor.InstanceBuffer.TryGetValue(file.Id, out var existingInstance))
-								{
-									existingInstance.Clear();
-								}
-
-								processor.Prepare(file.Id, file.Path);
+								source.ClearIgnore(file.Path);
+								source.Get(file.Id)?.Unload();
+								source.Prepare(file.Id, file.Path);
 								return;
 							}
 
 							if (Assemblies.Plugins.Get(plugin.Name) is Assemblies.RuntimeAssembly pluginAssembly &&
 							    Community.Runtime.MonoProfilerConfig.IsWhitelisted(Profiler.MonoProfilerConfig.ProfileTypes.Plugin, plugin.Name) != pluginAssembly.IsProfiledAssembly)
 							{
-								plugin.ProcessorProcess.MarkDirty();
+								plugin.Source?.MarkDirty();
 								return;
 							}
 
@@ -234,7 +221,7 @@ public partial class CorePlugin
 							var hookMethods = Pool.Get<List<HookMethodAttribute>>();
 							var pluginReferences = Pool.Get<List<PluginReferenceAttribute>>();
 							var requires = Pool.Get<List<Plugin>>();
-							var process = plugin.ProcessorProcess;
+							var pluginSource = plugin.Source;
 							hooks.AddRange(plugin.Hooks);
 							hookMethods.AddRange(plugin.HookMethods);
 							pluginReferences.AddRange(plugin.PluginReferences);
@@ -252,7 +239,7 @@ public partial class CorePlugin
 								p.PluginReferences = [.. pluginReferences];
 								p.Requires = [.. requires];
 
-								p.SetProcessor(plugin.Processor, process);
+								p.Source = pluginSource;
 								p.CompileTime = plugin.CompileTime;
 								p.InternalCallHookGenTime = plugin.InternalCallHookGenTime;
 								p.InternalCallHookSource = plugin.InternalCallHookSource;
@@ -272,7 +259,7 @@ public partial class CorePlugin
 
 							InternalApplyAllPluginReferences();
 
-							if (Community.AllProcessorsFinalized)
+							if (Community.Runtime.PluginSources.AllComplete)
 							{
 								ModLoader.OnPluginProcessFinished();
 							}
@@ -315,22 +302,21 @@ public partial class CorePlugin
 			case "*":
 				var except = arg.GetFullString(1);
 
-				Community.Runtime.ScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(y => x.Contains(y.ToString())));
-				Community.Runtime.ZipScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(y => x.Contains(y.ToString())));
-#if DEBUG
-				Community.Runtime.ZipDevScriptProcessor.IgnoreList.RemoveAll(x => !except.Any() || except.Any(y => x.Contains(y.ToString())));
-#endif
+				foreach (var source in Community.Runtime.PluginSources.All)
+				{
+					source.IgnoreList.RemoveAll(x => !except.Any() || except.Any(y => x.Contains(y.ToString())));
+				}
 
 				foreach (var plugin in ProcessableFiles)
 				{
-					var processor = plugin.GetProcessor();
-					if (except.Any(plugin.Path.Contains) || processor.InstanceBuffer.ContainsKey(plugin.Id))
+					var source = plugin.Source;
+					if (except.Any(plugin.Path.Contains) || source.Entries.ContainsKey(plugin.Id))
 					{
 						continue;
 					}
-					if (!processor.Exists(plugin.Path))
+					if (!source.Exists(plugin.Path, byFile: true))
 					{
-						processor.Prepare(plugin.Id, plugin.Path);
+						source.Prepare(plugin.Id, plugin.Path);
 					}
 				}
 				break;
@@ -350,11 +336,10 @@ public partial class CorePlugin
 				static void ProcessInput(string name)
 				{
 					var path = GetPluginFile(name);
-					if (!string.IsNullOrEmpty(path.Path))
+					if (path.IsValid)
 					{
-						var processor = path.GetProcessor();
-						processor.ClearIgnore(path.Path);
-						processor.Prepare(path.Id, path.Path);
+						path.Source.ClearIgnore(path.Path);
+						path.Source.Prepare(path.Id, path.Path);
 						Logger.Warn($"Requested '{path.Id}' for compilation");
 						return;
 					}
@@ -385,13 +370,12 @@ public partial class CorePlugin
 			{
 				var except = arg.Args.Skip(1).Select(x => x.ToString());
 				{
-					Community.Runtime.ScriptProcessor.Clear(except);
-					Community.Runtime.ZipScriptProcessor.Clear(except);
-#if DEBUG
-					Community.Runtime.ZipDevScriptProcessor.Clear(except);
-#endif
+					foreach (var source in Community.Runtime.PluginSources.All)
+					{
+						source.Clear(except);
+					}
 
-					using var plugins = Pool.Get<PooledList<RustPlugin>>();
+					using var plugins = Pool.Get<PooledList<Plugin>>();
 					ModLoader.Packages.GetAllHookables(plugins, true);
 
 					for(int i = 0; i < plugins.Count; i++)
@@ -406,7 +390,7 @@ public partial class CorePlugin
 							continue;
 						}
 						ModLoader.UninitializePlugin(plugin);
-						plugin.Processor.Ignore(plugin.Name);
+						(plugin.Source?.Source ?? Community.Runtime.PluginSources.Scripts).Ignore(plugin.Name);
 					}
 				}
 				break;
@@ -428,9 +412,9 @@ public partial class CorePlugin
 				{
 					var path = GetPluginFile(name);
 
-					if (!string.IsNullOrEmpty(path.Path))
+					if (path.IsValid)
 					{
-						path.GetProcessor().Ignore(path.Path);
+						path.Source.Ignore(path.Path);
 					}
 
 					var plugin = ModLoader.FindPlugin(name);
@@ -533,7 +517,7 @@ public partial class CorePlugin
 			builder.AppendLine($"  Internal Hook Override: {plugin.InternalCallHookOverriden}");
 			builder.AppendLine($"  Has Conditionals:       {plugin.HasConditionals}");
 			builder.AppendLine($"  Mod Package:            {plugin.Package.Name} ({plugin.Package.PluginCount}){((plugin.Package.IsCoreMod) ? $" [core]" : string.Empty)}");
-			builder.AppendLine($"  Processor:              {(plugin.Processor == null ? "[standalone]" : $"{plugin.Processor.Name} [{plugin.Processor.Extension}]")}");
+			builder.AppendLine($"  Processor:              {(plugin.Source == null ? "[standalone]" : $"{plugin.Source.Source.Name} [{plugin.Source.Source.Extension}]")}");
 
 			if (plugin is CarbonPlugin carbonPlugin)
 			{
@@ -653,7 +637,7 @@ public partial class CorePlugin
 
 					foreach (var mod in ModLoader.Packages)
 					{
-						var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+						var plugins = Facepunch.Pool.Get<List<Plugin>>();
 						plugins.AddRange(mod.Plugins);
 
 						foreach (var plugin in plugins)
@@ -728,7 +712,7 @@ public partial class CorePlugin
 
 					foreach (var mod in ModLoader.Packages)
 					{
-						using var plugins = Pool.Get<PooledList<RustPlugin>>();
+						using var plugins = Pool.Get<PooledList<Plugin>>();
 						plugins.AddRange(mod.Plugins);
 
 						foreach (var plugin in plugins.Where(plugin => plugin.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)))

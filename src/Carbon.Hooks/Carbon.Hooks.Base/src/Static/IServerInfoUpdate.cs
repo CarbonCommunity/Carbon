@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using API.Abstracts;
-using API.Hooks;
+using Carbon.Hooks;
 using Carbon.Base;
+using Carbon.Components;
 using Carbon.Extensions;
 using Steamworks;
 
@@ -23,7 +23,7 @@ public partial class Category_Static
 #if !MINIMAL
 				CarbonAuto.Singleton.IsForceModded() ||
 #endif
-			    Community.Runtime.ModuleProcessor.Modules.Any(x => x is BaseModule module && module.IsEnabled() && module.ForceModded);
+			    Community.Runtime.Modules.All.Any(x => x is BaseModule module && module.IsEnabled() && module.ForceModded);
 
 			public static void Postfix()
 			{

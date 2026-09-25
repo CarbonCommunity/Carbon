@@ -1,5 +1,4 @@
 ﻿using Facepunch;
-using Oxide.Game.Rust.Cui;
 
 namespace Carbon.Modules;
 
@@ -10,14 +9,14 @@ public partial class AdminModule
 		public string Id;
 		public string Name;
 		public string Access;
-		public RustPlugin Plugin;
+		public Plugin Plugin;
 		public Action<Tab, CUI, CuiElementContainer, string, PlayerSession> Over, Under, Override;
 		public Dictionary<int, OptionPool> Columns = new();
 		public Action<PlayerSession, Tab> OnChange;
 		public TabDialog Dialog;
 		public bool IsFullscreen;
 
-		public Tab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null, string access = null)
+		public Tab(string id, string name, Plugin plugin, Action<PlayerSession, Tab> onChange = null, string access = null)
 		{
 			Id = id;
 			Name = name;

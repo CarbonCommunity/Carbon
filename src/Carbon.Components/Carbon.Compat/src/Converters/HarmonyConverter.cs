@@ -2,7 +2,6 @@
 using System.Globalization;
 using Carbon.Compat.Patches;
 using Carbon.Compat.Patches.Harmony;
-using Carbon.Compat.Patches.Oxide;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -18,17 +17,20 @@ namespace Carbon.Compat.Converters;
 [UsedImplicitly]
 public class HarmonyConverter : BaseConverter
 {
-    public override ImmutableList<IAssemblyPatch> Patches => _patches;
+    /// <summary>
+    /// Extra reference/IL patches applied right after the Harmony type remap. Packages use it to
+    /// support HarmonyMods built against other frameworks.
+    /// </summary>
+    public static List<IAssemblyPatch> AdditionalPatches { get; } = new();
 
-    private readonly ImmutableList<IAssemblyPatch> _patches = new List<IAssemblyPatch>()
+    public override ImmutableList<IAssemblyPatch> Patches => new List<IAssemblyPatch>()
     {
 	    // type ref
 	    new HarmonyTypeRef(),
-	    new OxideTypeRef(),
-
-	    // il switch
-	    new OxideILSwitch(),
-
+    }
+    .Concat(AdditionalPatches)
+    .Concat(new IAssemblyPatch[]
+    {
 	    // harmony
 	    new HarmonyPatchProcessor(),
 
@@ -38,7 +40,7 @@ public class HarmonyConverter : BaseConverter
 
 	    //debug
 	    new AssemblyDebugPatch()
-    }.ToImmutableList();
+    }).ToImmutableList();
 
     public override string Name => "HarmonyMod";
 }

@@ -1,4 +1,4 @@
-#if !TESTS_NO_WEBREQUEST
+﻿#if !TESTS_NO_WEBREQUEST
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Carbon.Extensions;
 using Carbon.Test;
-using Oxide.Core.Libraries;
 
 namespace Carbon.Plugins;
 

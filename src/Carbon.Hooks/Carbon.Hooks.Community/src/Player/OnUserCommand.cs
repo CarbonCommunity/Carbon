@@ -1,6 +1,5 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
-using Oxide.Core.Libraries.Covalence;
 
 namespace Carbon.Hooks;
 
@@ -19,21 +18,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("command", typeof(string))]
 		[MetadataAttribute.Parameter("args", typeof(string[]))]
 		[MetadataAttribute.Return(typeof(void))]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserCommand_BasePlayer : Patch;
-
-		[HookAttribute.Patch("OnUserCommand", "OnUserCommand", typeof(CorePlugin), nameof(CorePlugin.IOnPlayerCommand))]
-		[HookAttribute.Options(HookFlags.MetadataOnly)]
-
-		[MetadataAttribute.Category("Player")]
-		[MetadataAttribute.Info("Gets called when a player executes command.")]
-		[MetadataAttribute.Parameter("player", typeof(IPlayer))]
-		[MetadataAttribute.Parameter("command", typeof(string))]
-		[MetadataAttribute.Parameter("args", typeof(string[]))]
-		[MetadataAttribute.Return(typeof(void))]
-		[MetadataAttribute.OxideCompatible]
-
-		public class OnUserCommand_IPlayer : Patch;
 	}
 }

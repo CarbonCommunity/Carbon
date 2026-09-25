@@ -284,7 +284,8 @@ public partial class AdminModule
 					tab.AddDropdown(1, Singleton.GetPhrase("scriptwatchersoption", ap.Player.UserIDString), ap => (int)Config.Watchers.ScriptWatcherOption, (ap, index) =>
 					{
 						Config.Watchers.ScriptWatcherOption = (SearchOption)index;
-						Community.Runtime.ScriptProcessor.IncludeSubdirectories = index == (int)SearchOption.AllDirectories;
+						Community.Runtime.PluginSources.Scripts.IncludeSubdirectories = index == (int)SearchOption.AllDirectories;
+						Community.Runtime.PluginSources.Zips.IncludeSubdirectories = index == (int)SearchOption.AllDirectories;
 						Community.Runtime.SaveConfig();
 					}, SearchDirectories, tooltip: Singleton.GetPhrase("scriptwatchersoption_help", ap.Player.UserIDString));
 					tab.AddToggle(1, Singleton.GetPhrase("zipscriptwatchers", ap.Player.UserIDString), ap => { Config.Watchers.ZipScriptWatchers = !Config.Watchers.ZipScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.Watchers.ZipScriptWatchers, Singleton.GetPhrase("zipscriptwatchers_help", ap.Player.UserIDString));
@@ -294,7 +295,7 @@ public partial class AdminModule
 				{
 					tab.AddDropdown(1, Singleton.GetPhrase("logfilemode", ap.Player.UserIDString), ap => Config.Logging.LogFileMode, (ap, index) => { Config.Logging.LogFileMode = index; Community.Runtime.SaveConfig(); }, LogFileModes);
 					tab.AddDropdown(1, Singleton.GetPhrase("logverbosity", ap.Player.UserIDString), ap => Config.Logging.LogVerbosity, (ap, index) => { Config.Logging.LogVerbosity = index; Community.Runtime.SaveConfig(); }, LogVerbosity);
-					tab.AddDropdown(1, Singleton.GetPhrase("logseverity", ap.Player.UserIDString), ap => (int)Config.Logging.LogSeverity, (ap, index) => { Config.Logging.LogSeverity = (API.Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(API.Logger.Severity)));
+					tab.AddDropdown(1, Singleton.GetPhrase("logseverity", ap.Player.UserIDString), ap => (int)Config.Logging.LogSeverity, (ap, index) => { Config.Logging.LogSeverity = (Carbon.Logging.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(Carbon.Logging.Severity)));
 				}
 				tab.AddName(1, Singleton.GetPhrase("misc", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 				{

@@ -60,9 +60,6 @@ public partial class Community
 			if (!Config.Compiler.ConditionalCompilationSymbols.Contains("RUST"))
 				Config.Compiler.ConditionalCompilationSymbols.Add("RUST");
 
-			if (!Config.Compiler.ConditionalCompilationSymbols.Contains("OXIDE_PUBLICIZED"))
-				Config.Compiler.ConditionalCompilationSymbols.Add("OXIDE_PUBLICIZED");
-
 			Config.Compiler.ConditionalCompilationSymbols =
 				Config.Compiler.ConditionalCompilationSymbols.Distinct().ToList();
 
@@ -159,7 +156,7 @@ public partial class Community
 			}
 
 			// Mandatory for across the board access
-			API.Commands.Command.Prefixes = Config.Prefixes;
+			Carbon.Commands.Command.Prefixes = Config.Prefixes;
 
 			Logger.CoreLog ??= new("Carbon.Core");
 			Logger.CoreLog.SplitSize = (int)(Config.Logging.LogSplitSize * 1000000f);

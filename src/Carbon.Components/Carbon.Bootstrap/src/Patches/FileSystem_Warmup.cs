@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 using System.Threading;
-using API.Events;
+using Carbon.Events;
 using HarmonyLib;
 
 namespace Patches;
@@ -12,13 +12,13 @@ internal static class __FileSystem_Warmup
 	{
 		public static void Prefix()
 		{
-			Carbon.Bootstrap.Events
+			Carbon.Managers.Services.Events
 				.Trigger(CarbonEvent.FileSystemWarmup, EventArgs.Empty);
 		}
 
 		public static void Postfix()
 		{
-			Carbon.Bootstrap.Events
+			Carbon.Managers.Services.Events
 				.Trigger(CarbonEvent.FileSystemWarmupComplete, EventArgs.Empty);
 		}
 	}

@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 
 namespace Carbon.Hooks;
 
@@ -15,7 +15,6 @@ public partial class Category_Entity
 		[MetadataAttribute.Parameter("networkable", typeof(BaseNetworkable))]
 		[MetadataAttribute.Parameter("info", typeof(BaseNetworkable.SaveInfo))]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnEntitySaved : Patch;
 	}

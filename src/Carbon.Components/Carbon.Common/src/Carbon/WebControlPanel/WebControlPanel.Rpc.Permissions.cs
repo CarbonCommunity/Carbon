@@ -37,7 +37,7 @@ public static partial class WebControlPanel
 				plugins.Add(HookableInfo.Get(plugin, permissions));
 			}
 		}
-		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var module in Community.Runtime.Modules.All)
 		{
 			var permissions = permission.GetPermissions(module);
 
@@ -98,7 +98,7 @@ public static partial class WebControlPanel
 		var group = read.String();
 		var permission = read.String();
 		var plugin = read.String();
-		var hookable = ModLoader.FindPlugin(plugin) ?? Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name.Equals(plugin));
+		var hookable = ModLoader.FindPlugin(plugin) ?? Community.Runtime.Modules.All.FirstOrDefault(x => x.Name.Equals(plugin));
 
 		switch (permission)
 		{
@@ -227,7 +227,7 @@ public static partial class WebControlPanel
 		{
 			HookableInfo info = default;
 			info.name = hookable.Name;
-			if (hookable is RustPlugin rustPlugin)
+			if (hookable is Plugin rustPlugin)
 			{
 				info.author = rustPlugin.Author;
 			}

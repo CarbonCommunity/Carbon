@@ -2,9 +2,9 @@
 using System.Reflection.Emit;
 using System.Reflection;
 using System;
-using API.Hooks;
+using Carbon.Hooks;
 using HarmonyLib;
-using Patch = API.Hooks.Patch;
+using Patch = Carbon.Hooks.Patch;
 
 namespace Carbon.Hooks;
 

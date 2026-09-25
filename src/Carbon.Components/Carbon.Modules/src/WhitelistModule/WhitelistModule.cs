@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Carbon.Base;
-using Oxide.Core;
 using Net = Network.Net;
 
 namespace Carbon.Modules;

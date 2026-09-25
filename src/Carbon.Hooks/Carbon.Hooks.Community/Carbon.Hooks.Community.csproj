@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
 		<Product>Carbon.Hooks.Community</Product>
 		<OutputType>Library</OutputType>
@@ -13,15 +13,8 @@
 		<ProjectReference Include="$(SolutionDir)\Carbon\Carbon.csproj" Private="false" />
 	</ItemGroup>
 
+	<!-- Community hooks always ship from this build: they compile against the matching Carbon.Common -->
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
-		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_hooks)" />
-	</Target>
-
-	<Target Name="NormalRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="!($(DefineConstants.Contains('HOOKGEN')))">
-		<DownloadFile DestinationFolder="$(c_hooks)" SourceUrl="https://cdn.carbonmod.gg/hooks/server/$(Configuration.ToLower().Replace('minimal', 'release'))/$(CarbonProtocol)/carbon/managed/hooks/Carbon.Hooks.Community.dll" ContinueOnError="true" />
-	</Target>
-
-	<Target Name="HookRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="$(DefineConstants.Contains('HOOKGEN'))">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_hooks)" />
 	</Target>
 </Project>

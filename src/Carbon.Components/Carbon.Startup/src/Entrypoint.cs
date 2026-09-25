@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
+using Carbon;
 using Carbon.Startup.Core;
 using Carbon.Startup.Extensions;
 using Carbon.Publicizer;
@@ -29,36 +30,20 @@ public sealed class Entrypoint
 		Path.GetFullPath(Path.Combine(Defines.GetLibFolder(), "System.Collections.Immutable.dll")),
 		Path.GetFullPath(Path.Combine(Defines.GetLibFolder(), "System.Diagnostics.DiagnosticSource.dll"))
 	];
-	private static readonly string[] Delete =
+	private static readonly List<string> Delete =
 	[
 		Path.Combine(Defines.GetRustManagedFolder(), "x64"),
 		Path.Combine(Defines.GetRustManagedFolder(), "x86"),
 		Path.Combine(Defines.GetRustManagedFolder(), "Microsoft.CodeAnalysis.CSharp.dll"),
 		Path.Combine(Defines.GetRustManagedFolder(), "Microsoft.CodeAnalysis.dll"),
 		Path.Combine(Defines.GetRustManagedFolder(), "System.Collections.Immutable.dll"),
-		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Common.dll"),
-		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Core.dll"),
-		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.CSharp.dll"),
-		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.MySql.dll"),
-		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.References.dll"),
-		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Rust.dll"),
-		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.SQLite.dll"),
-		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Unity.dll"),
 		Path.Combine(Defines.GetLibFolder(), "UniTask.dll"),
 		Path.Combine(Defines.GetManagedFolder(), "Carbon.UniTask.dll"),
 	];
 
-	private static readonly Dictionary<(string directory, string filter), string> WildcardMove = new()
-	{
-		[(Defines.GetRustManagedFolder(), "Oxide.Ext.")] = Path.Combine(Defines.GetExtensionsFolder())
-	};
-	private static readonly Dictionary<string, string> CopyTargetEmpty = new()
-	{
-		[Path.Combine(Defines.GetRustRootFolder(), "oxide", "config")] = Path.Combine(Defines.GetRootFolder(), "configs"),
-		[Path.Combine(Defines.GetRustRootFolder(), "oxide", "data")] = Path.Combine(Defines.GetRootFolder(), "data"),
-		[Path.Combine(Defines.GetRustRootFolder(), "oxide", "plugins")] = Path.Combine(Defines.GetRootFolder(), "plugins"),
-		[Path.Combine(Defines.GetRustRootFolder(), "oxide", "lang")] = Path.Combine(Defines.GetRootFolder(), "lang")
-	};
+	// Filled by package manifests (see PackageManifests)
+	private static readonly Dictionary<(string directory, string filter), string> WildcardMove = new();
+	private static readonly Dictionary<string, string> CopyTargetEmpty = new();
 	private static readonly Dictionary<string, string> Move = new()
 	{
 		[Path.Combine(Defines.GetRootFolder(), "harmony")] = Path.Combine(Defines.GetRustRootFolder(), "HarmonyMods")
@@ -114,8 +99,33 @@ public sealed class Entrypoint
 			}
 		}
 
+		ReadPackageManifests();
 		PerformPatch();
 		PerformStartup();
+	}
+
+	/// <summary>Merges the startup tasks and field injections declared by packages.</summary>
+	public static void ReadPackageManifests()
+	{
+		PackageManifests.Read();
+
+		foreach (var task in PackageManifests.Tasks)
+		{
+			switch (task.Action)
+			{
+				case StartupAction.Delete:
+					Delete.Add(task.Path);
+					break;
+				case StartupAction.MoveMatching:
+					WildcardMove[(task.Path, task.Filter)] = task.Target;
+					break;
+				case StartupAction.CopyIfEmpty:
+					CopyTargetEmpty[task.Path] = task.Target;
+					break;
+			}
+		}
+
+		Carbon.Publicizer.Patch.InjectedFields.AddRange(PackageManifests.Fields);
 	}
 
 	public static void PerformPatch()
@@ -137,7 +147,7 @@ public sealed class Entrypoint
 
 		Carbon.Publicizer.Patch.onBufferUpdate = arg =>
 		{
-			API.Assembly.PatchedAssemblies.AssemblyCache[Path.GetFileNameWithoutExtension(arg.path)] = arg.buffer;
+			Carbon.PatchedAssemblies.AssemblyCache[Path.GetFileNameWithoutExtension(arg.path)] = arg.buffer;
 		};
 		Carbon.Publicizer.Patch.Init(Defines.GetModifierFolder(), Defines.GetManagedFolder(), Defines.GetRustManagedFolder());
 		foreach (var file in patchableFiles)
@@ -250,12 +260,12 @@ public sealed class Entrypoint
 			return;
 		}
 
-		if (!Directory.Exists(Path.Combine(Defines.GetRustRootFolder(), "oxide")))
+		if (!CopyTargetEmpty.Keys.Any(Directory.Exists))
 		{
 			return;
 		}
 
-		Logger.Log($" Fresh Carbon installation detected. Migrating Oxide directories.");
+		Logger.Log($" Fresh Carbon installation detected. Migrating existing directories.");
 
 		foreach (var folder in CopyTargetEmpty)
 		{
@@ -273,7 +283,7 @@ public sealed class Entrypoint
 
 			try
 			{
-				Logger.Log($" Copied oxide/{Path.GetFileName(folder.Key)} -> carbon/{Path.GetFileName(folder.Value)}");
+				Logger.Log($" Copied {folder.Key} -> carbon/{Path.GetFileName(folder.Value)}");
 				OsEx.Copy(folder.Key, folder.Value);
 			}
 			catch (Exception e)

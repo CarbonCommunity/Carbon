@@ -91,7 +91,7 @@ public partial class AdminModule
 			tab.AddName(column, $"Player Information", TextAnchor.MiddleLeft);
 			tab.AddInput(column, "Name", _ => player.displayName, (_, args) =>
 			{
-				player.AsIPlayer().Rename(args.Select(x => x as string).ToString(" "));
+				player.Rename(args.Select(x => x as string).ToString(" "));
 			});
 			tab.AddInput(column, "Steam ID", _ => player.UserIDString, null);
 			tab.AddInput(column, "Net ID", _ => $"{player.net?.ID}", null);
@@ -156,7 +156,7 @@ public partial class AdminModule
 						date = new DateTime(date.Year, date.Month, date.Day, now.Hour, now.Minute, now.Second, DateTimeKind.Utc);
 						var then = now - date;
 
-						player.AsIPlayer().Ban(m.Get<string>("reason"), then);
+						player.Ban(m.Get<string>("reason"), then);
 					});
 				}), new Tab.OptionButton(player.IsSleeping() ? "End Sleep" : "Sleep", ap =>
 				{

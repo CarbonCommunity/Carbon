@@ -78,7 +78,7 @@ public partial class AdminModule
 			"Memory"
 		];
 
-		public ProfilerTab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
+		public ProfilerTab(string id, string name, Plugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
 		{
 			ColorUtility.TryParseHtmlString("#d13b38", out intenseColor);
 			ColorUtility.TryParseHtmlString("#3882d1", out calmColor);

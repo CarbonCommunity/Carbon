@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 using Network;
 
@@ -19,7 +19,6 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("ioB", "IOEntity")]
 		[MetadataAttribute.Parameter("isInput", typeof(bool))]
 		[MetadataAttribute.Return(typeof(bool))]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnWireClear : Patch
 		{

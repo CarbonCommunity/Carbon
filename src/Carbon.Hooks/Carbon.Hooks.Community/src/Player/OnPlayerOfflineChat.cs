@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 using static ConVar.Chat;
 
@@ -20,7 +20,6 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("username", typeof(string))]
 		[MetadataAttribute.Parameter("message", typeof(string))]
 		[MetadataAttribute.Parameter("channel", typeof(ChatChannel))]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerOfflineChat : Patch;
 	}

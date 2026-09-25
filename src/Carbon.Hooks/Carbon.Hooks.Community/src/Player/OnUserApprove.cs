@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 using Network;
 
@@ -16,7 +16,6 @@ public partial class Category_Player
 		[MetadataAttribute.Category("Player")]
 		[MetadataAttribute.Info("Gets called when a connection is or not approved to join the server.")]
 		[MetadataAttribute.Parameter("connection", typeof(Connection))]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserApprove : Patch;
 	}

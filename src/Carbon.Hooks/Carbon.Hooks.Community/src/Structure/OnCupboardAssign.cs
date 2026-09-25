@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 
 namespace Carbon.Hooks;
@@ -19,7 +19,6 @@ public partial class Category_Structure
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Return(typeof(void))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnCupboardAssign : Patch
 		{

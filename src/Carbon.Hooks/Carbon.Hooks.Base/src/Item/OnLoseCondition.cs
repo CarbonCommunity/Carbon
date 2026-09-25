@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 
 namespace Carbon.Hooks;
@@ -16,7 +16,6 @@ public partial class Category_Item
 		[MetadataAttribute.Parameter("item", typeof(Item))]
 		[MetadataAttribute.Parameter("amount", typeof(float), ByRef = true)]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnLoseCondition : Patch;
 	}

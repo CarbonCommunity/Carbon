@@ -103,11 +103,8 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
             return true;
         }
 
-        public static List<string> string_blacklist = new List<string>()
-        {
-            "Oxide.Core.OxideMod",
-            "Oxide.Core"
-        };
+        /// <summary>HarmonyTargetMethods resolving any of these type names get skipped.</summary>
+        public static List<string> string_blacklist = new List<string>();
 
         public static bool IsPatchAllowed(TypeDefinition type)
         {

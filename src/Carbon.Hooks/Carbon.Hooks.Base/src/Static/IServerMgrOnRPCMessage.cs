@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using API.Hooks;
+using Carbon.Hooks;
 using Carbon.Components;
 using HarmonyLib;
 using Network;
@@ -18,7 +18,7 @@ public partial class Category_Static
 		[HookAttribute.Patch("IServerMgrOnRPCMessage", "IServerMgrOnRPCMessage", typeof(ServerMgr), "OnRPCMessage", new System.Type[] { typeof(Message) })]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
-		public class IServerMgrOnRPCMessage : API.Hooks.Patch
+		public class IServerMgrOnRPCMessage : Carbon.Hooks.Patch
 		{
 			public static MethodInfo Method = AccessTools.Method(typeof(ClientEntity), "ServerRPCUnknown");
 

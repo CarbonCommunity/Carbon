@@ -11,7 +11,7 @@
     <icon>NuGet-ICON.png</icon>
     <readme>NuGet-README.md</readme>
     <projectUrl>https://github.com/CarbonCommunity/Carbon.Core</projectUrl>
-    <description>Carbon is a self-updating, lightweight, intelligent mod loader for Rust utilizing the latest C# and Harmony for the best performance and stability possible, fully compatible with Oxide.</description>
+    <description>Carbon is a self-updating, lightweight, intelligent mod loader for Rust utilizing the latest C# and Harmony for the best performance and stability possible. Carbon.Oxide is the optional Oxide compatibility package.</description>
     <copyright>Copyright © 2022-2025 Carbon Community</copyright>
     <dependencies>
       <group targetFramework=".NETFramework4.8" />
@@ -22,6 +22,7 @@
     <file src="..\release\.tmp\Release\carbon\managed\Carbon.SDK.dll" target="lib\net48\Carbon.SDK.dll" />
     <file src="..\release\.tmp\Release\carbon\managed\Carbon.Profiler.dll" target="lib\net48\Carbon.Profiler.dll" />
     <file src="..\release\.tmp\Release\carbon\managed\Carbon.Test.dll" target="lib\net48\Carbon.Test.dll" />
+    <file src="..\release\.tmp\Release.Oxide\carbon\managed\packages\Carbon.Oxide.dll" target="lib\net48\Carbon.Oxide.dll" />
     <file src="..\NuGet-ICON.png" target="NuGet-ICON.png" />
     <file src="..\NuGet-README.md" target="NuGet-README.md" />
   </files>

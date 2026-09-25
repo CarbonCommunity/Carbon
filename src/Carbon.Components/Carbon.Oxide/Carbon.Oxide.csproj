@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Carbon.Oxide</Product>
+		<OutputType>Library</OutputType>
+	</PropertyGroup>
+
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
+
+	<ItemGroup>
+		<Reference Include="$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Compat\Carbon.Compat.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Tools\Carbon.SourceGenerators\Carbon.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
+
+	<!-- Only shipped with the "Carbon with Oxide" flavor, see tools/build/runners/build.cs -->
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="'$(CarbonOxide)' == 'true'">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_packages)" />
+		<Copy Condition="$(Configuration.Contains('Debug'))" SourceFiles="$(OutputPath)$(Product).xml" DestinationFolder="$(c_packages)" />
+	</Target>
+</Project>

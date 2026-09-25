@@ -1,6 +1,5 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
-using Oxide.Core.Libraries.Covalence;
 
 namespace Carbon.Hooks;
 
@@ -18,20 +17,7 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Parameter("var", typeof(string))]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerLanguageChanged_BasePlayer : Patch;
-
-		[HookAttribute.Patch("OnPlayerLanguageChanged", "OnPlayerLanguageChanged [IPlayer]", typeof(CorePlugin), "OnPlayerSetInfo")]
-		[HookAttribute.Options(HookFlags.MetadataOnly)]
-
-		[MetadataAttribute.Category("Player")]
-		[MetadataAttribute.Info("Gets called when a player's language gets changed.")]
-		[MetadataAttribute.Parameter("player", typeof(IPlayer))]
-		[MetadataAttribute.Parameter("var", typeof(string))]
-		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
-
-		public class OnPlayerLanguageChanged_IPlayer : Patch;
 	}
 }

@@ -1,5 +1,6 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
+using Carbon.Plugins;
 
 namespace Carbon.Hooks;
 
@@ -15,7 +16,6 @@ public partial class Category_Plugin
 		[MetadataAttribute.Category("Plugin")]
 		[MetadataAttribute.Info("Gets called when the plugin executes the Load method on the plugin.")]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class Loaded : Patch
 		{

@@ -74,7 +74,6 @@ public partial class CorePlugin
 				{
 					// OnPlayerLanguageChanged
 					HookCaller.CallStaticHook(1945313578, player, val);
-					HookCaller.CallStaticHook(1945313578, player.AsIPlayer(), val);
 				}
 				break;
 		}

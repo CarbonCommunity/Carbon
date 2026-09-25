@@ -81,10 +81,10 @@ public partial class AdminModule
 			{
 				IEnumerable<BaseHookable> modules = sort switch
 				{
-					SortTypes.Name => Community.Runtime.ModuleProcessor.Modules.OrderBy(x => x.Name),
-					SortTypes.Enabled => Community.Runtime.ModuleProcessor.Modules.OrderByDescending(x =>
+					SortTypes.Name => Community.Runtime.Modules.All.OrderBy(x => x.Name),
+					SortTypes.Enabled => Community.Runtime.Modules.All.OrderByDescending(x =>
 						x is BaseModule module && module.IsEnabled()),
-					_ => Community.Runtime.ModuleProcessor.Modules
+					_ => Community.Runtime.Modules.All
 				};
 
 				if (sortFlip)

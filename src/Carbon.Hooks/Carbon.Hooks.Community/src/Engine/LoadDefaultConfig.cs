@@ -1,7 +1,6 @@
-﻿using API.Hooks;
-using Carbon.Managers;
-using Oxide.Core.Plugins;
-using Oxide.Plugins;
+﻿using Carbon.Hooks;
+using Carbon.Core;
+using Carbon.Plugins;
 
 namespace Carbon.Hooks;
 
@@ -19,7 +18,6 @@ public partial class Category_Engine
 		[MetadataAttribute.Info("You should not use this. Override `LoadDefaultConfig` virtual method instead.")]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class LoadDefaultConfig : Patch
 		{

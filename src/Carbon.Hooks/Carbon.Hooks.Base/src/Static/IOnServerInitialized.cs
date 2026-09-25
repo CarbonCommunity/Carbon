@@ -1,6 +1,6 @@
 ﻿using System;
-using API.Events;
-using API.Hooks;
+using Carbon.Events;
+using Carbon.Hooks;
 
 namespace Carbon.Hooks;
 
@@ -17,7 +17,6 @@ public partial class Category_Static
 		[MetadataAttribute.Info("Also called for plugins that are hotloaded while the server is already started running.")]
 		[MetadataAttribute.Parameter("initialized", typeof(bool), true)]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class IOnServerInitialized : Patch
 		{

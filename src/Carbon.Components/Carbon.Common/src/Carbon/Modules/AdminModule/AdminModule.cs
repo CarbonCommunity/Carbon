@@ -1,6 +1,5 @@
 ﻿using ConVar;
 using Newtonsoft.Json;
-using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
 using static Carbon.Components.CUI;
 using static ConsoleSystem;
@@ -25,7 +24,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 #if !MINIMAL
 	public override bool EnabledByDefault => true;
 
-	internal static AdminModule Singleton { get; set; }
+	public static AdminModule Singleton { get; internal set; }
 
 	public static CorePlugin Core = Community.Runtime.Core;
 	public ImageDatabaseModule ImageDatabase;
@@ -2165,10 +2164,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	#region Core Tabs
 
 	[Conditional("!MINIMAL")]
-	private void OnPluginLoaded(RustPlugin plugin)
+	private void OnPluginLoaded(Plugin plugin)
 	{
 		PluginsTab.GetVendor(PluginsTab.VendorTypes.Codefling)?.Refresh();
-		PluginsTab.GetVendor(PluginsTab.VendorTypes.uMod)?.Refresh();
+		PluginsTab.GetVendor(PluginsTab.VendorTypes.External)?.Refresh();
 
 		for (int i = 0; i < BasePlayer.activePlayerList.Count; i++)
 		{
@@ -2183,7 +2182,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	[Conditional("!MINIMAL")]
-	private void OnPluginUnloaded(RustPlugin plugin)
+	private void OnPluginUnloaded(Plugin plugin)
 	{
 		Community.Runtime.Core.NextTick(() =>
 		{
@@ -2416,7 +2415,7 @@ public class AdminData
 {
 	public bool GreetDisplayed = false;
 	public bool HidePluginIcons = false;
-	public bool DisableUMod = true;
+	public bool DisableExternalVendor = true;
 	public bool Maximize = false;
 	public bool BackgroundBlur = true;
 	public float BackgroundOpacity = 0.75f;

@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 
 namespace Carbon.Hooks;
 #pragma warning disable IDE0051

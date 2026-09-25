@@ -1,8 +1,7 @@
 ﻿#if !MINIMAL
-using API.Hooks;
+using Carbon.Hooks;
 using Carbon.Modules;
-using Oxide.Core;
-using Oxide.Core.Plugins;
+using Carbon.Plugins;
 
 namespace Carbon.Hooks;
 

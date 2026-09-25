@@ -1,5 +1,5 @@
-﻿using API.Hooks;
-using Oxide.Game.Rust.Cui;
+﻿using Carbon.Hooks;
+using Carbon.Components;
 
 namespace Carbon.Hooks;
 
@@ -19,7 +19,6 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("name", typeof(string))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnDestroyUI : Patch
 		{

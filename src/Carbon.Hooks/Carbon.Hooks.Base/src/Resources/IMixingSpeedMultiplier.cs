@@ -1,7 +1,7 @@
 ﻿#if !MINIMAL
 
 using System;
-using API.Hooks;
+using Carbon.Hooks;
 
 namespace Carbon.Hooks;
 

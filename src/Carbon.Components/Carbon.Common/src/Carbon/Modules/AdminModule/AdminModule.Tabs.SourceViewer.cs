@@ -16,7 +16,7 @@ public partial class AdminModule
 	{
 		public Action<PlayerSession> Close;
 
-		public SourceViewerTab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null, string access = null) : base(id, name, plugin, onChange, access)
+		public SourceViewerTab(string id, string name, Plugin plugin, Action<PlayerSession, Tab> onChange = null, string access = null) : base(id, name, plugin, onChange, access)
 		{
 		}
 

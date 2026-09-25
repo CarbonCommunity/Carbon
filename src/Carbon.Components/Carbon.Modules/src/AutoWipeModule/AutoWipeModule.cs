@@ -7,10 +7,8 @@ using Carbon.Components;
 using Carbon.Extensions;
 using Cronos;
 using Newtonsoft.Json;
-using Oxide.Core;
-using Oxide.Core.Libraries;
-using Oxide.Plugins;
 using Random = UnityEngine.Random;
+using Carbon.Plugins;
 
 namespace Carbon.Modules;
 
@@ -26,7 +24,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	private readonly char[] splitter = new[] { '|' };
 	private readonly float wipeCooldown = 60 * 60;
 	private readonly float wipeTick = 30;
-	private Oxide.Plugins.Timer wipeTimer;
+	private Carbon.Plugins.Timer wipeTimer;
 
 	public bool InCooldown() => (DateTime.UtcNow - new DateTime(DataInstance.LastWipeTime)).TotalSeconds <= wipeCooldown;
 

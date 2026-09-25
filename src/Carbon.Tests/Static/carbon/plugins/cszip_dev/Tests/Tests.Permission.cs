@@ -1,6 +1,5 @@
-#if !TESTS_NO_PERMISSION
+﻿#if !TESTS_NO_PERMISSION
 using Carbon.Test;
-using Oxide.Core.Libraries;
 
 namespace Carbon.Plugins;
 
@@ -35,9 +34,9 @@ public partial class Tests
 			singleton.permission.UpdateNickname(userId, nickname);
 			test.IsTrue(singleton.permission.UserExists(nickname), $"singleton.permission.UserExists(\"{nickname}\")");
 			test.IsTrue(singleton.permission.FindUser(nickname).Key == userId, $"singleton.permission.FindUser(\"{nickname}\").Key == userId");
-			singleton.server.Command($"c.grant user {nickname} {nicknamePerm}");
+			ConsoleSystem.Run(ConsoleSystem.Option.Server.FromServerConsole(), $"c.grant user {nickname} {nicknamePerm}");
 			test.IsTrue(singleton.permission.UserHasPermission(userId, nicknamePerm), $"singleton.permission.UserHasPermission(\"{userId}\", \"{nicknamePerm}\")");
-			singleton.server.Command($"c.revoke user {nickname} {nicknamePerm}");
+			ConsoleSystem.Run(ConsoleSystem.Option.Server.FromServerConsole(), $"c.revoke user {nickname} {nicknamePerm}");
 			test.IsFalse(singleton.permission.UserHasPermission(userId, nicknamePerm), $"singleton.permission.UserHasPermission(\"{userId}\", \"{nicknamePerm}\") after revoke");
 		}
 

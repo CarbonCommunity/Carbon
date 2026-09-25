@@ -22,7 +22,7 @@ public partial class CorePlugin
 		for(int i = 0; i < ModLoader.Packages.Count; i++)
 		{
 			var package = ModLoader.Packages[i];
-			using var plugins = Facepunch.Pool.Get<PooledList<RustPlugin>>();
+			using var plugins = Facepunch.Pool.Get<PooledList<Plugin>>();
 			plugins.AddRange(package.Plugins);
 			for(int p = 0; p < plugins.Count; p++)
 			{
@@ -31,8 +31,7 @@ public partial class CorePlugin
 				{
 					continue;
 				}
-				plugin.ProcessorProcess.Dispose();
-				plugin.ProcessorProcess.Execute(plugin.Processor);
+				plugin.Source?.Recompile();
 				package.RemovePlugin(plugin);
 			}
 		}
@@ -58,7 +57,7 @@ public partial class CorePlugin
 		for(int i = 0; i < ModLoader.Packages.Count; i++)
 		{
 			var package = ModLoader.Packages[i];
-			using var plugins = Facepunch.Pool.Get<PooledList<RustPlugin>>();
+			using var plugins = Facepunch.Pool.Get<PooledList<Plugin>>();
 			plugins.AddRange(package.Plugins);
 			for(int p = 0; p < plugins.Count; p++)
 			{
@@ -67,8 +66,7 @@ public partial class CorePlugin
 				{
 					continue;
 				}
-				plugin.ProcessorProcess.Dispose();
-				plugin.ProcessorProcess.Execute(plugin.Processor);
+				plugin.Source?.Recompile();
 				package.RemovePlugin(plugin);
 			}
 		}

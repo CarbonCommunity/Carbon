@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 using Network;
 
@@ -18,7 +18,6 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("connection", typeof(Connection))]
 		[MetadataAttribute.Parameter("reason", typeof(string))]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerBanned : Patch;
 	}

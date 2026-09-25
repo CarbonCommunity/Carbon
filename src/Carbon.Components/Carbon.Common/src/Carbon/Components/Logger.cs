@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
-using API.Logger;
-using ILogger = API.Logger.ILogger;
+using Carbon.Logging;
+using ILogger = Carbon.Logging.ILogger;
 
 namespace Carbon;
 

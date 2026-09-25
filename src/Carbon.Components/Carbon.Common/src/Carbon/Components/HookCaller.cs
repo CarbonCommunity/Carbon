@@ -98,6 +98,9 @@ public abstract class HookCallerCommon
 	}
 }
 
+/// <summary>
+/// Calls hooks on one hookable, or on every subscriber (static hooks), and resolves conflicting return values.
+/// </summary>
 public static class HookCaller
 {
 	public static HookCallerCommon Caller { get; set; }
@@ -113,7 +116,7 @@ public static class HookCaller
 		}
 
 		foreach (var cacheHook in
-		         from module in Community.Runtime.ModuleProcessor.Modules
+		         from module in Community.Runtime.Modules.All
 		         from cache in module.HookPool where cache.Key == hook
 		         from cacheHook in cache.Value.Hooks select cacheHook)
 		{
@@ -179,7 +182,7 @@ public static class HookCaller
 
 	private static object CallStaticHook(uint hookId, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, object[] args = null)
 	{
-		if (Community.Runtime == null || Community.Runtime.ModuleProcessor == null)
+		if (Community.Runtime == null || Community.Runtime.Modules == null)
 		{
 			return null;
 		}

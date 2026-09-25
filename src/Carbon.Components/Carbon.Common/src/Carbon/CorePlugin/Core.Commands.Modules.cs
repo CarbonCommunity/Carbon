@@ -193,12 +193,12 @@ public partial class CorePlugin
 
 		IEnumerable<BaseHookable> array = mode switch
 		{
-			"-abc" => Community.Runtime.ModuleProcessor.Modules.OrderBy(x => x.Name),
-			"-t" => (flip ? Community.Runtime.ModuleProcessor.Modules.OrderBy(x => x.TotalHookTime) : Community.Runtime.ModuleProcessor.Modules.OrderByDescending(x => x.TotalHookTime)),
-			"-m" => (flip ? Community.Runtime.ModuleProcessor.Modules.OrderBy(x => x.TotalMemoryUsed) : Community.Runtime.ModuleProcessor.Modules.OrderByDescending(x => x.TotalMemoryUsed)),
-			"-f" => (flip ? Community.Runtime.ModuleProcessor.Modules.OrderBy(x => x.TotalHookFires) : Community.Runtime.ModuleProcessor.Modules.OrderByDescending(x => x.TotalHookFires)),
-			"-ls" => (flip ? Community.Runtime.ModuleProcessor.Modules.OrderBy(x => x.TotalHookLagSpikes) : Community.Runtime.ModuleProcessor.Modules.OrderByDescending(x => x.TotalHookLagSpikes)),
-			_ => (flip ? Community.Runtime.ModuleProcessor.Modules.AsEnumerable().Reverse() : Community.Runtime.ModuleProcessor.Modules.AsEnumerable())
+			"-abc" => Community.Runtime.Modules.All.OrderBy(x => x.Name),
+			"-t" => (flip ? Community.Runtime.Modules.All.OrderBy(x => x.TotalHookTime) : Community.Runtime.Modules.All.OrderByDescending(x => x.TotalHookTime)),
+			"-m" => (flip ? Community.Runtime.Modules.All.OrderBy(x => x.TotalMemoryUsed) : Community.Runtime.Modules.All.OrderByDescending(x => x.TotalMemoryUsed)),
+			"-f" => (flip ? Community.Runtime.Modules.All.OrderBy(x => x.TotalHookFires) : Community.Runtime.Modules.All.OrderByDescending(x => x.TotalHookFires)),
+			"-ls" => (flip ? Community.Runtime.Modules.All.OrderBy(x => x.TotalHookLagSpikes) : Community.Runtime.Modules.All.OrderByDescending(x => x.TotalHookLagSpikes)),
+			_ => (flip ? Community.Runtime.Modules.All.AsEnumerable().Reverse() : Community.Runtime.Modules.All.AsEnumerable())
 		};
 
 		print.AddRow("Native", string.Empty, string.Empty,

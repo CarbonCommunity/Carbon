@@ -43,7 +43,7 @@ public static class HookSubscriberIndex
 	{
 		_index.Clear();
 
-		var modules = Community.Runtime.ModuleProcessor.Modules;
+		var modules = Community.Runtime.Modules.All;
 
 		for (int i = 0; i < modules.Count; i++)
 		{
@@ -97,7 +97,7 @@ public static class HookSubscriberIndex
 	private static BaseHookable[] Collect(uint hookId)
 	{
 		var list = Facepunch.Pool.Get<List<BaseHookable>>();
-		var modules = Community.Runtime.ModuleProcessor.Modules;
+		var modules = Community.Runtime.Modules.All;
 
 		for (int i = 0; i < modules.Count; i++)
 		{

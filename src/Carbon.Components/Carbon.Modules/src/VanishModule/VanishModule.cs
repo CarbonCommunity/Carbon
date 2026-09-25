@@ -9,12 +9,11 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using Network;
 using Newtonsoft.Json;
-using Oxide.Core;
-using Oxide.Core.Plugins;
 using Rust;
 using Rust.Ai;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using Carbon.Plugins;
 
 namespace Carbon.Modules;
 
@@ -56,7 +55,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		Permissions.RegisterPermission(ConfigInstance.VanishUnlockWhileVanishedPermission, this);
 		Permissions.RegisterPermission(ConfigInstance.PermanentVanishPermission, this);
 
-		Community.Runtime.Core.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), permissions: new [] { ConfigInstance.VanishPermission });
+		Community.Runtime.Core.cmd.AddCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), permissions: new [] { ConfigInstance.VanishPermission });
 	}
 	public override void OnDisabled(bool initialized)
 	{

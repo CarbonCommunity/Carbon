@@ -1,8 +1,8 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using ConVar;
 using HarmonyLib;
 using JetBrains.Annotations;
-using Patch = API.Hooks.Patch;
+using Patch = Carbon.Hooks.Patch;
 
 namespace Carbon.Hooks;
 

@@ -1,5 +1,5 @@
-﻿using API.Hooks;
-using Oxide.Game.Rust.Cui;
+﻿using Carbon.Hooks;
+using Carbon.Components;
 
 namespace Carbon.Hooks;
 
@@ -18,7 +18,6 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("json", typeof(string))]
 		[MetadataAttribute.Return(typeof(void))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
-		[MetadataAttribute.OxideCompatible]
 
 		public class CanUseUI : Patch
 		{

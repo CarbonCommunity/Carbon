@@ -1,10 +1,14 @@
-﻿using API.Events;
+﻿using Carbon.Events;
 using Carbon.Profiler;
 using Facepunch;
 using Newtonsoft.Json;
 
 namespace Carbon.Core;
 
+/// <summary>
+/// Plugin lifecycle: instantiates compiled plugin types, wires config/lang/hooks/commands,
+/// tracks packages and inter-plugin requirements, and unloads plugins again.
+/// </summary>
 public static partial class ModLoader
 {
 	public static bool IsBatchComplete;
@@ -16,9 +20,16 @@ public static partial class ModLoader
 	internal static List<string> PostBatchFailedRequirees { get; } = new();
 	internal static bool FirstLoadSinceStartup { get; set; } = true;
 
-	internal const string CARBON_PLUGIN = "CarbonPlugin";
-	internal const string RUST_PLUGIN = "RustPlugin";
-	internal const string COVALENCE_PLUGIN = "CovalencePlugin";
+	/// <summary>
+	/// Classes plugins are allowed to directly inherit from. Packages providing
+	/// alternative plugin bases register theirs here.
+	/// </summary>
+	public static HashSet<Type> PluginBaseTypes { get; } = [typeof(Plugin), typeof(CarbonPlugin)];
+
+	/// <summary>Namespaces the compiler looks for plugin classes in.</summary>
+	public static HashSet<string> PluginNamespaces { get; } = ["Carbon.Plugins"];
+
+	public static bool IsPluginBaseType(Type type) => type != null && PluginBaseTypes.Contains(type);
 
 	public static CompilationResult GetCompilationResult(string file, bool clear = false)
 	{
@@ -53,7 +64,7 @@ public static partial class ModLoader
 		}
 		return default;
 	}
-	public static RustPlugin FindPlugin(string name)
+	public static Plugin FindPlugin(string name)
 	{
 		if (string.IsNullOrEmpty(name)) return null;
 		for (var i = 0; i < Packages.Count; i++)
@@ -64,9 +75,10 @@ public static partial class ModLoader
 		return null;
 	}
 
+	// Packages touch ModLoader before Community.Runtime exists, so only rely on the early-boot services here
 	static ModLoader()
 	{
-		Community.Runtime.Events.Subscribe(CarbonEvent.OnServerInitialized, _ => OnPluginProcessFinished());
+		Services.Events.Subscribe(CarbonEvent.OnServerInitialized, _ => OnPluginProcessFinished());
 	}
 
 	public static List<string> GetRequirees(Plugin initial)
@@ -181,7 +193,7 @@ public static partial class ModLoader
 
 	public static void UninitializePlugins(Package mod)
 	{
-		var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+		var plugins = Facepunch.Pool.Get<List<Plugin>>();
 		plugins.AddRange(mod.Plugins);
 
 		foreach (var plugin in plugins)
@@ -196,7 +208,8 @@ public static partial class ModLoader
 		Facepunch.Pool.FreeUnmanaged(ref plugins);
 	}
 
-	public static RustPlugin InitializePlugin(Assembly assembly, Package package = default, Action<RustPlugin> preInit = null, bool precompiled = false)
+	/// <summary>Initializes the first plugin type found in <paramref name="assembly"/>.</summary>
+	public static Plugin InitializePlugin(Assembly assembly, Package package = default, Action<Plugin> preInit = null, bool precompiled = false)
 	{
 		foreach (var type in assembly.GetTypes())
 		{
@@ -218,11 +231,16 @@ public static partial class ModLoader
 
 		return null;
 	}
-	public static bool InitializePlugin(Type type, out RustPlugin plugin, Package package = default, Action<RustPlugin> preInit = null, bool precompiled = false)
+	/// <summary>
+	/// Creates and loads a plugin: identity from [Info], constructor, config, default messages, Init/Loaded,
+	/// commands, and OnServerInitialized when the server is already up. Replaces an already loaded plugin with the same name.
+	/// </summary>
+	/// <param name="preInit">Runs right before the constructor, used by the compiler to hand over hook/reference metadata.</param>
+	public static bool InitializePlugin(Type type, out Plugin plugin, Package package = default, Action<Plugin> preInit = null, bool precompiled = false)
 	{
 		var constructor = type.GetConstructor(Type.EmptyTypes);
 		var instance = FormatterServices.GetUninitializedObject(type);
-		plugin = instance as RustPlugin;
+		plugin = instance as Plugin;
 		var info = type.GetCustomAttribute<InfoAttribute>();
 		var desc = type.GetCustomAttribute<DescriptionAttribute>();
 
@@ -244,7 +262,6 @@ public static partial class ModLoader
 			UninitializePlugin(existentPlugin);
 		}
 
-		plugin.SetProcessor(Community.Runtime.ScriptProcessor, null);
 		plugin.SetupMod(package, title, author, version, description);
 
 		plugin.IsPrecompiled = precompiled;
@@ -301,8 +318,6 @@ public static partial class ModLoader
 			ProcessCommands(type, plugin);
 		}
 
-		Interface.Oxide.RootPluginManager.AddPlugin(plugin);
-
 		var isProfiled = MonoProfiler.IsRecording && Community.Runtime.MonoProfilerConfig.IsWhitelisted(MonoProfilerConfig.ProfileTypes.Plugin, Path.GetFileNameWithoutExtension(plugin.FileName));
 
 		Logger.Log($"{(precompiled ? "Preloaded" : "Loaded")} plugin {plugin.ToPrettyString()}" +
@@ -327,7 +342,9 @@ public static partial class ModLoader
 
 		return true;
 	}
-	public static bool UninitializePlugin(RustPlugin plugin, bool premature = false, bool unloadDependantPlugins = true)
+	/// <summary>Unloads a plugin: patches, dependants, Unload hook, commands, libraries.</summary>
+	/// <param name="premature">The plugin failed while loading, so skip the unload hooks and logging.</param>
+	public static bool UninitializePlugin(Plugin plugin, bool premature = false, bool unloadDependantPlugins = true)
 	{
 		if (!premature && !plugin.IsLoaded)
 		{
@@ -368,7 +385,6 @@ public static partial class ModLoader
 		if (!premature)
 		{
 			Logger.Log($"Unloaded plugin {plugin.ToPrettyString()}");
-			Interface.Oxide.RootPluginManager.RemovePlugin(plugin);
 
 			Plugin.InternalApplyAllPluginReferences();
 		}
@@ -378,7 +394,8 @@ public static partial class ModLoader
 		return true;
 	}
 
-	public static void ProcessPrecompiledType(RustPlugin plugin)
+	/// <summary>Indexes hooks, [HookMethod]s and [PluginReference]s of a plugin that didn't go through the compiler.</summary>
+	public static void ProcessPrecompiledType(Plugin plugin)
 	{
 		try
 		{
@@ -425,6 +442,7 @@ public static partial class ModLoader
 		}
 	}
 
+	/// <summary>Whether <paramref name="type"/> is one of the <see cref="PluginBaseTypes"/> (or derives from one when recursive).</summary>
 	public static bool IsValidPlugin(Type type, bool recursive)
 	{
 		if (type == null)
@@ -432,7 +450,7 @@ public static partial class ModLoader
 			return false;
 		}
 
-		if (type.Name is CARBON_PLUGIN or RUST_PLUGIN or COVALENCE_PLUGIN)
+		if (IsPluginBaseType(type))
 		{
 			return true;
 		}
@@ -440,152 +458,109 @@ public static partial class ModLoader
 		return recursive && IsValidPlugin(type.BaseType, recursive);
 	}
 
-	public static void ProcessCommands(Type type, BaseHookable hookable = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null, bool hidden = false)
+	/// <summary>Access requirements shared by every command attribute on a member ([Permission], [Group], [AuthLevel], [Cooldown]).</summary>
+	private struct CommandRequirements
 	{
-		var methods = type.GetMethods(flags);
-		var fields = type.GetFields(flags | BindingFlags.Public);
-		var properties = type.GetProperties(flags | BindingFlags.Public);
+		public string[] Permissions;
+		public string[] Groups;
+		public int AuthLevel;
+		public int Cooldown;
+		public bool CooldownPenalty;
 
-		var hasPrefix = !string.IsNullOrEmpty(prefix);
-
-		foreach (var method in methods)
+		public static CommandRequirements From(object[] attributes)
 		{
-			var allAttrs = method.GetCustomAttributes(false);
-			if (allAttrs.Length == 0) continue;
+			var result = new CommandRequirements { AuthLevel = -1 };
+			List<string> permissions = null, groups = null;
 
-			int permCount = 0, groupCount = 0;
-			int authLevel = -1;
-			int cooldownTime = 0;
-			bool doCooldownPenalty = false;
-			bool hasAnyCommand = false;
-
-			foreach (var attr in allAttrs)
+			foreach (var attribute in attributes)
 			{
-				switch (attr)
+				switch (attribute)
 				{
-					case PermissionAttribute: permCount++; break;
-					case GroupAttribute: groupCount++; break;
-					case AuthLevelAttribute al: authLevel = al.AuthLevel; break;
-					case CooldownAttribute cd:
-						cooldownTime = cd.Miliseconds;
-						doCooldownPenalty = cd.DoCooldownPenalty;
-						break;
-					case ChatCommandAttribute:
-					case ConsoleCommandAttribute:
-					case RConCommandAttribute:
-					case ProtectedCommandAttribute:
-					case CommandAttribute:
-						hasAnyCommand = true;
+					case PermissionAttribute permission: (permissions ??= new()).Add(permission.Name); break;
+					case GroupAttribute group: (groups ??= new()).Add(group.Name); break;
+					case AuthLevelAttribute authLevel: result.AuthLevel = authLevel.AuthLevel; break;
+					case CooldownAttribute cooldown:
+						result.Cooldown = cooldown.Miliseconds;
+						result.CooldownPenalty = cooldown.DoCooldownPenalty;
 						break;
 				}
 			}
 
-			if (!hasAnyCommand) continue;
+			result.Permissions = permissions?.ToArray();
+			result.Groups = groups?.ToArray();
+			return result;
+		}
 
-			string[] ps = null;
-			if (permCount > 0)
+		public void RegisterPermissions(BaseHookable hookable)
+		{
+			if (Permissions == null)
 			{
-				ps = new string[permCount];
-				int idx = 0;
-				foreach (var attr in allAttrs)
-					if (attr is PermissionAttribute p) ps[idx++] = p.Name;
+				return;
 			}
 
-			string[] gs = null;
-			if (groupCount > 0)
+			var permission = Community.Runtime.Permission;
+
+			foreach (var name in Permissions)
 			{
-				gs = new string[groupCount];
-				int idx = 0;
-				foreach (var attr in allAttrs)
-					if (attr is GroupAttribute g) gs[idx++] = g.Name;
+				if (!permission.PermissionExists(name, hookable))
+				{
+					permission.RegisterPermission(name, hookable);
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Registers every command declared through attributes on <paramref name="type"/>:
+	/// [Command], [ChatCommand], [ConsoleCommand], [ProtectedCommand], [RConCommand] methods and [CommandVar] fields/properties.
+	/// </summary>
+	public static void ProcessCommands(Type type, BaseHookable hookable = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null, bool hidden = false)
+	{
+		string Name(string name) => string.IsNullOrEmpty(prefix) ? name : $"{prefix}.{name}";
+		var cmd = Community.Runtime.Core.cmd;
+
+		foreach (var method in type.GetMethods(flags))
+		{
+			var attributes = method.GetCustomAttributes(false);
+			if (attributes.Length == 0 || !attributes.Any(IsCommandAttribute))
+			{
+				continue;
 			}
 
+			var req = CommandRequirements.From(attributes);
 			var parameterCount = method.GetParameters().Length;
 
-			foreach (var attr in allAttrs)
+			foreach (var attribute in attributes)
 			{
-				switch (attr)
+				switch (attribute)
 				{
 					case CommandAttribute command:
 						foreach (var commandName in command.Names)
 						{
-							var name = hasPrefix ? $"{prefix}.{commandName}" : commandName;
-							Community.Runtime.Core.cmd.AddChatCommand(name, hookable, method, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
-							Community.Runtime.Core.cmd.AddConsoleCommand(name, hookable, method, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
+							cmd.AddChatCommand(Name(commandName), hookable, method, help: string.Empty, reference: method, permissions: req.Permissions, groups: req.Groups, authLevel: req.AuthLevel, cooldown: req.Cooldown, isHidden: hidden, silent: true, doCooldownPenalty: req.CooldownPenalty);
+							cmd.AddConsoleCommand(Name(commandName), hookable, method, help: string.Empty, reference: method, permissions: req.Permissions, groups: req.Groups, authLevel: req.AuthLevel, cooldown: req.Cooldown, isHidden: hidden, silent: true, doCooldownPenalty: req.CooldownPenalty);
 						}
 						break;
 
 					case ChatCommandAttribute chatCommand:
-						Community.Runtime.Core.cmd.AddChatCommand(hasPrefix ? $"{prefix}.{chatCommand.Name}" : chatCommand.Name, hookable, method, help: chatCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
+						cmd.AddChatCommand(Name(chatCommand.Name), hookable, method, help: chatCommand.Help, reference: method, permissions: req.Permissions, groups: req.Groups, authLevel: req.AuthLevel, cooldown: req.Cooldown, isHidden: hidden, silent: true, doCooldownPenalty: req.CooldownPenalty);
 						break;
 
 					case ConsoleCommandAttribute consoleCommand:
-						Community.Runtime.Core.cmd.AddConsoleCommand(hasPrefix ? $"{prefix}.{consoleCommand.Name}" : consoleCommand.Name, hookable,
-							arg =>
-							{
-								var argBuffer = HookCaller.Caller.AllocateBuffer(parameterCount);
-								if (argBuffer.Length >= 1)
-								{
-									argBuffer[0] = arg;
-								}
-
-								try
-								{
-									var result = method.Invoke(hookable, argBuffer);
-									if (result != null && arg.Option.PrintOutput)
-									{
-										Logger.Log(result);
-									}
-								}
-								catch (Exception ex)
-								{
-									ex = ex.InnerException;
-									if (arg.IsRcon)
-									{
-										arg.ReplyWith($"Failed executing command ({ex.Message})\n{ex.StackTrace}");
-									}
-									else
-									{
-										Logger.Error($"Failed executing command", ex);
-									}
-								}
-								finally
-								{
-									HookCaller.Caller.ReturnBuffer(argBuffer);
-								}
-								return true;
-							}, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
+						cmd.AddConsoleCommand(Name(consoleCommand.Name), hookable, arg => InvokeConsoleCommand(hookable, method, parameterCount, arg, reportErrors: true),
+							help: consoleCommand.Help, reference: method, permissions: req.Permissions, groups: req.Groups, authLevel: req.AuthLevel, cooldown: req.Cooldown, isHidden: hidden, silent: true, doCooldownPenalty: req.CooldownPenalty);
 						break;
 
 					case ProtectedCommandAttribute protectedCommand:
-						Community.Runtime.Core.cmd.AddConsoleCommand(Community.Protect(hasPrefix ? $"{prefix}.{protectedCommand.Name}" : protectedCommand.Name), hookable,
-							arg =>
-							{
-								var argBuffer = HookCaller.Caller.AllocateBuffer(parameterCount);
-								if (argBuffer.Length >= 1)
-								{
-									argBuffer[0] = arg;
-								}
-								try
-								{
-									var result = method.Invoke(hookable, argBuffer);
-									if (result != null && arg.Option.PrintOutput)
-									{
-										Logger.Log(result);
-									}
-								}
-								finally
-								{
-									HookCaller.Caller.ReturnBuffer(argBuffer);
-								}
-								return true;
-							}, help: protectedCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true, silent: true, doCooldownPenalty: doCooldownPenalty);
+						// Protected commands get a per-boot randomized name, see Community.Protect
+						cmd.AddConsoleCommand(Community.Protect(Name(protectedCommand.Name)), hookable, arg => InvokeConsoleCommand(hookable, method, parameterCount, arg, reportErrors: false),
+							help: protectedCommand.Help, reference: method, permissions: req.Permissions, groups: req.Groups, authLevel: req.AuthLevel, cooldown: req.Cooldown, isHidden: true, silent: true, doCooldownPenalty: req.CooldownPenalty);
 						break;
 
 					case RConCommandAttribute rconCommand:
-						var cmd = new API.Commands.Command.RCon
+						Community.Runtime.CommandManager.RegisterCommand(new Carbon.Commands.Command.RCon
 						{
-							Name = hasPrefix ? $"{prefix}.{rconCommand.Name}" : rconCommand.Name,
+							Name = Name(rconCommand.Name),
 							Reference = hookable,
 							Callback = arg =>
 							{
@@ -610,202 +585,114 @@ public static partial class ModLoader
 							Help = rconCommand.Help,
 							Token = rconCommand,
 							CanExecute = (_, _) => true
-						};
-
-						Community.Runtime.CommandManager.RegisterCommand(cmd, out _);
+						}, out _);
 						break;
 				}
 			}
 
-			if (ps != null && ps.Length > 0)
-			{
-				var perm = Interface.Oxide.Permission;
-
-				foreach (var permission in ps)
-				{
-					if (!perm.PermissionExists(permission, hookable))
-					{
-						perm.RegisterPermission(permission, hookable);
-					}
-				}
-			}
+			req.RegisterPermissions(hookable);
 		}
 
-		foreach (var field in fields)
+		foreach (var field in type.GetFields(flags | BindingFlags.Public))
 		{
-			var allAttrs = field.GetCustomAttributes(false);
-			if (allAttrs.Length == 0) continue;
-
-			CommandVarAttribute cmdVar = null;
-			int authLevel = -1;
-			int cooldownTime = 0;
-			bool doCooldownPenalty = false;
-			int permCount = 0, groupCount = 0;
-
-			foreach (var attr in allAttrs)
-			{
-				switch (attr)
-				{
-					case CommandVarAttribute cv: cmdVar = cv; break;
-					case AuthLevelAttribute al: authLevel = al.AuthLevel; break;
-					case CooldownAttribute cd:
-						cooldownTime = cd.Miliseconds;
-						doCooldownPenalty = cd.DoCooldownPenalty;
-						break;
-					case PermissionAttribute: permCount++; break;
-					case GroupAttribute: groupCount++; break;
-				}
-			}
-
-			if (cmdVar == null) continue;
-
-			string[] ps = null;
-			if (permCount > 0)
-			{
-				ps = new string[permCount];
-				int idx = 0;
-				foreach (var attr in allAttrs)
-					if (attr is PermissionAttribute p) ps[idx++] = p.Name;
-			}
-
-			string[] gs = null;
-			if (groupCount > 0)
-			{
-				gs = new string[groupCount];
-				int idx = 0;
-				foreach (var attr in allAttrs)
-					if (attr is GroupAttribute g) gs[idx++] = g.Name;
-			}
-
-			{
-				Community.Runtime.Core.cmd.AddConsoleCommand(hasPrefix ? $"{prefix}.{cmdVar.Name}" : cmdVar.Name, hookable, args =>
-				{
-					var value = field.GetValue(hookable);
-
-					if (args != null && args.HasArgs(1))
-					{
-						try
-						{
-							if (field.FieldType == typeof(string))
-							{
-								value = args.GetString(0);
-							}
-							else if (field.FieldType == typeof(bool))
-							{
-								value = args.GetBool(0);
-							}
-							if (field.FieldType == typeof(int))
-							{
-								value = args.GetInt(0);
-							}
-							if (field.FieldType == typeof(uint))
-							{
-								value = args.GetUInt(0);
-							}
-							else if (field.FieldType == typeof(float))
-							{
-								value = args.GetFloat(0);
-							}
-							else if (field.FieldType == typeof(long))
-							{
-								value = args.GetLong(0);
-							}
-							else if (field.FieldType == typeof(ulong))
-							{
-								value = args.GetULong(0);
-							}
-
-							field.SetValue(hookable, value);
-						}
-						catch { }
-					}
-
-					value = field.GetValue(hookable);
-					if (value != null && cmdVar.Protected) value = new string('*', value.ToString().Length);
-
-					args.ReplyWith($"{args.cmd.FullName}: \"{value}\"");
-					return true;
-				}, help: cmdVar.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: cmdVar.Protected, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
-			}
+			ProcessCommandVar(field, field.FieldType, () => field.GetValue(hookable), value => field.SetValue(hookable, value));
 		}
 
-		foreach (var property in properties)
+		foreach (var property in type.GetProperties(flags | BindingFlags.Public))
 		{
-			var allAttrs = property.GetCustomAttributes(false);
-			if (allAttrs.Length == 0) continue;
+			ProcessCommandVar(property, property.PropertyType, () => property.GetValue(hookable), value => property.SetValue(hookable, value));
+		}
 
-			CommandVarAttribute cmdVar = null;
-			int authLevel = -1;
-			int cooldownTime = 0;
-			bool doCooldownPenalty = false;
-			int permCount = 0, groupCount = 0;
+		// [CommandVar] exposes a field/property as a console variable: no args reads it, one arg sets it
+		void ProcessCommandVar(MemberInfo member, Type valueType, Func<object> get, Action<object> set)
+		{
+			var attributes = member.GetCustomAttributes(false);
+			var cmdVar = attributes.OfType<CommandVarAttribute>().FirstOrDefault();
 
-			foreach (var attr in allAttrs)
+			if (cmdVar == null)
 			{
-				switch (attr)
+				return;
+			}
+
+			var req = CommandRequirements.From(attributes);
+
+			cmd.AddConsoleCommand(Name(cmdVar.Name), hookable, args =>
+			{
+				if (args != null && args.HasArgs(1))
 				{
-					case CommandVarAttribute cv: cmdVar = cv; break;
-					case AuthLevelAttribute al: authLevel = al.AuthLevel; break;
-					case CooldownAttribute cd:
-						cooldownTime = cd.Miliseconds;
-						doCooldownPenalty = cd.DoCooldownPenalty;
-						break;
-					case PermissionAttribute: permCount++; break;
-					case GroupAttribute: groupCount++; break;
-				}
-			}
-
-			if (cmdVar == null) continue;
-
-			string[] ps = null;
-			if (permCount > 0)
-			{
-				ps = new string[permCount];
-				int idx = 0;
-				foreach (var attr in allAttrs)
-					if (attr is PermissionAttribute p) ps[idx++] = p.Name;
-			}
-
-			string[] gs = null;
-			if (groupCount > 0)
-			{
-				gs = new string[groupCount];
-				int idx = 0;
-				foreach (var attr in allAttrs)
-					if (attr is GroupAttribute g) gs[idx++] = g.Name;
-			}
-
-			{
-				Community.Runtime.Core.cmd.AddConsoleCommand(hasPrefix ? $"{prefix}.{cmdVar.Name}" : cmdVar.Name, hookable, args =>
-				{
-					var value = property.GetValue(hookable);
-
-					if (args != null && args.HasArgs(1))
+					try
 					{
-						try
+						var value = ParseCommandVar(valueType, args);
+						if (value != null)
 						{
-							var pt = property.PropertyType;
-							if (pt == typeof(string)) value = args.GetString(0);
-							else if (pt == typeof(bool)) value = args.GetBool(0);
-							else if (pt == typeof(int)) value = args.GetInt(0);
-							else if (pt == typeof(uint)) value = args.GetUInt(0);
-							else if (pt == typeof(float)) value = args.GetFloat(0);
-							else if (pt == typeof(long)) value = args.GetLong(0);
-							else if (pt == typeof(ulong)) value = args.GetULong(0);
-
-							property.SetValue(hookable, value);
+							set(value);
 						}
-						catch { }
 					}
+					catch { }
+				}
 
-					value = property.GetValue(hookable);
-					if (value != null && cmdVar.Protected) value = new string('*', value.ToString().Length);
+				var current = get();
+				if (current != null && cmdVar.Protected) current = new string('*', current.ToString().Length);
 
-					args.ReplyWith($"{args.cmd.FullName}: \"{value}\"");
-					return true;
-				}, help: cmdVar.Help, reference: property, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: cmdVar.Protected, isHidden: hidden, silent: true, doCooldownPenalty: doCooldownPenalty);
+				args.ReplyWith($"{args.cmd.FullName}: \"{current}\"");
+				return true;
+			}, help: cmdVar.Help, reference: member, permissions: req.Permissions, groups: req.Groups, authLevel: req.AuthLevel, cooldown: req.Cooldown, @protected: cmdVar.Protected, isHidden: hidden, silent: true, doCooldownPenalty: req.CooldownPenalty);
+
+			req.RegisterPermissions(hookable);
+		}
+	}
+
+	private static bool IsCommandAttribute(object attribute)
+	{
+		return attribute is ChatCommandAttribute or ConsoleCommandAttribute or RConCommandAttribute or ProtectedCommandAttribute or CommandAttribute;
+	}
+
+	private static object ParseCommandVar(Type type, ConsoleSystem.Arg args)
+	{
+		if (type == typeof(string)) return args.GetString(0);
+		if (type == typeof(bool)) return args.GetBool(0);
+		if (type == typeof(int)) return args.GetInt(0);
+		if (type == typeof(uint)) return args.GetUInt(0);
+		if (type == typeof(float)) return args.GetFloat(0);
+		if (type == typeof(long)) return args.GetLong(0);
+		if (type == typeof(ulong)) return args.GetULong(0);
+		return null;
+	}
+
+	private static bool InvokeConsoleCommand(BaseHookable hookable, MethodInfo method, int parameterCount, ConsoleSystem.Arg arg, bool reportErrors)
+	{
+		var argBuffer = HookCaller.Caller.AllocateBuffer(parameterCount);
+		if (argBuffer.Length >= 1)
+		{
+			argBuffer[0] = arg;
+		}
+
+		try
+		{
+			var result = method.Invoke(hookable, argBuffer);
+			if (result != null && arg.Option.PrintOutput)
+			{
+				Logger.Log(result);
 			}
 		}
+		catch (Exception ex) when (reportErrors)
+		{
+			ex = ex.InnerException ?? ex;
+			if (arg.IsRcon)
+			{
+				arg.ReplyWith($"Failed executing command ({ex.Message})\n{ex.StackTrace}");
+			}
+			else
+			{
+				Logger.Error("Failed executing command", ex);
+			}
+		}
+		finally
+		{
+			HookCaller.Caller.ReturnBuffer(argBuffer);
+		}
+
+		return true;
 	}
 	public static void RemoveCommands(BaseHookable hookable)
 	{
@@ -814,6 +701,10 @@ public static partial class ModLoader
 		Community.Runtime.CommandManager.ClearCommands(command => command.Reference == hookable);
 	}
 
+	/// <summary>
+	/// Runs once a compile batch settles: retries plugins whose requirements showed up, re-applies plugin references
+	/// and fires OnServerInitialized on plugins that missed it.
+	/// </summary>
 	public static void OnPluginProcessFinished()
 	{
 		var temp = Facepunch.Pool.Get<List<string>>();
@@ -821,15 +712,7 @@ public static partial class ModLoader
 
 		foreach (var plugin in temp)
 		{
-			var file = Path.GetFileNameWithoutExtension(plugin);
-			Community.Runtime.ScriptProcessor.ClearIgnore(file);
-			Community.Runtime.ScriptProcessor.Prepare(file, plugin);
-			Community.Runtime.ZipScriptProcessor.ClearIgnore(file);
-			Community.Runtime.ZipScriptProcessor.Prepare(file, plugin);
-#if DEBUG
-			Community.Runtime.ZipDevScriptProcessor.ClearIgnore(file);
-			Community.Runtime.ZipDevScriptProcessor.Prepare(file, plugin);
-#endif
+			Community.Runtime.PluginSources.Retry(plugin);
 		}
 
 		PostBatchFailedRequirees.Clear();
@@ -850,7 +733,7 @@ public static partial class ModLoader
 		}
 
 		var counter = 0;
-		var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+		var plugins = Facepunch.Pool.Get<List<Plugin>>();
 		plugins.AddRange(Packages.SelectMany(mod => mod.Plugins));
 
 		foreach (var plugin in plugins)

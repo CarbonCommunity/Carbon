@@ -1,7 +1,7 @@
 ﻿using System;
-using API.Hooks;
+using Carbon.Hooks;
 using Carbon.Core;
-using Oxide.Plugins;
+using Carbon.Plugins;
 
 namespace Carbon.Hooks;
 
@@ -17,7 +17,7 @@ public partial class Category_Engine
 		[MetadataAttribute.Category("Engine")]
 		[MetadataAttribute.Info("Gets called when a plugin's constructor throws an exception.")]
 		[MetadataAttribute.Info("Fatal error which forcefully unloads the plugin right after.")]
-		[MetadataAttribute.Parameter("plugin", typeof(RustPlugin))]
+		[MetadataAttribute.Parameter("plugin", typeof(Plugin))]
 		[MetadataAttribute.Parameter("exception", typeof(Exception))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]

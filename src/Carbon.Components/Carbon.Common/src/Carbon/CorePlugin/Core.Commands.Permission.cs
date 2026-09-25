@@ -930,7 +930,7 @@ public partial class CorePlugin
 			}
 		}
 
-		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var module in Community.Runtime.Modules.All)
 		{
 			if (module is BaseModule baseModule)
 			{
@@ -938,7 +938,7 @@ public partial class CorePlugin
 			}
 		}
 
-		Interface.Oxide.Permission = sql;
+		Community.Runtime.Permission = sql;
 
 		Community.Runtime.Core.permission = sql;
 		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.SQL;
@@ -969,7 +969,7 @@ public partial class CorePlugin
 			}
 		}
 
-		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var module in Community.Runtime.Modules.All)
 		{
 			if (module is BaseModule baseModule)
 			{
@@ -977,7 +977,7 @@ public partial class CorePlugin
 			}
 		}
 
-		Interface.Oxide.Permission = protobuf;
+		Community.Runtime.Permission = protobuf;
 
 		Community.Runtime.Core.permission = protobuf;
 		Community.Runtime.Config.Permissions.PermissionSerialization = Permission.SerializationMode.Protobuf;

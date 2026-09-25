@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using API.Hooks;
+using Carbon.Hooks;
 using Carbon.Core;
 using ConVar;
 using static ConVar.Chat;
@@ -15,11 +15,10 @@ public partial class Category_Player
 	{
 		[HookAttribute.Patch("IOnPlayerChat", "IOnPlayerChat", typeof(ConVar.Chat), "sayAs", [typeof(Chat.ChatChannel), typeof(ulong), typeof(string), typeof(string), typeof(BasePlayer)])]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class IOnPlayerChat : Patch
 		{
-			public static bool IsValidCommand(string input, BasePlayer player, out API.Commands.Command.Prefix prefix)
+			public static bool IsValidCommand(string input, BasePlayer player, out Carbon.Commands.Command.Prefix prefix)
 			{
 				prefix = null;
 
@@ -28,13 +27,13 @@ public partial class Category_Player
 					return false;
 				}
 
-				if (API.Commands.Command.Prefixes == null)
+				if (Carbon.Commands.Command.Prefixes == null)
 				{
 					Logger.Error("This is really bad. Let the devs know ASAP, unless some plugin broke this. (Prefixes == null)");
 					return false;
 				}
 
-				if (!API.Commands.Command.HasPrefix(input, out prefix)) return false;
+				if (!Carbon.Commands.Command.HasPrefix(input, out prefix)) return false;
 
 				if (prefix.PrintToChat)
 				{

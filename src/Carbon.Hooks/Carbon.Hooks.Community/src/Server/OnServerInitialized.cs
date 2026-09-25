@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 
 namespace Carbon.Hooks;
@@ -17,7 +17,6 @@ public partial class Category_Server
 		[MetadataAttribute.Info("Also called for plugins that are hotloaded while the server is already started running.")]
 		[MetadataAttribute.Parameter("initialized", typeof(bool), true)]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnServerInitialized : Patch;
 	}

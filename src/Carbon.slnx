@@ -19,6 +19,9 @@
 		<Project Path="Carbon.Components/Carbon.Compat/Carbon.Compat.csproj">
 			<Platform Project="x64"/>
 		</Project>
+		<Project Path="Carbon.Components/Carbon.Oxide/Carbon.Oxide.csproj">
+			<Platform Project="x64" />
+		</Project>
 		<Project Path="Carbon.Components/Carbon.Modules/Carbon.Modules.csproj">
 			<Platform Project="x64" />
 		</Project>

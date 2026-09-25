@@ -1,55 +1,35 @@
-﻿using API.Analytics;
-using API.Assembly;
-using API.Commands;
-using API.Contracts;
-using API.Events;
-using API.Hooks;
+﻿using Carbon.Commands;
+using Carbon.Events;
+using Carbon.Hooks;
 using Facepunch;
 
 namespace Carbon;
 
 public partial class Community
 {
-	public static GameObject GameObject => _gameObject.Value;
+	/// <summary>The persistent GameObject hosting the core <see cref="Services"/>.</summary>
+	public static GameObject GameObject => Services.GameObject;
 
-	private static readonly Lazy<GameObject> _gameObject = new(() =>
-	{
-		var gameObject = GameObject.Find("Carbon");
-		return gameObject == null ? throw new Exception("Carbon GameObject not found") : gameObject;
-	});
+	public AnalyticsManager Analytics => Services.Analytics;
+	public AssemblyManager AssemblyEx => Services.Assemblies;
+	public CommandManager CommandManager => Services.Commands;
+	public DownloadManager Downloader => Services.Downloads;
+	public EventManager Events => Services.Events;
 
-	public IAnalyticsManager Analytics => _analyticsManager.Value;
-	public IAssemblyManager AssemblyEx => _assemblyEx.Value;
-	public ICommandManager CommandManager => _commandManager.Value;
-	public IDownloadManager Downloader => _downloadManager.Value;
-	public IEventManager Events => _eventManager.Value;
-	public ICompatManager Compat => _compatManager.Value;
+	/// <summary>Installs and tracks Harmony-based hooks.</summary>
+	public PatchManager HookManager { get; set; }
 
-	public IPatchManager HookManager { get; set; }
-	public IScriptProcessor ScriptProcessor { get; set; }
-	public IModuleProcessor ModuleProcessor { get; set; }
-	public IZipScriptProcessor ZipScriptProcessor { get; set; }
+	/// <summary>Watches and compiles plugin sources (.cs, .cszip, dev folders).</summary>
+	public PluginSources PluginSources { get; set; }
 
-#if DEBUG
-	public IZipDevScriptProcessor ZipDevScriptProcessor { get; set; }
-#endif
+	/// <summary>Every loaded module.</summary>
+	public ModuleRegistry Modules { get; set; }
 
-	public ICarbonProcessor CarbonProcessor { get; set; }
+	/// <summary>Main-thread dispatcher (next-frame callbacks, timer ticks).</summary>
+	public Scheduler Scheduler { get; set; }
 
 	public static bool IsServerInitialized { get; internal set; }
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
-	public static bool AllProcessorsFinalized => Runtime.ScriptProcessor.AllPendingScriptsComplete() &&
-												 Runtime.ZipScriptProcessor.AllPendingScriptsComplete()
-#if !MINIMAL && DEBUG
-												 && Runtime.ZipDevScriptProcessor.AllPendingScriptsComplete()
-#endif
-		;
-	public static int AllProcesses => Runtime.ScriptProcessor.InstanceBuffer.Count
-		+ Runtime.ZipScriptProcessor.InstanceBuffer.Count
-#if !MINIMAL && DEBUG
-		+ Runtime.ZipDevScriptProcessor.InstanceBuffer.Count
-#endif
-		;
 
 	internal static string _runtimeId;
 

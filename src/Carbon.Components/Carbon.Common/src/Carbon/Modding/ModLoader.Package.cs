@@ -4,6 +4,9 @@ namespace Carbon.Core;
 
 public static partial class ModLoader
 {
+	/// <summary>
+	/// A named group of plugins (scripts, zip scripts, extensions..).
+	/// </summary>
 	[JsonObject(MemberSerialization.OptIn)]
 	public struct Package
 	{
@@ -13,14 +16,14 @@ public static partial class ModLoader
 		[JsonProperty] public string Name;
 		[JsonProperty] public string File;
 		[JsonProperty] public bool IsCoreMod;
-		[JsonProperty] public List<RustPlugin> Plugins;
+		[JsonProperty] public List<Plugin> Plugins;
 
-		public Dictionary<string, RustPlugin> Index;
+		public Dictionary<string, Plugin> Index;
 
 		public bool IsValid { get; internal set; }
 		public readonly int PluginCount => IsValid ? Plugins.Count : default;
 
-		public Package AddPlugin(RustPlugin plugin)
+		public Package AddPlugin(Plugin plugin)
 		{
 			if (!IsValid || Plugins == null || Plugins.Contains(plugin))
 			{
@@ -32,7 +35,7 @@ public static partial class ModLoader
 			HookSubscriberIndex.Invalidate();
 			return this;
 		}
-		public Package RemovePlugin(RustPlugin plugin)
+		public Package RemovePlugin(Plugin plugin)
 		{
 			if (!IsValid || Plugins == null || !Plugins.Contains(plugin))
 			{
@@ -47,7 +50,7 @@ public static partial class ModLoader
 			HookSubscriberIndex.Invalidate();
 			return this;
 		}
-		public RustPlugin FindPlugin(string name)
+		public Plugin FindPlugin(string name)
 		{
 			if (string.IsNullOrEmpty(name) || Index == null) return null;
 			return Index.TryGetValue(name, out var plugin) ? plugin : null;

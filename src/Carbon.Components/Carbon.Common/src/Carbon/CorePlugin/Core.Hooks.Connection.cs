@@ -17,9 +17,6 @@ public partial class CorePlugin
 		// OnPlayerConnected
 		HookCaller.CallStaticHook(2848347654, player);
 
-		// OnUserConnected
-		HookCaller.CallStaticHook(1253832323, player.AsIPlayer());
-
 		CustomVitalManager.SendVitals(player);
 
 		return null;
@@ -28,7 +25,7 @@ public partial class CorePlugin
 	{
 		var username = connection.username;
 		var text = connection.userid.ToString();
-		var obj = Regex.Replace(connection.ipaddress, Player.ipPattern, string.Empty);
+		var obj = GetAddress(connection.ipaddress);
 
 		// CanClientLogin
 		var canClient = HookCaller.CallStaticHook(3081308902, connection);
@@ -62,9 +59,7 @@ public partial class CorePlugin
 
 	private void OnPlayerDisconnected(BasePlayer player, string reason)
 	{
-		// OnUserDisconnected
-		HookCaller.CallStaticHook(649612044, player?.AsIPlayer(), reason);
-
+		// Keep admins that disconnect mid-air from dying of fall damage when they come back
 		if (player.IsAdmin && !player.IsOnGround())
 		{
 			var newPosition = player.transform.position;
@@ -89,21 +84,6 @@ public partial class CorePlugin
 				}
 			}
 		}
-	}
-	private void OnPlayerKicked(BasePlayer basePlayer, string reason)
-	{
-		// OnUserKicked
-		HookCaller.CallStaticHook(3928650942, basePlayer.AsIPlayer(), reason);
-	}
-	private object OnPlayerRespawn(BasePlayer basePlayer)
-	{
-		// OnUserRespawn
-		return HookCaller.CallStaticHook(3398288406, basePlayer.AsIPlayer());
-	}
-	private void OnPlayerRespawned(BasePlayer basePlayer)
-	{
-		// OnUserRespawned
-		HookCaller.CallStaticHook(960522643, basePlayer.AsIPlayer());
 	}
 	private void OnClientAuth(Connection connection)
 	{

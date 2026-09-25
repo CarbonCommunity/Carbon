@@ -1,9 +1,8 @@
 ﻿#if !MINIMAL
 
 using System.Windows.Controls;
-using API.Commands;
+using Carbon.Commands;
 using Newtonsoft.Json;
-using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
 
 namespace Carbon.Modules;
@@ -12,7 +11,7 @@ public partial class AdminModule
 {
 	public class ConfigurationTab : Tab
 	{
-		public ConfigurationTab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
+		public ConfigurationTab(string id, string name, Plugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
 		{
 		}
 
@@ -222,9 +221,9 @@ public partial class AdminModule
 						ap => Singleton.ConfigInstance.SpectatingEndTeleportBack =
 							!Singleton.ConfigInstance.SpectatingEndTeleportBack,
 						ap => Singleton.ConfigInstance.SpectatingEndTeleportBack);
-					tab.AddToggle(0, "Disable uMod (Plugins tab)",
-						ap => Singleton.DataInstance.DisableUMod = !Singleton.DataInstance.DisableUMod,
-						ap => Singleton.DataInstance.DisableUMod);
+					tab.AddToggle(0, "Disable external vendor (Plugins tab)",
+						ap => Singleton.DataInstance.DisableExternalVendor = !Singleton.DataInstance.DisableExternalVendor,
+						ap => Singleton.DataInstance.DisableExternalVendor);
 					tab.AddToggle(0, "Hide Plugin Icons (Plugins tab)",
 						ap => Singleton.DataInstance.HidePluginIcons = !Singleton.DataInstance.HidePluginIcons,
 						ap => Singleton.DataInstance.HidePluginIcons);

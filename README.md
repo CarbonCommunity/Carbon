@@ -1,4 +1,4 @@
-![Carbon Light Logo](https://raw.githubusercontent.com/CarbonCommunity/.github/refs/heads/main/profile/press/carbonlogo_w.png#gh-dark-mode-only)
+﻿![Carbon Light Logo](https://raw.githubusercontent.com/CarbonCommunity/.github/refs/heads/main/profile/press/carbonlogo_w.png#gh-dark-mode-only)
 ![Carbon Dark Logo](https://raw.githubusercontent.com/CarbonCommunity/.github/refs/heads/main/profile/press/carbonlogo_b.png#gh-light-mode-only)
 
 <p align="center">
@@ -18,7 +18,7 @@
   <hr />
 </p>
 
-Carbon is a self-updating, lightweight, intelligent mod loader for Rust utilizing the latest C# and Harmony for the best performance and stability possible. Its robust framework and backward compatibility with Oxide plugins make it the ultimate replacement for those wanting better functionality and performance from their plugins!
+Carbon is a self-updating, lightweight, intelligent mod loader for Rust utilizing the latest C# and Harmony for the best performance and stability possible. It ships in two flavors: **Carbon**, a standalone framework with its own plugin API, and **Carbon with Oxide**, which adds backward compatibility with Oxide plugins and extensions on top.
 
 Carbon has all the creature comforts you need to run your server, such as a permission system, user system, and so much more. Carbon is developed by experienced developers and server owners working to take the tedium out of hosting servers and make configuration and setup seamless with an integrated GUI in-game to manage everything!
 
@@ -64,23 +64,28 @@ The following branches are shared across all Component and Hook projects and syn
 
 ### Components
 - [Carbon.Preloader](./src/Carbon.Components/Carbon.Preloader): Runtime preloader of dependencies and responsible for the self-updating process. It invokes Carbon.Startup.
-- [Carbon.Startup](./src/Carbon.Components/Carbon.Startup): Handles in-memory Rust assembly patching and publicizing and exporting if Developer Mode is enabled in the config.
-- [Carbon.Bootstrap](./src/Carbon.Components/Carbon.Bootstrap): Initial Carbon execution and boot in the primary app-domain.
-- [Carbon.Common](./src/Carbon.Components/Carbon.Common): The very basis of Carbon, tools and extensions for overall use and functionality. Primarily a centerpiece for all dependant subcomponents.
-- [Carbon.SDK](./src/Carbon.Components/Carbon.SDK): Infrastructural and contractual features with no implementation. An easy way to identify and organize the structure of our systems.
+- [Carbon.Startup](./src/Carbon.Components/Carbon.Startup): Handles in-memory Rust assembly patching and publicizing and exporting if Developer Mode is enabled in the config. Applies the startup tasks declared by packages.
+- [Carbon.Bootstrap](./src/Carbon.Components/Carbon.Bootstrap): Initial Carbon boot in the primary app-domain. Installs the core services, loads packages, then Carbon.
+- [Carbon.Common](./src/Carbon.Components/Carbon.Common): The core of Carbon: the plugin API (`Carbon.Plugins`), plugin sources and compiler, hooks, managers, modules, CUI and tools.
+- [Carbon.SDK](./src/Carbon.Components/Carbon.SDK): Low-level shared types (events, commands, hook attributes, addon contracts) used by components that can't depend on Carbon.Common.
 - [Carbon.Modules](./src/Carbon.Components/Carbon.Modules): Carbon optional modules expanding functionality, enhanced QoL and tools.
-- [Carbon.Compat](./src/Carbon.Components/Carbon.Compat): Previously known as Carbon Compatibility Loader written by Patrette (community member).
+- [Carbon.Compat](./src/Carbon.Components/Carbon.Compat): Makes Rust HarmonyMods loadable under Carbon. Originally the Carbon Compatibility Loader written by Patrette (community member).
+- [Carbon.Oxide](./src/Carbon.Components/Carbon.Oxide): The Oxide compatibility package (only in "Carbon with Oxide" builds): Oxide's API, plugin source translation, extension conversion and covalence hooks.
 - [Carbon.Test](./src/Carbon.Components/Carbon.Test): Integral implementation for automated testing rules and events.
 
 ### Hooks
 Carbon's hooks are managed in [`src/Carbon.Hooks`](./src/Carbon.Hooks):
-- [Carbon.Hooks.Base](./src/Carbon.Hooks/Carbon.Hooks.Base): Includes ground level dynamic and static patching instructions supplementing necessary events for Carbon's own runtime.
+- [Carbon.Hooks.Base](./src/Carbon.Hooks/Carbon.Hooks.Base): Includes ground level dynamic and static patching instructions supplementing necessary events for Carbon's own runtime, including the plugin lifecycle hooks.
 - [Carbon.Hooks.Community](./src/Carbon.Hooks/Carbon.Hooks.Community): Community curated patches and hooks.
 - [Carbon.Hooks.Generator](./src/Carbon.Hooks/Carbon.Hooks.Generator): Generates Carbon Harmony hooks based on an Oxide `.opj` file.
-- [Carbon.Hooks.Oxide](./src/Carbon.Hooks/Carbon.Hooks.Oxide): Oxide compatibility package, primarily utilized for internal use whenever going through the automatic patch code generation process.
+- [Carbon.Hooks.Oxide](./src/Carbon.Hooks/Carbon.Hooks.Oxide): The generated Oxide hooks, only shipped in "Carbon with Oxide" builds.
 
 ### Building
 To locally build Carbon from scratch, execute the [`setup.bat`](./setup.bat) or [`setup.sh`](./setup.sh) file, and find the results in the root of Carbon, under `./release`.
+
+To build "Carbon with Oxide", use the `*_oxide` scripts in [`tools/build`](./tools/build) (e.g. `build_debug_oxide.bat`), or pass `-oxide` to the build runner. Those archives carry an `.Oxide` suffix.
+
+See [`docs/CARBON-3.md`](./docs/CARBON-3.md) for the 3.0 architecture and migration notes.
 
 ## :heart: Sponsor
 

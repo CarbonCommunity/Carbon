@@ -1,0 +1,869 @@
+﻿using System;
+using System.CodeDom.Compiler;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using Carbon.Base;
+using Carbon.Components;
+using Carbon.Core;
+using Carbon.Extensions;
+using Carbon.Generator;
+using Carbon.Pooling;
+using Carbon.Profiler;
+using Facepunch;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
+using Mono.Cecil;
+
+namespace Carbon.Jobs;
+
+/// <summary>
+/// Compiles plugin sources with Roslyn on a worker thread: applies source transformers, generates the
+/// InternalCallHook partial, emits and loads the assembly, then indexes hooks and plugin references.
+/// </summary>
+public class ScriptCompilationThread : BaseThreadedJob
+{
+	/// <summary>Rewrites a plugin source file before it gets parsed. Returning null keeps the content as is.</summary>
+	public delegate string SourceTransformer(SourceFile source, string content, CSharpParseOptions options);
+
+	/// <summary>
+	/// Source rewriters applied to every plugin, in order. Runs on the compiler thread, so keep them thread-safe.
+	/// Used by compatibility packages to translate foreign plugin APIs.
+	/// </summary>
+	public static List<SourceTransformer> SourceTransformers { get; } = new();
+
+	/// <summary>Extra preprocessor symbols every plugin compiles with.</summary>
+	public static HashSet<string> ConditionalSymbols { get; } = new();
+
+	public SourceFile InitialSource => Sources != null && Sources.Count > 0 ? Sources[0] : null;
+	public List<SourceFile> Sources;
+	public string[] References;
+	public string[] Requires;
+	public string InternalCallHookSource;
+	public bool IsExtension;
+	public bool IsCompileTestMode;
+	public bool IsCompileSuccess;
+	public List<string> Usings = new();
+	public Dictionary<Type, List<uint>> Hooks = new();
+	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
+	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new();
+	public TimeSpan CompileTime;
+	public TimeSpan InternalCallHookGenTime;
+	public Assembly Assembly;
+	public List<CompilerException> Exceptions = new();
+	public List<CompilerException> Warnings = new();
+
+
+	private const string _internalCallHookPattern = @"override object InternalCallHook";
+	private const string _partialPattern = @" partial ";
+	private Stopwatch _stopwatch;
+	private List<ClassDeclarationSyntax> ClassList = new();
+	private static EmitOptions _emitOptions = new(debugInformationFormat: DebugInformationFormat.Embedded);
+	private static ConcurrentDictionary<string, byte[]> _compilationCache = new();
+	private static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
+	private static Dictionary<string, PortableExecutableReference> _referenceCache = new();
+	private static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
+	private static readonly string[] _libraryDirectories =
+	[
+		Defines.GetLibFolder(),
+		Defines.GetManagedFolder(),
+		Defines.GetRustManagedFolder(),
+		Defines.GetManagedModulesFolder(),
+		Defines.GetPackagesFolder(),
+		Defines.GetExtensionsFolder()
+	];
+
+	private static byte[] _getPlugin(string name)
+	{
+		name = name.Replace(" ", string.Empty);
+
+		return _compilationCache.TryGetValue(name, out var plugin) ? plugin : null;
+	}
+	private static byte[] _getExtensionPlugin(string name)
+	{
+		return _extensionCompilationCache.TryGetValue(name, out var extension) ? extension : null;
+	}
+	private static void _overridePlugin(string name, byte[] pluginAssembly)
+	{
+		name = name.Replace(" ", "");
+
+		if (pluginAssembly == null) return;
+
+		var plugin = _getPlugin(name);
+		if (plugin == null)
+		{
+			try { _compilationCache.AddOrUpdate(name, pluginAssembly, (a, v) => pluginAssembly); } catch { }
+			return;
+		}
+
+		Array.Clear(plugin, 0, plugin.Length);
+		try { _compilationCache[name] = pluginAssembly; } catch { }
+	}
+	private static void _overrideExtensionPlugin(string name, byte[] pluginAssembly)
+	{
+		if (pluginAssembly == null) return;
+
+		var plugin = _getExtensionPlugin(name);
+		if (plugin == null)
+		{
+			try { _extensionCompilationCache.AddOrUpdate(name, pluginAssembly, (a, v) => pluginAssembly); } catch { }
+			return;
+		}
+
+		Array.Clear(plugin, 0, plugin.Length);
+		try { _extensionCompilationCache[name] = pluginAssembly; } catch { }
+	}
+	internal static void _clearExtensionPlugin(string name)
+	{
+		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.TryRemove(name, out _);
+		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
+	}
+	internal static void _injectPatchedReferences()
+	{
+		foreach (var assembly in Community.Runtime.Config.Publicizer.PublicizedAssemblies)
+		{
+			var correctedName = assembly.Replace(".dll", string.Empty);
+			using var stream = new MemoryStream(Carbon.PatchedAssemblies.AssemblyCache[correctedName]);
+			_referenceCache[correctedName] = PortableExecutableReference.CreateFromStream(stream);
+		}
+	}
+	private void _injectReference(string id, string name, List<MetadataReference> references, string[] directories, bool direct = false, bool allowCache = true)
+	{
+		if (allowCache && _referenceCache.TryGetValue(name, out var reference))
+		{
+			references.Add(reference);
+		}
+		else
+		{
+			var raw = (byte[])null;
+
+			if (direct)
+			{
+				var found = false;
+				foreach (var directory in directories)
+				{
+					foreach (var file in OsEx.Folder.GetFilesWithExtension(directory, "dll"))
+					{
+						if (!file.Contains(name))
+						{
+							continue;
+						}
+						raw = OsEx.File.ReadBytes(file);
+						found = true;
+						break;
+					}
+
+					if (found) break;
+				}
+			}
+			else
+			{
+				raw = Community.Runtime.AssemblyEx.Read(name, directories);
+			}
+
+			if (raw == null) return;
+
+			using var mem = new MemoryStream(raw);
+			var processedReference = MetadataReference.CreateFromStream(mem);
+			references.Add(processedReference);
+			_referenceCache[name] = processedReference;
+		}
+	}
+	private void _injectExtensionReference(string name, List<MetadataReference> references)
+	{
+		if (_extensionReferenceCache.TryGetValue(name, out var reference))
+		{
+			references.Add(reference);
+		}
+		else
+		{
+			var raw = Community.Runtime.AssemblyEx.Read(name, _libraryDirectories);
+			if (raw == null)
+			{
+				return;
+			}
+
+			using var mem = new MemoryStream(raw);
+			var processedReference = MetadataReference.CreateFromStream(mem);
+
+			references.Add(processedReference);
+			_extensionReferenceCache.Add(name, processedReference);
+		}
+	}
+	private List<MetadataReference> _addReferences()
+	{
+		var references = new List<MetadataReference>();
+		var id = Path.GetFileNameWithoutExtension(InitialSource.FilePath);
+
+		_injectReference(id, "0Harmony", references, _libraryDirectories, true);
+
+		foreach (var item in Community.Runtime.AssemblyEx.RefWhitelist)
+		{
+			try
+			{
+				_injectReference(id, item, references, _libraryDirectories);
+			}
+			catch (Exception ex)
+			{
+				Logger.Debug(id, $"Error loading common reference '{item}': {ex}", 4);
+			}
+		}
+
+		if (Community.Runtime.Config.Compiler.EnableProxy)
+		{
+			foreach (var item in Community.Runtime.AssemblyEx.RefProxy)
+			{
+				try
+				{
+					_injectReference(id, item, references, _libraryDirectories);
+				}
+				catch (Exception ex)
+				{
+					Logger.Debug(id, $"Error loading proxy reference '{item}': {ex}", 4);
+				}
+			}
+		}
+
+		// Packages expose their API to plugins (e.g. compatibility layers)
+		foreach (var package in Directory.GetFiles(Defines.GetPackagesFolder(), "*.dll"))
+		{
+			try
+			{
+				_injectReference(id, Path.GetFileNameWithoutExtension(package), references, _libraryDirectories);
+			}
+			catch (Exception ex)
+			{
+				Logger.Debug(id, $"Error loading package reference '{package}': {ex}", 4);
+			}
+		}
+
+		foreach (var item in Community.Runtime.AssemblyEx.Modules.Loaded)
+		{
+			try
+			{
+				var name = Path.GetFileName(item.Value.Key);
+				using var mem = new MemoryStream(item.Value.Value);
+				var processedReference = MetadataReference.CreateFromStream(mem);
+
+				references.Add(processedReference);
+				_referenceCache[name] = processedReference;
+			}
+			catch (Exception ex)
+			{
+				Logger.Debug(id, $"Error loading module reference '{item}': {ex}", 4);
+			}
+		}
+
+		foreach (var item in Community.Runtime.AssemblyEx.Extensions.Loaded)
+		{
+			try
+			{
+				_injectExtensionReference(Path.GetFileName(item.Value.Key), references);
+			}
+			catch (Exception ex)
+			{
+				Logger.Debug(id, $"Error loading extension reference '{item}': {ex}", 4);
+			}
+		}
+
+		return references;
+	}
+	private static bool hasLoaded;
+
+	public class CarbonAssemblyResolver : BaseAssemblyResolver
+	{
+		readonly IDictionary<string, AssemblyDefinition> cache = new Dictionary<string, AssemblyDefinition>(StringComparer.Ordinal);
+
+		public override AssemblyDefinition Resolve(AssemblyNameReference name)
+		{
+			return Resolve(name, new ReaderParameters());
+		}
+
+		public override AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
+		{
+			if (cache.TryGetValue(name.FullName, out var assembly))
+				return assembly;
+
+			parameters ??= new ReaderParameters();
+			parameters.AssemblyResolver = this;
+			parameters.InMemory = true;
+
+			var directories = GetSearchDirectories();
+			foreach (var directory in directories)
+			{
+				if (!Directory.Exists(directory))
+				{
+					continue;
+				}
+
+				var files = Directory.GetFiles(directory, "*.dll", SearchOption.AllDirectories);
+				foreach (var file in files)
+				{
+					var fileName = Path.GetFileNameWithoutExtension(file);
+					if (fileName.Equals(name.Name, StringComparison.OrdinalIgnoreCase))
+					{
+						assembly = AssemblyDefinition.ReadAssembly(file, parameters);
+						break;
+					}
+				}
+
+				if (assembly != null)
+				{
+					break;
+				}
+			}
+
+			cache[name.FullName] = assembly;
+			return assembly;
+		}
+
+		public void RegisterAssembly(AssemblyDefinition assembly)
+		{
+			if (assembly == null)
+				throw new ArgumentNullException(nameof(assembly));
+
+			var name = assembly.Name.FullName;
+			if (cache.ContainsKey(name))
+				return;
+
+			cache[name] = assembly;
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			foreach (var assembly in cache.Values)
+				assembly.Dispose();
+
+			cache.Clear();
+
+			base.Dispose(disposing);
+		}
+	}
+
+	public class CompilerException : Exception
+	{
+		public string FilePath;
+		public CompilerError Error;
+
+		public CompilerException(string filePath, CompilerError error)
+		{
+			FilePath = filePath;
+			Error = error;
+		}
+
+		public override string ToString()
+		{
+			return $"{Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
+		}
+	}
+
+	private List<MetadataReference> references;
+
+	public static void PrewarmInternalHookGenerator()
+	{
+		if (hasLoaded)
+		{
+			return;
+		}
+
+		hasLoaded = true;
+		var resolver = new CarbonAssemblyResolver();
+		var readerParameters = new ReaderParameters { AssemblyResolver = resolver, InMemory = true };
+		resolver.AddSearchDirectory(Defines.GetRustManagedFolder());
+
+		foreach (var assembly in Directory.GetFiles(Defines.GetRustManagedFolder(), "*.dll"))
+		{
+			try
+			{
+				var asm = AssemblyDefinition.ReadAssembly(assembly, readerParameters);
+				InternalCallHook.Assemblies.Add(asm);
+				resolver.RegisterAssembly(asm);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed {assembly} ({ex.Message})\n{ex.StackTrace}");
+			}
+		}
+	}
+	public override void Start()
+	{
+		if (IsAborted)
+		{
+			IsDone = true;
+			return;
+		}
+
+		IsCompileTestMode = Community.Runtime?.Config?.Compiler?.CompileTestMode ?? false;
+
+		PrewarmInternalHookGenerator();
+		references = _addReferences();
+
+		foreach (var require in Requires)
+		{
+			try
+			{
+				var requiredPlugin = _getPlugin(require);
+
+				using var dllStream = new MemoryStream(requiredPlugin);
+				references.Add(MetadataReference.CreateFromStream(dllStream));
+			}
+			catch (Exception exception)
+			{
+				Logger.Error($"Failed loading required plugin for '{InitialSource.ContextFileName}': {require}", exception);
+			}
+		}
+
+		var missingReferences = Pool.Get<List<string>>();
+		foreach (var reference in References)
+		{
+			try
+			{
+				if (_referenceCache.ContainsKey(reference))
+				{
+					continue;
+				}
+
+				var extensionFile = Path.Combine(Defines.GetExtensionsFolder(), $"{reference}.dll");
+				if (OsEx.File.Exists(extensionFile))
+				{
+					_injectExtensionReference(extensionFile, references);
+					continue;
+				}
+
+				var libFile = Path.Combine(Defines.GetLibFolder(), $"{reference}.dll");
+				if (OsEx.File.Exists(libFile))
+				{
+					_injectReference(reference, libFile, references, _libraryDirectories);
+					continue;
+				}
+
+				var managedFile = Path.Combine(Defines.GetRustManagedFolder(), $"{reference}.dll");
+				if (OsEx.File.Exists(managedFile))
+				{
+					_injectReference(reference, managedFile, references, _libraryDirectories);
+					continue;
+				}
+
+				missingReferences.Add(reference);
+			}
+			catch (Exception exception)
+			{
+				Logger.Error($"Failed loading reference for '{InitialSource.ContextFileName}': {reference}", exception);
+			}
+		}
+
+		if (missingReferences.Count > 0)
+		{
+			foreach (var reference in missingReferences)
+			{
+				Logger.Warn($" Couldn't find reference '{reference}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
+			}
+		}
+
+		Pool.FreeUnmanaged(ref missingReferences);
+		base.Start();
+	}
+	public override void ThreadFunction()
+	{
+		if (IsAborted || Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
+		{
+			Dispose();
+			return;
+		}
+
+		var trees = (List<SyntaxTree>)null;
+		var conditionals = (List<string>)null;
+
+		try
+		{
+			Exceptions.Clear();
+			Warnings.Clear();
+
+			trees = Pool.Get<List<SyntaxTree>>();
+			conditionals = Pool.Get<List<string>>();
+
+			_stopwatch = Pool.Get<Stopwatch>();
+
+			try
+			{
+				conditionals.AddRange(Community.Runtime.Config.Compiler.ConditionalCompilationSymbols);
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed referencing conditional compilation symbols", ex);
+			}
+			conditionals.AddRange(ConditionalSymbols);
+
+#if WIN
+			conditionals.Add("WIN");
+#else
+			conditionals.Add("UNIX");
+#endif
+
+#if MINIMAL
+			conditionals.Add("MINIMAL");
+#endif
+
+#if RUST_STAGING
+			conditionals.Add("RUST_STAGING");
+#elif RUST_RELEASE
+			conditionals.Add("RUST_RELEASE");
+#elif RUST_AUX01
+			conditionals.Add("RUST_AUX01");
+#elif RUST_AUX02
+			conditionals.Add("RUST_AUX02");
+#elif RUST_AUX03
+			conditionals.Add("RUST_AUX03");
+#elif RUST_AUX04
+			conditionals.Add("RUST_AUX04");
+#elif EXPERIMENTAL
+			conditionals.Add("EXPERIMENTAL");
+#endif
+
+			if (Carbon.Components.Modifier.Active.HasPlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath)))
+			{
+				conditionals.Add("MODIFIERS_PATCHED");
+			}
+
+			string pdbFilename =
+#if DEBUG
+				Debugger.IsAttached
+					? (string.IsNullOrEmpty(Community.Runtime.Config.Debugging.ScriptDebuggingOrigin)
+						? InitialSource.ContextFilePath
+						: Path.Combine(Community.Runtime.Config.Debugging.ScriptDebuggingOrigin, InitialSource.ContextFileName))
+					: InitialSource.ContextFileName;
+#else
+				InitialSource.ContextFileName;
+#endif
+
+			var parseOptions = new CSharpParseOptions(LanguageVersion.Preview)
+				.WithPreprocessorSymbols(conditionals);
+
+			foreach (var transformer in SourceTransformers)
+			{
+				foreach (var source in Sources)
+				{
+					if (string.IsNullOrEmpty(source.Content))
+					{
+						continue;
+					}
+
+					try
+					{
+						source.Content = transformer(source, source.Content, parseOptions) ?? source.Content;
+					}
+					catch (Exception ex)
+					{
+						Logger.Error($"Source transformer failed on '{source.FileName}'", ex);
+					}
+				}
+			}
+
+			var containsInternalCallHookOverride = Sources.Any(x =>
+				!string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
+
+			var foundPluginClass = false;
+
+			foreach (var source in Sources)
+			{
+				var tree = CSharpSyntaxTree.ParseText(
+					source.Content, options: parseOptions, source.FilePath, Encoding.UTF8);
+
+				var root = tree.GetCompilationUnitRoot();
+
+				HookCaller.HandleVersionConditionals(root, conditionals);
+
+				parseOptions = parseOptions.WithPreprocessorSymbols(conditionals);
+
+				tree = tree.WithRootAndOptions(root, parseOptions);
+
+				if (InternalCallHook.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
+				{
+					foundPluginClass = true;
+
+					var @class = ClassList[0];
+
+					if (!@class.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
+					{
+						@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
+					}
+
+					root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex,
+						@namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
+					trees.Insert(0, CSharpSyntaxTree.ParseText(
+						root.ToFullString(), options: parseOptions, source.FilePath, Encoding.UTF8));
+				}
+				else
+				{
+					trees.Add(tree);
+				}
+
+				Usings.AddRange(root.Usings.Select(x => x.ToString()));
+			}
+
+			if (!containsInternalCallHookOverride && foundPluginClass)
+			{
+				_stopwatch.Start();
+
+				var completeBody = CSharpSyntaxTree.ParseText(
+					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
+
+				InternalCallHook.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
+					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings, references);
+
+				InternalCallHookGenTime = _stopwatch.Elapsed;
+
+				if (partialTree != null)
+				{
+#if DEBUG
+					InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
+#endif
+					trees.Add(partialTree.SyntaxTree);
+				}
+			}
+
+			ScriptCompilerPolyfills.InjectMissingPolyfills(trees, references, parseOptions);
+
+			var options = new CSharpCompilationOptions(
+				OutputKind.DynamicallyLinkedLibrary,
+				optimizationLevel:
+#if DEBUG
+				Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release,
+#else
+				OptimizationLevel.Release,
+#endif
+				deterministic: true, warningLevel: 4,
+				allowUnsafe: true
+			);
+
+			_stopwatch.Restart();
+
+			if (InitialSource == null || IsAborted)
+			{
+				Dispose();
+				return;
+			}
+
+			var compilation = CSharpCompilation.Create($"Script.{InitialSource.FileName}.{Guid.NewGuid():N}", trees, references, options);
+
+			using (var dllStream = new MemoryStream())
+			{
+				EmitResult emit;
+
+				try
+				{
+					emit = compilation.Emit(dllStream, options: _emitOptions, cancellationToken: CancellationToken);
+				}
+				catch (OperationCanceledException)
+				{
+					Dispose();
+					return;
+				}
+
+				var errors = Pool.Get<List<string>>();
+				var warnings = Pool.Get<List<string>>();
+
+				foreach (var error in emit.Diagnostics)
+				{
+					if (errors.Contains(error.Id) || warnings.Contains(error.Id))
+					{
+						continue;
+					}
+
+					var span = error.Location.GetMappedLineSpan().Span;
+
+					var filePath = error?.Location?.SourceTree?.FilePath;
+					var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+					switch (error.Severity)
+					{
+						case DiagnosticSeverity.Error:
+							errors.Add(error.Id);
+							Exceptions.Add(new CompilerException(filePath,
+								new CompilerError(fileName, span.Start.Line + 1, span.Start.Character + 1, error.Id,
+									error.GetMessage(CultureInfo.InvariantCulture))));
+
+							break;
+
+						case DiagnosticSeverity.Warning:
+							if (error.GetMessage(CultureInfo.InvariantCulture).Contains("Assuming assembly reference"))
+								continue;
+
+							errors.Add(error.Id);
+							Warnings.Add(new CompilerException(filePath,
+								new CompilerError(fileName, span.Start.Line + 1, span.Start.Character + 1, error.Id,
+									error.GetMessage(CultureInfo.InvariantCulture))));
+							break;
+					}
+				}
+
+				Pool.FreeUnmanaged(ref errors);
+				Pool.FreeUnmanaged(ref warnings);
+
+				if (emit.Success)
+				{
+					IsCompileSuccess = true;
+
+					var assembly = dllStream.ToArray();
+					var published = false;
+
+					lock (_abortHandle)
+					{
+						if (assembly != null && !IsAborted)
+						{
+							published = true;
+
+							if (IsExtension)
+							{
+								_overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+							}
+
+							_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
+						}
+					}
+
+					if (published)
+					{
+						if (IsCompileTestMode)
+						{
+							// Compile-test mode: the emitted IL must never reach the AppDomain, so no Assembly.Load,
+							// no profiler attachment and no registration in Carbon's assembly database. The bytes cached
+							// above are exclusively consumed as Roslyn metadata references (for '// Requires:' chains),
+							// and reading metadata never executes any of the compiled code.
+							Assembly = null;
+						}
+						else
+						{
+							Assembly = Assembly.Load(assembly);
+
+							try
+							{
+								var name = Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
+									? InitialSource.FileName
+									: InitialSource.ContextFileName);
+
+								var isProfiled = MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly, name, true);
+
+								lock (_abortHandle)
+								{
+									if (!IsAborted)
+									{
+										Assemblies.Plugins.Update(name, Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath, isProfiled);
+									}
+								}
+							}
+							catch (Exception ex)
+							{
+								Logger.Error($"Couldn't cache assembly in Carbon's global database", ex);
+							}
+						}
+					}
+				}
+			}
+
+			CompileTime = _stopwatch.Elapsed;
+
+			// Belt-and-braces: never reflect over the compiled types in compile-test mode. Walking them would
+			// resolve the plugin's type graph (and any type initializers hanging off it) inside our AppDomain.
+			if (IsCompileTestMode || Assembly == null) return;
+
+			foreach (var type in Assembly.GetTypes())
+			{
+				var hooks = new List<uint>();
+				var hookMethods = new List<HookMethodAttribute>();
+				var pluginReferences = new List<PluginReferenceAttribute>();
+				Hooks.Add(type, hooks);
+				HookMethods.Add(type, hookMethods);
+				PluginReferences.Add(type, pluginReferences);
+
+				foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance |
+				                                       BindingFlags.NonPublic))
+				{
+					if (InternalCallHook.HasRefLikeSignature(method))
+					{
+						continue;
+					}
+
+					if (Community.Runtime.HookManager.IsHook(method.Name))
+					{
+						var hash = HookStringPool.GetOrAdd(method.Name);
+
+						if (!hooks.Contains(hash)) hooks.Add(hash);
+					}
+					else
+					{
+						var attribute = method.GetCustomAttribute<HookMethodAttribute>();
+						if (attribute == null) continue;
+
+						attribute.Method = method;
+						hookMethods.Add(attribute);
+					}
+				}
+
+				foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic |
+				                                     BindingFlags.Public))
+				{
+					var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
+					if (attribute == null) continue;
+
+					attribute.Field = field;
+					pluginReferences.Add(attribute);
+				}
+			}
+
+			if (Exceptions.Count > 0) throw null;
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Threading compilation failed for '{InitialSource?.ContextFilePath}'", ex);
+			Analytics.plugin_native_compile_fail(InitialSource, ex);
+		}
+		finally
+		{
+			references?.Clear();
+			references = null;
+
+			if (conditionals != null)
+			{
+				Pool.FreeUnmanaged(ref conditionals);
+			}
+
+			if (trees != null)
+			{
+				Pool.FreeUnmanaged(ref trees);
+			}
+
+			if (_stopwatch != null)
+			{
+				_stopwatch.Reset();
+				Pool.FreeUnsafe(ref _stopwatch);
+			}
+		}
+	}
+	public override void Dispose()
+	{
+		ClassList?.Clear();
+
+		Exceptions?.Clear();
+		Warnings?.Clear();
+
+		Hooks?.Clear();
+		HookMethods?.Clear();
+		PluginReferences?.Clear();
+
+		ClassList = null;
+		Hooks = null;
+		HookMethods = null;
+		PluginReferences = null;
+		Exceptions = null;
+		Warnings = null;
+		InternalCallHookSource = null;
+	}
+}

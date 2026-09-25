@@ -9,7 +9,7 @@ public static partial class WebControlPanel
 	public static BridgeWrite CollectPlugins()
 	{
 		var write = StartRpcResponse(PLUGINS);
-		using var plugins = Pool.Get<PooledList<RustPlugin>>();
+		using var plugins = Pool.Get<PooledList<Plugin>>();
 		ModLoader.Packages.GetAllHookables(plugins, true);
 		write.WriteObject(plugins.Count);
 		for (int i = 0; i < plugins.Count; i++)
@@ -18,11 +18,7 @@ public static partial class WebControlPanel
 		}
 
 		using var unloadedPlugins = Pool.Get<PooledList<string>>();
-		unloadedPlugins.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
-		unloadedPlugins.AddRange(Community.Runtime.ZipScriptProcessor.IgnoreList);
-#if DEBUG
-		unloadedPlugins.AddRange(Community.Runtime.ZipDevScriptProcessor.IgnoreList);
-#endif
+		unloadedPlugins.AddRange(Community.Runtime.PluginSources.All.SelectMany(x => x.IgnoreList));
 		write.WriteObject(unloadedPlugins.Count);
 		for (int i = 0; i < unloadedPlugins.Count; i++)
 		{
@@ -98,9 +94,9 @@ public static partial class WebControlPanel
 		}
 		CorePlugin.ProcessableFilesLookup();
 		var path = CorePlugin.GetPluginFile(fileName);
-		if (!string.IsNullOrEmpty(path.Path))
+		if (path.IsValid)
 		{
-			path.GetProcessor().Ignore(path.Path);
+			path.Source.Ignore(path.Path);
 		}
 		ModLoader.UninitializePlugin(plugin);
 	}
@@ -112,10 +108,10 @@ public static partial class WebControlPanel
 		var fileName = read.String();
 		CorePlugin.ProcessableFilesLookup();
 		var path = CorePlugin.GetPluginFile(fileName);
-		if (!string.IsNullOrEmpty(path.Path) && path.GetProcessor() is IBaseProcessor processor)
+		if (path.IsValid)
 		{
-			processor.ClearIgnore(path.Path);
-			processor.Prepare(path.Id, path.Path);
+			path.Source.ClearIgnore(path.Path);
+			path.Source.Prepare(path.Id, path.Path);
 		}
 	}
 
@@ -133,7 +129,7 @@ public static partial class WebControlPanel
 		SendRpcResponse(read.Connection, write);
 	}
 
-	public struct PluginInfo(RustPlugin plugin)
+	public struct PluginInfo(Plugin plugin)
 	{
 		private string name = plugin.Name;
 		private string fileName = plugin.FileName;
@@ -151,7 +147,7 @@ public static partial class WebControlPanel
 		}
 	}
 
-	public struct PluginDetails(RustPlugin plugin)
+	public struct PluginDetails(Plugin plugin)
 	{
 		private int compileTime = (int)plugin.CompileTime.TotalMilliseconds;
 		private int intCallHookGenTime = (int)plugin.InternalCallHookGenTime.TotalMilliseconds;

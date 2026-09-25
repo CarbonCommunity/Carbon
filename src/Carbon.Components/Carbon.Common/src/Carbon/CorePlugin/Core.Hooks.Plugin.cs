@@ -6,12 +6,12 @@ namespace Carbon.Core;
 
 public partial class CorePlugin
 {
-	private void OnPluginLoaded(RustPlugin plugin)
+	private void OnPluginLoaded(Plugin plugin)
 	{
 		WebControlPanel.SendPluginsToAllConnections();
 	}
 
-	private void OnPluginUnloaded(RustPlugin plugin)
+	private void OnPluginUnloaded(Plugin plugin)
 	{
 		WebControlPanel.SendPluginsToAllConnections();
 	}

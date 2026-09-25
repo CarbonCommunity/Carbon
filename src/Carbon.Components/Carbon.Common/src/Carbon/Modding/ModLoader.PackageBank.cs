@@ -26,7 +26,7 @@ public static partial class ModLoader
 			return true;
 		}
 
-		public RustPlugin FindPlugin(string name)
+		public Plugin FindPlugin(string name)
 		{
 			if (string.IsNullOrEmpty(name)) return null;
 			for (var i = 0; i < Count; i++)
@@ -37,7 +37,7 @@ public static partial class ModLoader
 			return null;
 		}
 
-		public void GetAllHookables(List<RustPlugin> plugins, bool ignoreCore = false)
+		public void GetAllHookables(List<Plugin> plugins, bool ignoreCore = false)
 		{
 			foreach (var hookable in this)
 			{

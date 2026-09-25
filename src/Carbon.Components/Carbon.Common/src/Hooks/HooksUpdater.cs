@@ -1,12 +1,27 @@
-namespace Carbon.Hooks;
+﻿namespace Carbon.Hooks;
 
+/// <summary>
+/// Downloads the latest hook assemblies from the Carbon CDN.
+/// </summary>
 public sealed class Updater
 {
+	/// <summary>
+	/// CDN channel matching Carbon's major version. Hook assemblies are only binary compatible within a major version,
+	/// so a missing channel must fail (keeping the shipped hooks) rather than fall back to another major's builds.
+	/// </summary>
+	public static string Channel { get; set; } = "3";
+
+	/// <summary>Files (relative to the server root) refreshed by the updater. Packages can append their own.</summary>
+	public static List<string> RemoteFiles { get; } =
+	[
+		"carbon/managed/hooks/Carbon.Hooks.Community.dll"
+	];
+
 	private static string BuildUrl(string file, string protocol = null)
 	{
 		var suffix = Community.Runtime.Analytics.Platform == "linux" ? "unix" : null;
 		var target = Community.Runtime.Analytics.Branch == "Release" ? "release" : "debug";
-		return $"https://cdn.carbonmod.gg/hooks/server/{target}{suffix}/{(protocol is null ? $"{file}" : $"{protocol}/{file}")}";
+		return $"https://cdn.carbonmod.gg/hooks/server/{Channel}/{target}{suffix}/{(protocol is null ? $"{file}" : $"{protocol}/{file}")}";
 	}
 
 	public static void DoUpdate(Action<bool> callback = null)
@@ -22,11 +37,7 @@ public sealed class Updater
 			// FIXME: the update process is triggering carbon init process twice
 			// when more than one file is listed here to be downloaded [and] one of
 			// them fails with 404.
-			IReadOnlyList<string> files =
-			[
-				"carbon/managed/hooks/Carbon.Hooks.Community.dll",
-				"carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
-			];
+			var files = RemoteFiles.ToArray();
 
 			List<Task<bool>> tasks = [];
 			foreach (var file in files)

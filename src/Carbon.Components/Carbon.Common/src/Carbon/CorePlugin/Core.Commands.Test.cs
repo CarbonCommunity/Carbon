@@ -37,12 +37,12 @@ public partial class CorePlugin
 	private void test_collect(ConsoleSystem.Arg arg)
 	{
 		var channel = arg.GetInt(0, Integrations.DEFAULT_CHANNEL);
-		using var plugins = Pool.Get<PooledList<RustPlugin>>();
+		using var plugins = Pool.Get<PooledList<Plugin>>();
 		ModLoader.Packages.GetAllHookables(plugins, true);
 
 		var moduleTests = 0;
 		var pluginTests = 0;
-		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var module in Community.Runtime.Modules.All)
 		{
 			module.CollectTests();
 			moduleTests += module.TestCount;

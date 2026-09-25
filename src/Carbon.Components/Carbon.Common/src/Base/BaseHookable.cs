@@ -6,6 +6,9 @@ using Newtonsoft.Json;
 
 namespace Carbon.Base;
 
+/// <summary>
+/// Anything that receives hooks (plugins and modules): builds the hook method cache, tracks hook stats and handles [AutoPatch] Harmony patches.
+/// </summary>
 public class BaseHookable : Integrations.ITestable
 {
 	public List<uint> Hooks;

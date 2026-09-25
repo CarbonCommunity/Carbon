@@ -12,7 +12,7 @@ public partial class AdminModule
 		internal Action<PlayerSession> OnCancel;
 		internal const string Spacing = " ";
 
-		public LangEditor(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
+		public LangEditor(string id, string name, Plugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
 		{
 		}
 
@@ -69,9 +69,9 @@ public partial class AdminModule
 						{
 							OsEx.File.Create(file, jobject.ToString(Formatting.Indented));
 
-							if (TargetPlugin is RustPlugin rustPlugin)
+							if (TargetPlugin is Plugin rustPlugin)
 							{
-								rustPlugin.ProcessorProcess.MarkDirty();
+								rustPlugin.Source?.MarkDirty();
 							}
 
 							Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));

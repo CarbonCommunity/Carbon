@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -215,7 +215,7 @@ internal sealed partial class Generator(GeneratorOptions options)
 		Helper.Parameters.Clear();
 		body.AppendLine($"""[MetadataAttribute.Category("{hook.HookCategory}")]""");
 		body.AppendLine($"""[MetadataAttribute.Assembly("{hook.AssemblyName}")]""");
-		body.AppendLine($"public class {className} : API.Hooks.Patch {{");
+		body.AppendLine($"public class {className} : Carbon.Hooks.Patch {{");
 
 		if (!HookPolicies.TryGeneratePolicyBody(body, hook))
 		{

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using API.Logger;
+using Carbon.Logging;
 
 namespace Carbon.Test;
 

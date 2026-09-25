@@ -1,5 +1,5 @@
-﻿using API.Hooks;
-using Oxide.Core.Libraries;
+﻿using Carbon.Hooks;
+using Carbon.Plugins;
 
 namespace Carbon.Hooks;
 
@@ -18,7 +18,6 @@ public partial class Category_Engine
 		[MetadataAttribute.Parameter("permission", typeof(string))]
 		[MetadataAttribute.Assembly("Carbon.Common.dll")]
 		[MetadataAttribute.Return(typeof(void), Discarded = true)]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnUserPermissionRevoked : Patch;
 	}

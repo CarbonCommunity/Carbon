@@ -383,7 +383,7 @@ public partial class AdminModule
 						}
 
 						return false;
-					}).Select(x => x as BaseHookable) : Community.Runtime.ModuleProcessor.Modules.Where(x => {
+					}).Select(x => x as BaseHookable) : Community.Runtime.Modules.All.Where(x => {
 						if (permission.permset.TryGetValue(x, out var perms))
 						{
 							if (!string.IsNullOrEmpty(filter))

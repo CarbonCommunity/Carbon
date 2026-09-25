@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
+using Carbon;
 using JetBrains.Annotations;
-using Oxide.Core;
 
 [AttributeUsage(AttributeTargets.Class)]
 [MeansImplicitUse]

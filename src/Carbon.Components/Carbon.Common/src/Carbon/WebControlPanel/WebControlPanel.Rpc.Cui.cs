@@ -1,5 +1,4 @@
 ﻿using Facepunch;
-using Oxide.Game.Rust.Cui;
 
 namespace Carbon;
 

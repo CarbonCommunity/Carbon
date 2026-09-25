@@ -23,6 +23,9 @@ public class Patch : IDisposable
 	public static string CarbonManagedDirectory;
 	public static string RustManagedDirectory;
 
+	/// <summary>Fields packages want added to Rust types (target type, field name, field type).</summary>
+	public static List<(string TargetType, string FieldName, TypeReference FieldType)> InjectedFields { get; } = new();
+
 	public static AssemblyDefinition bootstrap;
 	public static AssemblyDefinition common;
 	public static AssemblyDefinition facepunchSystem;

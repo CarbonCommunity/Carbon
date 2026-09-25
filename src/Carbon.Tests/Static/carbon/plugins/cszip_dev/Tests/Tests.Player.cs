@@ -1,10 +1,13 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Carbon.Test;
 using Network;
+using Carbon.Extensions;
 using UnityEngine;
+#if OXIDE_PUBLICIZED
 using PlayerLibrary = Oxide.Game.Rust.Libraries.Player;
 using RustPlayer = Oxide.Game.Rust.Libraries.Covalence.RustPlayer;
+#endif
 
 namespace Carbon.Plugins;
 
@@ -12,6 +15,13 @@ public partial class Tests
 {
 	public class PlayerTests
 	{
+		[Integrations.Test.Assert(Timeout = 5000)]
+		public Task native_rename_preserves_player_state(Integrations.Test.Assert test)
+		{
+			return VerifyRename(test, (player, name) => player.Rename(name));
+		}
+
+#if OXIDE_PUBLICIZED
 		[Integrations.Test.Assert(Timeout = 5000)]
 		public Task library_rename_preserves_player_state(Integrations.Test.Assert test)
 		{
@@ -23,6 +33,7 @@ public partial class Tests
 		{
 			return VerifyRename(test, (player, name) => new RustPlayer(player).Rename(name));
 		}
+#endif
 
 		[Integrations.Test.Assert(Timeout = 5000)]
 		public void rename_without_connection_does_not_throw(Integrations.Test.Assert test)
@@ -33,11 +44,16 @@ public partial class Tests
 				player.enableSaving = false;
 				player.Spawn();
 
+				player.Rename("SleeperNative");
+				test.IsTrue(player.displayName == "SleeperNative", "native rename updated display name");
+
+#if OXIDE_PUBLICIZED
 				new PlayerLibrary().Rename(player, "SleeperLibrary");
 				test.IsTrue(player.displayName == "SleeperLibrary", "library rename updated display name");
 
 				new RustPlayer(player).Rename("SleeperCovalence");
 				test.IsTrue(player.displayName == "SleeperCovalence", "covalence rename updated display name");
+#endif
 			}
 			finally
 			{
@@ -85,7 +101,7 @@ public partial class Tests
 				player.syncPosition = false;
 
 				var nextTick = new TaskCompletionSource<bool>();
-				Oxide.Core.Interface.Oxide.NextTick(() => nextTick.SetResult(true));
+				singleton.NextTick(() => nextTick.SetResult(true));
 				await nextTick.Task;
 				test.IsTrue(player.limitNetworking, "later networking restriction preserved");
 				test.IsFalse(player.syncPosition, "later position update setting preserved");

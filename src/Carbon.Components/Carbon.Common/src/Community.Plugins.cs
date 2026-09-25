@@ -11,6 +11,8 @@ public partial class Community
 		ModLoader.IsBatchComplete = false;
 		ModLoader.ClearAllErrored();
 		ModLoader.ClearAllRequirees();
+
+		PluginSources.LoadAll(except);
 	}
 
 	public void ClearPlugins(bool all = false)

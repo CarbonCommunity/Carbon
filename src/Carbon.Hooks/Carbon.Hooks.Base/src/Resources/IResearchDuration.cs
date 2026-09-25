@@ -3,10 +3,10 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using API.Hooks;
+using Carbon.Hooks;
 using Carbon.Core;
 using HarmonyLib;
-using Patch = API.Hooks.Patch;
+using Patch = Carbon.Hooks.Patch;
 
 namespace Carbon.Hooks;
 

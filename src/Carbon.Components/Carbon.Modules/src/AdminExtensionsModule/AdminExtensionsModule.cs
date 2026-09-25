@@ -5,9 +5,9 @@ using System.Text;
 using Carbon.Base;
 using Carbon.Extensions;
 using Newtonsoft.Json;
-using Oxide.Core;
 using ProtoBuf;
 using UnityEngine;
+using Carbon.Plugins;
 
 namespace Carbon.Modules;
 
@@ -85,7 +85,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			{
 				case AdminExtensionsConfig.NameFilterSettings.FilterModes.Rename:
 					var originalName = player.displayName;
-					player.AsIPlayer().Rename(newName);
+					player.Rename(newName);
 					Puts($"Updated {originalName}[{player.UserIDString}]'s name to {newName}");
 					break;
 			}

@@ -1,6 +1,7 @@
 ﻿using System;
-using API.Hooks;
-using Carbon.Managers;
+using Carbon.Hooks;
+using Carbon.Core;
+using Carbon.Plugins;
 
 namespace Carbon.Hooks;
 

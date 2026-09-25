@@ -5,7 +5,6 @@ using ProtoBuf;
 using QRCoder;
 using Color = System.Drawing.Color;
 using Defines = Carbon.Core.Defines;
-using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Modules;
 
@@ -21,7 +20,8 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 
 	internal ImageDatabaseDataProto _protoData { get; set; }
 
-	internal Dictionary<string, string> _defaultImages = new()
+	/// <summary>Images always kept in the database, by key. Packages can add their own before the module loads.</summary>
+	public static Dictionary<string, string> DefaultImages { get; } = new()
 	{
 		["carbonb"] = "https://cdn.carbonmod.gg/carbonlogo_b.png",
 		["carbonw"] = "https://cdn.carbonmod.gg/carbonlogo_w.png",
@@ -29,7 +29,6 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 		["carbonws"] = "https://cdn.carbonmod.gg/carbonlogo_ws.png",
 		["cflogo"] = "https://cdn.carbonmod.gg/content/codefling-logo.png",
 		["checkmark"] = "https://cdn.carbonmod.gg/content/checkmark.png",
-		["umodlogo"] = "https://cdn.carbonmod.gg/content/umod-logo.png",
 		["clouddl"] = "https://cdn.carbonmod.gg/content/cloud-dl.png",
 		["trashcan"] = "https://cdn.carbonmod.gg/content/trash-can.png",
 		["shopping"] = "https://cdn.carbonmod.gg/content/shopping-cart.png",
@@ -51,7 +50,6 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 		["file"] = "https://cdn.carbonmod.gg/content/file.png",
 		["translate"] = "https://cdn.carbonmod.gg/content/translate.png",
 		["cf_hero"] = "https://cdn.carbonmod.gg/content/cf_hero.png",
-		["umod_hero"] = "https://cdn.carbonmod.gg/content/umod_hero.png",
 		["installed_hero"] = "https://cdn.carbonmod.gg/content/installed_hero.png",
 		["hero_fade"] = "https://cdn.carbonmod.gg/content/hero_fade.png",
 		["fade_flip"] = "https://cdn.carbonmod.gg/content/fade_flip.png",
@@ -185,7 +183,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 	}
 	private void LoadDefaultImages(bool forced = false)
 	{
-		Queue(forced, _defaultImages);
+		Queue(forced, DefaultImages);
 	}
 
 	public override bool PreLoadShouldSave(bool newConfig, bool newData)

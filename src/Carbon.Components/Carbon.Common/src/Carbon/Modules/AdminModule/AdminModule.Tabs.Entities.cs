@@ -1,6 +1,5 @@
 ﻿#if !MINIMAL
 
-using API.Abstracts;
 using Facepunch;
 using Network;
 using StringEx = Carbon.Extensions.StringEx;
@@ -14,7 +13,7 @@ public partial class AdminModule
 	{
 		internal static int EntityCount = 0;
 
-		internal static RustPlugin Core = Community.Runtime.Core;
+		internal static Plugin Core = Community.Runtime.Core;
 		internal static AdminModule Admin = GetModule<AdminModule>();
 		internal static PlayerSession LastContainerLooter;
 		internal static string[] BuildingGrades =
@@ -397,7 +396,7 @@ public partial class AdminModule
 
 										var then = now - date;
 
-										player.AsIPlayer().Ban(m.Get<string>("reason"), then);
+										player.Ban(m.Get<string>("reason"), then);
 									});
 							}), new Tab.OptionButton(player.IsSleeping() ? "End Sleep" : "Sleep", ap =>
 							{

@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using API.Logger;
+using Carbon.Logging;
 using Facepunch;
 using UnityEngine;
-using ILogger = API.Logger.ILogger;
+using ILogger = Carbon.Logging.ILogger;
 
 namespace Carbon.Test;
 

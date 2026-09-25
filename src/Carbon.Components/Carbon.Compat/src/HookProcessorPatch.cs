@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
-using API.Events;
-using API.Hooks;
+using Carbon.Events;
+using Carbon.Hooks;
 using Carbon.Compat.Patches.Harmony;
 
 namespace Carbon.Compat;
@@ -16,7 +16,7 @@ internal static class HookProcessor
 {
 	public static void HookClear()
 	{
-		foreach (IHook hook in Community.Runtime.HookManager.LoadedDynamicHooks)
+		foreach (HookEx hook in Community.Runtime.HookManager.LoadedDynamicHooks)
 		{
 			if (hook.TargetMethods.Count == 0)
 			{
@@ -44,7 +44,7 @@ internal static class HookProcessor
 
     public static void HookReload()
     {
-        foreach (IHook hook in Community.Runtime.HookManager.LoadedDynamicHooks)
+        foreach (HookEx hook in Community.Runtime.HookManager.LoadedDynamicHooks)
         {
 	        if (hook == null || hook.TargetMethods == null || hook.TargetMethods.Count == 0)
 	        {

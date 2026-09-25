@@ -1,5 +1,4 @@
-using API.Assembly;
-using API.Events;
+﻿using Carbon.Events;
 using AsmResolver.DotNet.Collections;
 using HarmonyLib;
 
@@ -58,8 +57,7 @@ public static class CodeGenHelpers
 		self ??= new CilInstruction(CilOpCodes.Ldnull);
 		List<CilInstruction> IL = new List<CilInstruction>()
 		{
-			new CilInstruction(CilOpCodes.Call, importer.ImportMethod(AccessTools.PropertyGetter(typeof(Carbon.Community), "Runtime"))),
-			new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.PropertyGetter(typeof(Carbon.Community), "Events"))),
+			new CilInstruction(CilOpCodes.Call, importer.ImportMethod(AccessTools.PropertyGetter(typeof(Carbon.Managers.Services), nameof(Carbon.Managers.Services.Events)))),
 			new CilInstruction(CilOpCodes.Ldc_I4, (int)eventId),
 			self,
 			new CilInstruction(CilOpCodes.Ldftn, method),
@@ -67,7 +65,7 @@ public static class CodeGenHelpers
 			{
 				typeof(object), typeof(IntPtr)
 			}))),
-			new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.Method(typeof(API.Events.IEventManager), event_method)))
+			new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.Method(typeof(Carbon.Managers.EventManager), event_method)))
 		};
 		body.Instructions.InsertRange(index, IL);
 		index += IL.Count;

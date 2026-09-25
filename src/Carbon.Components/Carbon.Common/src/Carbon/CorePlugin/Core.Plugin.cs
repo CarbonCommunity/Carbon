@@ -1,4 +1,4 @@
-﻿using API.Events;
+﻿using Carbon.Events;
 using Facepunch;
 using Application = UnityEngine.Application;
 using CommandLine = Carbon.Components.CommandLine;
@@ -9,94 +9,35 @@ namespace Carbon.Core;
 
 public partial class CorePlugin : CarbonPlugin
 {
+	/// <summary>A plugin unit found on disk, and the source responsible for it.</summary>
 	public struct ProcessableFile
 	{
 		public string Id;
 		public string Path;
-		public Types Type;
+		public PluginSource Source;
 
-		public IBaseProcessor GetProcessor()
-		{
-			switch (Type)
-			{
-				case Types.Script:
-					return Community.Runtime.ScriptProcessor;
-				case Types.CSZIP:
-					return Community.Runtime.ZipScriptProcessor;
-#if DEBUG
-				case Types.CSZIP_Dev:
-					return Community.Runtime.ZipDevScriptProcessor;
-#endif
-			}
-			return null;
-		}
-
-		public enum Types
-		{
-			Script,
-			CSZIP,
-			CSZIP_Dev
-		}
+		public bool IsValid => Source != null && !string.IsNullOrEmpty(Id);
 	}
 
 	public static List<ProcessableFile> ProcessableFiles { get; } = [];
 
+	/// <summary>Refreshes <see cref="ProcessableFiles"/> with every plugin unit present on disk.</summary>
 	public static void ProcessableFilesLookup()
 	{
 		ProcessableFiles.Clear();
 
-		static bool IsBlacklisted(string path)
+		foreach (var source in Community.Runtime.PluginSources.All)
 		{
-			return Community.Runtime.ScriptProcessor.IsBlacklisted(path)
-			       || Community.Runtime.ZipScriptProcessor.IsBlacklisted(path)
-#if DEBUG
-			       || Community.Runtime.ZipDevScriptProcessor.IsBlacklisted(path)
-#endif
-				;
-		}
-
-		var config = Community.Runtime.Config;
-		var scriptProcessor = Community.Runtime.ScriptProcessor;
-		var zipScriptProcessor = Community.Runtime.ZipScriptProcessor;
-
-		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cs", config.Watchers.ScriptWatcherOption))
-		{
-			if (IsBlacklisted(file))
+			foreach (var file in source.Discover())
 			{
-				continue;
-			}
+				if (source.IsBlacklisted(file))
+				{
+					continue;
+				}
 
-			ProcessableFile processableFile = default;
-			processableFile.Id = scriptProcessor.GetInstanceKey(file);
-			processableFile.Path = file;
-			processableFile.Type = ProcessableFile.Types.Script;
-			ProcessableFiles.Add(processableFile);
-		}
-		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cszip", config.Watchers.ScriptWatcherOption))
-		{
-			if (IsBlacklisted(file))
-			{
-				continue;
+				ProcessableFiles.Add(new ProcessableFile { Id = source.GetKey(file), Path = file, Source = source });
 			}
-
-			ProcessableFile processableFile = default;
-			processableFile.Id = zipScriptProcessor.GetInstanceKey(file);
-			processableFile.Path = file;
-			processableFile.Type = ProcessableFile.Types.CSZIP;
-			ProcessableFiles.Add(processableFile);
 		}
-#if DEBUG
-		var zipDevPlugins = Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly);
-		var zipDevScriptProcessor = Community.Runtime.ZipDevScriptProcessor;
-		foreach (var file in zipDevPlugins)
-		{
-			ProcessableFile processableFile = default;
-			processableFile.Id = zipDevScriptProcessor.GetInstanceKey(file);
-			processableFile.Path = file;
-			processableFile.Type = ProcessableFile.Types.CSZIP_Dev;
-			ProcessableFiles.Add(processableFile);
-		}
-#endif
 	}
 
 	public static ProcessableFile GetPluginFile(string shortName)
@@ -168,7 +109,7 @@ public partial class CorePlugin : CarbonPlugin
 
 	private void OnServerInitialized()
 	{
-		Community.Runtime.ModuleProcessor.OnServerInit();
+		Community.Runtime.Modules.OnServerInit();
 		CommandLine.ExecuteCommands("+carbon.onserverinit", "OnServerInitialized");
 
 		var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
@@ -180,35 +121,19 @@ public partial class CorePlugin : CarbonPlugin
 			Array.Clear(lines, 0, lines.Length);
 		}
 
-		foreach (var player in BasePlayer.allPlayerList)
-		{
-			try
-			{
-				if (player.IsNpc)
-				{
-					continue;
-				}
-				player.AsIPlayer();
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"Failed getting IPlayer object for {player.displayName}[{player.UserIDString}]", ex);
-			}
-		}
-
 		WebControlPanel.ServerInit();
 	}
 
 	private void OnServerSave()
 	{
-		Interface.Oxide.Permission.SaveData();
-		Community.Runtime.ModuleProcessor.OnServerSave();
+		Community.Runtime.Permission.SaveData();
+		Community.Runtime.Modules.OnServerSave();
 
 		Community.Runtime.Events
 			.Trigger(CarbonEvent.OnServerSave, EventArgs.Empty);
 
 #if !MINIMAL
-		API.Abstracts.CarbonAuto.Singleton?.Save();
+		CarbonAuto.Singleton?.Save();
 #endif
 	}
 

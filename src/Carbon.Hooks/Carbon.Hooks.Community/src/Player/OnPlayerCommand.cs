@@ -1,4 +1,4 @@
-﻿using API.Hooks;
+﻿using Carbon.Hooks;
 using Carbon.Core;
 
 namespace Carbon.Hooks;
@@ -18,7 +18,6 @@ public partial class Category_Player
 		[MetadataAttribute.Parameter("command", typeof(string))]
 		[MetadataAttribute.Parameter("args", typeof(string[]))]
 		[MetadataAttribute.Return(typeof(void))]
-		[MetadataAttribute.OxideCompatible]
 
 		public class OnPlayerCommand : Patch;
 	}

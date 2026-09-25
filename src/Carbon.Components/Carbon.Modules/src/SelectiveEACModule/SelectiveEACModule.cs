@@ -6,8 +6,7 @@ using Carbon.Base;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Network;
-using Oxide.Core;
-using Oxide.Core.Plugins;
+using Carbon.Plugins;
 
 /*
  *

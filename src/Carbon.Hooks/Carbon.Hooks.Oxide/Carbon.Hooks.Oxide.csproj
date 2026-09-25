@@ -14,11 +14,12 @@
 		<ProjectReference Include="$(SolutionDir)\Carbon\Carbon.csproj" Private="false" />
 	</ItemGroup>
 
-	<Target Name="NormalRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="!($(DefineConstants.Contains('HOOKGEN')))">
+	<!-- Generated Oxide hooks only ship with the "Carbon with Oxide" flavor (-p:CarbonOxide=true) -->
+	<Target Name="NormalRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="'$(CarbonOxide)' == 'true' And !($(DefineConstants.Contains('HOOKGEN')))">
 		<DownloadFile DestinationFolder="$(c_hooks)" SourceUrl="https://cdn.carbonmod.gg/hooks/server/$(Configuration.ToLower().Replace('minimal', 'release'))/$(CarbonProtocol)/carbon/managed/hooks/Carbon.Hooks.Oxide.dll" ContinueOnError="true" />
 	</Target>
 
-	<Target Name="HookRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="$(DefineConstants.Contains('HOOKGEN'))">
+	<Target Name="HookRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="'$(CarbonOxide)' == 'true' And $(DefineConstants.Contains('HOOKGEN'))">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_hooks)" />
 	</Target>
 </Project>

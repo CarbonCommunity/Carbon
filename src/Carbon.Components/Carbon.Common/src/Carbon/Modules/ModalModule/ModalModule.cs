@@ -1,5 +1,4 @@
-﻿using Oxide.Game.Rust.Cui;
-using static Carbon.Components.CUI;
+﻿using static Carbon.Components.CUI;
 using static ConsoleSystem;
 
 namespace Carbon.Modules;

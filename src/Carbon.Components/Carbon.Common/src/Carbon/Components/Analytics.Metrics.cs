@@ -46,7 +46,7 @@ public partial struct Analytics
 	/// <summary>
 	/// Metric executed whenever a plugin constructor fails. A rare error but we anonymously track it to identify potential issues.
 	/// </summary>
-	public static void plugin_constructor_failure(RustPlugin plugin)
+	public static void plugin_constructor_failure(Plugin plugin)
 	{
 		if (!Enabled)
 		{
@@ -59,7 +59,7 @@ public partial struct Analytics
 	}
 
 	/// <summary>
-	/// Metric executed when a plugin loading batch finalized, giving us anonymous statistics about base plugin types used overall (RustPlugin, CovalencePlugin and CarbonPlugin).
+	/// Metric executed when a plugin loading batch finalized, giving us anonymous statistics about the base plugin types used overall.
 	/// </summary>
 	public static void batch_plugin_types()
 	{
@@ -68,22 +68,17 @@ public partial struct Analytics
 			return;
 		}
 
-		var rustPluginCount = 0;
-		var covalencePluginCount = 0;
-		var carbonPluginCount = 0;
+		var metric = Singleton;
 
-		foreach (var plugin in ModLoader.Packages.SelectMany(package => package.Plugins))
+		foreach (var group in ModLoader.Packages.SelectMany(package => package.Plugins).GroupBy(plugin => plugin.HookableType.BaseType?.Name))
 		{
-			if (plugin.HookableType.BaseType == typeof(CovalencePlugin)) covalencePluginCount++;
-			else if (plugin.HookableType.BaseType == typeof(RustPlugin)) rustPluginCount++;
-			else if (plugin.HookableType.BaseType == typeof(CarbonPlugin)) carbonPluginCount++;
+			if (!string.IsNullOrEmpty(group.Key))
+			{
+				metric = metric.Include(group.Key.ToLower(), $"{group.Count():n0}");
+			}
 		}
 
-		Singleton.
-			Include("rustplugin", $"{rustPluginCount:n0}").
-			Include("covalenceplugin", $"{covalencePluginCount:n0}").
-			Include("carbonplugin", $"{carbonPluginCount:n0}").
-			Submit("batch_plugin_types");
+		metric.Submit("batch_plugin_types");
 	}
 
 	/// <summary>
@@ -109,7 +104,7 @@ public partial struct Analytics
 	/// <summary>
 	/// Metric executed whenever a Carbon-specific error occurred in the compilation process.
 	/// </summary>
-	public static void plugin_native_compile_fail(ISource initialSource, Exception ex)
+	public static void plugin_native_compile_fail(SourceFile initialSource, Exception ex)
 	{
 		if (!Enabled || initialSource == null)
 		{
