@@ -39,6 +39,7 @@ public static partial class ModLoader
 		if (!Packages.Contains(package))
 		{
 			Packages.Add(package);
+			HookSubscriberIndex.Invalidate();
 		}
 	}
 	public static Package GetPackage(string name)

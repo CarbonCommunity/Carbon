@@ -29,39 +29,92 @@ public partial class Category_Vending
 		{
 			public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> Instructions, ILGenerator Generator, MethodBase Method)
 			{
-				var x = 0;
-				foreach (CodeInstruction instruction in Instructions)
+				var slotsRequired = AccessTools.Method(typeof(VendingMachine), nameof(VendingMachine.GetSlotsRequiredForTransaction),
+					new Type[] { typeof(int), typeof(int) });
+				var transactionActive = AccessTools.Field(typeof(MarketTerminal), "_transactionActive");
+				var player = AccessTools.Field(typeof(BaseEntity.RPCMessage), "player");
+				var callStaticHook = AccessTools.Method(typeof(HookCaller), nameof(HookCaller.CallStaticHook),
+					new Type[] { typeof(uint), typeof(object), typeof(object), typeof(object), typeof(object), typeof(object) });
+
+				var instructions = new List<CodeInstruction>(Instructions);
+
+				if (slotsRequired == null || transactionActive == null || player == null || callStaticHook == null)
 				{
-					if (x++ != 66)
+					return Unpatched(instructions);
+				}
+
+				var vending = -1;
+				var sellOrderIndex = -1;
+				var amount = -1;
+				var index = -1;
+
+				for (var i = 2; i < instructions.Count; i++)
+				{
+					var instruction = instructions[i];
+
+					// Rust keeps reshuffling the locals of this method between updates, so read them off
+					// the 'vending.GetSlotsRequiredForTransaction(sellOrderIndex, amount)' call, which loads
+					// all three of them back to back, instead of hardcoding their indices.
+					if (vending == -1 && instruction.Calls(slotsRequired) && i >= 3
+						&& instructions[i - 3].IsLdloc() && instructions[i - 2].IsLdloc() && instructions[i - 1].IsLdloc())
 					{
-						yield return instruction;
+						vending = instructions[i - 3].LocalIndex();
+						sellOrderIndex = instructions[i - 2].LocalIndex();
+						amount = instructions[i - 1].LocalIndex();
 						continue;
 					}
 
+					// 'this._transactionActive = true' is the first instruction of the try/finally the
+					// transaction runs in, so the hook goes right in front of it: every check has passed
+					// and nothing has been taken off the player yet, and a 'ret' there is still outside
+					// of the protected region.
+					if (index == -1 && instruction.StoresField(transactionActive)
+						&& instructions[i - 1].opcode == OpCodes.Ldc_I4_1 && instructions[i - 2].opcode == OpCodes.Ldarg_0)
+					{
+						index = i - 2;
+					}
+				}
+
+				if (vending == -1 || index == -1)
+				{
+					return Unpatched(instructions);
+				}
+
+				var anchor = instructions[index];
+				var resume = Generator.DefineLabel();
+
+				var hook = new List<CodeInstruction>
+				{
 					// hook call start
-					yield return new CodeInstruction(OpCodes.Ldc_I4, unchecked((int)2145652880)).MoveLabelsFrom(instruction);
-					yield return new CodeInstruction(OpCodes.Ldarg_0);
-					yield return new CodeInstruction(OpCodes.Ldloc_3);
-					yield return new CodeInstruction(OpCodes.Ldarg_1);
-					yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BaseEntity.RPCMessage), "player"));
-					yield return new CodeInstruction(OpCodes.Ldloc_1);
-					yield return new CodeInstruction(OpCodes.Box, typeof(int));
-					yield return new CodeInstruction(OpCodes.Ldloc_2);
-					yield return new CodeInstruction(OpCodes.Box, typeof(int));
-					yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(HookCaller), nameof(HookCaller.CallStaticHook),
-						new Type[] { typeof(uint), typeof(object), typeof(object), typeof(object), typeof(object), typeof(object) }));
+					new CodeInstruction(OpCodes.Ldc_I4, unchecked((int)2145652880)).MoveLabelsFrom(anchor),
+					new CodeInstruction(OpCodes.Ldarg_0),
+					CodeInstruction.LoadLocal(vending),
+					new CodeInstruction(OpCodes.Ldarg_1),
+					new CodeInstruction(OpCodes.Ldfld, player),
+					CodeInstruction.LoadLocal(sellOrderIndex),
+					new CodeInstruction(OpCodes.Box, typeof(int)),
+					CodeInstruction.LoadLocal(amount),
+					new CodeInstruction(OpCodes.Box, typeof(int)),
+					new CodeInstruction(OpCodes.Call, callStaticHook),
 					// hook call end
 
 					// return behaviour start
-					var label = Generator.DefineLabel();
-					instruction.labels.Add(label);
-					yield return new CodeInstruction(OpCodes.Ldnull);
-					yield return new CodeInstruction(OpCodes.Beq_S, label);
-					yield return new CodeInstruction(OpCodes.Ret);
+					new CodeInstruction(OpCodes.Brfalse, resume),
+					new CodeInstruction(OpCodes.Ret)
 					// return behaviour end
+				};
 
-					yield return instruction;
-				}
+				anchor.labels.Add(resume);
+				instructions.InsertRange(index, hook);
+
+				return instructions;
+			}
+
+			private static List<CodeInstruction> Unpatched(List<CodeInstruction> instructions)
+			{
+				Logger.Warn($"Failed patching '{nameof(OnMarketplaceTerminalPurchase)}', {nameof(MarketTerminal)}.Server_Purchase no longer matches the expected IL");
+
+				return instructions;
 			}
 		}
 	}

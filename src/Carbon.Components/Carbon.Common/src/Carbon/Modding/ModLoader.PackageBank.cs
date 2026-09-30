@@ -22,6 +22,7 @@ public static partial class ModLoader
 				return false;
 			}
 			RemoveAt(index);
+			HookSubscriberIndex.Invalidate();
 			return true;
 		}
 

@@ -39,7 +39,7 @@ on:
 jobs:
   configure:
     name: Setup (${{ inputs.build_identifier }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       download_id: ${{ steps.config.outputs.download_id }}
       rust_branch: ${{ steps.config.outputs.rust_branch }}
@@ -66,7 +66,7 @@ jobs:
               ;;
             "rust_beta/aux01")
               DOWNLOAD_ID="rustbeta_aux01_build"
-              RUST_BRANCH="aux01-staging"
+              RUST_BRANCH="aux01"
               ;;
             "rust_beta/aux02")
               DOWNLOAD_ID="rustbeta_aux02_build"
@@ -105,7 +105,7 @@ jobs:
       matrix:
         include:
           - group: Linux
-            target: ubuntu-latest
+            target: ubuntu-24.04
           - group: Windows
             target: windows-latest
 
