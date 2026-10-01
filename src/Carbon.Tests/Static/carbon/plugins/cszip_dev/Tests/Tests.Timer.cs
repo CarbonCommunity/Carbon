@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Carbon.Test;
@@ -143,10 +143,9 @@ public partial class Tests
 
 				if (StartupResetVictimTimer.Callback != null)
 				{
-					var callback = StartupResetVictimTimer.Callback;
-					test.IsTrue(StartupResetVictimTimer.Persistence.IsInvoking(callback), "reset startup timer converted to invoke");
+					test.IsTrue(StartupResetVictimTimer.Scheduled, "reset startup timer stays scheduled");
 					StartupResetVictimTimer.Destroy();
-					test.IsFalse(StartupResetVictimTimer.Persistence.IsInvoking(callback), "reset startup timer destroy cancels invoke");
+					test.IsFalse(StartupResetVictimTimer.Scheduled, "reset startup timer destroy unschedules");
 				}
 			}
 
@@ -181,7 +180,7 @@ public partial class Tests
 		}
 
 		[Integrations.Test.Assert(Timeout = 10_000)]
-		public async Task pre_init_every_keeps_ticking_after_conversion(Integrations.Test.Assert test)
+		public async Task pre_init_every_keeps_ticking_across_init(Integrations.Test.Assert test)
 		{
 			test.IsNotNull(StartupEveryTickTimer, "pre-init every tick timer instance");
 			if (StartupEveryTickTimer == null)
@@ -210,42 +209,39 @@ public partial class Tests
 		}
 
 		[Integrations.Test.Assert]
-		public void pre_init_remaining_timer_converts_to_invoke(Integrations.Test.Assert test)
+		public void pre_init_remaining_timer_stays_scheduled_across_init(Integrations.Test.Assert test)
 		{
 			test.IsNotNull(RemainingStartupTimer, "remaining pre-init timer instance");
 			test.IsNotNull(RemainingStartupTimer?.Persistence, "remaining pre-init timer persistence");
 			test.IsNotNull(RemainingStartupTimer?.Callback, "remaining pre-init timer callback");
 
-			if (RemainingStartupTimer?.Persistence != null && RemainingStartupTimer.Callback != null)
+			if (RemainingStartupTimer?.Callback != null)
 			{
-				var callback = RemainingStartupTimer.Callback;
-				test.IsTrue(RemainingStartupTimer.Persistence.IsInvoking(callback), "remaining pre-init timer converted to invoke");
+				test.IsTrue(RemainingStartupTimer.Scheduled, "remaining pre-init timer stays scheduled");
 				RemainingStartupTimer.Destroy();
-				test.IsFalse(RemainingStartupTimer.Persistence.IsInvoking(callback), "converted pre-init timer destroy cancels invoke");
+				test.IsFalse(RemainingStartupTimer.Scheduled, "remaining pre-init timer destroy unschedules");
 			}
 
 			test.IsNotNull(RemainingStartupEveryTimer, "remaining pre-init every timer instance");
 			test.IsNotNull(RemainingStartupEveryTimer?.Persistence, "remaining pre-init every timer persistence");
 			test.IsNotNull(RemainingStartupEveryTimer?.Callback, "remaining pre-init every timer callback");
 
-			if (RemainingStartupEveryTimer?.Persistence != null && RemainingStartupEveryTimer.Callback != null)
+			if (RemainingStartupEveryTimer?.Callback != null)
 			{
-				var callback = RemainingStartupEveryTimer.Callback;
-				test.IsTrue(RemainingStartupEveryTimer.Persistence.IsInvoking(callback), "remaining pre-init every timer converted to invoke");
+				test.IsTrue(RemainingStartupEveryTimer.Scheduled, "remaining pre-init every timer stays scheduled");
 				RemainingStartupEveryTimer.Destroy();
-				test.IsFalse(RemainingStartupEveryTimer.Persistence.IsInvoking(callback), "converted pre-init every timer destroy cancels invoke");
+				test.IsFalse(RemainingStartupEveryTimer.Scheduled, "remaining pre-init every timer destroy unschedules");
 			}
 
 			test.IsNotNull(RemainingStartupRepeatTimer, "remaining pre-init repeat timer instance");
 			test.IsNotNull(RemainingStartupRepeatTimer?.Persistence, "remaining pre-init repeat timer persistence");
 			test.IsNotNull(RemainingStartupRepeatTimer?.Callback, "remaining pre-init repeat timer callback");
 
-			if (RemainingStartupRepeatTimer?.Persistence != null && RemainingStartupRepeatTimer.Callback != null)
+			if (RemainingStartupRepeatTimer?.Callback != null)
 			{
-				var callback = RemainingStartupRepeatTimer.Callback;
-				test.IsTrue(RemainingStartupRepeatTimer.Persistence.IsInvoking(callback), "remaining pre-init repeat timer converted to invoke");
+				test.IsTrue(RemainingStartupRepeatTimer.Scheduled, "remaining pre-init repeat timer stays scheduled");
 				RemainingStartupRepeatTimer.Destroy();
-				test.IsFalse(RemainingStartupRepeatTimer.Persistence.IsInvoking(callback), "converted pre-init repeat timer destroy cancels invoke");
+				test.IsFalse(RemainingStartupRepeatTimer.Scheduled, "remaining pre-init repeat timer destroy unschedules");
 			}
 
 			test.Complete();
@@ -269,7 +265,7 @@ public partial class Tests
 			timers.Clear();
 
 			test.IsTrue(first.Destroyed, "Clear destroys existing timer");
-			test.IsFalse(first.Persistence.IsInvoking(firstCallback), "Clear cancels existing timer invoke");
+			test.IsFalse(first.Scheduled, "Clear unschedules existing timer");
 
 			var second = timers.In(60f, () => { });
 			var secondCallback = second?.Callback;
@@ -282,12 +278,12 @@ public partial class Tests
 				return;
 			}
 
-			test.IsTrue(second.Persistence.IsInvoking(secondCallback), "new timer after Clear is scheduled");
+			test.IsTrue(second.Scheduled, "new timer after Clear is scheduled");
 
 			timers.DestroyAll();
 
 			test.IsTrue(second.Destroyed, "DestroyAll destroys timer created after Clear");
-			test.IsFalse(second.Persistence.IsInvoking(secondCallback), "DestroyAll cancels timer created after Clear");
+			test.IsFalse(second.Scheduled, "DestroyAll unschedules timer created after Clear");
 			test.Complete();
 		}
 
@@ -311,7 +307,45 @@ public partial class Tests
 
 			test.IsTrue(timer.Destroyed, "stale destroyed timer remains destroyed");
 			test.IsNull(timer.Callback, "stale destroyed timer callback is cleared");
-			test.IsFalse(timer.Persistence.IsInvoking(callback), "stale destroyed timer invoke is cancelled");
+			test.IsFalse(timer.Scheduled, "stale destroyed timer is unscheduled");
+			test.Complete();
+		}
+
+		[Integrations.Test.Assert(Timeout = 10_000)]
+		public async Task in_timer_does_not_fire_before_its_delay(Integrations.Test.Assert test)
+		{
+			var timers = new Oxide.Core.Libraries.Timer(singleton);
+			var stopwatch = Stopwatch.StartNew();
+			var firedAt = 0L;
+
+			var timer = timers.In(3f, () => Interlocked.Exchange(ref firedAt, stopwatch.ElapsedMilliseconds));
+
+			test.IsNotNull(timer, "delayed In timer instance");
+			if (timer == null)
+			{
+				test.Complete();
+				return;
+			}
+
+			var scheduledIn = timer.ExpiresAt - UnityEngine.Time.realtimeSinceStartup;
+			test.IsTrue(scheduledIn > 2.9f && scheduledIn < 3.1f, $"delayed In timer deadline anchors on creation time ({scheduledIn:0.000}s)");
+
+			await Task.Delay(300);
+
+			test.IsTrue(Interlocked.Read(ref firedAt) == 0, "delayed In timer did not fire early");
+			test.IsTrue(timer.Scheduled, "delayed In timer stays scheduled before its delay");
+
+			var deadline = Stopwatch.StartNew();
+			while (Interlocked.Read(ref firedAt) == 0 && deadline.ElapsedMilliseconds < 7_000)
+			{
+				await Task.Delay(50);
+			}
+
+			var elapsed = Interlocked.Read(ref firedAt);
+			test.IsTrue(elapsed > 0, "delayed In timer fired");
+			test.IsTrue(elapsed >= 2950, "delayed In timer respected its delay");
+
+			timers.DestroyAll();
 			test.Complete();
 		}
 
@@ -343,7 +377,7 @@ public partial class Tests
 			test.IsTrue(fired == 1, "In timer fired once");
 			test.IsTrue(timer.Destroyed, "In timer destroyed after firing");
 			test.IsNull(timer.Callback, "In timer callback cleared after firing");
-			test.IsFalse(timer.Persistence.IsInvoking(callback), "In timer invoke cancelled after firing");
+			test.IsFalse(timer.Scheduled, "In timer unscheduled after firing");
 			test.Complete();
 		}
 
@@ -420,7 +454,7 @@ public partial class Tests
 			test.IsTrue(fired == 2, "Repeat timer fired twice");
 			test.IsTrue(timer.Destroyed, "Repeat timer destroyed after final repetition");
 			test.IsNull(timer.Callback, "Repeat timer callback cleared after final repetition");
-			test.IsFalse(timer.Persistence.IsInvoking(callback), "Repeat timer invoke cancelled after final repetition");
+			test.IsFalse(timer.Scheduled, "Repeat timer unscheduled after final repetition");
 
 			await Task.Delay(150);
 
