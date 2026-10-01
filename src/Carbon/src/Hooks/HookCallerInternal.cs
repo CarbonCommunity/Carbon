@@ -98,7 +98,7 @@ public class HookCallerInternal : HookCallerCommon
 
 		CachedHookInstance hookInstance = default;
 
-		if (hookable.HookPool != null && !hookable.HookPool.TryGetValue(hookId, out hookInstance))
+		if (hookable.HookPool == null || !hookable.HookPool.TryGetValue(hookId, out hookInstance))
 		{
 			return null;
 		}

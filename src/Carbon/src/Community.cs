@@ -161,6 +161,8 @@ public class CommunityInternal : Community
 		LoadConfig();
 		LoadMonoProfilerConfig();
 
+		RefreshConsoleInfo();
+
 		if (!Config.Logging.ReducedLogging)
 		{
 			Logger.Log(Environment.NewLine +
@@ -231,8 +233,6 @@ public class CommunityInternal : Community
 
 		Interface.Initialize();
 
-		RefreshConsoleInfo();
-
 		IsInitialized = true;
 
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
@@ -249,6 +249,7 @@ public class CommunityInternal : Community
 			ClearCommands(all: true);
 			ClearPlugins(all: true);
 			ModLoader.Packages.Clear();
+			HookSubscriberIndex.Invalidate();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
 
 #if WIN
