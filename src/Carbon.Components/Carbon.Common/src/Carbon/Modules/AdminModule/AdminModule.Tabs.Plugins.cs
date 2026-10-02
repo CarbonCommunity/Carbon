@@ -454,7 +454,7 @@ public partial class AdminModule
 								xMax: 0, OxMin: pageOffset, OxMax: pageOffset + 70f);
 							cui.CreateImage(container, pageInput, "fade", Cache.CUI.WhiteColor);
 							cui.CreateText(container, pageInput, pageButtonColorLightDark,
-								$"/ {page.TotalPages:n0}", 10, xMin: 0.5f, align: TextAnchor.MiddleLeft);
+								$"/ {page.TotalPages + 1:n0}", 10, xMin: 0.5f, align: TextAnchor.MiddleLeft);
 							cui.CreateProtectedInputField(container, pageInput, Cache.CUI.WhiteColor,
 								$"{page.CurrentPage + 1}", 10, 60, false, align: TextAnchor.MiddleRight,
 								xMax: 0.45f, command: "pluginbrowser.page");
@@ -2296,7 +2296,7 @@ public partial class AdminModule
 			{
 				page.CurrentPage++;
 
-				if(page.CurrentPage > page.TotalPages - 1)
+				if (page.CurrentPage > page.TotalPages)
 				{
 					page.CurrentPage = 0;
 				}
@@ -2309,7 +2309,7 @@ public partial class AdminModule
 
 				if (page.CurrentPage < 0)
 				{
-					page.CurrentPage = page.TotalPages - 1;
+					page.CurrentPage = page.TotalPages;
 				}
 				break;
 			}
@@ -2322,7 +2322,7 @@ public partial class AdminModule
 
 			case -3:
 			{
-				page.CurrentPage = page.TotalPages - 1;
+				page.CurrentPage = page.TotalPages;
 				break;
 			}
 
@@ -2339,7 +2339,7 @@ public partial class AdminModule
 		}
 		else if (page.CurrentPage > page.TotalPages)
 		{
-			page.CurrentPage = page.TotalPages - 1;
+			page.CurrentPage = page.TotalPages;
 		}
 
 		ap.SetStorage(ap.SelectedTab, "page", page.CurrentPage);
