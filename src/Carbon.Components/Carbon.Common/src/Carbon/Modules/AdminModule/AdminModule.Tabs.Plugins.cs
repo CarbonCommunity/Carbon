@@ -690,6 +690,7 @@ public partial class AdminModule
 				{
 					CodeflingInstance.Refresh();
 					CodeflingInstance.VersionCheck();
+					LocalInstance?.Refresh();
 				});
 			}
 
@@ -721,6 +722,7 @@ public partial class AdminModule
 				{
 					uModInstance.Refresh();
 					uModInstance.VersionCheck();
+					LocalInstance?.Refresh();
 				});
 			}
 		}
@@ -1899,6 +1901,13 @@ public partial class AdminModule
 				return true;
 			}
 
+			private static bool SameAuthor(string a, string b)
+			{
+				static string Key(string value) => new string((value ?? string.Empty).Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+				string x = Key(a), y = Key(b);
+				return x.Length > 0 && y.Length > 0 && (x.Contains(y) || y.Contains(x));
+			}
+
 			public override void Refresh()
 			{
 				using var temp = Pool.Get<PooledList<Plugin>>();
@@ -1940,13 +1949,20 @@ public partial class AdminModule
 							FetchedPlugins.Add(installed);
 						}
 
+						// Cards from an earlier vendor fetch are stale objects: rebuild them from the current lists, keep the vendor the user picked and,
+						// when several vendors list the plugin, prefer the card by the same author.
+						var pickedVendor = installed.PreferredVendor;
+						installed.AvailableOn?.Clear();
+						installed.PreferredVendorPlugin = null;
 						installed.TryMarkFoundOn(umod);
 						installed.TryMarkFoundOn(codefling);
-						if (installed.PreferredVendor == VendorTypes.Installed && installed.AvailableOn != null && installed.AvailableOn.Count > 0)
+						if (installed.AvailableOn != null && installed.AvailableOn.Count > 0)
 						{
-							var initialVendorPlugin = installed.AvailableOn[0];
-							installed.PreferredVendor = initialVendorPlugin.PreferredVendor;
-							installed.PreferredVendorPlugin = initialVendorPlugin;
+							var card = (pickedVendor != VendorTypes.Installed ? installed.AvailableOn.FirstOrDefault(x => x.PreferredVendor == pickedVendor) : null)
+								?? installed.AvailableOn.FirstOrDefault(x => SameAuthor(x.Author, plugin.Author))
+								?? installed.AvailableOn[0];
+							installed.PreferredVendor = card.PreferredVendor;
+							installed.PreferredVendorPlugin = card;
 						}
 					}
 				}
@@ -2099,7 +2115,10 @@ public partial class AdminModule
 			{
 				if (!IsInstalled()) return false;
 
-				return ExistentPlugin.Version.ToString() == Version;
+				if (ExistentPlugin.Version.ToString() == Version) return true;
+
+				try { return ExistentPlugin.Version >= new VersionNumber(Version); }
+				catch { return false; }
 			}
 
 			public void SetOwned(bool wants) => Owned = wants;
@@ -2402,7 +2421,7 @@ public partial class AdminModule
 
 			if (vendor is PluginsTab.IVendorStored stored && !stored.Load())
 			{
-				vendor.FetchList(vendor => vendor.Refresh());
+				vendor.FetchList(vendor => { vendor.Refresh(); PluginsTab.LocalInstance?.Refresh(); });
 				vendor.Refresh();
 			}
 			if (vendor is PluginsTab.IVendorAuthenticated auth)
@@ -2734,7 +2753,7 @@ public partial class AdminModule
 
 		if (vendor is PluginsTab.IVendorStored stored && !stored.Load())
 		{
-			vendor.FetchList(vendor => vendor.Refresh());
+			vendor.FetchList(vendor => { vendor.Refresh(); PluginsTab.LocalInstance?.Refresh(); });
 			vendor.Refresh();
 		}
 	}
