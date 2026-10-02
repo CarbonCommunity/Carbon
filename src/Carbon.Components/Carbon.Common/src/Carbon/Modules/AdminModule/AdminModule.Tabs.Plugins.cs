@@ -1052,7 +1052,7 @@ public partial class AdminModule
 
 			public override string BarInfo => $"{FetchedPlugins.Count(x => !x.IsPaid()):n0} free, {FetchedPlugins.Count(x => x.IsPaid()):n0} paid";
 
-			public override string ListEndpoint => "https://codefling.com/db/?category=2,21";
+			public override string ListEndpoint => "https://codefling.com/db/?category=2";
 			public override string DownloadEndpoint => "https://codefling.com/files/file/[ID]-a?do=download";
 
 			private Dictionary<string, string> _headers = new();
@@ -1114,7 +1114,7 @@ public partial class AdminModule
 					FetchedPlugins.Clear();
 					var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
 					Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
-					ParseData(data, false, false, FetchedPlugins, callback, this, plugins);
+					ParseData(data, true, false, FetchedPlugins, callback, this, plugins);
 					Facepunch.Pool.FreeUnmanaged(ref plugins);
 					VersionCheck();
 
