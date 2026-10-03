@@ -1951,6 +1951,8 @@ public partial class AdminModule
 					}
 				}
 
+				FetchedPlugins.Sort((a, b) => string.Compare(a.File, b.File, StringComparison.OrdinalIgnoreCase));
+
 				PriceData = FetchedPlugins.OrderBy(x => x.OriginalPrice);
 				AuthorData = FetchedPlugins.OrderBy(x => x.Author);
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled());
