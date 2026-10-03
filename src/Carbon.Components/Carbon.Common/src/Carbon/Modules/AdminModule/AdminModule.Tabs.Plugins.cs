@@ -454,7 +454,7 @@ public partial class AdminModule
 								xMax: 0, OxMin: pageOffset, OxMax: pageOffset + 70f);
 							cui.CreateImage(container, pageInput, "fade", Cache.CUI.WhiteColor);
 							cui.CreateText(container, pageInput, pageButtonColorLightDark,
-								$"/ {page.TotalPages:n0}", 10, xMin: 0.5f, align: TextAnchor.MiddleLeft);
+								$"/ {page.TotalPages + 1:n0}", 10, xMin: 0.5f, align: TextAnchor.MiddleLeft);
 							cui.CreateProtectedInputField(container, pageInput, Cache.CUI.WhiteColor,
 								$"{page.CurrentPage + 1}", 10, 60, false, align: TextAnchor.MiddleRight,
 								xMax: 0.45f, command: "pluginbrowser.page");
@@ -1054,7 +1054,7 @@ public partial class AdminModule
 
 			public override string BarInfo => $"{FetchedPlugins.Count(x => !x.IsPaid()):n0} free, {FetchedPlugins.Count(x => x.IsPaid()):n0} paid";
 
-			public override string ListEndpoint => "https://codefling.com/db/?category=2,21";
+			public override string ListEndpoint => "https://codefling.com/db/?category=2";
 			public override string DownloadEndpoint => "https://codefling.com/files/file/[ID]-a?do=download";
 
 			private Dictionary<string, string> _headers = new();
@@ -1116,7 +1116,7 @@ public partial class AdminModule
 					FetchedPlugins.Clear();
 					var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
 					Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
-					ParseData(data, false, false, FetchedPlugins, callback, this, plugins);
+					ParseData(data, true, false, FetchedPlugins, callback, this, plugins);
 					Facepunch.Pool.FreeUnmanaged(ref plugins);
 					VersionCheck();
 
@@ -1997,6 +1997,8 @@ public partial class AdminModule
 					}
 				}
 
+				FetchedPlugins.Sort((a, b) => string.Compare(a.File, b.File, StringComparison.OrdinalIgnoreCase));
+
 				PriceData = FetchedPlugins.OrderBy(x => x.OriginalPrice);
 				AuthorData = FetchedPlugins.OrderBy(x => x.Author);
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled());
@@ -2412,7 +2414,7 @@ public partial class AdminModule
 			{
 				page.CurrentPage++;
 
-				if(page.CurrentPage > page.TotalPages - 1)
+				if (page.CurrentPage > page.TotalPages)
 				{
 					page.CurrentPage = 0;
 				}
@@ -2425,7 +2427,7 @@ public partial class AdminModule
 
 				if (page.CurrentPage < 0)
 				{
-					page.CurrentPage = page.TotalPages - 1;
+					page.CurrentPage = page.TotalPages;
 				}
 				break;
 			}
@@ -2438,7 +2440,7 @@ public partial class AdminModule
 
 			case -3:
 			{
-				page.CurrentPage = page.TotalPages - 1;
+				page.CurrentPage = page.TotalPages;
 				break;
 			}
 
@@ -2455,7 +2457,7 @@ public partial class AdminModule
 		}
 		else if (page.CurrentPage > page.TotalPages)
 		{
-			page.CurrentPage = page.TotalPages - 1;
+			page.CurrentPage = page.TotalPages;
 		}
 
 		ap.SetStorage(ap.SelectedTab, "page", page.CurrentPage);
