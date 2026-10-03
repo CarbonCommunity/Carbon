@@ -1997,7 +1997,11 @@ public partial class AdminModule
 					}
 				}
 
-				FetchedPlugins.Sort((a, b) => string.Compare(a.File, b.File, StringComparison.OrdinalIgnoreCase));
+				FetchedPlugins.Sort((a, b) =>
+				{
+					var order = string.Compare(a.File, b.File, StringComparison.OrdinalIgnoreCase);
+					return order != 0 ? order : string.CompareOrdinal(a.Name, b.Name);
+				});
 
 				PriceData = FetchedPlugins.OrderBy(x => x.OriginalPrice);
 				AuthorData = FetchedPlugins.OrderBy(x => x.Author);
