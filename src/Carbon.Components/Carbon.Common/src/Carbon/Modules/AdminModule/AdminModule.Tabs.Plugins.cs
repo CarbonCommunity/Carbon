@@ -1971,16 +1971,13 @@ public partial class AdminModule
 							FetchedPlugins.Add(installed);
 						}
 
-						// Cards from an earlier vendor fetch are stale objects: rebuild them from the current lists, keep the vendor the user picked and,
-						// when several vendors list the plugin, prefer the card by the same author.
-						var pickedVendor = installed.PreferredVendor;
 						installed.AvailableOn?.Clear();
 						installed.PreferredVendorPlugin = null;
 						installed.TryMarkFoundOn(umod);
 						installed.TryMarkFoundOn(codefling);
 						if (installed.AvailableOn != null && installed.AvailableOn.Count > 0)
 						{
-							var card = (pickedVendor != VendorTypes.Installed ? installed.AvailableOn.FirstOrDefault(x => x.PreferredVendor == pickedVendor) : null)
+							var card = (installed.PickedVendor != VendorTypes.Installed ? installed.AvailableOn.FirstOrDefault(x => x.PreferredVendor == installed.PickedVendor) : null)
 								?? installed.AvailableOn.FirstOrDefault(x => SameAuthor(x.Author, plugin.Author))
 								?? installed.AvailableOn[0];
 							installed.PreferredVendor = card.PreferredVendor;
@@ -2083,6 +2080,7 @@ public partial class AdminModule
 			public RustPlugin ExistentPlugin;
 
 			internal Plugin PreferredVendorPlugin;
+			internal VendorTypes PickedVendor;
 			internal bool IsBusy;
 
 			[ProtoIgnore]
@@ -2098,7 +2096,9 @@ public partial class AdminModule
 			public void SetPreferredVendor(VendorTypes vendor)
 			{
 				PreferredVendor = vendor;
-				PreferredVendorPlugin = GetVendor(vendor).FetchedPlugins.FirstOrDefault(x => x.Name.Equals(Name));
+				PickedVendor = vendor;
+				PreferredVendorPlugin = AvailableOn?.FirstOrDefault(x => x.PreferredVendor == vendor)
+					?? GetVendor(vendor).FetchedPlugins.FirstOrDefault(x => x.Name.Equals(Name));
 			}
 			public void TryMarkFoundOn(Plugin plugin)
 			{
