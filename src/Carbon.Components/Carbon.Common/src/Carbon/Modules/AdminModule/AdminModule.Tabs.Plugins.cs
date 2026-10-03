@@ -1901,6 +1901,12 @@ public partial class AdminModule
 				return true;
 			}
 
+			private static bool ExactAuthor(string a, string b)
+			{
+				var x = AuthorKey(a);
+				return x.Length > 0 && x == AuthorKey(b);
+			}
+
 			private static bool SameAuthor(string a, string b)
 			{
 				var x = AuthorKey(a);
@@ -1978,6 +1984,7 @@ public partial class AdminModule
 						if (installed.AvailableOn != null && installed.AvailableOn.Count > 0)
 						{
 							var card = (installed.PickedVendor != VendorTypes.Installed ? installed.AvailableOn.FirstOrDefault(x => x.PreferredVendor == installed.PickedVendor) : null)
+								?? installed.AvailableOn.FirstOrDefault(x => ExactAuthor(x.Author, plugin.Author))
 								?? installed.AvailableOn.FirstOrDefault(x => SameAuthor(x.Author, plugin.Author))
 								?? installed.AvailableOn[0];
 							installed.PreferredVendor = card.PreferredVendor;
