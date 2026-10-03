@@ -1903,9 +1903,31 @@ public partial class AdminModule
 
 			private static bool SameAuthor(string a, string b)
 			{
-				static string Key(string value) => new string((value ?? string.Empty).Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
-				string x = Key(a), y = Key(b);
-				return x.Length > 0 && y.Length > 0 && (x.Contains(y) || y.Contains(x));
+				var x = AuthorKey(a);
+				var y = AuthorKey(b);
+
+				if (x.Length == 0 || y.Length == 0) return false;
+
+				var shorter = x.Length <= y.Length ? x : y;
+				var longer = x.Length <= y.Length ? y : x;
+
+				return shorter.Length < 4 ? longer.StartsWith(shorter, StringComparison.Ordinal) : longer.Contains(shorter);
+			}
+
+			private static string AuthorKey(string value)
+			{
+				if (string.IsNullOrEmpty(value)) return string.Empty;
+
+				var chars = new char[value.Length];
+				var length = 0;
+
+				for (int i = 0; i < value.Length; i++)
+				{
+					var c = value[i];
+					if (char.IsLetterOrDigit(c)) chars[length++] = char.ToLowerInvariant(c);
+				}
+
+				return new string(chars, 0, length);
 			}
 
 			public override void Refresh()
