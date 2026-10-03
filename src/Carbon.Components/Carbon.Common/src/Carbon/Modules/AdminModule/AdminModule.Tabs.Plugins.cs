@@ -1983,6 +1983,10 @@ public partial class AdminModule
 							installed.PreferredVendor = card.PreferredVendor;
 							installed.PreferredVendorPlugin = card;
 						}
+						else
+						{
+							installed.PreferredVendor = VendorTypes.Installed;
+						}
 					}
 				}
 
