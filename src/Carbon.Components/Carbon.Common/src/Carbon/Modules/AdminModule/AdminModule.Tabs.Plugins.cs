@@ -1900,39 +1900,69 @@ public partial class AdminModule
 				return true;
 			}
 
-			private static bool ExactAuthor(string a, string b)
+			private static char[] _installedAuthor = new char[32];
+			private static char[] _vendorAuthor = new char[32];
+
+			private static Plugin PickCard(Plugin installed, string author)
 			{
-				var x = AuthorKey(a);
-				return x.Length > 0 && x == AuthorKey(b);
+				var available = installed.AvailableOn;
+
+				if (installed.PickedVendor != VendorTypes.Installed)
+				{
+					for (int i = 0; i < available.Count; i++)
+					{
+						if (available[i].PreferredVendor == installed.PickedVendor) return available[i];
+					}
+				}
+
+				var length = AuthorKey(author, ref _installedAuthor);
+				Plugin partial = null;
+
+				for (int i = 0; i < available.Count; i++)
+				{
+					var otherLength = AuthorKey(available[i].Author, ref _vendorAuthor);
+					if (!SameAuthor(_installedAuthor, length, _vendorAuthor, otherLength)) continue;
+					if (length == otherLength) return available[i];
+
+					partial ??= available[i];
+				}
+
+				return partial ?? available[0];
 			}
 
-			private static bool SameAuthor(string a, string b)
+			private static bool SameAuthor(char[] a, int aLength, char[] b, int bLength)
 			{
-				var x = AuthorKey(a);
-				var y = AuthorKey(b);
+				if (aLength == 0 || bLength == 0) return false;
 
-				if (x.Length == 0 || y.Length == 0) return false;
+				var shorter = aLength <= bLength ? a : b;
+				var longer = aLength <= bLength ? b : a;
+				var shorterLength = Math.Min(aLength, bLength);
+				var lastStart = shorterLength < 4 ? 0 : Math.Max(aLength, bLength) - shorterLength;
 
-				var shorter = x.Length <= y.Length ? x : y;
-				var longer = x.Length <= y.Length ? y : x;
+				for (int start = 0; start <= lastStart; start++)
+				{
+					var i = 0;
+					while (i < shorterLength && longer[start + i] == shorter[i]) i++;
+					if (i == shorterLength) return true;
+				}
 
-				return shorter.Length < 4 ? longer.StartsWith(shorter, StringComparison.Ordinal) : longer.Contains(shorter);
+				return false;
 			}
 
-			private static string AuthorKey(string value)
+			private static int AuthorKey(string value, ref char[] buffer)
 			{
-				if (string.IsNullOrEmpty(value)) return string.Empty;
+				if (string.IsNullOrEmpty(value)) return 0;
+				if (buffer.Length < value.Length) buffer = new char[value.Length];
 
-				var chars = new char[value.Length];
 				var length = 0;
 
 				for (int i = 0; i < value.Length; i++)
 				{
 					var c = value[i];
-					if (char.IsLetterOrDigit(c)) chars[length++] = char.ToLowerInvariant(c);
+					if (char.IsLetterOrDigit(c)) buffer[length++] = char.ToLowerInvariant(c);
 				}
 
-				return new string(chars, 0, length);
+				return length;
 			}
 
 			public override void Refresh()
@@ -1982,10 +2012,7 @@ public partial class AdminModule
 						installed.TryMarkFoundOn(codefling);
 						if (installed.AvailableOn != null && installed.AvailableOn.Count > 0)
 						{
-							var card = (installed.PickedVendor != VendorTypes.Installed ? installed.AvailableOn.FirstOrDefault(x => x.PreferredVendor == installed.PickedVendor) : null)
-								?? installed.AvailableOn.FirstOrDefault(x => ExactAuthor(x.Author, plugin.Author))
-								?? installed.AvailableOn.FirstOrDefault(x => SameAuthor(x.Author, plugin.Author))
-								?? installed.AvailableOn[0];
+							var card = PickCard(installed, plugin.Author);
 							installed.PreferredVendor = card.PreferredVendor;
 							installed.PreferredVendorPlugin = card;
 						}
