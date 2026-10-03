@@ -2148,10 +2148,70 @@ public partial class AdminModule
 			{
 				if (!IsInstalled()) return false;
 
-				if (ExistentPlugin.Version.ToString() == Version) return true;
+				return TryParseVersion(Version, out var latest) && ExistentPlugin.Version >= latest;
+			}
 
-				try { return ExistentPlugin.Version >= new VersionNumber(Version); }
-				catch { return false; }
+			internal static bool TryParseVersion(string value, out VersionNumber version)
+			{
+				version = default;
+
+				if (string.IsNullOrEmpty(value)) return true;
+
+				var part = 0;
+				var number = 0L;
+				var digits = 0;
+				var sign = 0;
+				var trailing = false;
+
+				for (int i = 0; i <= value.Length; i++)
+				{
+					var c = i < value.Length ? value[i] : '.';
+
+					if (c == '.')
+					{
+						if (digits == 0) return false;
+
+						var parsed = (int)(sign < 0 ? -number : number);
+
+						switch (part)
+						{
+							case 0: version.Major = parsed; break;
+							case 1: version.Minor = parsed; break;
+							case 2: version.Patch = parsed; break;
+						}
+
+						part++;
+						number = 0;
+						digits = 0;
+						sign = 0;
+						trailing = false;
+						continue;
+					}
+
+					if (c == ' ' || (c >= '\t' && c <= '\r'))
+					{
+						if (digits > 0) trailing = true;
+						else if (sign != 0) return false;
+						continue;
+					}
+
+					if (trailing) return false;
+
+					if (digits == 0 && sign == 0 && (c == '-' || c == '+'))
+					{
+						sign = c == '-' ? -1 : 1;
+						continue;
+					}
+
+					if (c < '0' || c > '9') return false;
+
+					number = number * 10 + (c - '0');
+					digits++;
+
+					if (number > (sign < 0 ? 2147483648L : int.MaxValue)) return false;
+				}
+
+				return true;
 			}
 
 			public void SetOwned(bool wants) => Owned = wants;
