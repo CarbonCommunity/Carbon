@@ -689,7 +689,6 @@ public partial class AdminModule
 				CodeflingInstance.FetchList((vendor) =>
 				{
 					CodeflingInstance.Refresh();
-					CodeflingInstance.VersionCheck();
 					LocalInstance?.Refresh();
 				});
 			}
