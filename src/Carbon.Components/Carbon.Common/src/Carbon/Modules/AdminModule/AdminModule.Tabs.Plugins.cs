@@ -958,10 +958,10 @@ public partial class AdminModule
 			{
 				foreach (var plugin in FetchedPlugins)
 				{
-					if (plugin.IsInstalled() && !plugin.IsUpToDate())
+					if (plugin.IsInstalled() && !plugin.IsUpToDate() && Plugin.TryParseVersion(plugin.Version, out var latest))
 					{
 						// 3156772569 aka OnPluginOutdated
-						HookCaller.CallStaticHook(3156772569, plugin.Name, new VersionNumber(plugin.CurrentVersion()), new VersionNumber(plugin.Version), plugin.ExistentPlugin, Type);
+						HookCaller.CallStaticHook(3156772569, plugin.Name, plugin.ExistentPlugin.Version, latest, plugin.ExistentPlugin, Type);
 					}
 				}
 			}
