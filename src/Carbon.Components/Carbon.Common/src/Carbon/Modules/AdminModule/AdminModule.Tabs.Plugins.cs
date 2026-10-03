@@ -280,7 +280,7 @@ public partial class AdminModule
 							var card = cui.CreateProtectedButton(container, contentPanel, "0.1 0.1 0.1 0.7",
 								Cache.CUI.BlankColor, null, 0,
 								command:
-								$"pluginbrowser.selectplugin \"{Path.GetFileNameWithoutExtension(plugin.File)}\"",
+								$"pluginbrowser.selectplugin \"{Path.GetFileNameWithoutExtension(originalPlugin.File)}\"",
 								xMin: 0,
 								xMax: 0, yMin: 1, yMax: 1,
 								OxMin: currentWidth, OxMax: currentWidth + cardWidth,
@@ -318,7 +318,7 @@ public partial class AdminModule
 									originalPlugin.PreferredVendor.ToString().ToUpper().SpacedString(1), 8,
 									font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: 0.83f, yMax: 0.92f,
 									command:
-									$"pluginbrowser.interact 12 \"{Path.GetFileNameWithoutExtension(plugin.File)}\"");
+									$"pluginbrowser.interact 12 \"{Path.GetFileNameWithoutExtension(originalPlugin.File)}\"");
 							}
 
 							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(Path.GetFileNameWithoutExtension(plugin.File));
@@ -2264,7 +2264,9 @@ public partial class AdminModule
 		var vendorType = ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed);
 		var vendor = PluginsTab.GetVendor(vendorType);
 		var pluginName = args.GetFullString(1).Replace("\"", string.Empty).Trim();
-		var tabPlugin = ap.GetStorage<PluginsTab.Plugin>(tab, "plugin") ?? vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName));
+		var tabPlugin = ap.GetStorage<PluginsTab.Plugin>(tab, "plugin")
+			?? vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName))
+			?? vendor.FetchedPlugins.FirstOrDefault(x => x.PreferredVendorPlugin != null && Path.GetFileNameWithoutExtension(x.PreferredVendorPlugin.File).Equals(pluginName));
 		var mainTabPlugin = tabPlugin;
 		if (tabPlugin.PreferredVendorPlugin != null)
 		{
