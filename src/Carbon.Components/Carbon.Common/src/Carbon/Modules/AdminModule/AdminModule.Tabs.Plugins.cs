@@ -2310,7 +2310,11 @@ public partial class AdminModule
 			}
 			case "12":
 			{
-				mainTabPlugin.SetPreferredVendor(mainTabPlugin.AvailableOn.FirstOrDefault(x => x.PreferredVendor != mainTabPlugin.PreferredVendor)!.PreferredVendor);
+				var otherVendor = mainTabPlugin.AvailableOn?.FirstOrDefault(x => x.PreferredVendor != mainTabPlugin.PreferredVendor);
+				if (otherVendor != null)
+				{
+					mainTabPlugin.SetPreferredVendor(otherVendor.PreferredVendor);
+				}
 				Singleton.Draw(player);
 				break;
 			}
