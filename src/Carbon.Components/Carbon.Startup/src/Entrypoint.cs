@@ -33,6 +33,9 @@ public sealed class Entrypoint
 	[
 		Path.Combine(Defines.GetRustManagedFolder(), "x64"),
 		Path.Combine(Defines.GetRustManagedFolder(), "x86"),
+		Path.Combine(Defines.GetRustManagedFolder(), "Microsoft.CodeAnalysis.CSharp.dll"),
+		Path.Combine(Defines.GetRustManagedFolder(), "Microsoft.CodeAnalysis.dll"),
+		Path.Combine(Defines.GetRustManagedFolder(), "System.Collections.Immutable.dll"),
 		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Common.dll"),
 		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Core.dll"),
 		Path.Combine(Defines.GetRustManagedFolder(), "Oxide.CSharp.dll"),
