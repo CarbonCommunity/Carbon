@@ -74,6 +74,7 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 
 		MonoProfilerConfig.Load(configPath);
 		InitNative();
+		MonoProfiler.ConfigPath = configPath;
 
 		var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 		for (int i = 0; i < assemblies.Length; i++)
@@ -105,12 +106,6 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 		commands.AddRange(originalCommands);
 		AddCommand("carbon", "profile", arg =>
 		{
-			if (!MonoProfiler.Enabled)
-			{
-				arg.ReplyWith("Mono profiler is disabled. Enable it in the 'config.profiler.json' config file. Must restart the server for changes to apply.");
-				return;
-			}
-
 			var duration = arg.GetFloat(0);
 			var flags = MonoProfiler.ProfilerArgs.None;
 

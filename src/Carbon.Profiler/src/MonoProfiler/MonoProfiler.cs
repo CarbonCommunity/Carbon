@@ -648,7 +648,7 @@ public static unsafe partial class MonoProfiler
 		StackWalkAllocations = 1 << 7
 	}
 
-	public static bool Enabled { get; }
+	public static bool Enabled { get; private set; }
 	public static bool IsRecording { get; private set; }
 	public static bool Crashed { get; }
 
@@ -712,6 +712,35 @@ public static unsafe partial class MonoProfiler
 		{
 			data->Add(inst);
 		}
+	}
+
+	/// <summary>
+	/// The config file the native profiler reads when it is started at runtime.
+	/// </summary>
+	public static string ConfigPath { get; set; }
+
+	/// <summary>
+	/// Starts the native profiler if it is not running yet. Must be called on the main thread.
+	/// Assemblies loaded before it starts are only instrumented once they are compiled again.
+	/// </summary>
+	public static bool Start()
+	{
+		if (Enabled || Crashed || string.IsNullOrEmpty(ConfigPath))
+		{
+			return Enabled;
+		}
+
+		fixed (char* ptr = ConfigPath)
+		{
+			Enabled = start_profiler(ptr, ConfigPath.Length);
+		}
+
+		if (Enabled)
+		{
+			UnityEngine.Debug.LogWarning("[MonoProfiler] Started. Plugins loaded before now are only profiled after they are reloaded.");
+		}
+
+		return Enabled;
 	}
 
 	/// <summary>
@@ -806,7 +835,7 @@ public static unsafe partial class MonoProfiler
 	}
 	public static bool? ToggleProfiling(ProfilerArgs args = AllFlags, bool logging = true)
 	{
-		if (!Enabled)
+		if (!Start())
 		{
 			UnityEngine.Debug.Log("Profiler disabled");
 			return null;
@@ -1095,7 +1124,12 @@ public static unsafe partial class MonoProfiler
 	private static extern void register_profiler_assembly(ModuleHandle handle);
 
 	[DllImport("CarbonNative")]
+	[return: MarshalAs(UnmanagedType.U1)]
 	private static extern bool profiler_is_enabled();
+
+	[DllImport("CarbonNative")]
+	[return: MarshalAs(UnmanagedType.U1)]
+	private static extern bool start_profiler(char* ptr, int length);
 
 	[DllImport("CarbonNative")]
 	private static extern void carbon_init_logger(delegate*<int, int, byte*, int, LogSource, void> logger);

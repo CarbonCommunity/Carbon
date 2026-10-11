@@ -107,8 +107,7 @@ public partial class AdminModule
 #else
 				                                     "CarbonNative.dll"
 #endif
-													+ " is located in <b>carbon/native</b> or contact developers" :
-						!MonoProfiler.Enabled ? "<b>Mono profiler is disabled</b>\nEnable it in the config, then reboot the server" : null;
+													+ " is located in <b>carbon/native</b> or contact developers" : null;
 
 				if (string.IsNullOrEmpty(message))
 				{
@@ -911,11 +910,6 @@ public partial class AdminModule
 
 		var ap = GetPlayerSession(player);
 
-		if (!MonoProfiler.Enabled)
-		{
-			return;
-		}
-
 		if (!MonoProfiler.IsRecording && ap.Player.serverInput.IsDown(BUTTON.SPRINT))
 		{
 			var dictionary = Pool.Get<Dictionary<string, ModalModule.Modal.Field>>();
@@ -1126,11 +1120,6 @@ public partial class AdminModule
 		}
 
 		var ap = GetPlayerSession(player);
-
-		if (!MonoProfiler.Enabled)
-		{
-			return;
-		}
 
 		if (!MonoProfiler.IsRecording)
 		{

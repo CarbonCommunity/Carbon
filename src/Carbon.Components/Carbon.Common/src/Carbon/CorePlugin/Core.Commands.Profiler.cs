@@ -20,12 +20,6 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void Profile(ConsoleSystem.Arg arg)
 	{
-		if (!MonoProfiler.Enabled)
-		{
-			arg.ReplyWith("Mono profiler is disabled. Enable it in the 'carbon/config.profiler.json' config file. Must restart the server for changes to apply.");
-			return;
-		}
-
 		var duration = arg.GetFloat(0);
 		var flags = MonoProfiler.ProfilerArgs.None;
 
