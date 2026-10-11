@@ -1,4 +1,6 @@
-﻿using Carbon.Profiler;
+﻿using API.Events;
+using Carbon.Profiler;
+using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Core;
 
@@ -7,6 +9,11 @@ namespace Carbon.Core;
 public partial class CorePlugin
 {
 	public static MonoProfiler.Sample ProfileSample = MonoProfiler.Sample.Create();
+
+	private string _pluginProfile;
+	private float _pluginProfileDuration;
+	private MonoProfiler.ProfilerArgs _pluginProfileFlags;
+	private Timer _pluginProfileTimeout;
 
 	[CommandVar("profilestatus", "Mono profiling status.")]
 	[AuthLevel(2)]
@@ -21,16 +28,7 @@ public partial class CorePlugin
 	private void Profile(ConsoleSystem.Arg arg)
 	{
 		var duration = arg.GetFloat(0);
-		var flags = MonoProfiler.ProfilerArgs.None;
-
-		if (arg.HasArg("-cm")) flags |= MonoProfiler.ProfilerArgs.CallMemory;
-		if (arg.HasArg("-am")) flags |= MonoProfiler.ProfilerArgs.AdvancedMemory;
-		if (arg.HasArg("-t")) flags |= MonoProfiler.ProfilerArgs.Timings;
-		if (arg.HasArg("-c")) flags |= MonoProfiler.ProfilerArgs.Calls;
-		if (arg.HasArg("-gc")) flags |= MonoProfiler.ProfilerArgs.GCEvents;
-		if (arg.HasArg("-sw")) flags |= MonoProfiler.ProfilerArgs.StackWalkAllocations;
-
-		if (flags == MonoProfiler.ProfilerArgs.None) flags = MonoProfiler.AllFlags;
+		var flags = GetProfilerFlags(arg);
 
 		if (MonoProfiler.IsRecording)
 		{
@@ -38,6 +36,7 @@ public partial class CorePlugin
 			MonoProfiler.ToggleProfiling(flags);
 			ProfileSample.Resample();
 			MonoProfiler.Clear();
+			EndPluginProfile();
 			return;
 		}
 
@@ -70,6 +69,130 @@ public partial class CorePlugin
 
 		MonoProfiler.ToggleProfiling(MonoProfiler.ProfilerArgs.Abort);
 		ProfileSample.Clear();
+		EndPluginProfile();
+	}
+
+	[ConsoleCommand("profile.plugin", "Profiles one plugin: recompiles it with profiler hooks, records for the duration, then recompiles it without them. Syntax: c.profile.plugin <name> <duration> [-cm] [-am] [-t] [-c] [-gc] [-sw]")]
+	[AuthLevel(2)]
+	private void ProfilePlugin(ConsoleSystem.Arg arg)
+	{
+		var name = arg.GetString(0);
+		var duration = arg.GetFloat(1);
+
+		if (string.IsNullOrEmpty(name) || duration < 1f)
+		{
+			arg.ReplyWith("Syntax: c.profile.plugin <name> <duration> [-cm] [-am] [-t] [-c] [-gc] [-sw]");
+			return;
+		}
+
+		if (MonoProfiler.IsRecording || _pluginProfile != null)
+		{
+			arg.ReplyWith("Profiler is actively recording");
+			return;
+		}
+
+		if (!Community.Runtime.MonoProfilerConfig.TrackCalls)
+		{
+			arg.ReplyWith("Call tracking is off. Set TrackCalls to true in config.profiler.json and restart the server.");
+			return;
+		}
+
+		var plugin = ModLoader.FindPlugin(name);
+
+		if (plugin == null || plugin.IsPrecompiled)
+		{
+			arg.ReplyWith($"Couldn't find a script plugin named '{name}'");
+			return;
+		}
+
+		if (!MonoProfiler.Start())
+		{
+			arg.ReplyWith("Mono profiler couldn't start. Check the server log.");
+			return;
+		}
+
+		_pluginProfile = plugin.Name;
+		_pluginProfileDuration = duration;
+		_pluginProfileFlags = GetProfilerFlags(arg);
+
+		if (Assemblies.Plugins.Get(plugin.Name) is { IsProfiledAssembly: true })
+		{
+			StartPluginProfile();
+			arg.ReplyWith($"Profiling '{plugin.Name}' for {duration}s");
+			return;
+		}
+
+		Community.Runtime.MonoProfilerConfig.TemporaryPlugins.Add(plugin.Name);
+		Community.Runtime.Events.Subscribe(CarbonEvent.PluginLoaded, OnProfiledPluginLoaded);
+		_pluginProfileTimeout = timer.In(60f, () =>
+		{
+			Logger.Warn($"'{_pluginProfile}' didn't load within 60s, cancelled profiling it");
+			EndPluginProfile();
+		});
+
+		plugin.ProcessorProcess.MarkDirty();
+		arg.ReplyWith($"Recompiling '{plugin.Name}' with profiler hooks; profiling starts once it has loaded");
+	}
+
+	private void OnProfiledPluginLoaded(EventArgs args)
+	{
+		if (args is not CarbonEventArgs { Payload: RustPlugin plugin } || plugin.Name != _pluginProfile)
+		{
+			return;
+		}
+
+		Community.Runtime.Events.Unsubscribe(CarbonEvent.PluginLoaded, OnProfiledPluginLoaded);
+		_pluginProfileTimeout?.Destroy();
+		_pluginProfileTimeout = null;
+		StartPluginProfile();
+	}
+
+	private void StartPluginProfile()
+	{
+		var duration = _pluginProfileDuration;
+		var flags = _pluginProfileFlags;
+
+		MonoProfiler.ToggleProfilingTimed(duration, flags, _ =>
+		{
+			Analytics.profiler_ended(flags, duration, true);
+			ProfileSample.Resample();
+			MonoProfiler.Clear();
+			EndPluginProfile();
+		});
+		Analytics.profiler_started(flags, true);
+	}
+
+	private void EndPluginProfile()
+	{
+		if (_pluginProfile == null)
+		{
+			return;
+		}
+
+		var name = _pluginProfile;
+		_pluginProfile = null;
+		Community.Runtime.Events.Unsubscribe(CarbonEvent.PluginLoaded, OnProfiledPluginLoaded);
+		_pluginProfileTimeout?.Destroy();
+		_pluginProfileTimeout = null;
+
+		if (Community.Runtime.MonoProfilerConfig.TemporaryPlugins.Remove(name))
+		{
+			ModLoader.FindPlugin(name)?.ProcessorProcess?.MarkDirty();
+		}
+	}
+
+	private static MonoProfiler.ProfilerArgs GetProfilerFlags(ConsoleSystem.Arg arg)
+	{
+		var flags = MonoProfiler.ProfilerArgs.None;
+
+		if (arg.HasArg("-cm")) flags |= MonoProfiler.ProfilerArgs.CallMemory;
+		if (arg.HasArg("-am")) flags |= MonoProfiler.ProfilerArgs.AdvancedMemory;
+		if (arg.HasArg("-t")) flags |= MonoProfiler.ProfilerArgs.Timings;
+		if (arg.HasArg("-c")) flags |= MonoProfiler.ProfilerArgs.Calls;
+		if (arg.HasArg("-gc")) flags |= MonoProfiler.ProfilerArgs.GCEvents;
+		if (arg.HasArg("-sw")) flags |= MonoProfiler.ProfilerArgs.StackWalkAllocations;
+
+		return flags == MonoProfiler.ProfilerArgs.None ? MonoProfiler.AllFlags : flags;
 	}
 
 	[ConsoleCommand("profiler.print", "If any parsed data available, it'll print basic and advanced information. (-c=CSV, -j=JSON, -t=Table, -p=ProtoBuf [default])")]

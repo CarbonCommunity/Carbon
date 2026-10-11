@@ -37,6 +37,12 @@ public class MonoProfilerConfig
 
 	public const string Star = "*";
 
+	/// <summary>
+	/// Plugins profiled for a single recording (c.profile.plugin). Not saved.
+	/// </summary>
+	[JsonIgnore]
+	public HashSet<string> TemporaryPlugins = new();
+
 	public static MonoProfilerConfig Instance { get; set; }
 
 	public enum ProfileTypes
@@ -99,7 +105,7 @@ public class MonoProfilerConfig
 		return profile switch
 		{
 			ProfileTypes.Assembly => Assemblies.Contains(Star) || Assemblies.Contains(value),
-			ProfileTypes.Plugin => Plugins.Contains(Star) || Plugins.Contains(value),
+			ProfileTypes.Plugin => Plugins.Contains(Star) || Plugins.Contains(value) || TemporaryPlugins.Contains(value),
 			ProfileTypes.Module => Modules.Contains(Star) || Modules.Contains(value),
 			ProfileTypes.Extension => Extensions.Contains(Star) || Extensions.Contains(value),
 			ProfileTypes.Harmony => Harmony.Contains(Star) || Harmony.Contains(value),
