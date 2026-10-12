@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Carbon.Components;
 using Carbon.Profiler;
 using Facepunch;
+using HarmonyLib;
 using Newtonsoft.Json.Linq;
 using Steamworks;
 using UnityEngine;
@@ -344,7 +344,7 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 	{
 		try
 		{
-			var dictField = typeof(ConsoleSystem.Index.Server).GetField("Dict", BindingFlags.Public | BindingFlags.Static);
+			var dictField = AccessTools.Field(typeof(ConsoleSystem.Index.Server), "Dict");
 			if (dictField?.GetValue(null) is not IDictionary dict)
 			{
 				throw new InvalidOperationException("ConsoleSystem.Index.Server.Dict is not available");
@@ -356,7 +356,7 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 				throw new InvalidOperationException($"Couldn't determine server command index key type '{dict.GetType().FullName}'");
 			}
 
-			var key = keyType == typeof(string) ? command.FullName : Activator.CreateInstance(keyType, command.FullName);
+			var key = keyType == typeof(string) ? command.FullName : AccessTools.Constructor(keyType, [typeof(string)])?.Invoke([command.FullName]);
 			if (key == null)
 			{
 				throw new InvalidOperationException($"Couldn't create server command index key '{keyType.FullName}'");
