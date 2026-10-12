@@ -194,6 +194,13 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 				arg.ReplyWith(TargetedProfile.StartMod(name, duration, GetProfilerFlags(arg)));
 			}
 		}, description: "Profiles one HarmonyMod: reloads it with profiler hooks, records for the duration, then reloads it without them", arguments: "<name> <duration> [-cm] [-am] [-t] [-c] [-gc]");
+		AddCommand("carbon", "profile_plugin", arg =>
+		{
+			if (TryReadTarget(arg, "carbon.profile_plugin", out var name, out var duration))
+			{
+				arg.ReplyWith(TargetedProfile.StartPlugin(name, duration, GetProfilerFlags(arg)));
+			}
+		}, description: "Profiles one Oxide plugin: recompiles it with profiler hooks, records for the duration, then recompiles it without them", arguments: "<name> <duration> [-cm] [-am] [-t] [-c] [-gc]");
 		AddCommand("carbon", "export_profile", arg =>
 		{
 			if (MonoProfiler.IsRecording)

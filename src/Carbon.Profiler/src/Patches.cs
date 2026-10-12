@@ -53,6 +53,7 @@ public class Patches
 			}
 			MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, type.Assembly, fileName, true);
 			Debug.Log($"MonoProfiler.TryStartProfileFor Plugin: {fileName}");
+			TargetedProfile.OnPluginLoaded(fileName);
 		}
 	}
 
