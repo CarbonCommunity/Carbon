@@ -309,7 +309,7 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 					Debug.Log($"Carbon.Profiler is out of date! (current {SelfUpdate.CurrentVersion}, newer {version})");
 					SelfUpdate.Update(() =>
 					{
-						Debug.Log($"Updated successfully.");
+						Debug.Log("Updated Carbon.Profiler. Restart the server to load it.");
 					});
 				}
 				else
