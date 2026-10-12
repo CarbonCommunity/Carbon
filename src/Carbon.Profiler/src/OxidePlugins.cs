@@ -29,15 +29,18 @@ internal static class OxidePlugins
 	}
 
 	/// <summary>
-	/// Reloads the plugin and forces Oxide to compile it again. Oxide otherwise reuses the loaded
+	/// Makes Oxide compile the plugin again the next time it loads. Oxide otherwise reuses the loaded
 	/// assembly when the file is unchanged, and Mono would not compile its methods again.
 	/// </summary>
+	public static void MarkForRecompile(string name)
+	{
+		var compilablePlugin = GetCompilablePlugin.Invoke(null, [PluginDirectory.GetValue(Oxide.GetValue(null)), name]);
+		LastModifiedAt.SetValue(compilablePlugin, default(DateTime));
+	}
+
 	public static bool Recompile(string name)
 	{
-		var oxide = Oxide.GetValue(null);
-		var compilablePlugin = GetCompilablePlugin.Invoke(null, [PluginDirectory.GetValue(oxide), name]);
-
-		LastModifiedAt.SetValue(compilablePlugin, default(DateTime));
-		return ReloadPlugin.Invoke(oxide, [name]) is true;
+		MarkForRecompile(name);
+		return ReloadPlugin.Invoke(Oxide.GetValue(null), [name]) is true;
 	}
 }

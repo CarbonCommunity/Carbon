@@ -142,6 +142,19 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 		return IsTrackingCalls(arg);
 	}
 
+	private static void PrepareNextLoad(MonoProfilerConfig.ProfileTypes type, string value, bool tracked)
+	{
+		if (tracked && type is MonoProfilerConfig.ProfileTypes.Plugin or MonoProfilerConfig.ProfileTypes.Harmony)
+		{
+			MonoProfiler.Start();
+		}
+
+		if (type == MonoProfilerConfig.ProfileTypes.Plugin && IsOxideInstalled)
+		{
+			OxidePlugins.MarkForRecompile(value);
+		}
+	}
+
 	public static void InstallCommands()
 	{
 		originalCommands ??= ConsoleSystem.Index.All;
@@ -271,6 +284,11 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 				return;
 			}
 
+			if (!IsTrackingCalls(arg))
+			{
+				return;
+			}
+
 			var type = arg.GetString(0);
 			var value = arg.GetString(1);
 			MonoProfilerConfig.ProfileTypes returnType = default;
@@ -300,13 +318,17 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 				? $" Added {returnType} object '{value}' to tracking"
 				: $" Couldn't add {returnType} object '{value}' for tracking");
 
-			if (returnVal.Value) MonoProfilerConfig.Save(configPath);
+			if (returnVal.Value)
+			{
+				MonoProfilerConfig.Save(configPath);
+				PrepareNextLoad(returnType, value, tracked: true);
+			}
 
 			static void InvalidReturn(ConsoleSystem.Arg arg)
 			{
 				arg.ReplyWith("Syntax: carbon.track [assembly|plugin|module|ext|harmony] [value]");
 			}
-		}, description: "Adds an object to be tracked. Reloading the plugin will start tracking. Restarting required for assemblies, modules and extensions", arguments: "[assembly|plugin|module|ext|harmony] [value]");
+		}, description: "Adds an object to be tracked. Reload a tracked plugin or HarmonyMod to profile it. Assemblies, modules and extensions need Enabled in config.profiler.json and a server restart", arguments: "[assembly|plugin|module|ext|harmony] [value]");
 		AddCommand("carbon", "untrack", arg =>
 		{
 			if (!arg.HasArgs(2))
@@ -344,13 +366,17 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 				? $" Removed {returnType} object '{value}' from tracking"
 				: $" Couldn't remove {returnType} object '{value}' for tracking");
 
-			if (returnVal.Value) MonoProfilerConfig.Save(configPath);
+			if (returnVal.Value)
+			{
+				MonoProfilerConfig.Save(configPath);
+				PrepareNextLoad(returnType, value, tracked: false);
+			}
 
 			static void InvalidReturn(ConsoleSystem.Arg arg)
 			{
 				arg.ReplyWith("Syntax: carbon.untrack [assembly|plugin|module|ext|harmony] [value]");
 			}
-		}, description: "Removes a plugin from being tracked. Reloading the plugin will remove it from being tracked. Restarting required for assemblies, modules and extensions", arguments: "[assembly|plugin|module|ext|harmony] [value]");
+		}, description: "Removes an object from being tracked. Reload an untracked plugin or HarmonyMod to remove its profiler hooks. Assemblies, modules and extensions need a server restart", arguments: "[assembly|plugin|module|ext|harmony] [value]");
 		AddCommand("carbon", "profiler_version", arg =>
 		{
 			var table = Pool.Get<TextTable>();
