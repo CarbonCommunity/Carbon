@@ -26,7 +26,7 @@ public class MonoProfilerConfig
 	public List<string> Harmony = ["*"];
 #else
 	public bool Enabled = false;
-	public bool TrackCalls = false;
+	public bool TrackCalls = true;
 	public bool SourceViewer = false;
 	public List<string> Assemblies = new();
 	public List<string> Plugins = new();
