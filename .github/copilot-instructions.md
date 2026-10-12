@@ -3,8 +3,8 @@
 Carbon is a self-updating, lightweight, Harmony-based mod loader for the game **Rust**,
 written in modern C#. It provides its own plugin API, a permission system, user system,
 in-game GUI, modules, and an automated hook-generation pipeline. It ships in two flavors:
-**Carbon** (standalone, no Oxide code) and **Carbon with Oxide** (adds the `Carbon.Oxide`
-compatibility package so Oxide plugins/extensions keep working). See `docs/CARBON-3.md`.
+**Carbon** (the default, ships the `Carbon.Oxide` compatibility package so Oxide plugins/extensions
+keep working) and **Carbon Vanilla** (standalone, no Oxide code). See `docs/CARBON-3.md`.
 
 - **Repository:** https://github.com/CarbonCommunity/Carbon
 - **License:** GNU GPL v3
@@ -31,12 +31,12 @@ compatibility package so Oxide plugins/extensions keep working). See `docs/CARBO
 | `src/Carbon.Components/Carbon.SDK` | Low-level shared types (events, commands, hook attributes, addon contracts, package attributes). |
 | `src/Carbon.Components/Carbon.Modules` | Optional modules expanding functionality / QoL. |
 | `src/Carbon.Components/Carbon.Compat` | HarmonyMod conversion (Rust HarmonyMods loadable under Carbon). |
-| `src/Carbon.Components/Carbon.Oxide` | Oxide compatibility package ("Carbon with Oxide" only), loaded from `carbon/managed/packages`. |
+| `src/Carbon.Components/Carbon.Oxide` | Oxide compatibility package (left out of "Carbon Vanilla"), loaded from `carbon/managed/packages`. |
 | `src/Carbon.Components/Carbon.Test` | Automated testing rules and events infrastructure. |
 | `src/Carbon.Hooks/Carbon.Hooks.Base` | Ground-level dynamic & static patches for Carbon's own runtime. |
 | `src/Carbon.Hooks/Carbon.Hooks.Community` | Community-curated patches and hooks. |
 | `src/Carbon.Hooks/Carbon.Hooks.Generator` | Generates Carbon Harmony hooks from an Oxide `.opj` file. |
-| `src/Carbon.Hooks/Carbon.Hooks.Oxide` | Generated Oxide hooks ("Carbon with Oxide" only). |
+| `src/Carbon.Hooks/Carbon.Hooks.Oxide` | Generated Oxide hooks (left out of "Carbon Vanilla"). |
 | `src/Carbon.Tools` | Source generators, compiler polyfills, the publicizer, and the test runner. |
 | `src/Carbon.Profiler*` | Mono profiler and its tests/harness. |
 | `src/Carbon.Tests` | Automated end-to-end test runner suite (used in CI). |
@@ -66,9 +66,9 @@ Carbon is split into mostly-independent **components** (`src/Carbon.Components`)
 - **Conditional compilation:** guard platform/config-specific code with `#if WIN` / `#if UNIX`,
   `#if DEBUG`, and `#if MINIMAL` — these symbols are set per configuration.
 - Release/Minimal builds set `TreatWarningsAsErrors=true`. Keep code warning-clean for those configs.
-- **Flavors:** the default build is Carbon only. `-oxide` on the build runner (or the `build_*_oxide` scripts)
-  passes `-p:CarbonOxide=true`, ships `Carbon.Oxide.dll` to `carbon/managed/packages` and the generated
-  Oxide hooks, outputs to `release/.tmp/<Config>.Oxide` and suffixes archives with `.Oxide`.
+- **Flavors:** the default build ships `Carbon.Oxide.dll` to `carbon/managed/packages` and the generated Oxide hooks.
+  `-vanilla` on the build runner (or the `build_*_vanilla` scripts) passes `-p:CarbonVanilla=true` (defines `VANILLA`),
+  leaves both out, outputs to `release/.tmp/<Config>.Vanilla` and suffixes archives with `.Vanilla`.
 
 ## Architecture (3.0)
 

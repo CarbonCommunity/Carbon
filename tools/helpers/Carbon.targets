@@ -44,7 +44,7 @@
         <Reference Include="$(CarbonManagedPath)/Carbon.dll">
             <Private>false</Private>
         </Reference>
-        <!-- Optional packages, e.g. Carbon.Oxide in "Carbon with Oxide" installs -->
+        <!-- Optional packages, e.g. Carbon.Oxide (left out of "Carbon Vanilla" installs) -->
         <Reference Include="$(CarbonManagedPath)/packages/*.dll">
             <Private>false</Private>
         </Reference>

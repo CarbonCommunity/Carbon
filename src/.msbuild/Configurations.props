@@ -73,4 +73,9 @@
 			</PropertyGroup>
 		</Otherwise>
 	</Choose>
+
+	<!-- "Carbon Vanilla" flavor (-p:CarbonVanilla=true), without the Oxide compatibility package -->
+	<PropertyGroup Condition="'$(CarbonVanilla)' == 'true'">
+		<DefineConstants>VANILLA;$(DefineConstants)</DefineConstants>
+	</PropertyGroup>
 </Project>

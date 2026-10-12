@@ -1,17 +1,310 @@
 {
-  "input": "P:\\Repositories\\Carbon\\src\\Carbon.Hooks\\Carbon.Hooks.Generator\\.rust\\Rust.opj",
-  "managed": "P:\\Repositories\\Carbon\\rust\\windows\\RustDedicated_Data\\Managed",
+  "input": "D:\\Repositories\\Carbon\\src\\Carbon.Hooks\\Carbon.Hooks.Generator\\.rust\\Rust.opj",
+  "managed": "D:\\Repositories\\Carbon\\rust\\windows\\RustDedicated_Data\\Managed",
   "oldManaged": null,
-  "fixOutput": "P:\\Repositories\\Carbon\\src\\Carbon.Hooks\\Carbon.Hooks.Generator\\.rust\\Rust.fixed.opj",
+  "fixOutput": "D:\\Repositories\\Carbon\\src\\Carbon.Hooks\\Carbon.Hooks.Generator\\.rust\\Rust.fixed.opj",
   "totals": {
-    "hooks": 845,
-    "clean": 761,
-    "info": 49,
-    "warning": 35,
-    "autoFixable": 0,
-    "needsHuman": 0
+    "hooks": 863,
+    "clean": 729,
+    "info": 44,
+    "warning": 75,
+    "autoFixable": 14,
+    "needsHuman": 1
   },
   "hooks": [
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "InitOxide",
+      "name": "InitOxide",
+      "hookName": "InitOxide",
+      "typeName": "Bootstrap",
+      "method": "Init_Tier0",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 81 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnLootEntity",
+      "hookName": "OnLootEntity",
+      "typeName": "PlayerLoot",
+      "method": "StartLootingEntity",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Void\u0027 -\u003E \u0027System.Boolean\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Void",
+              "newValue": "System.Boolean"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnDispenserGather",
+      "hookName": "OnDispenserGather",
+      "typeName": "ResourceDispenser",
+      "method": "GiveResourceFromItem",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 122 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnPlayerAttack [Projectile]",
+      "hookName": "OnPlayerAttack",
+      "typeName": "BasePlayer",
+      "method": "OnProjectileAttack",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 1862 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnMeleeThrown",
+      "hookName": "OnMeleeThrown",
+      "typeName": "BaseMelee",
+      "method": "CLProject",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 265 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnItemCraftFinished",
+      "hookName": "OnItemCraftFinished",
+      "typeName": "ItemCrafter",
+      "method": "FinishCrafting",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 215 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnItemCraftCancelled",
+      "hookName": "OnItemCraftCancelled",
+      "typeName": "ItemCrafter",
+      "method": "CancelTask",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 43 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnClientAuth",
+      "hookName": "OnClientAuth",
+      "typeName": "ServerMgr",
+      "method": "OnGiveUserInformation",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 118 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnServerSave",
+      "hookName": "OnServerSave",
+      "typeName": "SaveRestore",
+      "method": "DoAutomatedSave",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 0 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnItemRecycle [2]",
+      "hookName": "OnItemRecycle",
+      "typeName": "Recycler",
+      "method": "RecycleThink",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 2 (brtrue_s) target 374 cannot be translated through base hook \u0027OnItemRecycle\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnMeleeAttack",
+      "hookName": "OnMeleeAttack",
+      "typeName": "BaseMelee",
+      "method": "PlayerAttack",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 47 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnDispenserBonus",
+      "hookName": "OnDispenserBonus",
+      "typeName": "ResourceDispenser",
+      "method": "AssignFinishBonus",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 55 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnLootSpawn [LootContainer]",
+      "hookName": "OnLootSpawn",
+      "typeName": "LootContainer",
+      "method": "SpawnLoot",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 15 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
     {
       "manifest": "Assembly-CSharp.dll",
       "action": "Modify",
@@ -68,6 +361,173 @@
           "kind": "BodyDrift",
           "severity": "Info",
           "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnEntityBuilt",
+      "hookName": "OnEntityBuilt",
+      "typeName": "Planner",
+      "method": "DoBuild",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Void\u0027 -\u003E \u0027BaseEntity\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Void",
+              "newValue": "BaseEntity"
+            }
+          ],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnLootEntity [patch]",
+      "hookName": "OnLootEntity [patch]",
+      "typeName": "PlayerLoot",
+      "method": "StartLootingEntity",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Void\u0027 -\u003E \u0027System.Boolean\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Void",
+              "newValue": "System.Boolean"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnFireBallDamage",
+      "hookName": "OnFireBallDamage",
+      "typeName": "FireBall",
+      "method": "DoRadialDamage",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 138 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnPlayerMetabolize",
+      "hookName": "OnPlayerMetabolize",
+      "typeName": "PlayerMetabolism",
+      "method": "ServerUpdate",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Void\u0027 -\u003E \u0027System.Boolean\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Void",
+              "newValue": "System.Boolean"
+            }
+          ],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnCollectiblePickup",
+      "hookName": "OnCollectiblePickup",
+      "typeName": "CollectibleEntity",
+      "method": "DoPickup",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 4 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "CanSpectateTarget",
+      "hookName": "CanSpectateTarget",
+      "typeName": "BasePlayer",
+      "method": "UpdateSpectateTarget",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 0 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnPlayerSetInfo [server]",
+      "hookName": "OnPlayerSetInfo",
+      "typeName": "ServerMgr",
+      "method": "ClientReady",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 30 not verified (provide --old-managed to re-anchor)",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -176,12 +636,36 @@
       "hookName": "OnQuarryGather",
       "typeName": "MiningQuarry",
       "method": "ProcessResources",
-      "severity": "Info",
+      "severity": "Warning",
       "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 118 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
         {
           "kind": "OperandMissing",
           "severity": "Info",
           "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 4 (brfalse_s) targets original instruction 118; the body changed and the target cannot be verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 8 (br_s) targets original instruction 137; the body changed and the target cannot be verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -219,7 +703,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 0 (brfalse_s) target 96 cannot be translated through base hook \u0027OnItemCraft\u0027; not verified",
+          "message": "instruction 0 (brfalse_s) target 97 cannot be translated through base hook \u0027OnItemCraft\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -227,7 +711,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 2 (brfalse_s) target 93 cannot be translated through base hook \u0027OnItemCraft\u0027; not verified",
+          "message": "instruction 2 (brfalse_s) target 94 cannot be translated through base hook \u0027OnItemCraft\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -235,7 +719,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 5 (brfalse_s) target 93 cannot be translated through base hook \u0027OnItemCraft\u0027; not verified",
+          "message": "instruction 5 (brfalse_s) target 94 cannot be translated through base hook \u0027OnItemCraft\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -271,17 +755,118 @@
     },
     {
       "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnBallistaGunReload",
+      "hookName": "OnBallistaGunReload",
+      "typeName": "BallistaGun",
+      "method": "SERVER_ReloadStart",
+      "severity": "NeedsHuman",
+      "diagnostics": [
+        {
+          "kind": "MissingMethod",
+          "severity": "NeedsHuman",
+          "message": "method \u0027SERVER_ReloadStart(BaseEntity/RPCMessage)\u0027 no longer exists on \u0027BallistaGun\u0027",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnServerInitialize",
+      "hookName": "OnServerInitialize",
+      "typeName": "ServerMgr",
+      "method": "Initialize",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Void\u0027 -\u003E \u0027System.Boolean\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Void",
+              "newValue": "System.Boolean"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 0 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "IOnPlayerBanned [Publisher/VAC]",
+      "hookName": "IOnPlayerBanned",
+      "typeName": "ServerMgr",
+      "method": "OnValidateAuthTicketResponse",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 56 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
       "action": "Modify",
       "name": "OnPlayerSpawn",
       "hookName": "OnPlayerSpawn",
       "typeName": "ServerMgr",
       "method": "SpawnNewPlayer",
-      "severity": "Info",
+      "severity": "AutoFixable",
       "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Void\u0027 -\u003E \u0027BasePlayer\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Void",
+              "newValue": "BasePlayer"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 25 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
         {
           "kind": "OperandMissing",
           "severity": "Info",
           "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 4 (brfalse_s) targets original instruction 25; the body changed and the target cannot be verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -295,12 +880,63 @@
       "hookName": "OnPlayerCorpseSpawn",
       "typeName": "BasePlayer",
       "method": "CreateCorpse",
-      "severity": "Info",
+      "severity": "Warning",
       "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 0 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
         {
           "kind": "OperandMissing",
           "severity": "Info",
           "message": "instruction 2 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 3 (brfalse_s) targets original instruction 0; the body changed and the target cannot be verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnPlayerCorpseSpawned",
+      "hookName": "OnPlayerCorpseSpawned",
+      "typeName": "BasePlayer",
+      "method": "CreateCorpse",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 186 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -346,7 +982,7 @@
         {
           "kind": "LocalOutOfRange",
           "severity": "Warning",
-          "message": "instruction 16 (stloc_s) references local slot 8 beyond the method body (8 locals); requires synthetic-local remapping",
+          "message": "instruction 16 (stloc_s) references local slot 2 beyond the method body (2 locals); requires synthetic-local remapping",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -354,7 +990,7 @@
         {
           "kind": "LocalOutOfRange",
           "severity": "Warning",
-          "message": "instruction 17 (ldloc_s) references local slot 8 beyond the method body (8 locals); requires synthetic-local remapping",
+          "message": "instruction 17 (ldloc_s) references local slot 2 beyond the method body (2 locals); requires synthetic-local remapping",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -362,7 +998,7 @@
         {
           "kind": "LocalOutOfRange",
           "severity": "Warning",
-          "message": "instruction 20 (ldloc_s) references local slot 8 beyond the method body (8 locals); requires synthetic-local remapping",
+          "message": "instruction 20 (ldloc_s) references local slot 2 beyond the method body (2 locals); requires synthetic-local remapping",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -513,6 +1149,31 @@
     {
       "manifest": "Assembly-CSharp.dll",
       "action": "Simple",
+      "name": "CanUseFuel",
+      "hookName": "CanUseFuel",
+      "typeName": "EntityFuelSystem",
+      "method": "TryUseFuel",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Boolean\u0027 -\u003E \u0027System.Int32\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Boolean",
+              "newValue": "System.Int32"
+            }
+          ],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
       "name": "OnIORefCleared",
       "hookName": "OnIORefCleared",
       "typeName": "IOEntity/IORef",
@@ -523,6 +1184,33 @@
           "kind": "LocalOutOfRange",
           "severity": "Warning",
           "message": "argument \u0027l0\u0027 references local slot 0 beyond the method body (0 locals); requires synthetic-local remapping via its base hook",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnVendingTransaction",
+      "hookName": "OnVendingTransaction",
+      "typeName": "VendingMachine",
+      "method": "DoTransaction",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 24 not verified (provide --old-managed to re-anchor)",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -765,7 +1453,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 2 (brfalse_s) target 242 cannot be translated through base hook \u0027IOnBasePlayerAttacked\u0027; not verified",
+          "message": "instruction 2 (brfalse_s) target 248 cannot be translated through base hook \u0027IOnBasePlayerAttacked\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -773,7 +1461,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 5 (brtrue_s) target 264 cannot be translated through base hook \u0027IOnBasePlayerAttacked\u0027; not verified",
+          "message": "instruction 5 (brtrue_s) target 270 cannot be translated through base hook \u0027IOnBasePlayerAttacked\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -782,6 +1470,25 @@
           "kind": "BodyDrift",
           "severity": "Info",
           "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnRespawnInformationGiven",
+      "hookName": "OnRespawnInformationGiven",
+      "typeName": "BasePlayer",
+      "method": "SendRespawnOptions",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 16 not verified (provide --old-managed to re-anchor)",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1065,6 +1772,141 @@
     },
     {
       "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "CanPurchaseItem",
+      "hookName": "CanPurchaseItem",
+      "typeName": "VendingMachine",
+      "method": "DoTransaction",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed and InjectionIndex 324 depends on instructions generated by base hook \u0027OnVendingTransaction\u0027; review manually",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnMissionStart",
+      "hookName": "OnMissionStart",
+      "typeName": "BaseMission",
+      "method": "MissionStart",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 0 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "CanAssignMission",
+      "hookName": "CanAssignMission",
+      "typeName": "BaseMission",
+      "method": "AssignMission",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 12 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnMissionAssigned",
+      "hookName": "OnMissionAssigned",
+      "typeName": "BaseMission",
+      "method": "AssignMission",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed and InjectionIndex 200 depends on instructions generated by base hook \u0027CanAssignMission\u0027; review manually",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnMissionStarted",
+      "hookName": "OnMissionStarted",
+      "typeName": "BaseMission",
+      "method": "MissionStart",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed and InjectionIndex 67 depends on instructions generated by base hook \u0027OnMissionStart\u0027; review manually",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
       "action": "Modify",
       "name": "OnSamSiteTargetScan",
       "hookName": "OnSamSiteTargetScan",
@@ -1217,6 +2059,31 @@
     },
     {
       "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnTerrainCreate",
+      "hookName": "OnTerrainCreate",
+      "typeName": "TerrainGenerator",
+      "method": "CreateTerrain",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Void\u0027 -\u003E \u0027UnityEngine.GameObject\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Void",
+              "newValue": "UnityEngine.GameObject"
+            }
+          ],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
       "action": "Modify",
       "name": "OnEngineStartFinished",
       "hookName": "OnEngineStartFinished",
@@ -1346,7 +2213,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 0 (ble) target 130 cannot be translated through base hook \u0027OnBonusItemDropped\u0027; not verified",
+          "message": "instruction 0 (ble) target 132 cannot be translated through base hook \u0027OnBonusItemDropped\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1373,7 +2240,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 0 (brfalse) target 130 cannot be translated through base hook \u0027OnBonusItemDropped [patch 1]\u0027; not verified",
+          "message": "instruction 0 (brfalse) target 132 cannot be translated through base hook \u0027OnBonusItemDropped [patch 1]\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1400,7 +2267,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 0 (ble_un) target 130 cannot be translated through base hook \u0027OnBonusItemDropped [patch 2]\u0027; not verified",
+          "message": "instruction 0 (ble_un) target 132 cannot be translated through base hook \u0027OnBonusItemDropped [patch 2]\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1427,7 +2294,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 0 (ble_s) target 130 cannot be translated through base hook \u0027OnBonusItemDropped [patch 3]\u0027; not verified",
+          "message": "instruction 0 (ble_s) target 132 cannot be translated through base hook \u0027OnBonusItemDropped [patch 3]\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1454,7 +2321,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 0 (brfalse_s) target 130 cannot be translated through base hook \u0027OnBonusItemDropped [patch 4]\u0027; not verified",
+          "message": "instruction 0 (brfalse_s) target 132 cannot be translated through base hook \u0027OnBonusItemDropped [patch 4]\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1519,7 +2386,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 0 (beq_s) target 99 cannot be translated through base hook \u0027IOnPlayerChat[patch]\u0027; not verified",
+          "message": "instruction 0 (beq_s) target 108 cannot be translated through base hook \u0027IOnPlayerChat[patch]\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1536,17 +2403,85 @@
     },
     {
       "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "CanFastTrackCraftTask",
+      "hookName": "CanFastTrackCraftTask",
+      "typeName": "ItemCrafter",
+      "method": "FastTrackTask",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 47 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnInterferenceUpdate",
+      "hookName": "OnInterferenceUpdate",
+      "typeName": "AutoTurret",
+      "method": "RecalculateInterference",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Void\u0027 -\u003E \u0027System.Boolean\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Void",
+              "newValue": "System.Boolean"
+            }
+          ],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
       "action": "Modify",
       "name": "OnCoalingTowerGather",
       "hookName": "OnCoalingTowerGather",
       "typeName": "CoalingTower",
       "method": "EmptyTenPercent",
-      "severity": "Info",
+      "severity": "Warning",
       "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 123 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
         {
           "kind": "OperandMissing",
           "severity": "Info",
           "message": "instruction 3 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 4 (brfalse_s) targets original instruction 123; the body changed and the target cannot be verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 8 (br_s) targets original instruction 148; the body changed and the target cannot be verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1628,6 +2563,106 @@
     },
     {
       "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnDispenserGathered",
+      "hookName": "OnDispenserGathered",
+      "typeName": "ResourceDispenser",
+      "method": "GiveResourceFromItem",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed and InjectionIndex 152 depends on instructions generated by base hook \u0027OnDispenserGather\u0027; review manually",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnCollectiblePickedup",
+      "hookName": "OnCollectiblePickedup",
+      "typeName": "CollectibleEntity",
+      "method": "DoPickup",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed and InjectionIndex 146 depends on instructions generated by base hook \u0027OnCollectiblePickup\u0027; review manually",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnDispenserBonusReceived",
+      "hookName": "OnDispenserBonusReceived",
+      "typeName": "ResourceDispenser",
+      "method": "AssignFinishBonus",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed and InjectionIndex 82 depends on instructions generated by base hook \u0027OnDispenserBonus\u0027; review manually",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnBoomboxToggle",
+      "hookName": "OnBoomboxToggle",
+      "typeName": "BoomBox",
+      "method": "ServerTogglePlay",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 15 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
       "action": "Modify",
       "name": "OnRfListenerRemoved [patch]",
       "hookName": "OnRfListenerRemoved [patch]",
@@ -1673,7 +2708,7 @@
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 1 (br_s) target 64 cannot be translated through base hook \u0027OnItemSubmit\u0027; not verified",
+          "message": "instruction 1 (br_s) target 75 cannot be translated through base hook \u0027OnItemSubmit\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1709,6 +2744,121 @@
           "kind": "BodyDrift",
           "severity": "Info",
           "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnFeedbackReported",
+      "hookName": "OnFeedbackReported",
+      "typeName": "BasePlayer/\u003COnFeedbackReport\u003Ed__777",
+      "method": "MoveNext",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "StateMachineRenumbered",
+          "severity": "AutoFixable",
+          "message": "compiler-generated type renumbered: \u0027BasePlayer/\u003COnFeedbackReport\u003Ed__777\u0027 -\u003E \u0027BasePlayer/\u003COnFeedbackReport\u003Ed__781\u0027",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "TypeName",
+              "oldValue": "BasePlayer/\u003COnFeedbackReport\u003Ed__777",
+              "newValue": "BasePlayer/\u003COnFeedbackReport\u003Ed__781"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 87 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnFeedbackReported [patch]",
+      "hookName": "OnFeedbackReported",
+      "typeName": "BasePlayer/\u003COnFeedbackReport\u003Ed__777",
+      "method": "MoveNext",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "StateMachineRenumbered",
+          "severity": "AutoFixable",
+          "message": "compiler-generated type renumbered: \u0027BasePlayer/\u003COnFeedbackReport\u003Ed__777\u0027 -\u003E \u0027BasePlayer/\u003COnFeedbackReport\u003Ed__781\u0027",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "TypeName",
+              "oldValue": "BasePlayer/\u003COnFeedbackReport\u003Ed__777",
+              "newValue": "BasePlayer/\u003COnFeedbackReport\u003Ed__781"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 11 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnPlayerReported",
+      "hookName": "OnPlayerReported",
+      "typeName": "BasePlayer/\u003COnPlayerReported\u003Ed__776",
+      "method": "MoveNext",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "StateMachineRenumbered",
+          "severity": "AutoFixable",
+          "message": "compiler-generated type renumbered: \u0027BasePlayer/\u003COnPlayerReported\u003Ed__776\u0027 -\u003E \u0027BasePlayer/\u003COnPlayerReported\u003Ed__780\u0027",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "TypeName",
+              "oldValue": "BasePlayer/\u003COnPlayerReported\u003Ed__776",
+              "newValue": "BasePlayer/\u003COnPlayerReported\u003Ed__780"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 96 not verified (provide --old-managed to re-anchor)",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1841,6 +2991,33 @@
     },
     {
       "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnCorpsePopulate [Rust.Ai.Gen2.State_Dead]",
+      "hookName": "OnCorpsePopulate",
+      "typeName": "Rust.Ai.Gen2.State_Dead",
+      "method": "StartRagdoll",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 51 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
       "action": "Modify",
       "name": "OnCorpsePopulate [Rust.Ai.Gen2.State_Dead] [Patch]",
       "hookName": "OnCorpsePopulate",
@@ -1848,6 +3025,14 @@
       "method": "StartRagdoll",
       "severity": "Warning",
       "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed and InjectionIndex 57 depends on instructions generated by base hook \u0027OnCorpsePopulate [Rust.Ai.Gen2.State_Dead]\u0027; review manually",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
@@ -1933,17 +3118,242 @@
     },
     {
       "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnApartmentRoomBreakInComplete",
+      "hookName": "OnApartmentRoomBreakInComplete",
+      "typeName": "ApartmentDoor",
+      "method": "CompleteBreakIn",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 33 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnApartmentRoomUpgrade",
+      "hookName": "OnApartmentRoomUpgrade",
+      "typeName": "ApartmentBuilding",
+      "method": "TryUpgradeRoom",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed since the hook was last verified; InjectionIndex 21 not verified (provide --old-managed to re-anchor)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
       "action": "Modify",
       "name": "OnApartmentRoomCheckout",
       "hookName": "OnApartmentRoomCheckout",
       "typeName": "ApartmentBuilding",
       "method": "TryCheckout",
-      "severity": "Info",
+      "severity": "AutoFixable",
       "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Void\u0027 -\u003E \u0027System.Boolean\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Void",
+              "newValue": "System.Boolean"
+            }
+          ],
+          "candidates": []
+        },
         {
           "kind": "OperandMissing",
           "severity": "Info",
           "message": "instruction 4 (call) references \u0027Oxide.Core.Interface\u0027 from \u0027Oxide.Core\u0027, which is not in the managed folder (assumed runtime-provided)",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnApartmentRoomCheckedout",
+      "hookName": "OnApartmentRoomCheckedout",
+      "typeName": "ApartmentBuilding",
+      "method": "TryCheckout",
+      "severity": "AutoFixable",
+      "diagnostics": [
+        {
+          "kind": "ReturnTypeDrift",
+          "severity": "AutoFixable",
+          "message": "return type changed: \u0027System.Void\u0027 -\u003E \u0027System.Boolean\u0027 (return-based behaviors may need review)",
+          "applied": true,
+          "fixes": [
+            {
+              "path": "Signature.ReturnType",
+              "oldValue": "System.Void",
+              "newValue": "System.Boolean"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnApartmentRoomUpgraded",
+      "hookName": "OnApartmentRoomUpgraded",
+      "typeName": "ApartmentBuilding",
+      "method": "TryUpgradeRoom",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed and InjectionIndex 93 depends on instructions generated by base hook \u0027OnApartmentRoomUpgrade\u0027; review manually",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Simple",
+      "name": "OnApartmentRoomBreakInCompleted",
+      "hookName": "OnApartmentRoomBreakInCompleted",
+      "typeName": "ApartmentDoor",
+      "method": "CompleteBreakIn",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "BodyDrift",
+          "severity": "Warning",
+          "message": "method body changed and InjectionIndex 100 depends on instructions generated by base hook \u0027OnApartmentRoomBreakInComplete\u0027; review manually",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "1 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnApartmentMasterKeyPurchased [Patch]",
+      "hookName": "OnApartmentMasterKeyPurchased [Patch]",
+      "typeName": "NPCApartmentSecurity",
+      "method": "OnPurchaseKey",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (brfalse_s) target 59 cannot be translated through base hook \u0027OnApartmentMasterKeyPurchased\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "manifest": "Assembly-CSharp.dll",
+      "action": "Modify",
+      "name": "OnPowergridStageChange [Patch]",
+      "hookName": "OnPowergridStageChange",
+      "typeName": "PowergridManager",
+      "method": "ServerTick",
+      "severity": "Warning",
+      "diagnostics": [
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 0 (beq_s) target 41 cannot be translated through base hook \u0027OnPowergridStageChange\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "InstructionTargetDrift",
+          "severity": "Warning",
+          "message": "instruction 1 (leave) target 94 cannot be translated through base hook \u0027OnPowergridStageChange\u0027; not verified",
+          "applied": false,
+          "fixes": [],
+          "candidates": []
+        },
+        {
+          "kind": "BodyDrift",
+          "severity": "Info",
+          "message": "2 other hook(s) patch the same method; injection indexes may interact at patch time",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1955,14 +3365,14 @@
       "action": "Modify",
       "name": "OnRconConnection [web, patch]",
       "hookName": "OnRconConnection",
-      "typeName": "Facepunch.Rcon.Listener/\u003C\u003Ec__DisplayClass27_0",
-      "method": "\u003CStart\u003Eb__0",
+      "typeName": "Facepunch.Rcon.Listener",
+      "method": "OnConnection",
       "severity": "Warning",
       "diagnostics": [
         {
           "kind": "InstructionTargetDrift",
           "severity": "Warning",
-          "message": "instruction 0 (bne_un_s) target 69 cannot be translated through base hook \u0027OnRconConnection [web]\u0027; not verified",
+          "message": "instruction 0 (bne_un_s) target 71 cannot be translated through base hook \u0027OnRconConnection [web]\u0027; not verified",
           "applied": false,
           "fixes": [],
           "candidates": []
@@ -1982,8 +3392,8 @@
       "action": "Simple",
       "name": "IOnRconMessage",
       "hookName": "IOnRconMessage",
-      "typeName": "Facepunch.Rcon.Listener/\u003C\u003Ec__DisplayClass27_1",
-      "method": "\u003CStart\u003Eb__3",
+      "typeName": "Facepunch.Rcon.Listener/\u003C\u003Ec__DisplayClass27_0",
+      "method": "\u003COnConnection\u003Eb__2",
       "severity": "Info",
       "diagnostics": [
         {

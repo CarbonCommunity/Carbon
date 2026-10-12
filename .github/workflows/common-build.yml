@@ -411,10 +411,10 @@ jobs:
           ARG: ${{ matrix.build_arg }}
           MODE: ${{ needs.configure.outputs.cs_mode }}
         run: |
-          # Every configuration ships in two flavors: Carbon, and "Carbon with Oxide" (*.Oxide archives)
+          # Every configuration ships in two flavors: Carbon, and "Carbon Vanilla" without Oxide (*.Vanilla archives)
           build() {
             dotnet ./runner-bin/Carbon.Runner.dll tools/build/runners/build.cs "$1$ARG" $DEFINE $TAG -noclean
-            dotnet ./runner-bin/Carbon.Runner.dll tools/build/runners/build.cs "$1$ARG" $DEFINE $TAG -noclean -oxide
+            dotnet ./runner-bin/Carbon.Runner.dll tools/build/runners/build.cs "$1$ARG" $DEFINE $TAG -noclean -vanilla
           }
 
           # Debug Build

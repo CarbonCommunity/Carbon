@@ -17,6 +17,7 @@ public static class SelfUpdater
 	private static OsType Platform;
 	private static ReleaseType Release;
 	private static string Target;
+	private static string Flavor;
 	private static bool IsMinimal;
 	private static Version LocalCarbonProtocol;
 	private static Version LocalRustProtocol;
@@ -40,8 +41,8 @@ public static class SelfUpdater
 	};
 	private static string File => Platform switch
 	{
-		OsType.Windows => $"Carbon.Windows.{Target}.zip",
-		OsType.Linux => $"Carbon.Linux.{Target}.tar.gz",
+		OsType.Windows => $"Carbon.Windows.{Target}{Flavor}.zip",
+		OsType.Linux => $"Carbon.Linux.{Target}{Flavor}.tar.gz",
 		_ => throw new ArgumentOutOfRangeException()
 	};
 	private static string LocalProtocolFile => Path.Combine(Defines.GetRootFolder(), ".protocol");
@@ -90,6 +91,14 @@ public static class SelfUpdater
 		"Debug";
 #else
 		"Release";
+#endif
+
+		// Stay on the same flavor when self-updating
+		Flavor =
+#if VANILLA
+			".Vanilla";
+#else
+			string.Empty;
 #endif
 
 		if (System.IO.File.Exists(LocalProtocolFile))

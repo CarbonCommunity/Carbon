@@ -6,9 +6,9 @@ var cargoTarget = target.Equals("Debug") || target.Equals("DebugUnix") || target
 var isUnix = target.Contains("Unix");
 var noArchive = HasArg("-noarchive");
 
-// "Carbon with Oxide": also ships the Oxide compatibility package and generated Oxide hooks
-var oxide = HasArg("-oxide");
-var flavor = oxide ? ".Oxide" : string.Empty;
+// "Carbon Vanilla": leaves out the Oxide compatibility package and generated Oxide hooks
+var vanilla = HasArg("-vanilla");
+var flavor = vanilla ? ".Vanilla" : string.Empty;
 var output = target + flavor;
 
 var noClean = !HasArg("-clean");
@@ -34,7 +34,7 @@ System.IO.File.WriteAllText(Path(Home, "src", "Carbon.Components", "Carbon.Commo
 		.Replace("[GIT_URL]", System.IO.File.ReadAllText(Path(temp, ".giturl")) + "/commit/" + System.IO.File.ReadAllText(Path(temp, ".gitchl"))));
 
 Warn($"Tag: {tag}");
-Warn($"Flavor: {(oxide ? "Carbon with Oxide" : "Carbon")}");
+Warn($"Flavor: {(vanilla ? "Carbon Vanilla" : "Carbon")}");
 Warn($"Target: {target}");
 Warn($"Defines: {defines ?? "N/A"}");
 Warn($"Version: {version ?? "N/A"}");
@@ -57,12 +57,12 @@ if (!noClean)
 if (noRestore)
 {
 	DotNet.Run("build", PathEnquotes(Home, "src"), "--configuration", target, "--verbosity", buildVerbosity, "--no-restore",
-		$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"", $"/p:CarbonOxide={oxide.ToString().ToLower()}");
+		$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"", $"/p:CarbonVanilla={vanilla.ToString().ToLower()}");
 }
 else
 {
 	DotNet.Run("build", PathEnquotes(Home, "src"), "--configuration", target, "--verbosity", buildVerbosity,
-		$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"", $"/p:CarbonOxide={oxide.ToString().ToLower()}");
+		$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"", $"/p:CarbonVanilla={vanilla.ToString().ToLower()}");
 }
 
 Files.Copy(Path(Home, "tools", "helpers", "Carbon.targets"), Path(Home, "release", ".tmp", output, "Carbon.targets"));

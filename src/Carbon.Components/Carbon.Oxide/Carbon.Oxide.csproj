@@ -14,8 +14,8 @@
 		<ProjectReference Include="$(SolutionDir)\Carbon.Tools\Carbon.SourceGenerators\Carbon.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
-	<!-- Only shipped with the "Carbon with Oxide" flavor, see tools/build/runners/build.cs -->
-	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="'$(CarbonOxide)' == 'true'">
+	<!-- Left out of the "Carbon Vanilla" flavor, see tools/build/runners/build.cs -->
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease" Condition="'$(CarbonVanilla)' != 'true'">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_packages)" />
 		<Copy Condition="$(Configuration.Contains('Debug'))" SourceFiles="$(OutputPath)$(Product).xml" DestinationFolder="$(c_packages)" />
 	</Target>

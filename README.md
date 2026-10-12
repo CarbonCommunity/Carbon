@@ -18,7 +18,7 @@
   <hr />
 </p>
 
-Carbon is a self-updating, lightweight, intelligent mod loader for Rust utilizing the latest C# and Harmony for the best performance and stability possible. It ships in two flavors: **Carbon**, a standalone framework with its own plugin API, and **Carbon with Oxide**, which adds backward compatibility with Oxide plugins and extensions on top.
+Carbon is a self-updating, lightweight, intelligent mod loader for Rust utilizing the latest C# and Harmony for the best performance and stability possible. It ships in two flavors: **Carbon**, with backward compatibility for Oxide plugins and extensions, and **Carbon Vanilla**, the standalone framework with only its own plugin API.
 
 Carbon has all the creature comforts you need to run your server, such as a permission system, user system, and so much more. Carbon is developed by experienced developers and server owners working to take the tedium out of hosting servers and make configuration and setup seamless with an integrated GUI in-game to manage everything!
 
@@ -70,7 +70,7 @@ The following branches are shared across all Component and Hook projects and syn
 - [Carbon.SDK](./src/Carbon.Components/Carbon.SDK): Low-level shared types (events, commands, hook attributes, addon contracts) used by components that can't depend on Carbon.Common.
 - [Carbon.Modules](./src/Carbon.Components/Carbon.Modules): Carbon optional modules expanding functionality, enhanced QoL and tools.
 - [Carbon.Compat](./src/Carbon.Components/Carbon.Compat): Makes Rust HarmonyMods loadable under Carbon. Originally the Carbon Compatibility Loader written by Patrette (community member).
-- [Carbon.Oxide](./src/Carbon.Components/Carbon.Oxide): The Oxide compatibility package (only in "Carbon with Oxide" builds): Oxide's API, plugin source translation, extension conversion and covalence hooks.
+- [Carbon.Oxide](./src/Carbon.Components/Carbon.Oxide): The Oxide compatibility package (left out of "Carbon Vanilla" builds): Oxide's API, plugin source translation, extension conversion and covalence hooks.
 - [Carbon.Test](./src/Carbon.Components/Carbon.Test): Integral implementation for automated testing rules and events.
 
 ### Hooks
@@ -78,12 +78,12 @@ Carbon's hooks are managed in [`src/Carbon.Hooks`](./src/Carbon.Hooks):
 - [Carbon.Hooks.Base](./src/Carbon.Hooks/Carbon.Hooks.Base): Includes ground level dynamic and static patching instructions supplementing necessary events for Carbon's own runtime, including the plugin lifecycle hooks.
 - [Carbon.Hooks.Community](./src/Carbon.Hooks/Carbon.Hooks.Community): Community curated patches and hooks.
 - [Carbon.Hooks.Generator](./src/Carbon.Hooks/Carbon.Hooks.Generator): Generates Carbon Harmony hooks based on an Oxide `.opj` file.
-- [Carbon.Hooks.Oxide](./src/Carbon.Hooks/Carbon.Hooks.Oxide): The generated Oxide hooks, only shipped in "Carbon with Oxide" builds.
+- [Carbon.Hooks.Oxide](./src/Carbon.Hooks/Carbon.Hooks.Oxide): The generated Oxide hooks, left out of "Carbon Vanilla" builds.
 
 ### Building
 To locally build Carbon from scratch, execute the [`setup.bat`](./setup.bat) or [`setup.sh`](./setup.sh) file, and find the results in the root of Carbon, under `./release`.
 
-To build "Carbon with Oxide", use the `*_oxide` scripts in [`tools/build`](./tools/build) (e.g. `build_debug_oxide.bat`), or pass `-oxide` to the build runner. Those archives carry an `.Oxide` suffix.
+To build "Carbon Vanilla" (no Oxide compatibility), use the `*_vanilla` scripts in [`tools/build`](./tools/build) (e.g. `build_debug_vanilla.bat`), or pass `-vanilla` to the build runner. Those archives carry a `.Vanilla` suffix.
 
 See [`docs/CARBON-3.md`](./docs/CARBON-3.md) for the 3.0 architecture and migration notes.
 

@@ -2,7 +2,7 @@
 
 Carbon 3.0 is a restructure of the whole project. The headline changes:
 
-- **Two flavors.** *Carbon* is a standalone framework with no Oxide code in it. *Carbon with Oxide* adds the Oxide compatibility package on top and behaves like Carbon 2.x did.
+- **Two flavors.** *Carbon* (the default) ships the Oxide compatibility package and behaves like Carbon 2.x did. *Carbon Vanilla* is the standalone framework with no Oxide code in it.
 - **A native plugin API.** `Carbon.Plugins.Plugin` → `CarbonPlugin` own permissions, lang, timers, commands, config and web requests. The member names match what plugin developers already know (`permission`, `lang`, `timer`, `cmd`, `webrequest`, `Config`, `Puts`, `PrintToChat`, `[ChatCommand]`, `[Info]`…).
 - **No more processors.** The script/zip/dev-folder processors, `CarbonProcessor` and `ModuleProcessor` were replaced by `PluginSources`, `Scheduler` and `ModuleRegistry`.
 - **No more `API.*` namespace.** Contracts live in `Carbon.*` namespaces, and single-implementation interfaces became concrete, public classes.
@@ -17,9 +17,9 @@ Carbon 3.0 is a restructure of the whole project. The headline changes:
 | `Carbon.Bootstrap` | Boots the core `Services`, loads packages, then `Carbon.dll`. |
 | `Carbon` | The boot component (`Initializer`) creating `Community.Runtime`. |
 | `Carbon.Compat` | HarmonyMod conversion. |
-| `Carbon.Oxide` | The Oxide compatibility package (Carbon with Oxide only). |
+| `Carbon.Oxide` | The Oxide compatibility package (left out of Carbon Vanilla). |
 | `Carbon.Hooks.Base` / `.Community` | Carbon's own hooks, shipped in both flavors. |
-| `Carbon.Hooks.Oxide` | Generated Oxide hooks, Carbon with Oxide only. |
+| `Carbon.Hooks.Oxide` | Generated Oxide hooks (left out of Carbon Vanilla). |
 
 ### Runtime systems
 
@@ -63,7 +63,7 @@ Types Carbon provides natively (`Plugin`, `Permission`, `Lang`, `Timer`, `Dynami
 
 ## Migrating
 
-### Plugin developers (Carbon flavor)
+### Plugin developers (Carbon Vanilla)
 
 - Derive from `CarbonPlugin` in `namespace Carbon.Plugins`. The familiar members are all there.
 - Remove every `using Oxide.*;`. The types they brought in live in `Carbon.Plugins` (visible automatically inside `Carbon.Plugins`) and `Carbon.Components` (CUI types, `CuiHelper`).
@@ -80,16 +80,16 @@ Types Carbon provides natively (`Plugin`, `Permission`, `Lang`, `Timer`, `Dynami
 - Only the base hooks (plugin lifecycle, server init/save/shutdown) and Carbon's Base + Community hooks exist. For anything else, use `[AutoPatch]` Harmony patches on nested classes.
 - Precompiled plugins/extensions must be rebuilt against 3.0: namespaces and types moved.
 
-### Plugin developers (Carbon with Oxide)
+### Plugin developers (Carbon)
 
 Nothing to do for regular Oxide plugins. CarbonPlugins that used Oxide types keep compiling through the translator. For new code, prefer the native API.
 
 ### Server owners
 
-- Pick the archive flavor: `Carbon.<OS>.<Config>.zip`, or `Carbon.<OS>.<Config>.Oxide.zip` for Oxide plugins.
+- Pick the archive flavor: `Carbon.<OS>.<Config>.zip` (runs Oxide plugins), or `Carbon.<OS>.<Config>.Vanilla.zip` for Carbon plugins only. Self-updating stays on the installed flavor.
 - Permission data moves from `oxide.users/groups.data` to `carbon.users/groups.data`. Carbon imports the old files once on first start, and leaves them in place.
-- Admin panel: the uMod plugin browser only exists in the Oxide flavor. Its toggle is now "Disable external vendor".
-- The Carbon flavor doesn't clean up a previous Oxide install. Verify your game files if you're coming from Oxide, or use the Oxide flavor, which does.
+- Admin panel: the uMod plugin browser doesn't exist in Carbon Vanilla. Its toggle is now "Disable external vendor".
+- Carbon Vanilla doesn't clean up a previous Oxide install. Verify your game files if you're coming from Oxide, or use the default flavor, which does.
 
 ### Contributors
 

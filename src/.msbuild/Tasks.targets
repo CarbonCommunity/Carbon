@@ -47,8 +47,8 @@
 	<Target Name="PrepareRelease" AfterTargets="PostBuildEvent">
 		<Message Text="[$(AssemblyName)] Preparing the release folder ($(OperatingSystem))" Importance="high" />
 		<PropertyGroup>
-			<!-- "Carbon with Oxide" builds (-p:CarbonOxide=true) go to their own folder -->
-			<CarbonFlavorSuffix Condition="'$(CarbonOxide)' == 'true'">.Oxide</CarbonFlavorSuffix>
+			<!-- "Carbon Vanilla" builds (-p:CarbonVanilla=true) go to their own folder -->
+			<CarbonFlavorSuffix Condition="'$(CarbonVanilla)' == 'true'">.Vanilla</CarbonFlavorSuffix>
 			<CarbonBaseDir>$(SolutionDir)..\release\.tmp\$(Configuration)$(CarbonFlavorSuffix)</CarbonBaseDir>
 
 			<c_profiler>$(CarbonBaseDir)\profiler</c_profiler>
