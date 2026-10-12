@@ -158,7 +158,7 @@ public partial class CorePlugin
 		var value = arg.GetString(1);
 		MonoProfilerConfig.ProfileTypes returnType = default;
 
-		var returnVal = type switch
+		bool? returnVal = type switch
 		{
 			"assembly" => Community.Runtime.MonoProfilerConfig.AppendProfile(
 				returnType = MonoProfilerConfig.ProfileTypes.Assembly, value),
@@ -168,19 +168,24 @@ public partial class CorePlugin
 				returnType = MonoProfilerConfig.ProfileTypes.Module, value),
 			"ext" => Community.Runtime.MonoProfilerConfig.AppendProfile(
 				returnType = MonoProfilerConfig.ProfileTypes.Extension, value),
-			_ => InvalidReturn(arg)
+			_ => null
 		};
 
-		arg.ReplyWith(returnVal
+		if (returnVal == null)
+		{
+			InvalidReturn(arg);
+			return;
+		}
+
+		arg.ReplyWith(returnVal.Value
 			? $" Added {returnType} object '{value}' to tracking"
 			: $" Couldn't add {returnType} object '{value}' for tracking");
 
-		if (returnVal) Community.Runtime.SaveMonoProfilerConfig();
+		if (returnVal.Value) Community.Runtime.SaveMonoProfilerConfig();
 
-		static bool InvalidReturn(ConsoleSystem.Arg arg)
+		static void InvalidReturn(ConsoleSystem.Arg arg)
 		{
 			arg.ReplyWith("Syntax: c.profiler.track (assembly|plugin|module|ext) value");
-			return false;
 		}
 	}
 
@@ -198,7 +203,7 @@ public partial class CorePlugin
 		var value = arg.GetString(1);
 		MonoProfilerConfig.ProfileTypes returnType = default;
 
-		var returnVal = type switch
+		bool? returnVal = type switch
 		{
 			"assembly" => Community.Runtime.MonoProfilerConfig.RemoveProfile(
 				returnType = MonoProfilerConfig.ProfileTypes.Assembly, value),
@@ -208,19 +213,24 @@ public partial class CorePlugin
 				returnType = MonoProfilerConfig.ProfileTypes.Module, value),
 			"ext" => Community.Runtime.MonoProfilerConfig.RemoveProfile(
 				returnType = MonoProfilerConfig.ProfileTypes.Extension, value),
-			_ => InvalidReturn(arg)
+			_ => null
 		};
 
-		arg.ReplyWith(returnVal
+		if (returnVal == null)
+		{
+			InvalidReturn(arg);
+			return;
+		}
+
+		arg.ReplyWith(returnVal.Value
 			? $" Removed {returnType} object '{value}' from tracking"
 			: $" Couldn't remove {returnType} object '{value}' for tracking");
 
-		if (returnVal) Community.Runtime.SaveMonoProfilerConfig();
+		if (returnVal.Value) Community.Runtime.SaveMonoProfilerConfig();
 
-		static bool InvalidReturn(ConsoleSystem.Arg arg)
+		static void InvalidReturn(ConsoleSystem.Arg arg)
 		{
 			arg.ReplyWith("Syntax: c.profiler.untrack (assembly|plugin|module|ext) value");
-			return false;
 		}
 	}
 
