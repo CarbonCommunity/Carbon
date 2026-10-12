@@ -259,6 +259,8 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 			              $"{string.Join("\n", MonoProfilerConfig.Instance.Modules.Select(x => $"- {x}"))}\n" +
 			              $"Tracked Extensions ({MonoProfilerConfig.Instance.Extensions.Count:n0}):\n" +
 			              $"{string.Join("\n", MonoProfilerConfig.Instance.Extensions.Select(x => $"- {x}"))}\n" +
+			              $"Tracked HarmonyMods ({MonoProfilerConfig.Instance.Harmony.Count:n0}):\n" +
+			              $"{string.Join("\n", MonoProfilerConfig.Instance.Harmony.Select(x => $"- {x}"))}\n" +
 			              $"Use wildcard (*) to include all.");
 		}, description: "All tracking lists present in the config which are used by the Mono profiler for tracking");
 		AddCommand("carbon", "track", arg =>
