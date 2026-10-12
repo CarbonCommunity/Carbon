@@ -16,14 +16,14 @@ namespace Carbon.Profiler;
 public class MonoProfilerConfig
 {
 #if HARMONYMOD
-	public bool Enabled = true;
+	public bool Enabled = false;
 	public bool TrackCalls = true;
 	public bool SourceViewer = true;
-	public List<string> Assemblies = ["*"];
-	public List<string> Plugins = ["*"];
-	public List<string> Modules = ["*"];
-	public List<string> Extensions = ["*"];
-	public List<string> Harmony = ["*"];
+	public List<string> Assemblies = new();
+	public List<string> Plugins = new();
+	public List<string> Modules = new();
+	public List<string> Extensions = new();
+	public List<string> Harmony = new();
 #else
 	public bool Enabled = false;
 	public bool TrackCalls = true;
