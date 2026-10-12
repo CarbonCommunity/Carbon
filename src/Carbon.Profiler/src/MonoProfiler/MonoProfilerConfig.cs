@@ -117,7 +117,10 @@ public class MonoProfilerConfig
 	{
 		if (File.Exists(filePath))
 		{
-			Instance = JsonConvert.DeserializeObject<MonoProfilerConfig>(File.ReadAllText(filePath));
+			Instance = JsonConvert.DeserializeObject<MonoProfilerConfig>(File.ReadAllText(filePath), new JsonSerializerSettings
+			{
+				ObjectCreationHandling = ObjectCreationHandling.Replace
+			});
 			return;
 		}
 
