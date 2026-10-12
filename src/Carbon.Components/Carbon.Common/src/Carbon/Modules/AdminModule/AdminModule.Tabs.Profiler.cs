@@ -1019,7 +1019,7 @@ public partial class AdminModule
 		static void WriteFileString(string extension, string data, BasePlayer player)
 		{
 			var date = DateTime.Now;
-			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month}_{date.Day}_{date.Hour}{date.Minute}{date.Second}.{extension}");
+			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month:00}_{date.Day:00}_{date.Hour:00}{date.Minute:00}{date.Second:00}.{extension}");
 			OsEx.File.Create(file, data);
 
 			Notifications.Add(player, $"Exported profile output at '{file}'");
@@ -1027,7 +1027,7 @@ public partial class AdminModule
 		static void WriteFileBytes(string extension, byte[] data, BasePlayer player)
 		{
 			var date = DateTime.Now;
-			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month}_{date.Day}_{date.Hour}{date.Minute}{date.Second}.{extension}");
+			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month:00}_{date.Day:00}_{date.Hour:00}{date.Minute:00}{date.Second:00}.{extension}");
 			OsEx.File.Create(file, data);
 
 			Notifications.Add(player, $"Exported profile output at '{file}'");

@@ -109,7 +109,7 @@ public static partial class WebControlPanel
 					MonoProfiler.ToggleProfiling(logging: false);
 					sample.Resample();
 					var date = DateTime.Now;
-					var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month}_{date.Day}_{date.Hour}{date.Minute}{date.Second}.{MonoProfiler.ProfileExtension}");
+					var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month:00}_{date.Day:00}_{date.Hour:00}{date.Minute:00}{date.Second:00}.{MonoProfiler.ProfileExtension}");
 					File.WriteAllBytes(file, sample.ToProto());
 					MonoProfiler.Clear();
 				}

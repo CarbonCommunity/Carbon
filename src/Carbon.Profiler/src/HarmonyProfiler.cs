@@ -188,7 +188,7 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 			static string WriteFileString(string extension, string data)
 			{
 				var date = DateTime.Now;
-				var file = Path.Combine(profilesFolderPath, $"profile-{date.Year}_{date.Month}_{date.Day}_{date.Hour}{date.Minute}{date.Second}.{extension}");
+				var file = Path.Combine(profilesFolderPath, $"profile-{date.Year}_{date.Month:00}_{date.Day:00}_{date.Hour:00}{date.Minute:00}{date.Second:00}.{extension}");
 				File.WriteAllText(file, data);
 
 				return $"Exported profile output at '{file}'";
@@ -196,7 +196,7 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 			static string WriteFileBytes(string extension, byte[] data)
 			{
 				var date = DateTime.Now;
-				var file = Path.Combine(profilesFolderPath, $"profile-{date.Year}_{date.Month}_{date.Day}_{date.Hour}{date.Minute}{date.Second}.{extension}");
+				var file = Path.Combine(profilesFolderPath, $"profile-{date.Year}_{date.Month:00}_{date.Day:00}_{date.Hour:00}{date.Minute:00}{date.Second:00}.{extension}");
 				File.WriteAllBytes(file, data);
 
 				return $"Exported profile output at '{file}'";

@@ -114,7 +114,7 @@ public partial class CorePlugin
 		static string WriteFileString(string extension, string data)
 		{
 			var date = DateTime.Now;
-			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month}_{date.Day}_{date.Hour}{date.Minute}{date.Second}.{extension}");
+			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month:00}_{date.Day:00}_{date.Hour:00}{date.Minute:00}{date.Second:00}.{extension}");
 			OsEx.File.Create(file, data);
 
 			return $"Exported profile output at '{file}'";
@@ -122,7 +122,7 @@ public partial class CorePlugin
 		static string WriteFileBytes(string extension, byte[] data)
 		{
 			var date = DateTime.Now;
-			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month}_{date.Day}_{date.Hour}{date.Minute}{date.Second}.{extension}");
+			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month:00}_{date.Day:00}_{date.Hour:00}{date.Minute:00}{date.Second:00}.{extension}");
 			OsEx.File.Create(file, data);
 
 			return $"Exported profile output at '{file}'";
