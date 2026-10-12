@@ -22,6 +22,19 @@ public class Patches
 		}
 	}
 
+	[HarmonyPatch(typeof(HarmonyLoader), "LoadAssembly")]
+	public static class HarmonyLoader_LoadAssembly
+	{
+		public static void Postfix(string assemblyPath, Assembly __result)
+		{
+			if (__result == null)
+			{
+				return;
+			}
+			MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Harmony, __result, Path.GetFileNameWithoutExtension(assemblyPath));
+		}
+	}
+
 	[HarmonyPatch("OxideMod", "PluginLoaded")]
 	public static class OxideMod_PluginLoaded
 	{

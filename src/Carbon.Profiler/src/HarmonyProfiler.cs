@@ -98,6 +98,50 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 		UninstallCommands();
 	}
 
+	private static MonoProfiler.ProfilerArgs GetProfilerFlags(ConsoleSystem.Arg arg)
+	{
+		var flags = MonoProfiler.ProfilerArgs.None;
+
+		if (arg.HasArg("-cm")) flags |= MonoProfiler.ProfilerArgs.CallMemory;
+		if (arg.HasArg("-am")) flags |= MonoProfiler.ProfilerArgs.AdvancedMemory;
+		if (arg.HasArg("-t")) flags |= MonoProfiler.ProfilerArgs.Timings;
+		if (arg.HasArg("-c")) flags |= MonoProfiler.ProfilerArgs.Calls;
+		if (arg.HasArg("-gc")) flags |= MonoProfiler.ProfilerArgs.GCEvents;
+
+		return flags == MonoProfiler.ProfilerArgs.None ? MonoProfiler.AllFlags : flags;
+	}
+
+	private static bool IsTrackingCalls(ConsoleSystem.Arg arg)
+	{
+		if (MonoProfilerConfig.Instance.TrackCalls)
+		{
+			return true;
+		}
+
+		arg.ReplyWith("Call tracking is off. Set TrackCalls to true in config.profiler.json and restart the server.");
+		return false;
+	}
+
+	private static bool TryReadTarget(ConsoleSystem.Arg arg, string command, out string name, out float duration)
+	{
+		name = arg.GetString(0);
+		duration = arg.GetFloat(1);
+
+		if (string.IsNullOrEmpty(name) || duration < 1f)
+		{
+			arg.ReplyWith($"Syntax: {command} <name> <duration> [-cm] [-am] [-t] [-c] [-gc]");
+			return false;
+		}
+
+		if (MonoProfiler.IsRecording || TargetedProfile.IsActive)
+		{
+			arg.ReplyWith("Profiler is actively recording");
+			return false;
+		}
+
+		return IsTrackingCalls(arg);
+	}
+
 	public static void InstallCommands()
 	{
 		originalCommands ??= ConsoleSystem.Index.All;
@@ -107,21 +151,14 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 		AddCommand("carbon", "profile", arg =>
 		{
 			var duration = arg.GetFloat(0);
-			var flags = MonoProfiler.ProfilerArgs.None;
-
-			if (arg.HasArg("-cm")) flags |= MonoProfiler.ProfilerArgs.CallMemory;
-			if (arg.HasArg("-am")) flags |= MonoProfiler.ProfilerArgs.AdvancedMemory;
-			if (arg.HasArg("-t")) flags |= MonoProfiler.ProfilerArgs.Timings;
-			if (arg.HasArg("-c")) flags |= MonoProfiler.ProfilerArgs.Calls;
-			if (arg.HasArg("-gc")) flags |= MonoProfiler.ProfilerArgs.GCEvents;
-
-			if (flags == MonoProfiler.ProfilerArgs.None) flags = MonoProfiler.AllFlags;
+			var flags = GetProfilerFlags(arg);
 
 			if (MonoProfiler.IsRecording)
 			{
 				MonoProfiler.ToggleProfiling(flags);
 				ProfileSample.Resample();
 				MonoProfiler.Clear();
+				TargetedProfile.End();
 				return;
 			}
 
@@ -148,7 +185,15 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 
 			MonoProfiler.ToggleProfiling(MonoProfiler.ProfilerArgs.Abort);
 			ProfileSample.Clear();
+			TargetedProfile.End();
 		}, description: "Stops a current profile from running");
+		AddCommand("carbon", "profile_mod", arg =>
+		{
+			if (TryReadTarget(arg, "carbon.profile_mod", out var name, out var duration))
+			{
+				arg.ReplyWith(TargetedProfile.StartMod(name, duration, GetProfilerFlags(arg)));
+			}
+		}, description: "Profiles one HarmonyMod: reloads it with profiler hooks, records for the duration, then reloads it without them", arguments: "<name> <duration> [-cm] [-am] [-t] [-c] [-gc]");
 		AddCommand("carbon", "export_profile", arg =>
 		{
 			if (MonoProfiler.IsRecording)
