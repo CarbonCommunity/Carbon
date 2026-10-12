@@ -285,6 +285,8 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 					returnType = MonoProfilerConfig.ProfileTypes.Module, value),
 				"ext" => MonoProfilerConfig.Instance.AppendProfile(
 					returnType = MonoProfilerConfig.ProfileTypes.Extension, value),
+				"harmony" => MonoProfilerConfig.Instance.AppendProfile(
+					returnType = MonoProfilerConfig.ProfileTypes.Harmony, value),
 				_ => InvalidReturn(arg)
 			};
 
@@ -296,10 +298,10 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 
 			static bool InvalidReturn(ConsoleSystem.Arg arg)
 			{
-				arg.ReplyWith("Syntax: carbon.track [assembly|plugin|module|ext] [value]");
+				arg.ReplyWith("Syntax: carbon.track [assembly|plugin|module|ext|harmony] [value]");
 				return false;
 			}
-		}, description: "Adds an object to be tracked. Reloading the plugin will start tracking. Restarting required for assemblies, modules and extensions", arguments: "[assembly|plugin|module|ext] [value]");
+		}, description: "Adds an object to be tracked. Reloading the plugin will start tracking. Restarting required for assemblies, modules and extensions", arguments: "[assembly|plugin|module|ext|harmony] [value]");
 		AddCommand("carbon", "untrack", arg =>
 		{
 			if (!arg.HasArgs(2))
@@ -322,6 +324,8 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 					returnType = MonoProfilerConfig.ProfileTypes.Module, value),
 				"ext" => MonoProfilerConfig.Instance.RemoveProfile(
 					returnType = MonoProfilerConfig.ProfileTypes.Extension, value),
+				"harmony" => MonoProfilerConfig.Instance.RemoveProfile(
+					returnType = MonoProfilerConfig.ProfileTypes.Harmony, value),
 				_ => InvalidReturn(arg)
 			};
 
@@ -333,10 +337,10 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 
 			static bool InvalidReturn(ConsoleSystem.Arg arg)
 			{
-				arg.ReplyWith("Syntax: carbon.untrack [assembly|plugin|module|ext] [value]");
+				arg.ReplyWith("Syntax: carbon.untrack [assembly|plugin|module|ext|harmony] [value]");
 				return false;
 			}
-		}, description: "Removes a plugin from being tracked. Reloading the plugin will remove it from being tracked. Restarting required for assemblies, modules and extensions", arguments: "[assembly|plugin|module|ext] [value]");
+		}, description: "Removes a plugin from being tracked. Reloading the plugin will remove it from being tracked. Restarting required for assemblies, modules and extensions", arguments: "[assembly|plugin|module|ext|harmony] [value]");
 		AddCommand("carbon", "profiler_version", arg =>
 		{
 			var table = Pool.Get<TextTable>();
