@@ -275,7 +275,7 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 			var value = arg.GetString(1);
 			MonoProfilerConfig.ProfileTypes returnType = default;
 
-			var returnVal = type switch
+			bool? returnVal = type switch
 			{
 				"assembly" => MonoProfilerConfig.Instance.AppendProfile(
 					returnType = MonoProfilerConfig.ProfileTypes.Assembly, value),
@@ -287,19 +287,24 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 					returnType = MonoProfilerConfig.ProfileTypes.Extension, value),
 				"harmony" => MonoProfilerConfig.Instance.AppendProfile(
 					returnType = MonoProfilerConfig.ProfileTypes.Harmony, value),
-				_ => InvalidReturn(arg)
+				_ => null
 			};
 
-			arg.ReplyWith(returnVal
+			if (returnVal == null)
+			{
+				InvalidReturn(arg);
+				return;
+			}
+
+			arg.ReplyWith(returnVal.Value
 				? $" Added {returnType} object '{value}' to tracking"
 				: $" Couldn't add {returnType} object '{value}' for tracking");
 
-			if (returnVal) MonoProfilerConfig.Save(configPath);
+			if (returnVal.Value) MonoProfilerConfig.Save(configPath);
 
-			static bool InvalidReturn(ConsoleSystem.Arg arg)
+			static void InvalidReturn(ConsoleSystem.Arg arg)
 			{
 				arg.ReplyWith("Syntax: carbon.track [assembly|plugin|module|ext|harmony] [value]");
-				return false;
 			}
 		}, description: "Adds an object to be tracked. Reloading the plugin will start tracking. Restarting required for assemblies, modules and extensions", arguments: "[assembly|plugin|module|ext|harmony] [value]");
 		AddCommand("carbon", "untrack", arg =>
@@ -314,7 +319,7 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 			var value = arg.GetString(1);
 			MonoProfilerConfig.ProfileTypes returnType = default;
 
-			var returnVal = type switch
+			bool? returnVal = type switch
 			{
 				"assembly" => MonoProfilerConfig.Instance.RemoveProfile(
 					returnType = MonoProfilerConfig.ProfileTypes.Assembly, value),
@@ -326,19 +331,24 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 					returnType = MonoProfilerConfig.ProfileTypes.Extension, value),
 				"harmony" => MonoProfilerConfig.Instance.RemoveProfile(
 					returnType = MonoProfilerConfig.ProfileTypes.Harmony, value),
-				_ => InvalidReturn(arg)
+				_ => null
 			};
 
-			arg.ReplyWith(returnVal
+			if (returnVal == null)
+			{
+				InvalidReturn(arg);
+				return;
+			}
+
+			arg.ReplyWith(returnVal.Value
 				? $" Removed {returnType} object '{value}' from tracking"
 				: $" Couldn't remove {returnType} object '{value}' for tracking");
 
-			if (returnVal) MonoProfilerConfig.Save(configPath);
+			if (returnVal.Value) MonoProfilerConfig.Save(configPath);
 
-			static bool InvalidReturn(ConsoleSystem.Arg arg)
+			static void InvalidReturn(ConsoleSystem.Arg arg)
 			{
 				arg.ReplyWith("Syntax: carbon.untrack [assembly|plugin|module|ext|harmony] [value]");
-				return false;
 			}
 		}, description: "Removes a plugin from being tracked. Reloading the plugin will remove it from being tracked. Restarting required for assemblies, modules and extensions", arguments: "[assembly|plugin|module|ext|harmony] [value]");
 		AddCommand("carbon", "profiler_version", arg =>
