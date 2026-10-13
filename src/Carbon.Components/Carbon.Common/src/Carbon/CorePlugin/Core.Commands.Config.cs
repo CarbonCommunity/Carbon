@@ -141,6 +141,10 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private bool EnableProxy { get { return Community.Runtime.Config.Compiler.EnableProxy; } set { Community.Runtime.Config.Compiler.EnableProxy = value; Community.Runtime.SaveConfig(); } }
 
+	[CommandVar("gichsof", "Generates the internal call hook source on failure.")]
+	[AuthLevel(2)]
+	private bool GenerateInternalCallHookSourceOnFailure { get { return Community.Runtime.Config.Compiler.GenerateInternalCallHookSourceOnFailure; } set { Community.Runtime.Config.Compiler.GenerateInternalCallHookSourceOnFailure = value; Community.Runtime.SaveConfig(); } }
+
 #if WIN
 	[CommandVar("consoleinfo", "Show the Windows-only Carbon information at the bottom of the console.")]
 	[AuthLevel(2)]

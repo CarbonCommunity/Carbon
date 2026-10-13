@@ -210,8 +210,21 @@ public partial class CorePlugin
 								return;
 							}
 
+							if (!Community.Runtime.Config.Watchers.ScriptWatchers)
+							{
+								processor.ClearIgnore(file.Path);
+
+								if (processor.InstanceBuffer.TryGetValue(file.Id, out var existingInstance))
+								{
+									existingInstance.Clear();
+								}
+
+								processor.Prepare(file.Id, file.Path);
+								return;
+							}
+
 							// Re-instancing the old type would keep it bound to a required plugin that has since reloaded
-							if (!Community.Runtime.Config.Watchers.ScriptWatchers || HasStaleRequires(plugin) ||
+							if (HasStaleRequires(plugin) ||
 							    (Assemblies.Plugins.Get(plugin.Name) is Assemblies.RuntimeAssembly pluginAssembly &&
 							     Community.Runtime.MonoProfilerConfig.IsWhitelisted(Profiler.MonoProfilerConfig.ProfileTypes.Plugin, plugin.Name) != pluginAssembly.IsProfiledAssembly))
 							{

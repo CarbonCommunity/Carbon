@@ -1385,7 +1385,6 @@ public struct LuiBuilderInstance : IDisposable
 		    Array.Copy(_segments, _tempArray, _segmentCount);
 		    ArrayPool<LUIBuilder.WriteArray>.Shared.Return(_segments, clearArray: true);
 		    _segments = _tempArray;
-		    _segmentCount = 0;
 	    }
 	    _segments[_segmentCount++] = new LUIBuilder.WriteArray(segment, size);
 	    _charIndex = 0;

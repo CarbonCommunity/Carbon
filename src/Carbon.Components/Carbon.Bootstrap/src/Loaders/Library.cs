@@ -20,6 +20,14 @@ internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 		@"^System.Xml.Serialization$",
 	};
 
+	private static readonly HashSet<string> _carbonOwned = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"Microsoft.CodeAnalysis",
+		"Microsoft.CodeAnalysis.CSharp",
+		"System.Collections.Immutable",
+		"System.Reflection.Metadata",
+	};
+
 	// Singleton pattern needs a private ctor
 	private LibraryLoader()
 		=> RegisterDomain(AppDomain.CurrentDomain);
@@ -72,13 +80,14 @@ internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 		{
 			if (IsBlacklisted(name)) return default;
 			string path = default;
-
+			bool carbonOwned = _carbonOwned.Contains(name.EndsWith(".dll") ? name.Substring(0, name.Length - 4) : name);
 
 			foreach (string directory in customDirectories ?? _directoryList)
 			{
 				var newPath = Path.Combine(directory, name.EndsWith(".dll") ? name : $"{name}.dll");
 
 				if (!File.Exists(newPath)) continue;
+				if (carbonOwned && path != null && string.Equals(Path.GetFullPath(directory), Context.GameManaged, StringComparison.OrdinalIgnoreCase)) continue;
 				path = newPath;
 			}
 
