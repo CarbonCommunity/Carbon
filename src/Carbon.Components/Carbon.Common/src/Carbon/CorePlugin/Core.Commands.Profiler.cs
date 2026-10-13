@@ -8,6 +8,11 @@ public partial class CorePlugin
 {
 	public static MonoProfiler.Sample ProfileSample = MonoProfiler.Sample.Create();
 
+	private string _pluginProfile;
+	private float _pluginProfileDuration;
+	private MonoProfiler.ProfilerArgs _pluginProfileFlags;
+	private Timer _pluginProfileTimeout;
+
 	[CommandVar("profilestatus", "Mono profiling status.")]
 	[AuthLevel(2)]
 	private bool IsProfiling
@@ -20,23 +25,8 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void Profile(ConsoleSystem.Arg arg)
 	{
-		if (!MonoProfiler.Enabled)
-		{
-			arg.ReplyWith("Mono profiler is disabled. Enable it in the 'carbon/config.profiler.json' config file. Must restart the server for changes to apply.");
-			return;
-		}
-
 		var duration = arg.GetFloat(0);
-		var flags = MonoProfiler.ProfilerArgs.None;
-
-		if (arg.HasArg("-cm")) flags |= MonoProfiler.ProfilerArgs.CallMemory;
-		if (arg.HasArg("-am")) flags |= MonoProfiler.ProfilerArgs.AdvancedMemory;
-		if (arg.HasArg("-t")) flags |= MonoProfiler.ProfilerArgs.Timings;
-		if (arg.HasArg("-c")) flags |= MonoProfiler.ProfilerArgs.Calls;
-		if (arg.HasArg("-gc")) flags |= MonoProfiler.ProfilerArgs.GCEvents;
-		if (arg.HasArg("-sw")) flags |= MonoProfiler.ProfilerArgs.StackWalkAllocations;
-
-		if (flags == MonoProfiler.ProfilerArgs.None) flags = MonoProfiler.AllFlags;
+		var flags = GetProfilerFlags(arg);
 
 		if (MonoProfiler.IsRecording)
 		{
@@ -68,14 +58,165 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void ProfileAbort(ConsoleSystem.Arg arg)
 	{
-		if (!MonoProfiler.IsRecording)
+		if (!MonoProfiler.IsRecording && _pluginProfile == null)
 		{
 			arg.ReplyWith("No profiling process active");
 			return;
 		}
 
-		MonoProfiler.ToggleProfiling(MonoProfiler.ProfilerArgs.Abort);
-		ProfileSample.Clear();
+		if (_pluginProfile != null)
+		{
+			arg.ReplyWith($"Cancelled profiling '{_pluginProfile}'");
+		}
+
+		if (MonoProfiler.IsRecording)
+		{
+			MonoProfiler.ToggleProfiling(MonoProfiler.ProfilerArgs.Abort);
+			ProfileSample.Clear();
+		}
+
+		EndPluginProfile();
+	}
+
+	[ConsoleCommand("profile.plugin", "Profiles one plugin: recompiles it with profiler hooks, records for the duration, then recompiles it without them. Syntax: c.profile.plugin <name> <duration> [-cm] [-am] [-t] [-c] [-gc] [-sw]")]
+	[AuthLevel(2)]
+	private void ProfilePlugin(ConsoleSystem.Arg arg)
+	{
+		var name = arg.GetString(0);
+		var duration = arg.GetFloat(1);
+
+		if (string.IsNullOrEmpty(name) || duration < 1f)
+		{
+			arg.ReplyWith("Syntax: c.profile.plugin <name> <duration> [-cm] [-am] [-t] [-c] [-gc] [-sw]");
+			return;
+		}
+
+		if (MonoProfiler.IsRecording || _pluginProfile != null)
+		{
+			arg.ReplyWith("Profiler is actively recording");
+			return;
+		}
+
+		if (!Community.Runtime.MonoProfilerConfig.TrackCalls)
+		{
+			arg.ReplyWith("Call tracking is off. Set TrackCalls to true in config.profiler.json and restart the server.");
+			return;
+		}
+
+		var plugin = ModLoader.FindPlugin(name);
+
+		if (plugin == null || plugin.IsPrecompiled)
+		{
+			arg.ReplyWith($"Couldn't find a script plugin named '{name}'");
+			return;
+		}
+
+		if (!MonoProfiler.Start())
+		{
+			arg.ReplyWith("Mono profiler couldn't start. Check the server log.");
+			return;
+		}
+
+		_pluginProfile = plugin.Name;
+		_pluginProfileDuration = duration;
+		_pluginProfileFlags = GetProfilerFlags(arg) | MonoProfiler.ProfilerArgs.Calls;
+
+		if (Community.Runtime.MonoProfilerConfig.IsWhitelisted(MonoProfilerConfig.ProfileTypes.Plugin, plugin.Name)
+			&& Assemblies.Plugins.Get(plugin.Name) is { IsProfiledAssembly: true })
+		{
+			arg.ReplyWith(StartPluginProfile()
+				? $"Profiling '{plugin.Name}' for {duration}s"
+				: "Couldn't start recording. Check the server log.");
+			return;
+		}
+
+		Community.Runtime.MonoProfilerConfig.TemporaryPlugins.Add(plugin.Name);
+		Community.Runtime.Events.Subscribe(CarbonEvent.PluginLoaded, OnProfiledPluginLoaded);
+		_pluginProfileTimeout = timer.In(60f, () =>
+		{
+			Logger.Warn($"'{_pluginProfile}' didn't load within 60s, cancelled profiling it");
+			EndPluginProfile();
+		});
+
+		plugin.Source.MarkDirty();
+		arg.ReplyWith($"Recompiling '{plugin.Name}' with profiler hooks; profiling starts once it has loaded");
+	}
+
+	private void OnProfiledPluginLoaded(EventArgs args)
+	{
+		if (args is not CarbonEventArgs { Payload: Plugin plugin } || plugin.Name != _pluginProfile)
+		{
+			return;
+		}
+
+		Community.Runtime.Events.Unsubscribe(CarbonEvent.PluginLoaded, OnProfiledPluginLoaded);
+		_pluginProfileTimeout?.Destroy();
+		_pluginProfileTimeout = null;
+		StartPluginProfile();
+	}
+
+	private bool StartPluginProfile()
+	{
+		if (MonoProfiler.IsRecording)
+		{
+			Logger.Warn($"Another recording started while '{_pluginProfile}' was recompiling, cancelled profiling it");
+			EndPluginProfile();
+			return false;
+		}
+
+		var duration = _pluginProfileDuration;
+		var flags = _pluginProfileFlags;
+
+		MonoProfiler.ToggleProfilingTimed(duration, flags, _ =>
+		{
+			Analytics.profiler_ended(flags, duration, true);
+			ProfileSample.Resample();
+			MonoProfiler.Clear();
+		});
+
+		if (!MonoProfiler.IsRecording)
+		{
+			EndPluginProfile();
+			return false;
+		}
+
+		MonoProfiler.RecordingStopped += EndPluginProfile;
+		Analytics.profiler_started(flags, true);
+		return true;
+	}
+
+	private void EndPluginProfile()
+	{
+		if (_pluginProfile == null)
+		{
+			return;
+		}
+
+		var name = _pluginProfile;
+		_pluginProfile = null;
+		MonoProfiler.RecordingStopped -= EndPluginProfile;
+		Community.Runtime.Events.Unsubscribe(CarbonEvent.PluginLoaded, OnProfiledPluginLoaded);
+		_pluginProfileTimeout?.Destroy();
+		_pluginProfileTimeout = null;
+
+		if (Community.Runtime.MonoProfilerConfig.TemporaryPlugins.Remove(name))
+		{
+			ModLoader.FindPlugin(name)?.Source?.MarkDirty();
+		}
+	}
+
+	private static MonoProfiler.ProfilerArgs GetProfilerFlags(ConsoleSystem.Arg arg)
+	{
+		var flags = MonoProfiler.ProfilerArgs.None;
+
+		if (arg.HasArg("-cm")) flags |= MonoProfiler.ProfilerArgs.CallMemory;
+		if (arg.HasArg("-am")) flags |= MonoProfiler.ProfilerArgs.AdvancedMemory;
+		if (arg.HasArg("-t")) flags |= MonoProfiler.ProfilerArgs.Timings;
+		if (arg.HasArg("-c")) flags |= MonoProfiler.ProfilerArgs.Calls;
+		if (arg.HasArg("-gc")) flags |= MonoProfiler.ProfilerArgs.GCEvents;
+		if (arg.HasArg("-sw")) flags |= MonoProfiler.ProfilerArgs.StackWalkAllocations;
+
+		return flags == MonoProfiler.ProfilerArgs.None ? MonoProfiler.AllFlags : flags;
 	}
 
 	[ConsoleCommand("profiler.print", "If any parsed data available, it'll print basic and advanced information. (-c=CSV, -j=JSON, -t=Table, -p=ProtoBuf [default])")]
@@ -114,7 +255,7 @@ public partial class CorePlugin
 		static string WriteFileString(string extension, string data)
 		{
 			var date = DateTime.Now;
-			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month}_{date.Day}_{date.Hour}{date.Minute}{date.Second}.{extension}");
+			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month:00}_{date.Day:00}_{date.Hour:00}{date.Minute:00}{date.Second:00}.{extension}");
 			OsEx.File.Create(file, data);
 
 			return $"Exported profile output at '{file}'";
@@ -122,7 +263,7 @@ public partial class CorePlugin
 		static string WriteFileBytes(string extension, byte[] data)
 		{
 			var date = DateTime.Now;
-			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month}_{date.Day}_{date.Hour}{date.Minute}{date.Second}.{extension}");
+			var file = Path.Combine(Defines.GetProfilesFolder(), $"profile-{date.Year}_{date.Month:00}_{date.Day:00}_{date.Hour:00}{date.Minute:00}{date.Second:00}.{extension}");
 			OsEx.File.Create(file, data);
 
 			return $"Exported profile output at '{file}'";
@@ -158,7 +299,7 @@ public partial class CorePlugin
 		var value = arg.GetString(1);
 		MonoProfilerConfig.ProfileTypes returnType = default;
 
-		var returnVal = type switch
+		bool? returnVal = type switch
 		{
 			"assembly" => Community.Runtime.MonoProfilerConfig.AppendProfile(
 				returnType = MonoProfilerConfig.ProfileTypes.Assembly, value),
@@ -168,19 +309,32 @@ public partial class CorePlugin
 				returnType = MonoProfilerConfig.ProfileTypes.Module, value),
 			"ext" => Community.Runtime.MonoProfilerConfig.AppendProfile(
 				returnType = MonoProfilerConfig.ProfileTypes.Extension, value),
-			_ => InvalidReturn(arg)
+			_ => null
 		};
 
-		arg.ReplyWith(returnVal
+		if (returnVal == null)
+		{
+			InvalidReturn(arg);
+			return;
+		}
+
+		arg.ReplyWith(returnVal.Value
 			? $" Added {returnType} object '{value}' to tracking"
 			: $" Couldn't add {returnType} object '{value}' for tracking");
 
-		if (returnVal) Community.Runtime.SaveMonoProfilerConfig();
+		if (returnVal.Value)
+		{
+			Community.Runtime.SaveMonoProfilerConfig();
 
-		static bool InvalidReturn(ConsoleSystem.Arg arg)
+			if (returnType == MonoProfilerConfig.ProfileTypes.Plugin)
+			{
+				MonoProfiler.Start();
+			}
+		}
+
+		static void InvalidReturn(ConsoleSystem.Arg arg)
 		{
 			arg.ReplyWith("Syntax: c.profiler.track (assembly|plugin|module|ext) value");
-			return false;
 		}
 	}
 
@@ -198,7 +352,7 @@ public partial class CorePlugin
 		var value = arg.GetString(1);
 		MonoProfilerConfig.ProfileTypes returnType = default;
 
-		var returnVal = type switch
+		bool? returnVal = type switch
 		{
 			"assembly" => Community.Runtime.MonoProfilerConfig.RemoveProfile(
 				returnType = MonoProfilerConfig.ProfileTypes.Assembly, value),
@@ -208,19 +362,24 @@ public partial class CorePlugin
 				returnType = MonoProfilerConfig.ProfileTypes.Module, value),
 			"ext" => Community.Runtime.MonoProfilerConfig.RemoveProfile(
 				returnType = MonoProfilerConfig.ProfileTypes.Extension, value),
-			_ => InvalidReturn(arg)
+			_ => null
 		};
 
-		arg.ReplyWith(returnVal
+		if (returnVal == null)
+		{
+			InvalidReturn(arg);
+			return;
+		}
+
+		arg.ReplyWith(returnVal.Value
 			? $" Removed {returnType} object '{value}' from tracking"
 			: $" Couldn't remove {returnType} object '{value}' for tracking");
 
-		if (returnVal) Community.Runtime.SaveMonoProfilerConfig();
+		if (returnVal.Value) Community.Runtime.SaveMonoProfilerConfig();
 
-		static bool InvalidReturn(ConsoleSystem.Arg arg)
+		static void InvalidReturn(ConsoleSystem.Arg arg)
 		{
 			arg.ReplyWith("Syntax: c.profiler.untrack (assembly|plugin|module|ext) value");
-			return false;
 		}
 	}
 

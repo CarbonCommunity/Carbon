@@ -193,6 +193,7 @@ public partial class Community
 	public void LoadMonoProfilerConfig()
 	{
 		MonoProfilerConfig.Load(Defines.GetMonoProfilerConfigFile());
+		MonoProfiler.ConfigPath = Defines.GetMonoProfilerConfigFile();
 	}
 
 	/// <summary>

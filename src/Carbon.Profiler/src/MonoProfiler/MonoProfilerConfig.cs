@@ -16,17 +16,17 @@ namespace Carbon.Profiler;
 public class MonoProfilerConfig
 {
 #if HARMONYMOD
-	public bool Enabled = true;
+	public bool Enabled = false;
 	public bool TrackCalls = true;
 	public bool SourceViewer = true;
-	public List<string> Assemblies = ["*"];
-	public List<string> Plugins = ["*"];
-	public List<string> Modules = ["*"];
-	public List<string> Extensions = ["*"];
-	public List<string> Harmony = ["*"];
+	public List<string> Assemblies = new();
+	public List<string> Plugins = new();
+	public List<string> Modules = new();
+	public List<string> Extensions = new();
+	public List<string> Harmony = new();
 #else
 	public bool Enabled = false;
-	public bool TrackCalls = false;
+	public bool TrackCalls = true;
 	public bool SourceViewer = false;
 	public List<string> Assemblies = new();
 	public List<string> Plugins = new();
@@ -36,6 +36,18 @@ public class MonoProfilerConfig
 #endif
 
 	public const string Star = "*";
+
+	/// <summary>
+	/// Plugins profiled for a single recording (c.profile.plugin). Not saved.
+	/// </summary>
+	[JsonIgnore]
+	public HashSet<string> TemporaryPlugins = new();
+
+	/// <summary>
+	/// HarmonyMods profiled for a single recording (carbon.profile_mod). Not saved.
+	/// </summary>
+	[JsonIgnore]
+	public HashSet<string> TemporaryHarmonyMods = new(StringComparer.OrdinalIgnoreCase);
 
 	public static MonoProfilerConfig Instance { get; set; }
 
@@ -99,10 +111,10 @@ public class MonoProfilerConfig
 		return profile switch
 		{
 			ProfileTypes.Assembly => Assemblies.Contains(Star) || Assemblies.Contains(value),
-			ProfileTypes.Plugin => Plugins.Contains(Star) || Plugins.Contains(value),
+			ProfileTypes.Plugin => Plugins.Contains(Star) || Plugins.Contains(value) || TemporaryPlugins.Contains(value),
 			ProfileTypes.Module => Modules.Contains(Star) || Modules.Contains(value),
 			ProfileTypes.Extension => Extensions.Contains(Star) || Extensions.Contains(value),
-			ProfileTypes.Harmony => Harmony.Contains(Star) || Harmony.Contains(value),
+			ProfileTypes.Harmony => Harmony.Contains(Star) || Harmony.Contains(value) || TemporaryHarmonyMods.Contains(value),
 			_ => throw new ArgumentOutOfRangeException(nameof(profile), profile, null)
 		};
 	}
@@ -111,7 +123,10 @@ public class MonoProfilerConfig
 	{
 		if (File.Exists(filePath))
 		{
-			Instance = JsonConvert.DeserializeObject<MonoProfilerConfig>(File.ReadAllText(filePath));
+			Instance = JsonConvert.DeserializeObject<MonoProfilerConfig>(File.ReadAllText(filePath), new JsonSerializerSettings
+			{
+				ObjectCreationHandling = ObjectCreationHandling.Replace
+			});
 			return;
 		}
 
