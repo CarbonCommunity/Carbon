@@ -36,7 +36,6 @@ public partial class CorePlugin
 			MonoProfiler.ToggleProfiling(flags);
 			ProfileSample.Resample();
 			MonoProfiler.Clear();
-			EndPluginProfile();
 			return;
 		}
 
@@ -61,14 +60,23 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void ProfileAbort(ConsoleSystem.Arg arg)
 	{
-		if (!MonoProfiler.IsRecording)
+		if (!MonoProfiler.IsRecording && _pluginProfile == null)
 		{
 			arg.ReplyWith("No profiling process active");
 			return;
 		}
 
-		MonoProfiler.ToggleProfiling(MonoProfiler.ProfilerArgs.Abort);
-		ProfileSample.Clear();
+		if (_pluginProfile != null)
+		{
+			arg.ReplyWith($"Cancelled profiling '{_pluginProfile}'");
+		}
+
+		if (MonoProfiler.IsRecording)
+		{
+			MonoProfiler.ToggleProfiling(MonoProfiler.ProfilerArgs.Abort);
+			ProfileSample.Clear();
+		}
+
 		EndPluginProfile();
 	}
 
@@ -117,8 +125,9 @@ public partial class CorePlugin
 
 		if (Assemblies.Plugins.Get(plugin.Name) is { IsProfiledAssembly: true })
 		{
-			StartPluginProfile();
-			arg.ReplyWith($"Profiling '{plugin.Name}' for {duration}s");
+			arg.ReplyWith(StartPluginProfile()
+				? $"Profiling '{plugin.Name}' for {duration}s"
+				: "Couldn't start recording. Check the server log.");
 			return;
 		}
 
@@ -147,8 +156,15 @@ public partial class CorePlugin
 		StartPluginProfile();
 	}
 
-	private void StartPluginProfile()
+	private bool StartPluginProfile()
 	{
+		if (MonoProfiler.IsRecording)
+		{
+			Logger.Warn($"Another recording started while '{_pluginProfile}' was recompiling, cancelled profiling it");
+			EndPluginProfile();
+			return false;
+		}
+
 		var duration = _pluginProfileDuration;
 		var flags = _pluginProfileFlags;
 
@@ -157,9 +173,17 @@ public partial class CorePlugin
 			Analytics.profiler_ended(flags, duration, true);
 			ProfileSample.Resample();
 			MonoProfiler.Clear();
-			EndPluginProfile();
 		});
+
+		if (!MonoProfiler.IsRecording)
+		{
+			EndPluginProfile();
+			return false;
+		}
+
+		MonoProfiler.RecordingStopped += EndPluginProfile;
 		Analytics.profiler_started(flags, true);
+		return true;
 	}
 
 	private void EndPluginProfile()
@@ -171,6 +195,7 @@ public partial class CorePlugin
 
 		var name = _pluginProfile;
 		_pluginProfile = null;
+		MonoProfiler.RecordingStopped -= EndPluginProfile;
 		Community.Runtime.Events.Unsubscribe(CarbonEvent.PluginLoaded, OnProfiledPluginLoaded);
 		_pluginProfileTimeout?.Destroy();
 		_pluginProfileTimeout = null;
