@@ -393,6 +393,16 @@ public class ScriptLoader : IDisposable
 
 		yield return null;
 
+		var staleRequire = FindStaleRequire(requiresResult);
+		if (staleRequire != null)
+		{
+			Logger.Warn($" Required plugin '{staleRequire.Name}' of '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}' reloaded during compilation, recompiling..");
+
+			Pool.FreeUnmanaged(ref requires);
+			Entry.MarkDirty();
+			yield break;
+		}
+
 		foreach (var type in assembly.GetTypes())
 		{
 			try
@@ -499,6 +509,21 @@ public class ScriptLoader : IDisposable
 
 		Pool.FreeUnmanaged(ref requires);
 		yield return null;
+	}
+
+	private static Plugin FindStaleRequire(Plugin[] requires)
+	{
+		for (int i = 0; i < requires.Length; i++)
+		{
+			var require = requires[i];
+
+			if (ModLoader.FindPlugin(require.Name) != require)
+			{
+				return require;
+			}
+		}
+
+		return null;
 	}
 
 	public void Dispose()

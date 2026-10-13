@@ -28,15 +28,15 @@ public sealed class Entrypoint
 		Path.GetFullPath(Path.Combine(Defines.GetLibFolder(), "protobuf-net.dll")),
 		Path.GetFullPath(Path.Combine(Defines.GetLibFolder(), "protobuf-net.Core.dll")),
 		Path.GetFullPath(Path.Combine(Defines.GetLibFolder(), "System.Collections.Immutable.dll")),
+		Path.GetFullPath(Path.Combine(Defines.GetLibFolder(), "System.Reflection.Metadata.dll")),
+		Path.GetFullPath(Path.Combine(Defines.GetLibFolder(), "Microsoft.CodeAnalysis.dll")),
+		Path.GetFullPath(Path.Combine(Defines.GetLibFolder(), "Microsoft.CodeAnalysis.CSharp.dll")),
 		Path.GetFullPath(Path.Combine(Defines.GetLibFolder(), "System.Diagnostics.DiagnosticSource.dll"))
 	];
 	private static readonly List<string> Delete =
 	[
 		Path.Combine(Defines.GetRustManagedFolder(), "x64"),
 		Path.Combine(Defines.GetRustManagedFolder(), "x86"),
-		Path.Combine(Defines.GetRustManagedFolder(), "Microsoft.CodeAnalysis.CSharp.dll"),
-		Path.Combine(Defines.GetRustManagedFolder(), "Microsoft.CodeAnalysis.dll"),
-		Path.Combine(Defines.GetRustManagedFolder(), "System.Collections.Immutable.dll"),
 		Path.Combine(Defines.GetLibFolder(), "UniTask.dll"),
 		Path.Combine(Defines.GetManagedFolder(), "Carbon.UniTask.dll"),
 	];
