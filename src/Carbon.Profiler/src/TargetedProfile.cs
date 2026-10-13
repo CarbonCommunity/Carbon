@@ -24,6 +24,7 @@ public static class TargetedProfile
 	private static Action _pluginLoadTimeout;
 
 	public static bool IsActive => _name != null;
+	public static string Name => _name;
 
 	public static string StartMod(string name, float duration, MonoProfiler.ProfilerArgs flags)
 	{
@@ -52,7 +53,12 @@ public static class TargetedProfile
 			return $"Couldn't load '{name}', see the HarmonyLoader log";
 		}
 
-		Record();
+		if (!Record())
+		{
+			End();
+			return "Couldn't start recording. Check the server log.";
+		}
+
 		return $"Reloaded '{name}' with profiler hooks, profiling it for {duration}s";
 	}
 
@@ -101,7 +107,11 @@ public static class TargetedProfile
 		}
 
 		CancelPluginLoadTimeout();
-		Record();
+
+		if (!Record())
+		{
+			End();
+		}
 	}
 
 	public static void End()
@@ -113,12 +123,13 @@ public static class TargetedProfile
 
 		var name = _name;
 		_name = null;
+		MonoProfiler.RecordingStopped -= End;
 		CancelPluginLoadTimeout();
 
 		if (_type == MonoProfilerConfig.ProfileTypes.Plugin)
 		{
 			MonoProfilerConfig.Instance.TemporaryPlugins.Remove(name);
-			OxidePlugins.Recompile(name);
+			HarmonyProfiler.Runner.Invoke(() => OxidePlugins.Recompile(name), 0f);
 			return;
 		}
 
@@ -142,14 +153,27 @@ public static class TargetedProfile
 		_flags = flags;
 	}
 
-	private static void Record()
+	private static bool Record()
 	{
+		if (MonoProfiler.IsRecording)
+		{
+			Debug.LogWarning($"Another recording started while '{_name}' was reloading, cancelled profiling it");
+			return false;
+		}
+
 		MonoProfiler.ToggleProfilingTimed(_duration, _flags, _ =>
 		{
 			HarmonyProfiler.ProfileSample.Resample();
 			MonoProfiler.Clear();
-			End();
 		});
+
+		if (!MonoProfiler.IsRecording)
+		{
+			return false;
+		}
+
+		MonoProfiler.RecordingStopped += End;
+		return true;
 	}
 
 	private static void CancelPluginLoadTimeout()

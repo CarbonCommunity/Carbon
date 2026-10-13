@@ -171,7 +171,6 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 				MonoProfiler.ToggleProfiling(flags);
 				ProfileSample.Resample();
 				MonoProfiler.Clear();
-				TargetedProfile.End();
 				return;
 			}
 
@@ -190,14 +189,23 @@ public sealed class HarmonyProfiler : IHarmonyModHooks
 		}, description: "Toggles the current state of the Carbon.Profiler", arguments: "[duration] [-cm] [-am] [-t] [-c] [-gc]");
 		AddCommand("carbon", "abort_profile", arg =>
 		{
-			if (!MonoProfiler.IsRecording)
+			if (!MonoProfiler.IsRecording && !TargetedProfile.IsActive)
 			{
 				arg.ReplyWith("No profiling process active");
 				return;
 			}
 
-			MonoProfiler.ToggleProfiling(MonoProfiler.ProfilerArgs.Abort);
-			ProfileSample.Clear();
+			if (TargetedProfile.IsActive)
+			{
+				arg.ReplyWith($"Cancelled profiling '{TargetedProfile.Name}'");
+			}
+
+			if (MonoProfiler.IsRecording)
+			{
+				MonoProfiler.ToggleProfiling(MonoProfiler.ProfilerArgs.Abort);
+				ProfileSample.Clear();
+			}
+
 			TargetedProfile.End();
 		}, description: "Stops a current profile from running");
 		AddCommand("carbon", "profile_mod", arg =>
