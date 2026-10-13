@@ -652,6 +652,8 @@ public static unsafe partial class MonoProfiler
 	public static bool IsRecording { get; private set; }
 	public static bool Crashed { get; }
 
+	public static event Action RecordingStopped;
+
 	public static bool IsCleared => AssemblyRecords.Count == 0 && CallRecords.Count == 0;
 
 	static MonoProfiler()
@@ -762,16 +764,7 @@ public static unsafe partial class MonoProfiler
 			return;
 		}
 
-		if (_profileTimer != null)
-		{
-			HarmonyProfiler.Runner.CancelInvoke(_profileTimer);
-			_profileTimer = null;
-		}
-		if (_profileWarningTimer != null)
-		{
-			HarmonyProfiler.Runner.CancelInvoke(_profileWarningTimer);
-			_profileWarningTimer = null;
-		}
+		CancelTimers();
 
 		if (!ToggleProfiling(args, logging).GetValueOrDefault())
 		{
@@ -833,6 +826,26 @@ public static unsafe partial class MonoProfiler
 			Pool.FreeUnsafe(ref table);
 		}
 	}
+	private static void CancelTimers()
+	{
+		if (_profileTimer != null)
+		{
+			HarmonyProfiler.Runner.CancelInvoke(_profileTimer);
+			_profileTimer = null;
+		}
+		if (_profileWarningTimer != null)
+		{
+			HarmonyProfiler.Runner.CancelInvoke(_profileWarningTimer);
+			_profileWarningTimer = null;
+		}
+	}
+
+	private static void OnRecordingStopped()
+	{
+		CancelTimers();
+		RecordingStopped?.Invoke();
+	}
+
 	public static bool? ToggleProfiling(ProfilerArgs args = AllFlags, bool logging = true)
 	{
 		if (!Start())
@@ -842,6 +855,7 @@ public static unsafe partial class MonoProfiler
 		}
 
 		bool state;
+		var wasRecording = IsRecording;
 		AssemblyRecords.Clear();
 		CallRecords.Clear();
 		MemoryRecords.Clear();
@@ -866,6 +880,11 @@ public static unsafe partial class MonoProfiler
 				UnityEngine.Debug.LogWarning("[MonoProfiler] Profiler aborted");
 			}
 			IsRecording = false;
+
+			if (wasRecording)
+			{
+				OnRecordingStopped();
+			}
 			return false;
 		}
 
@@ -922,6 +941,7 @@ public static unsafe partial class MonoProfiler
 
 			DurationTime = _durationTimer.Elapsed;
 			Pool.FreeUnmanaged(ref _durationTimer);
+			OnRecordingStopped();
 		}
 
 		return state;
