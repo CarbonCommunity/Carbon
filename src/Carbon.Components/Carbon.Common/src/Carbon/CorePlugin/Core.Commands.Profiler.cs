@@ -121,7 +121,7 @@ public partial class CorePlugin
 
 		_pluginProfile = plugin.Name;
 		_pluginProfileDuration = duration;
-		_pluginProfileFlags = GetProfilerFlags(arg);
+		_pluginProfileFlags = GetProfilerFlags(arg) | MonoProfiler.ProfilerArgs.Calls;
 
 		if (Assemblies.Plugins.Get(plugin.Name) is { IsProfiledAssembly: true })
 		{

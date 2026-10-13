@@ -150,7 +150,7 @@ public static class TargetedProfile
 		_name = name;
 		_type = type;
 		_duration = duration;
-		_flags = flags;
+		_flags = flags | MonoProfiler.ProfilerArgs.Calls;
 	}
 
 	private static bool Record()
