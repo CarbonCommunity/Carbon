@@ -323,7 +323,15 @@ public partial class CorePlugin
 			? $" Added {returnType} object '{value}' to tracking"
 			: $" Couldn't add {returnType} object '{value}' for tracking");
 
-		if (returnVal.Value) Community.Runtime.SaveMonoProfilerConfig();
+		if (returnVal.Value)
+		{
+			Community.Runtime.SaveMonoProfilerConfig();
+
+			if (returnType == MonoProfilerConfig.ProfileTypes.Plugin)
+			{
+				MonoProfiler.Start();
+			}
+		}
 
 		static void InvalidReturn(ConsoleSystem.Arg arg)
 		{
