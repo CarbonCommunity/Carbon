@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using System.Reflection;
+using Carbon.Profiler;
 using HarmonyLib;
 
 namespace Carbon;
@@ -17,6 +19,7 @@ internal static class OxidePlugins
 	private static readonly MethodInfo GetPlugin = AccessTools.Method("Oxide.Core.Plugins.PluginManager, Oxide.Core:GetPlugin", [typeof(string)]);
 	private static readonly PropertyInfo Filename = AccessTools.Property("Oxide.Core.Plugins.Plugin, Oxide.Core:Filename");
 	private static readonly MethodInfo GetCompilablePlugin = AccessTools.Method("Oxide.Plugins.CSharpPluginLoader, Oxide.CSharp:GetCompilablePlugin");
+	private static readonly FieldInfo CompilablePlugins = AccessTools.Field("Oxide.Plugins.CSharpPluginLoader, Oxide.CSharp:plugins");
 	private static readonly FieldInfo LastModifiedAt = AccessTools.Field("Oxide.Plugins.CompilableFile, Oxide.CSharp:LastModifiedAt");
 
 	public static string FindFileName(string name)
@@ -34,6 +37,16 @@ internal static class OxidePlugins
 	/// </summary>
 	public static void MarkForRecompile(string name)
 	{
+		if (name == MonoProfilerConfig.Star)
+		{
+			foreach (var plugin in ((IDictionary)CompilablePlugins.GetValue(null)).Values)
+			{
+				LastModifiedAt.SetValue(plugin, default(DateTime));
+			}
+
+			return;
+		}
+
 		var compilablePlugin = GetCompilablePlugin.Invoke(null, [PluginDirectory.GetValue(Oxide.GetValue(null)), name]);
 		LastModifiedAt.SetValue(compilablePlugin, default(DateTime));
 	}
