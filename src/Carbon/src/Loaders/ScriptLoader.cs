@@ -483,12 +483,11 @@ public class ScriptLoader : IScriptLoader
 
 		yield return null;
 
-		// A required plugin that reloaded while this one compiled leaves the assembly bound to its dead instance
-		if (Process != null && HasStaleRequires(requiresResult))
+		var staleRequire = FindStaleRequire(requiresResult);
+		if (staleRequire != null)
 		{
-			Logger.Warn($" A required plugin of '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}' reloaded during compilation, recompiling..");
+			Logger.Warn($" Required plugin '{staleRequire.Name}' of '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}' reloaded during compilation, recompiling..");
 
-			AsyncLoader?.Dispose();
 			Pool.FreeUnmanaged(ref requires);
 			Process.MarkDirty();
 			yield break;
@@ -603,19 +602,19 @@ public class ScriptLoader : IScriptLoader
 		yield return null;
 	}
 
-	internal static bool HasStaleRequires(Plugin[] requires)
+	private static Plugin FindStaleRequire(Plugin[] requires)
 	{
-		if (requires == null) return false;
-
-		foreach (var require in requires)
+		for (int i = 0; i < requires.Length; i++)
 		{
-			if (require == null || !require.IsLoaded || Community.Runtime.Core.plugins.Find(require.Name) != require)
+			var require = requires[i];
+
+			if (Community.Runtime.Core.plugins.Find(require.Name) != require)
 			{
-				return true;
+				return require;
 			}
 		}
 
-		return false;
+		return null;
 	}
 
 	public void Dispose()
