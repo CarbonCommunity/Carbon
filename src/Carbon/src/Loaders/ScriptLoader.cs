@@ -478,6 +478,11 @@ public class ScriptLoader : IScriptLoader
 			yield break;
 		}
 
+		var assembly = AsyncLoader.Assembly;
+		var firstPlugin = true;
+
+		yield return null;
+
 		// A required plugin that reloaded while this one compiled leaves the assembly bound to its dead instance
 		if (Process != null && HasStaleRequires(requiresResult))
 		{
@@ -494,11 +499,6 @@ public class ScriptLoader : IScriptLoader
 			}
 			yield break;
 		}
-
-		var assembly = AsyncLoader.Assembly;
-		var firstPlugin = true;
-
-		yield return null;
 
 		foreach (var type in assembly.GetTypes())
 		{
