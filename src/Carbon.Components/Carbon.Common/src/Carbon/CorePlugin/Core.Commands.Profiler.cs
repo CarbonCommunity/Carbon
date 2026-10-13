@@ -123,7 +123,8 @@ public partial class CorePlugin
 		_pluginProfileDuration = duration;
 		_pluginProfileFlags = GetProfilerFlags(arg) | MonoProfiler.ProfilerArgs.Calls;
 
-		if (Assemblies.Plugins.Get(plugin.Name) is { IsProfiledAssembly: true })
+		if (Community.Runtime.MonoProfilerConfig.IsWhitelisted(MonoProfilerConfig.ProfileTypes.Plugin, plugin.Name)
+			&& Assemblies.Plugins.Get(plugin.Name) is { IsProfiledAssembly: true })
 		{
 			arg.ReplyWith(StartPluginProfile()
 				? $"Profiling '{plugin.Name}' for {duration}s"
