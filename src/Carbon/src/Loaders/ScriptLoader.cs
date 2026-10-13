@@ -489,14 +489,8 @@ public class ScriptLoader : IScriptLoader
 			Logger.Warn($" A required plugin of '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}' reloaded during compilation, recompiling..");
 
 			AsyncLoader?.Dispose();
-			HasFinished = true;
 			Pool.FreeUnmanaged(ref requires);
 			Process.MarkDirty();
-
-			if (Community.AllProcessorsFinalized)
-			{
-				ModLoader.OnPluginProcessFinished();
-			}
 			yield break;
 		}
 
