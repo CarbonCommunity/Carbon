@@ -122,7 +122,22 @@ public class ClientEntity : IDisposable
 	public NetworkableId ParentID
 	{
 		get => _parentId;
-		set { _parentId = value; SendNetworkUpdate(); }
+		set
+		{
+			_parentId = value;
+
+			if (value.IsValid)
+			{
+				Proto.parent ??= new ProtoBuf.ParentInfo();
+				Proto.parent.uid = value;
+			}
+			else
+			{
+				Proto.parent = null;
+			}
+
+			SendNetworkUpdate();
+		}
 	}
 	public BaseEntity.Flags Flags
 	{
