@@ -326,7 +326,6 @@ public class ClientEntity : IDisposable
 		writer.PacketID(Message.Type.RPCMessage);
 		writer.EntityID(NetID);
 		writer.UInt32(StringPool.Get(funcName));
-		writer.UInt64(sourceConnection?.userid ?? 0);
 
 		return writer;
 	}
