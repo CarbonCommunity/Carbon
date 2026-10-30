@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using Microsoft.Extensions.Logging;
 
 namespace Carbon.Tests.Services;
@@ -25,7 +26,7 @@ internal static class TestReport
 	public static void Write(string output, int exitCode, ILogger logger)
 	{
 		var results = Parse(output, TestResultMarker, 5)
-			.Select(x => new TestResult(x[0], x[1], x[2], double.TryParse(x[3], out var ms) ? ms : 0, x[4]))
+			.Select(x => new TestResult(x[0], x[1], x[2], double.TryParse(x[3], NumberStyles.Float, CultureInfo.InvariantCulture, out var ms) ? ms : 0, x[4]))
 			.Where(x => x.Suite != "Cleanup")
 			.ToList();
 		var hooks = Parse(output, HookInstallFailureMarker, 5)
@@ -210,7 +211,8 @@ internal static class TestReport
 	{
 		return ms switch
 		{
-			< 1000 => $"{ms:0}ms",
+			< 0.9995 => $"{ms * 1000:0}µs",
+			< 999.5 => $"{ms:0}ms",
 			< 60_000 => $"{ms / 1000:0.0}s",
 			_ => $"{(int)(ms / 60_000)}m {ms / 1000 % 60:0}s"
 		};

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using API.Logger;
 using Facepunch;
@@ -168,6 +169,7 @@ public static partial class Integrations
 				yield return null;
 			}
 
+			test.SetDuration(Stopwatch.Elapsed);
 			ReportResult(bank, test, test.Status.ToString());
 
 			if (test.HasFailedFatally())
@@ -203,7 +205,7 @@ public static partial class Integrations
 		}
 
 		var message = test.FailureMessage?.Replace('\r', ' ').Replace('\n', ' ');
-		Logger.Console($"{ResultMarker}{bank.Context}|{test.MethodName}|{status}|{test.Duration:0}|{message}");
+		Logger.Console($"{ResultMarker}{bank.Context}|{test.MethodName}|{status}|{test.Duration.ToString("0.###", CultureInfo.InvariantCulture)}|{message}");
 	}
 
 	private static void ReportSkipped(TestBank bank, int startIndex)
