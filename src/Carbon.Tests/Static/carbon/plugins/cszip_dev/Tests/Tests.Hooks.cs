@@ -18,7 +18,6 @@ public partial class Tests
 {
     public class Hooks
     {
-        // Must match TestServerRunner.HookInstallFailureMarker in Carbon.Tests
         internal const string HookInstallFailureMarker = "HOOK_INSTALL_FAILURE|";
 
         internal static uint hookId = HookStringPool.GetOrAdd(nameof(TestingHook));
@@ -301,8 +300,6 @@ public partial class Tests
 
 	        PrintOutHooksInfo();
 
-	        // Hooks failing to install are usually caused by Rust-side changes, not Carbon itself,
-	        // so they're reported (picked up by Carbon.Tests as CI annotations) without failing the run
 	        var failed = ReportUninstalled("patch", hookManager.LoadedPatches)
 	                     + ReportUninstalled("dynamic", hookManager.LoadedDynamicHooks)
 	                     + ReportUninstalled("static", hookManager.LoadedStaticHooks);

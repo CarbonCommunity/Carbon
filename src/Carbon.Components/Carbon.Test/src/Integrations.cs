@@ -14,6 +14,10 @@ public static partial class Integrations
 {
 	public const int DEFAULT_CHANNEL = 1;
 
+	public const string ResultMarker = "TEST_RESULT|";
+
+	private static readonly bool _reportResults = Environment.GetEnvironmentVariable("CARBON_TEST_RESULTS") == "1";
+
 	public static ILogger Logger;
 	public static readonly Stopwatch Stopwatch = new();
 	public static readonly Dictionary<int, Queue<TestBank>> Banks = [];
@@ -117,6 +121,11 @@ public static partial class Integrations
 			if (bank.AnyTestsFailedFatally())
 			{
 				anyTestsFailedFatally = true;
+
+				for (int j = i + 1; j < banks.Count; j++)
+				{
+					ReportSkipped(banks[j], 0);
+				}
 				break;
 			}
 		}
@@ -159,9 +168,12 @@ public static partial class Integrations
 				yield return null;
 			}
 
+			ReportResult(bank, test, test.Status.ToString());
+
 			if (test.HasFailedFatally())
 			{
 				Logger.Console($"cancelled due to fatal status - context: {bank.Context}", Severity.Error);
+				ReportSkipped(bank, i + 1);
 				break;
 			}
 
@@ -181,6 +193,25 @@ public static partial class Integrations
 		Logger.Console($"completed {completed:n0} out of {bank.Count:n0} {(bank.Count == 1 ? "test" : "tests")} - context: {bank.Context}");
 
 		yield return null;
+	}
+
+	private static void ReportResult(TestBank bank, Test test, string status)
+	{
+		if (!_reportResults)
+		{
+			return;
+		}
+
+		var message = test.FailureMessage?.Replace('\r', ' ').Replace('\n', ' ');
+		Logger.Console($"{ResultMarker}{bank.Context}|{test.MethodName}|{status}|{test.Duration:0}|{message}");
+	}
+
+	private static void ReportSkipped(TestBank bank, int startIndex)
+	{
+		for (int i = startIndex; i < bank.Count; i++)
+		{
+			ReportResult(bank, bank[i], "Skipped");
+		}
 	}
 
 	public static void Clear(int channel)

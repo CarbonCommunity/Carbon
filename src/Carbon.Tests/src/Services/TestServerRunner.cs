@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -8,9 +7,6 @@ namespace Carbon.Tests.Services;
 
 internal class TestServerRunner
 {
-	// Must match Tests.Hooks.HookInstallFailureMarker in the Tests plugin
-	private const string HookInstallFailureMarker = "HOOK_INSTALL_FAILURE|";
-
 	private readonly ProcessRunner _processRunner;
 	private readonly ForDebugSettings _forDebugSettings;
 	private readonly ILogger<TestServerRunner> _logger;
@@ -40,6 +36,8 @@ internal class TestServerRunner
 			CreateNoWindow = true,
 			WorkingDirectory = paths.RustDirectory,
 		};
+
+		startInfo.EnvironmentVariables[TestReport.ResultsEnvironmentVariable] = "1";
 
 		if (_forDebugSettings.NoRustServerRun)
 		{
@@ -77,7 +75,7 @@ internal class TestServerRunner
 			result = await _processRunner.RunAsync("RustDedicated", startInfo, 600_000);
 		}
 
-		ReportHookInstallFailures(result.StandardOutput);
+		TestReport.Write(result.StandardOutput, result.ExitCode, _logger);
 
 		if (result.ExitCode != 0)
 		{
@@ -88,65 +86,5 @@ internal class TestServerRunner
 		_logger.LogInformation("No failed tests detected - exit code {ResultExitCode}", result.ExitCode);
 
 		return true;
-	}
-
-	/// <summary>
-	/// Hooks failing to install are non-fatal for the test run, but get surfaced as
-	/// GitHub Actions annotations and in the job summary so they aren't missed.
-	/// </summary>
-	private void ReportHookInstallFailures(string output)
-	{
-		var failures = output.Split('\n')
-			.Select(line => line.TrimEnd('\r'))
-			.Select(line => (line, index: line.IndexOf(HookInstallFailureMarker, StringComparison.Ordinal)))
-			.Where(x => x.index != -1)
-			.Select(x => x.line[(x.index + HookInstallFailureMarker.Length)..].Split('|'))
-			.Where(parts => parts.Length >= 5)
-			.ToList();
-
-		if (failures.Count == 0)
-		{
-			return;
-		}
-
-		_logger.LogWarning("{Count} hook(s) failed to install (non-fatal)", failures.Count);
-
-		var isGitHubActions = Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
-
-		foreach (var parts in failures)
-		{
-			var (kind, name, id, target, status) = (parts[0], parts[1], parts[2], parts[3], parts[4]);
-
-			if (isGitHubActions)
-			{
-				Console.WriteLine($"::error title=Hook failed to install ({kind})::{name} [{id}] on {target} - {status}");
-			}
-			else
-			{
-				_logger.LogWarning("Hook failed to install ({Kind}): {Name} [{Id}] on {Target} - {Status}", kind, name, id, target, status);
-			}
-		}
-
-		var summaryPath = Environment.GetEnvironmentVariable("GITHUB_STEP_SUMMARY");
-
-		if (string.IsNullOrEmpty(summaryPath))
-		{
-			return;
-		}
-
-		var summary = new StringBuilder()
-			.AppendLine($"### {failures.Count} hook(s) failed to install ({RuntimeInformation.OSDescription})")
-			.AppendLine()
-			.AppendLine("These are reported only and don't fail the test run.")
-			.AppendLine()
-			.AppendLine("| Kind | Hook | Identifier | Target | Status |")
-			.AppendLine("| --- | --- | --- | --- | --- |");
-
-		foreach (var parts in failures)
-		{
-			summary.AppendLine($"| {parts[0]} | {parts[1]} | `{parts[2]}` | `{parts[3]}` | {parts[4]} |");
-		}
-
-		File.AppendAllText(summaryPath, summary.AppendLine().ToString());
 	}
 }
