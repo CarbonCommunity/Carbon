@@ -263,7 +263,7 @@ public static partial class ModLoader
 			HookCaller.CallStaticHook(2684549964, plugin, ex);
 
 			var innerException = ex.InnerException;
-			var compilationFailure = GetCompilationResult(plugin.FilePath);
+			var compilationFailure = GetCompilationResult(plugin.FilePath ?? type.Name);
 			Trace trace = default;
 			trace.Message = $"Constructor threw an exception ({innerException.Message})";
 			trace.Number = ".ctor";
