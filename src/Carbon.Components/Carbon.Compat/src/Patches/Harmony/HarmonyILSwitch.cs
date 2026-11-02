@@ -15,6 +15,11 @@ public class HarmonyILSwitch : BaseHarmonyPatch
 {
     public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
+	    if (!ReferencesHarmony1(asm))
+	    {
+		    return;
+	    }
+
         IMethodDescriptor PatchProcessorCompatRef = importer.ImportMethod(AccessTools.Method(typeof(HarmonyCompat), nameof(HarmonyCompat.PatchProcessorCompat)));
 
         foreach (TypeDefinition type in asm.GetAllTypes())
@@ -82,5 +87,22 @@ public class HarmonyILSwitch : BaseHarmonyPatch
                 }
             }
         }
+    }
+
+    static bool ReferencesHarmony1(ModuleDefinition asm)
+    {
+	    IList<AssemblyReference> references = asm.AssemblyReferences;
+
+	    for (int i = 0; i < references.Count; i++)
+	    {
+		    AssemblyReference reference = references[i];
+
+		    if (reference.Name == HarmonyASM && reference.Version.Major < 2)
+		    {
+			    return true;
+		    }
+	    }
+
+	    return false;
     }
 }
