@@ -32,7 +32,7 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
 	                continue;
                 }
 
-                CustomAttributeSignature sig = attr.Signature;
+                CustomAttributeSignature sig = Helpers.ReadSignature(asm, attr);
 
                 if (sig == null)
                 {

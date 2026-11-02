@@ -1,12 +1,13 @@
 ﻿using System.Runtime.CompilerServices;
 using Network;
 using UnityEngine.UI;
+using System.Buffers;
 
 namespace Carbon.Components;
 
 public class LUI : IDisposable
 {
-	public readonly List<LuiContainer> elements = new();
+	public readonly List<LuiContainer> elements = new(32);
 
 	private readonly CUI _parent;
 
@@ -27,7 +28,18 @@ public class LUI : IDisposable
 	/// <summary>
 	/// Name of last created container. Used for easy new element creation to last parent without creating variable for that.
 	/// </summary>
-	public string lastName = string.Empty;
+	private LuiContainer _lastGenerated;
+	private string _lastName = string.Empty;
+
+	public string lastName
+	{
+		get => _lastGenerated != null ? _lastGenerated.name : _lastName;
+		set
+		{
+			_lastName = value;
+			_lastGenerated = null;
+		}
+	}
 
 	public static readonly Vector2 defaultPivot = new(0.5f, 0.5f);
 	public static readonly Vector2 defaultFade = new(0f, 1f);
@@ -37,7 +49,14 @@ public class LUI : IDisposable
 
 	public LuiContainer CreateParent(CUI.ClientPanels parent, LuiPosition position, string name = "") => CreateParent(_parent.GetClientPanel(parent), position, name);
 
-	public LuiContainer CreateParent(LuiContainer container, LuiPosition position, string name = "") => CreateParent(container.name, position, name);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static LuiContainer Reparent(LuiContainer child, LuiContainer container)
+	{
+		child.SetParentOf(container);
+		return child;
+	}
+
+	public LuiContainer CreateParent(LuiContainer container, LuiPosition position, string name = "") => Reparent(CreateParent((string)null, position, name), container);
 	public LuiContainer CreateParent(string parent, LuiPosition position, string name = "")
 	{
 		LuiContainer cont = LuiPool.GetContainer();
@@ -141,7 +160,7 @@ public class LUI : IDisposable
 
 	#region Panel Creation
 
-	public LuiContainer CreateEmptyContainer(LuiContainer container, string name = "", bool add = false) => CreateEmptyContainer(container.name, name, add);
+	public LuiContainer CreateEmptyContainer(LuiContainer container, string name = "", bool add = false) => Reparent(CreateEmptyContainer((string)null, name, add), container);
 
 	/// <summary>
 	/// Creates empty container without anything. Shouldn't be used outside LUI library, but in rare cases might be useful.
@@ -154,17 +173,17 @@ public class LUI : IDisposable
 			cont.name = name;
 		else if (generateNames)
 		{
-			string newName = _parent.Manager.AppendId();
-			lastName = newName;
-			cont.name = newName;
+			cont.SetGeneratedName(_parent.Manager.Identifier, _parent.Manager.NextId());
+			_lastName = null;
+			_lastGenerated = cont;
 		}
 		if (add)
 			elements.Add(cont);
 		return cont;
 	}
 
-	public LuiContainer CreatePanel(LuiContainer container, LuiPosition position, LuiOffset offset, string color, string name = "") => CreatePanel(container.name, position, offset, color, name);
-	public LuiContainer CreatePanel(LuiContainer container, LuiOffset offset, string color, string name = "") => CreatePanel(container.name, LuiPosition.None, offset, color, name);
+	public LuiContainer CreatePanel(LuiContainer container, LuiPosition position, LuiOffset offset, string color, string name = "") => Reparent(CreatePanel((string)null, position, offset, color, name), container);
+	public LuiContainer CreatePanel(LuiContainer container, LuiOffset offset, string color, string name = "") => Reparent(CreatePanel((string)null, LuiPosition.None, offset, color, name), container);
 	public LuiContainer CreatePanel(string parent, LuiOffset offset, string color, string name = "") => CreatePanel(parent, LuiPosition.None, offset, color, name);
 
 	public LuiContainer CreatePanel(string parent, LuiPosition position, LuiOffset offset, string color, string name = "")
@@ -175,8 +194,8 @@ public class LUI : IDisposable
 		elements.Add(cont);
 		return cont;
 	}
-	public LuiContainer CreateText(LuiContainer container, LuiPosition position, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment = TextAnchor.UpperLeft, string name = "") => CreateText(container.name, position, offset, fontSize, color, text, alignment, name);
-	public LuiContainer CreateText(LuiContainer container, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment = TextAnchor.UpperLeft, string name = "") => CreateText(container.name, LuiPosition.None, offset, fontSize, color, text, alignment, name);
+	public LuiContainer CreateText(LuiContainer container, LuiPosition position, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment = TextAnchor.UpperLeft, string name = "") => Reparent(CreateText((string)null, position, offset, fontSize, color, text, alignment, name), container);
+	public LuiContainer CreateText(LuiContainer container, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment = TextAnchor.UpperLeft, string name = "") => Reparent(CreateText((string)null, LuiPosition.None, offset, fontSize, color, text, alignment, name), container);
 	public LuiContainer CreateText(string parent, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment = TextAnchor.UpperLeft, string name = "") => CreateText(parent, LuiPosition.None, offset, fontSize, color, text, alignment, name);
 
 	public LuiContainer CreateText(string parent, LuiPosition position, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment = TextAnchor.MiddleCenter, string name = "")
@@ -188,8 +207,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateSprite(LuiContainer container, LuiPosition position, LuiOffset offset, string sprite, string color = LuiColors.White, string name = "") => CreateSprite(container.name, position, offset, sprite, color, name);
-	public LuiContainer CreateSprite(LuiContainer container, LuiOffset offset, string sprite, string color = LuiColors.White, string name = "") => CreateSprite(container.name, LuiPosition.None, offset, sprite, color, name);
+	public LuiContainer CreateSprite(LuiContainer container, LuiPosition position, LuiOffset offset, string sprite, string color = LuiColors.White, string name = "") => Reparent(CreateSprite((string)null, position, offset, sprite, color, name), container);
+	public LuiContainer CreateSprite(LuiContainer container, LuiOffset offset, string sprite, string color = LuiColors.White, string name = "") => Reparent(CreateSprite((string)null, LuiPosition.None, offset, sprite, color, name), container);
 	public LuiContainer CreateSprite(string parent, LuiOffset offset, string sprite, string color = LuiColors.White, string name = "") => CreateSprite(parent, LuiPosition.None, offset, sprite, color, name);
 
 	public LuiContainer CreateSprite(string parent, LuiPosition position, LuiOffset offset, string sprite, string color = LuiColors.White, string name = "")
@@ -202,8 +221,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateImage(LuiContainer container, LuiPosition position, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => CreateImage(container.name, position, offset, png, color, name);
-	public LuiContainer CreateImage(LuiContainer container, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => CreateImage(container.name, LuiPosition.None, offset, png, color, name);
+	public LuiContainer CreateImage(LuiContainer container, LuiPosition position, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => Reparent(CreateImage((string)null, position, offset, png, color, name), container);
+	public LuiContainer CreateImage(LuiContainer container, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => Reparent(CreateImage((string)null, LuiPosition.None, offset, png, color, name), container);
 	public LuiContainer CreateImage(string parent, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => CreateImage(parent, LuiPosition.None, offset, png, color, name);
 
 	public LuiContainer CreateImage(string parent, LuiPosition position, LuiOffset offset, string png, string color = LuiColors.White, string name = "")
@@ -215,8 +234,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateImageFromDb(LuiContainer container, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateImageFromDb(container.name, position, offset, dbName, color, name);
-	public LuiContainer CreateImageFromDb(LuiContainer container, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateImageFromDb(container.name, LuiPosition.None, offset, dbName, color, name);
+	public LuiContainer CreateImageFromDb(LuiContainer container, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => Reparent(CreateImageFromDb((string)null, position, offset, dbName, color, name), container);
+	public LuiContainer CreateImageFromDb(LuiContainer container, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => Reparent(CreateImageFromDb((string)null, LuiPosition.None, offset, dbName, color, name), container);
 	public LuiContainer CreateImageFromDb(string parent, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateImageFromDb(parent, LuiPosition.None, offset, dbName, color, name);
 
 	public LuiContainer CreateImageFromDb(string parent, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "")
@@ -236,8 +255,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateRawImageFromDb(LuiContainer container, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateRawImageFromDb(container.name, position, offset, dbName, color, name);
-	public LuiContainer CreateRawImageFromDb(LuiContainer container, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateRawImageFromDb(container.name, LuiPosition.None, offset, dbName, color, name);
+	public LuiContainer CreateRawImageFromDb(LuiContainer container, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => Reparent(CreateRawImageFromDb((string)null, position, offset, dbName, color, name), container);
+	public LuiContainer CreateRawImageFromDb(LuiContainer container, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => Reparent(CreateRawImageFromDb((string)null, LuiPosition.None, offset, dbName, color, name), container);
 	public LuiContainer CreateRawImageFromDb(string parent, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "") => CreateRawImageFromDb(parent, LuiPosition.None, offset, dbName, color, name);
 
 	public LuiContainer CreateRawImageFromDb(string parent, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "")
@@ -258,8 +277,8 @@ public class LUI : IDisposable
 	}
 
 
-	public LuiContainer CreateUrlImage(LuiContainer container, LuiPosition position, LuiOffset offset, string url, string color = LuiColors.White, string name = "") => CreateUrlImage(container.name, position, offset, url, color, name);
-	public LuiContainer CreateUrlImage(LuiContainer container, LuiOffset offset, string url, string color = LuiColors.White, string name = "") => CreateUrlImage(container.name, LuiPosition.None, offset, url, color, name);
+	public LuiContainer CreateUrlImage(LuiContainer container, LuiPosition position, LuiOffset offset, string url, string color = LuiColors.White, string name = "") => Reparent(CreateUrlImage((string)null, position, offset, url, color, name), container);
+	public LuiContainer CreateUrlImage(LuiContainer container, LuiOffset offset, string url, string color = LuiColors.White, string name = "") => Reparent(CreateUrlImage((string)null, LuiPosition.None, offset, url, color, name), container);
 	public LuiContainer CreateUrlImage(string parent, LuiOffset offset, string url, string color = LuiColors.White, string name = "") => CreateUrlImage(parent, LuiPosition.None, offset, url, color, name);
 
 	public LuiContainer CreateUrlImage(string parent, LuiPosition position, LuiOffset offset, string url, string color = LuiColors.White, string name = "")
@@ -271,8 +290,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateItemIcon(LuiContainer container, LuiPosition position, LuiOffset offset, string shortname, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(container.name, position, offset, shortname, skinId, color, name);
-	public LuiContainer CreateItemIcon(LuiContainer container, LuiOffset offset, string shortname, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(container.name, LuiPosition.None, offset, shortname, skinId, color, name);
+	public LuiContainer CreateItemIcon(LuiContainer container, LuiPosition position, LuiOffset offset, string shortname, ulong skinId = 0, string color = "", string name = "") => Reparent(CreateItemIcon((string)null, position, offset, shortname, skinId, color, name), container);
+	public LuiContainer CreateItemIcon(LuiContainer container, LuiOffset offset, string shortname, ulong skinId = 0, string color = "", string name = "") => Reparent(CreateItemIcon((string)null, LuiPosition.None, offset, shortname, skinId, color, name), container);
 	public LuiContainer CreateItemIcon(string parent, LuiOffset offset, string shortname, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(parent, LuiPosition.None, offset, shortname, skinId, color, name);
 
 	public LuiContainer CreateItemIcon(string parent, LuiPosition position, LuiOffset offset, string shortname, ulong skinId = 0, string color = "", string name = "")
@@ -284,8 +303,8 @@ public class LUI : IDisposable
 		return null;
 	}
 
-	public LuiContainer CreateItemIcon(LuiContainer container, LuiPosition position, LuiOffset offset, int itemId, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(container.name, position, offset, itemId, skinId, color, name);
-	public LuiContainer CreateItemIcon(LuiContainer container, LuiOffset offset, int itemId, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(container.name, LuiPosition.None, offset, itemId, skinId, color, name);
+	public LuiContainer CreateItemIcon(LuiContainer container, LuiPosition position, LuiOffset offset, int itemId, ulong skinId = 0, string color = "", string name = "") => Reparent(CreateItemIcon((string)null, position, offset, itemId, skinId, color, name), container);
+	public LuiContainer CreateItemIcon(LuiContainer container, LuiOffset offset, int itemId, ulong skinId = 0, string color = "", string name = "") => Reparent(CreateItemIcon((string)null, LuiPosition.None, offset, itemId, skinId, color, name), container);
 	public LuiContainer CreateItemIcon(string parent, LuiOffset offset, int itemId, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(parent, LuiPosition.None, offset, itemId, skinId, color, name);
 
 	public LuiContainer CreateItemIcon(string parent, LuiPosition position, LuiOffset offset, int itemId, ulong skinId = 0, string color = "", string name = "")
@@ -299,8 +318,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateSteamAvatar(LuiContainer container, LuiPosition position, LuiOffset offset, string steamId, string color = null, string name = "") => CreateSteamAvatar(container.name, position, offset, steamId, color, name);
-	public LuiContainer CreateSteamAvatar(LuiContainer container, LuiOffset offset, string steamId, string color = null, string name = "") => CreateSteamAvatar(container.name, LuiPosition.None, offset, steamId, color, name);
+	public LuiContainer CreateSteamAvatar(LuiContainer container, LuiPosition position, LuiOffset offset, string steamId, string color = null, string name = "") => Reparent(CreateSteamAvatar((string)null, position, offset, steamId, color, name), container);
+	public LuiContainer CreateSteamAvatar(LuiContainer container, LuiOffset offset, string steamId, string color = null, string name = "") => Reparent(CreateSteamAvatar((string)null, LuiPosition.None, offset, steamId, color, name), container);
 	public LuiContainer CreateSteamAvatar(string parent, LuiOffset offset, string steamId, string color = null, string name = "") => CreateSteamAvatar(parent, LuiPosition.None, offset, steamId, color, name);
 	public LuiContainer CreateSteamAvatar(string parent, LuiPosition position, LuiOffset offset, string steamId, string color = null, string name = "")
 	{
@@ -311,8 +330,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateButton(LuiContainer container, LuiPosition position, LuiOffset offset, string command, string color, bool isProtected = true, string name = "") => CreateButton(container.name, position, offset, command, color, isProtected, name);
-	public LuiContainer CreateButton(LuiContainer container, LuiOffset offset, string command, string color, bool isProtected = true, string name = "") => CreateButton(container.name, LuiPosition.None, offset, command, color, isProtected, name);
+	public LuiContainer CreateButton(LuiContainer container, LuiPosition position, LuiOffset offset, string command, string color, bool isProtected = true, string name = "") => Reparent(CreateButton((string)null, position, offset, command, color, isProtected, name), container);
+	public LuiContainer CreateButton(LuiContainer container, LuiOffset offset, string command, string color, bool isProtected = true, string name = "") => Reparent(CreateButton((string)null, LuiPosition.None, offset, command, color, isProtected, name), container);
 	public LuiContainer CreateButton(string parent, LuiOffset offset, string command, string color, bool isProtected = true, string name = "") => CreateButton(parent, LuiPosition.None, offset, command, color, isProtected, name);
 
 	public LuiContainer CreateButton(string parent, LuiPosition position, LuiOffset offset, string command, string color, bool isProtected = true, string name = "")
@@ -324,8 +343,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateInput(LuiContainer container, LuiPosition position, LuiOffset offset, string color, string text, int fontSize, string command, int charLimit = 0, bool isProtected = true, CUI.Handler.FontTypes font = CUI.Handler.FontTypes.RobotoCondensedBold, TextAnchor alignment = TextAnchor.UpperLeft, string name = "") => CreateInput(container.name, position, offset, color, text, fontSize, command, charLimit, isProtected, font, alignment, name);
-	public LuiContainer CreateInput(LuiContainer container, LuiOffset offset, string color, string text, int fontSize, string command, int charLimit = 0, bool isProtected = true, CUI.Handler.FontTypes font = CUI.Handler.FontTypes.RobotoCondensedBold, TextAnchor alignment = TextAnchor.UpperLeft, string name = "") => CreateInput(container.name, LuiPosition.None, offset, color, text, fontSize, command, charLimit, isProtected, font, alignment, name);
+	public LuiContainer CreateInput(LuiContainer container, LuiPosition position, LuiOffset offset, string color, string text, int fontSize, string command, int charLimit = 0, bool isProtected = true, CUI.Handler.FontTypes font = CUI.Handler.FontTypes.RobotoCondensedBold, TextAnchor alignment = TextAnchor.UpperLeft, string name = "") => Reparent(CreateInput((string)null, position, offset, color, text, fontSize, command, charLimit, isProtected, font, alignment, name), container);
+	public LuiContainer CreateInput(LuiContainer container, LuiOffset offset, string color, string text, int fontSize, string command, int charLimit = 0, bool isProtected = true, CUI.Handler.FontTypes font = CUI.Handler.FontTypes.RobotoCondensedBold, TextAnchor alignment = TextAnchor.UpperLeft, string name = "") => Reparent(CreateInput((string)null, LuiPosition.None, offset, color, text, fontSize, command, charLimit, isProtected, font, alignment, name), container);
 	public LuiContainer CreateInput(string parent, LuiOffset offset, string color, string text, int fontSize, string command, int charLimit = 0, bool isProtected = true, CUI.Handler.FontTypes font = CUI.Handler.FontTypes.RobotoCondensedBold, TextAnchor alignment = TextAnchor.UpperLeft, string name = "") => CreateInput(parent, LuiPosition.None, offset, color, text, fontSize, command, charLimit, isProtected, font, alignment, name);
 
 	public LuiContainer CreateInput(string parent, LuiPosition position, LuiOffset offset, string color, string text, int fontSize, string command, int charLimit = 0, bool isProtected = true, CUI.Handler.FontTypes font = CUI.Handler.FontTypes.RobotoCondensedBold, TextAnchor alignment = TextAnchor.MiddleCenter, string name = "")
@@ -337,8 +356,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateCountdown(LuiContainer container, LuiPosition position, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(container.name, position, offset, fontSize, color, text, alignment, startTime, endTime, step, interval, command, isProtected, name);
-	public LuiContainer CreateCountdown(LuiContainer container, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(container.name, LuiPosition.None, offset, fontSize, color, text, alignment, startTime, endTime, step, interval, command, isProtected, name);
+	public LuiContainer CreateCountdown(LuiContainer container, LuiPosition position, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => Reparent(CreateCountdown((string)null, position, offset, fontSize, color, text, alignment, startTime, endTime, step, interval, command, isProtected, name), container);
+	public LuiContainer CreateCountdown(LuiContainer container, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => Reparent(CreateCountdown((string)null, LuiPosition.None, offset, fontSize, color, text, alignment, startTime, endTime, step, interval, command, isProtected, name), container);
 	public LuiContainer CreateCountdown(string parent, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(parent, LuiPosition.None, offset, fontSize, color, text, alignment, startTime, endTime, step, interval, command, isProtected, name);
 
 	public LuiContainer CreateCountdown(string parent, LuiPosition position, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "")
@@ -351,8 +370,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateHorizontalLayoutGroup(LuiContainer container, LuiPosition position, LuiOffset offset, float spacing = 0, string name = "") => CreateHorizontalLayoutGroup(container.name, position, offset, spacing, name);
-	public LuiContainer CreateHorizontalLayoutGroup(LuiContainer container, LuiOffset offset, float spacing = 0, string name = "") => CreateHorizontalLayoutGroup(container.name, LuiPosition.None, offset, spacing, name);
+	public LuiContainer CreateHorizontalLayoutGroup(LuiContainer container, LuiPosition position, LuiOffset offset, float spacing = 0, string name = "") => Reparent(CreateHorizontalLayoutGroup((string)null, position, offset, spacing, name), container);
+	public LuiContainer CreateHorizontalLayoutGroup(LuiContainer container, LuiOffset offset, float spacing = 0, string name = "") => Reparent(CreateHorizontalLayoutGroup((string)null, LuiPosition.None, offset, spacing, name), container);
 	public LuiContainer CreateHorizontalLayoutGroup(string parent, LuiOffset offset, float spacing = 0, string name = "") => CreateHorizontalLayoutGroup(parent, LuiPosition.None, offset, spacing, name);
 
 	public LuiContainer CreateHorizontalLayoutGroup(string parent, LuiPosition position, LuiOffset offset, float spacing = 0, string name = "")
@@ -364,8 +383,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateVerticalLayoutGroup(LuiContainer container, LuiPosition position, LuiOffset offset, float spacing = 0, string name = "") => CreateVerticalLayoutGroup(container.name, position, offset, spacing, name);
-	public LuiContainer CreateVerticalLayoutGroup(LuiContainer container, LuiOffset offset, float spacing = 0, string name = "") => CreateVerticalLayoutGroup(container.name, LuiPosition.None, offset, spacing, name);
+	public LuiContainer CreateVerticalLayoutGroup(LuiContainer container, LuiPosition position, LuiOffset offset, float spacing = 0, string name = "") => Reparent(CreateVerticalLayoutGroup((string)null, position, offset, spacing, name), container);
+	public LuiContainer CreateVerticalLayoutGroup(LuiContainer container, LuiOffset offset, float spacing = 0, string name = "") => Reparent(CreateVerticalLayoutGroup((string)null, LuiPosition.None, offset, spacing, name), container);
 	public LuiContainer CreateVerticalLayoutGroup(string parent, LuiOffset offset, float spacing = 0, string name = "") => CreateVerticalLayoutGroup(parent, LuiPosition.None, offset, spacing, name);
 
 	public LuiContainer CreateVerticalLayoutGroup(string parent, LuiPosition position, LuiOffset offset, float spacing = 0, string name = "")
@@ -377,8 +396,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateGridLayoutGroup(LuiContainer container, LuiPosition position, LuiOffset offset, Vector2 cellSize, string name = "") => CreateGridLayoutGroup(container.name, position, offset, cellSize, name);
-	public LuiContainer CreateGridLayoutGroup(LuiContainer container, LuiOffset offset, Vector2 cellSize, string name = "") => CreateGridLayoutGroup(container.name, LuiPosition.None, offset, cellSize, name);
+	public LuiContainer CreateGridLayoutGroup(LuiContainer container, LuiPosition position, LuiOffset offset, Vector2 cellSize, string name = "") => Reparent(CreateGridLayoutGroup((string)null, position, offset, cellSize, name), container);
+	public LuiContainer CreateGridLayoutGroup(LuiContainer container, LuiOffset offset, Vector2 cellSize, string name = "") => Reparent(CreateGridLayoutGroup((string)null, LuiPosition.None, offset, cellSize, name), container);
 	public LuiContainer CreateGridLayoutGroup(string parent, LuiOffset offset, Vector2 cellSize, string name = "") => CreateGridLayoutGroup(parent, LuiPosition.None, offset, cellSize, name);
 
 	public LuiContainer CreateGridLayoutGroup(string parent, LuiPosition position, LuiOffset offset, Vector2 cellSize, string name = "")
@@ -390,8 +409,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateContentFitter(LuiContainer container, LuiPosition position, LuiOffset offset, ContentSizeFitter.FitMode horizontal, ContentSizeFitter.FitMode vertical, string name = "") => CreateContentFitter(container.name, position, offset, horizontal, vertical, name);
-	public LuiContainer CreateContentFitter(LuiContainer container, LuiOffset offset, ContentSizeFitter.FitMode horizontal, ContentSizeFitter.FitMode vertical, string name = "") => CreateContentFitter(container.name, LuiPosition.None, offset, horizontal, vertical, name);
+	public LuiContainer CreateContentFitter(LuiContainer container, LuiPosition position, LuiOffset offset, ContentSizeFitter.FitMode horizontal, ContentSizeFitter.FitMode vertical, string name = "") => Reparent(CreateContentFitter((string)null, position, offset, horizontal, vertical, name), container);
+	public LuiContainer CreateContentFitter(LuiContainer container, LuiOffset offset, ContentSizeFitter.FitMode horizontal, ContentSizeFitter.FitMode vertical, string name = "") => Reparent(CreateContentFitter((string)null, LuiPosition.None, offset, horizontal, vertical, name), container);
 	public LuiContainer CreateContentFitter(string parent, LuiOffset offset, ContentSizeFitter.FitMode horizontal, ContentSizeFitter.FitMode vertical, string name = "") => CreateContentFitter(parent, LuiPosition.None, offset, horizontal, vertical, name);
 
 	public LuiContainer CreateContentFitter(string parent, LuiPosition position, LuiOffset offset, ContentSizeFitter.FitMode horizontal, ContentSizeFitter.FitMode vertical, string name = "")
@@ -403,8 +422,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateLayoutElement(LuiContainer container, LuiPosition position, LuiOffset offset, float minWidth, float minHeight, string name = "") => CreateLayoutElement(container.name, position, offset, minWidth, minHeight, name);
-	public LuiContainer CreateLayoutElement(LuiContainer container, LuiOffset offset, float minWidth, float minHeight, string name = "") => CreateLayoutElement(container.name, LuiPosition.None, offset, minWidth, minHeight, name);
+	public LuiContainer CreateLayoutElement(LuiContainer container, LuiPosition position, LuiOffset offset, float minWidth, float minHeight, string name = "") => Reparent(CreateLayoutElement((string)null, position, offset, minWidth, minHeight, name), container);
+	public LuiContainer CreateLayoutElement(LuiContainer container, LuiOffset offset, float minWidth, float minHeight, string name = "") => Reparent(CreateLayoutElement((string)null, LuiPosition.None, offset, minWidth, minHeight, name), container);
 	public LuiContainer CreateLayoutElement(string parent, LuiOffset offset, float minWidth, float minHeight, string name = "") => CreateLayoutElement(parent, LuiPosition.None, offset, minWidth, minHeight, name);
 
 	public LuiContainer CreateLayoutElement(string parent, LuiPosition position, LuiOffset offset, float minWidth, float minHeight, string name = "")
@@ -416,8 +435,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateDraggable(LuiContainer container, LuiPosition position, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(container.name, position, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
-	public LuiContainer CreateDraggable(LuiContainer container, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(container.name, LuiPosition.None, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
+	public LuiContainer CreateDraggable(LuiContainer container, LuiPosition position, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => Reparent(CreateDraggable((string)null, position, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name), container);
+	public LuiContainer CreateDraggable(LuiContainer container, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => Reparent(CreateDraggable((string)null, LuiPosition.None, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name), container);
 	public LuiContainer CreateDraggable(string parent, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(parent, LuiPosition.None, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
 
 	public LuiContainer CreateDraggable(string parent, LuiPosition position, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "")
@@ -430,8 +449,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateSlot(LuiContainer container, LuiPosition position, LuiOffset offset, string filter = null, string name = "") => CreateSlot(container.name, position, offset, filter, name);
-	public LuiContainer CreateSlot(LuiContainer container, LuiOffset offset, string filter = null, string name = "") => CreateSlot(container.name, LuiPosition.None, offset, filter, name);
+	public LuiContainer CreateSlot(LuiContainer container, LuiPosition position, LuiOffset offset, string filter = null, string name = "") => Reparent(CreateSlot((string)null, position, offset, filter, name), container);
+	public LuiContainer CreateSlot(LuiContainer container, LuiOffset offset, string filter = null, string name = "") => Reparent(CreateSlot((string)null, LuiPosition.None, offset, filter, name), container);
 	public LuiContainer CreateSlot(string parent, LuiOffset offset, string filter = null, string name = "") => CreateSlot(parent, LuiPosition.None, offset, filter, name);
 
 	public LuiContainer CreateSlot(string parent, LuiPosition position, LuiOffset offset, string filter = null, string name = "")
@@ -443,8 +462,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateScrollView(LuiContainer container, LuiPosition position, LuiOffset offset, bool vertical, bool horizontal, ScrollRect.MovementType movementType = ScrollRect.MovementType.Clamped, float elasticity = 0, bool inertia = false, float decelerationRate = 0, float scrollSensitivity = 0, LuiScrollbar verticalScrollOptions = default, LuiScrollbar horizontalScrollOptions = default, string name = "") => CreateScrollView(container.name, position, offset, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, verticalScrollOptions, horizontalScrollOptions, name);
-	public LuiContainer CreateScrollView(LuiContainer container, LuiOffset offset, bool vertical, bool horizontal, ScrollRect.MovementType movementType = ScrollRect.MovementType.Clamped, float elasticity = 0, bool inertia = false, float decelerationRate = 0, float scrollSensitivity = 0, LuiScrollbar verticalScrollOptions = default, LuiScrollbar horizontalScrollOptions = default, string name = "") => CreateScrollView(container.name, LuiPosition.None, offset, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, verticalScrollOptions, horizontalScrollOptions, name);
+	public LuiContainer CreateScrollView(LuiContainer container, LuiPosition position, LuiOffset offset, bool vertical, bool horizontal, ScrollRect.MovementType movementType = ScrollRect.MovementType.Clamped, float elasticity = 0, bool inertia = false, float decelerationRate = 0, float scrollSensitivity = 0, LuiScrollbar verticalScrollOptions = default, LuiScrollbar horizontalScrollOptions = default, string name = "") => Reparent(CreateScrollView((string)null, position, offset, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, verticalScrollOptions, horizontalScrollOptions, name), container);
+	public LuiContainer CreateScrollView(LuiContainer container, LuiOffset offset, bool vertical, bool horizontal, ScrollRect.MovementType movementType = ScrollRect.MovementType.Clamped, float elasticity = 0, bool inertia = false, float decelerationRate = 0, float scrollSensitivity = 0, LuiScrollbar verticalScrollOptions = default, LuiScrollbar horizontalScrollOptions = default, string name = "") => Reparent(CreateScrollView((string)null, LuiPosition.None, offset, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, verticalScrollOptions, horizontalScrollOptions, name), container);
 	public LuiContainer CreateScrollView(string parent, LuiOffset offset, bool vertical, bool horizontal, ScrollRect.MovementType movementType = ScrollRect.MovementType.Clamped, float elasticity = 0, bool inertia = false, float decelerationRate = 0, float scrollSensitivity = 0, LuiScrollbar verticalScrollOptions = default, LuiScrollbar horizontalScrollOptions = default, string name = "") => CreateScrollView(parent, LuiPosition.None, offset, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, verticalScrollOptions, horizontalScrollOptions, name);
 
 	public LuiContainer CreateScrollView(string parent, LuiPosition position, LuiOffset offset, bool vertical, bool horizontal, ScrollRect.MovementType movementType = ScrollRect.MovementType.Clamped, float elasticity = 0, bool inertia = false, float decelerationRate = 0, float scrollSensitivity = 0, LuiScrollbar verticalScrollOptions = default, LuiScrollbar horizontalScrollOptions = default, string name = "")
@@ -456,8 +475,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateCanvasGroup(LuiContainer container, LuiPosition position, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => CreateCanvasGroup(container.name, position, offset, alpha, blocksRaycasts, interactable, name);
-	public LuiContainer CreateCanvasGroup(LuiContainer container, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => CreateCanvasGroup(container.name, LuiPosition.None, offset, alpha, blocksRaycasts, interactable, name);
+	public LuiContainer CreateCanvasGroup(LuiContainer container, LuiPosition position, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => Reparent(CreateCanvasGroup((string)null, position, offset, alpha, blocksRaycasts, interactable, name), container);
+	public LuiContainer CreateCanvasGroup(LuiContainer container, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => Reparent(CreateCanvasGroup((string)null, LuiPosition.None, offset, alpha, blocksRaycasts, interactable, name), container);
 	public LuiContainer CreateCanvasGroup(string parent, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "") => CreateCanvasGroup(parent, LuiPosition.None, offset, alpha, blocksRaycasts, interactable, name);
 
 	public LuiContainer CreateCanvasGroup(string parent, LuiPosition position, LuiOffset offset, float alpha = -1f, bool blocksRaycasts = true, bool interactable = true, string name = "")
@@ -469,8 +488,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateMask(LuiContainer container, LuiPosition position, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => CreateMask(container.name, position, offset, showMaskGraphic, color, name);
-	public LuiContainer CreateMask(LuiContainer container, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => CreateMask(container.name, LuiPosition.None, offset, showMaskGraphic, color, name);
+	public LuiContainer CreateMask(LuiContainer container, LuiPosition position, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => Reparent(CreateMask((string)null, position, offset, showMaskGraphic, color, name), container);
+	public LuiContainer CreateMask(LuiContainer container, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => Reparent(CreateMask((string)null, LuiPosition.None, offset, showMaskGraphic, color, name), container);
 	public LuiContainer CreateMask(string parent, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "") => CreateMask(parent, LuiPosition.None, offset, showMaskGraphic, color, name);
 
 	public LuiContainer CreateMask(string parent, LuiPosition position, LuiOffset offset, bool showMaskGraphic = true, string color = null, string name = "")
@@ -484,8 +503,8 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateTooltip(LuiContainer container, LuiPosition position, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => CreateTooltip(container.name, position, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name);
-	public LuiContainer CreateTooltip(LuiContainer container, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => CreateTooltip(container.name, LuiPosition.None, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name);
+	public LuiContainer CreateTooltip(LuiContainer container, LuiPosition position, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => Reparent(CreateTooltip((string)null, position, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name), container);
+	public LuiContainer CreateTooltip(LuiContainer container, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => Reparent(CreateTooltip((string)null, LuiPosition.None, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name), container);
 	public LuiContainer CreateTooltip(string parent, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "") => CreateTooltip(parent, LuiPosition.None, offset, text, tooltipType, tooltipOffset, useCentre, delay, positionMode, name);
 
 	public LuiContainer CreateTooltip(string parent, LuiPosition position, LuiOffset offset, string text, CommunityEntity.TooltipType? tooltipType = null, string tooltipOffset = null, bool useCentre = false, Tooltip.DelayType? delay = null, TooltipContainer.PositionMode? positionMode = null, string name = "")
@@ -540,7 +559,17 @@ public class LUI : IDisposable
 		write.PacketID(Message.Type.RPCMessage);
 		write.EntityID(CommunityEntity.ServerInstance.net.ID);
 		write.UInt32(StringPool.Get("AddUI"));
-		write.BytesWithSize(cbi.GetMergedBytes());
+		byte[] payload = ArrayPool<byte>.Shared.Rent(cbi.MaxUtf8ByteCount);
+		try
+		{
+			int length = cbi.WriteUtf8To(payload);
+			write.UInt32((uint)length);
+			write.Write(payload, 0, length);
+		}
+		finally
+		{
+			ArrayPool<byte>.Shared.Return(payload);
+		}
 		write.Send(send);
 	}
 
@@ -550,8 +579,14 @@ public class LUI : IDisposable
 		write.PacketID(Message.Type.RPCMessage);
 		write.EntityID(CommunityEntity.ServerInstance.net.ID);
 		write.UInt32(StringPool.Get("AddUI"));
-		write.BytesWithSize(bytes);
+		WriteBytesWithSize(write, bytes);
 		write.Send(send);
+	}
+
+	private static void WriteBytesWithSize(NetWrite write, byte[] bytes)
+	{
+		write.UInt32((uint)bytes.Length);
+		write.Write(bytes, 0, bytes.Length);
 	}
 
 	private void SendJson(SendInfo send)
@@ -570,8 +605,9 @@ public class LUI : IDisposable
 		for (var i = 0; i < elements.Count; i++)
 		{
 			LuiContainer element = elements[i];
-			foreach (LuiCompBase component in element.luiComponents)
-				LuiPool.ReturnComp(component);
+			LuiComponentDictionary components = element.luiComponents;
+			for (int c = 0; c < components.Count; c++)
+				LuiPool.ReturnComp(components[c]);
 			LuiPool.ReturnContainer(element);
 		}
 		elements.Clear();
@@ -600,8 +636,69 @@ public class LUI : IDisposable
 
 	public class LuiContainer
 	{
-		public string name;
-		public string parent;
+		internal string _name;
+		internal string nameIdentifier;
+		internal int nameId;
+
+		internal string _parent;
+		internal string parentIdentifier;
+		internal int parentId;
+
+		public string name
+		{
+			get
+			{
+				if (_name == null && nameId != 0)
+					_name = LUIBuilder.BuildElementId(nameIdentifier, nameId);
+				return _name;
+			}
+			set
+			{
+				_name = value;
+				nameId = 0;
+			}
+		}
+
+		public string parent
+		{
+			get
+			{
+				if (_parent == null && parentId != 0)
+					_parent = LUIBuilder.BuildElementId(parentIdentifier, parentId);
+				return _parent;
+			}
+			set
+			{
+				_parent = value;
+				parentId = 0;
+			}
+		}
+
+		internal bool HasName => nameId != 0 || !string.IsNullOrEmpty(_name);
+
+		internal bool HasParent => parentId != 0 || !string.IsNullOrEmpty(_parent);
+
+		internal void SetGeneratedName(string identifier, int id)
+		{
+			_name = null;
+			nameIdentifier = identifier;
+			nameId = id;
+		}
+
+		internal void SetParentOf(LuiContainer container)
+		{
+			if (container._name != null)
+			{
+				_parent = container._name;
+				parentId = 0;
+				return;
+			}
+
+			_parent = null;
+			parentIdentifier = container.nameIdentifier;
+			parentId = container.nameId;
+		}
+
 		public LuiComponentDictionary luiComponents;
 		public string destroyUi;
 		public float fadeOut;
@@ -2348,6 +2445,12 @@ public class LuiComponentDictionary : IEnumerable
 		return false;
 	}
 
+	public LuiCompBase this[int index]
+	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		get => _values[index];
+	}
+
 	public IEnumerator GetEnumerator()
 	{
 		for (int i = 0; i < _count; i++)
@@ -2486,7 +2589,7 @@ public class LuiCompBase
 {
 	public LuiCompType type;
 	public bool enabled = true;
-	
+
 	//All below present in like 80% of elements but to reduce method list, adding it here.
 	public float fadeIn;
 	public bool blocksRaycast = true;

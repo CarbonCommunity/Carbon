@@ -422,6 +422,8 @@ public readonly struct CUI : IDisposable
 
 		#region Pooling
 
+		internal int NextId() => ++_currentId;
+
 		public string AppendId()
 		{
 			_currentId++;
