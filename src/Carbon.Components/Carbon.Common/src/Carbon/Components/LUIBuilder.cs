@@ -8,176 +8,297 @@ public static class LUIBuilder
 {
 	#region Old CUI Improvements
 
-	private static readonly char[] charPreset = new char[32]; //Max 4 values with 8 chars as no ui x/y should be bigger than 1280
+	private const int floatStringBuffer = 32;
+
+	public static string GetStringFloat(float value)
+	{
+		Span<char> buffer = stackalloc char[floatStringBuffer];
+		int written = WriteFloatDigits(value, buffer);
+		return MakeString(buffer, written);
+	}
+
+	public static string GetStringFloat(float x, float y)
+	{
+		Span<char> buffer = stackalloc char[floatStringBuffer];
+		int index = WriteFloatDigits(x, buffer);
+		buffer[index++] = whitespace;
+		index += WriteFloatDigits(y, buffer[index..]);
+		return MakeString(buffer, index);
+	}
+
+	public static string GetStringFloat(float x, float y, float z)
+	{
+		Span<char> buffer = stackalloc char[floatStringBuffer];
+		int index = WriteFloatDigits(x, buffer);
+		buffer[index++] = whitespace;
+		index += WriteFloatDigits(y, buffer[index..]);
+		buffer[index++] = whitespace;
+		index += WriteFloatDigits(z, buffer[index..]);
+		return MakeString(buffer, index);
+	}
+
+	public static string GetStringFloat(float x, float y, float z, float w)
+	{
+		Span<char> buffer = stackalloc char[floatStringBuffer];
+		int index = WriteFloatDigits(x, buffer);
+		buffer[index++] = whitespace;
+		index += WriteFloatDigits(y, buffer[index..]);
+		buffer[index++] = whitespace;
+		index += WriteFloatDigits(z, buffer[index..]);
+		buffer[index++] = whitespace;
+		index += WriteFloatDigits(w, buffer[index..]);
+		return MakeString(buffer, index);
+	}
 
 	public static string GetStringFloat(params float[] values)
 	{
-		char[] charBuffer = charPreset;
-		int charIndex = 0;
+		Span<char> buffer = values.Length * 9 <= floatStringBuffer
+			? stackalloc char[floatStringBuffer]
+			: new char[values.Length * 9];
+		int index = 0;
 		for (int i = 0; i < values.Length; i++)
 		{
-			int written = WriteFloatDigits(values[i], charBuffer, charIndex);
-			charIndex += written;
+			index += WriteFloatDigits(values[i], buffer[index..]);
 			if (i < values.Length - 1)
-				charBuffer[charIndex++] = whitespace;
+				buffer[index++] = whitespace;
 		}
-		return new string(charBuffer, 0, charIndex);
+		return MakeString(buffer, index);
 	}
 
 	public static string BuildElementId(string elementId, int id)
 	{
-		int value = id;
-		int idLength = 0;
-		while (value > 0)
-		{
-			idLength++;
-			value /= 10;
-		}
-		char[] charBuffer = new char[elementId.Length + 1 + idLength];
-		int charIndex = 0;
-		for (int i = 0; i < elementId.Length; i++)
-			charBuffer[charIndex++] = elementId[i];
-		charBuffer[charIndex++] = under;
-		Span<char> tempBuffer = stackalloc char[11];
-		int written = WriteIntDigits(id, tempBuffer);
-		tempBuffer.Slice(0, written).CopyTo(charBuffer.AsSpan(charIndex));
-		return new string(charBuffer);
+		Span<char> buffer = stackalloc char[elementId.Length + 1 + maxIntChars];
+		elementId.AsSpan().CopyTo(buffer);
+		buffer[elementId.Length] = under;
+		int written = elementId.Length + 1 + WriteIntDigits(id, buffer[(elementId.Length + 1)..]);
+		return MakeString(buffer, written);
+	}
+
+	private static unsafe string MakeString(Span<char> buffer, int length)
+	{
+		fixed (char* ptr = buffer)
+			return new string(ptr, 0, length);
 	}
 
 	#endregion
 
 	#region Field Builders
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteStartObject(this ref LuiBuilderInstance inst) => inst.Write(startObject);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteStartObject(this ref LuiBuilderInstance inst)
+	{
+		inst.Reserve(1);
+		inst.Put(startObject);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteEndObject(this ref LuiBuilderInstance inst) => inst.Write(endObject);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteEndObject(this ref LuiBuilderInstance inst)
+	{
+		inst.Reserve(1);
+		inst.Put(endObject);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteStartArray(this ref LuiBuilderInstance inst) => inst.Write(startArray);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteStartArray(this ref LuiBuilderInstance inst)
+	{
+		inst.Reserve(1);
+		inst.Put(startArray);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteEndArray(this ref LuiBuilderInstance inst) => inst.Write(endArray);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteEndArray(this ref LuiBuilderInstance inst)
+	{
+		inst.Reserve(1);
+		inst.Put(endArray);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteComma(this ref LuiBuilderInstance inst) => inst.Write(coma);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteComma(this ref LuiBuilderInstance inst)
+	{
+		inst.Reserve(1);
+		inst.Put(coma);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteMark(this ref LuiBuilderInstance inst) => inst.Write(mark);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteMark(this ref LuiBuilderInstance inst)
+	{
+		inst.Reserve(1);
+		inst.Put(mark);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteDots(this ref LuiBuilderInstance inst) => inst.Write(dots);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteDots(this ref LuiBuilderInstance inst)
+	{
+		inst.Reserve(1);
+		inst.Put(dots);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteSpace(this ref LuiBuilderInstance inst) => inst.Write(whitespace);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteSpace(this ref LuiBuilderInstance inst)
+	{
+		inst.Reserve(1);
+		inst.Put(whitespace);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteStartObject(this ref LuiBuilderInstance inst, string key)
-    {
-	    inst.WriteMark();
-	    inst.Write(key);
-	    inst.WriteMark();
-	    inst.WriteDots();
-	    inst.WriteStartObject();
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteStartObject(this ref LuiBuilderInstance inst, string key)
+	{
+		inst.Reserve(key.Length + 4);
+		inst.PutKey(key);
+		inst.Put(startObject);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteStartArray(this ref LuiBuilderInstance inst, string key)
-    {
-	    inst.WriteMark();
-	    inst.Write(key);
-	    inst.WriteMark();
-	    inst.WriteDots();
-	    inst.WriteStartArray();
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteStartArray(this ref LuiBuilderInstance inst, string key)
+	{
+		inst.Reserve(key.Length + 4);
+		inst.PutKey(key);
+		inst.Put(startArray);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this ref LuiBuilderInstance inst, string key, int value)
-    {
-	    inst.WriteMark();
-	    inst.Write(key);
-	    inst.WriteMark();
-	    inst.WriteDots();
-	    inst.Write(value);
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteField(this ref LuiBuilderInstance inst, string key, int value)
+	{
+		inst.Reserve(key.Length + 3 + maxIntChars);
+		inst.PutKey(key);
+		inst.PutInt(value);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this ref LuiBuilderInstance inst, string key, Vector2 value)
-    {
-	    inst.WriteMark();
-	    inst.Write(key);
-	    inst.WriteMark();
-	    inst.WriteDots();
-	    inst.WriteMark();
-	    inst.Write(value.x);
-	    inst.WriteSpace();
-	    inst.Write(value.y);
-	    inst.WriteMark();
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteField(this ref LuiBuilderInstance inst, string key, Vector2 value)
+	{
+		inst.Reserve(key.Length + 6 + maxFloatChars * 2);
+		inst.PutKey(key);
+		inst.Put(mark);
+		inst.PutFloat(value.x);
+		inst.Put(whitespace);
+		inst.PutFloat(value.y);
+		inst.Put(mark);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this ref LuiBuilderInstance inst, string key, float value)
-    {
-	    inst.WriteMark();
-	    inst.Write(key);
-	    inst.WriteMark();
-	    inst.WriteDots();
-	    inst.Write(value);
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteField(this ref LuiBuilderInstance inst, string key, float value)
+	{
+		inst.Reserve(key.Length + 3 + maxFloatChars);
+		inst.PutKey(key);
+		inst.PutFloat(value);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this ref LuiBuilderInstance inst, string key, ulong value)
-    {
-	    inst.WriteMark();
-	    inst.Write(key);
-	    inst.WriteMark();
-	    inst.WriteDots();
-	    inst.Write(value);
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteField(this ref LuiBuilderInstance inst, string key, ulong value)
+	{
+		inst.Reserve(key.Length + 3 + maxUlongChars);
+		inst.PutKey(key);
+		inst.PutUlong(value);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this ref LuiBuilderInstance inst, string key, bool value)
-    {
-	    inst.WriteMark();
-	    inst.Write(key);
-	    inst.WriteMark();
-	    inst.WriteDots();
-        if (value)
-	        inst.Write(trueValue);
-        else
-	        inst.Write(falseValue);
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteField(this ref LuiBuilderInstance inst, string key, bool value)
+	{
+		inst.Reserve(key.Length + 8);
+		inst.PutKey(key);
+		inst.Put(value ? trueValue : falseValue);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this ref LuiBuilderInstance inst, string key, string value)
-    {
-	    inst.WriteMark();
-	    inst.Write(key);
-	    inst.WriteMark();
-	    inst.WriteDots();
-	    inst.WriteMark();
-	    inst.Write(value);
-	    inst.WriteMark();
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteField(this ref LuiBuilderInstance inst, string key, string value)
+	{
+		inst.Reserve(key.Length + value.Length + 5);
+		inst.PutKey(key);
+		inst.Put(mark);
+		inst.Put(value);
+		inst.Put(mark);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteFieldId(this ref LuiBuilderInstance inst, string key, string identifier, int id)
+	{
+		inst.Reserve(key.Length + identifier.Length + 6 + maxIntChars);
+		inst.PutKey(key);
+		inst.Put(mark);
+		inst.Put(identifier);
+		inst.Put(under);
+		inst.PutInt(id);
+		inst.Put(mark);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteFieldIdComma(this ref LuiBuilderInstance inst, string key, string identifier, int id)
+	{
+		inst.Reserve(key.Length + identifier.Length + 7 + maxIntChars);
+		inst.Put(coma);
+		inst.PutKey(key);
+		inst.Put(mark);
+		inst.Put(identifier);
+		inst.Put(under);
+		inst.PutInt(id);
+		inst.Put(mark);
+	}
+
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteFieldComma(this ref LuiBuilderInstance inst, string key, int value)
+	{
+		inst.Reserve(key.Length + 4 + maxIntChars);
+		inst.Put(coma);
+		inst.PutKey(key);
+		inst.PutInt(value);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteFieldComma(this ref LuiBuilderInstance inst, string key, Vector2 value)
+	{
+		inst.Reserve(key.Length + 7 + maxFloatChars * 2);
+		inst.Put(coma);
+		inst.PutKey(key);
+		inst.Put(mark);
+		inst.PutFloat(value.x);
+		inst.Put(whitespace);
+		inst.PutFloat(value.y);
+		inst.Put(mark);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteFieldComma(this ref LuiBuilderInstance inst, string key, float value)
+	{
+		inst.Reserve(key.Length + 4 + maxFloatChars);
+		inst.Put(coma);
+		inst.PutKey(key);
+		inst.PutFloat(value);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteFieldComma(this ref LuiBuilderInstance inst, string key, ulong value)
+	{
+		inst.Reserve(key.Length + 4 + maxUlongChars);
+		inst.Put(coma);
+		inst.PutKey(key);
+		inst.PutUlong(value);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteFieldComma(this ref LuiBuilderInstance inst, string key, bool value)
+	{
+		inst.Reserve(key.Length + 9);
+		inst.Put(coma);
+		inst.PutKey(key);
+		inst.Put(value ? trueValue : falseValue);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void WriteFieldComma(this ref LuiBuilderInstance inst, string key, string value)
+	{
+		inst.Reserve(key.Length + value.Length + 6);
+		inst.Put(coma);
+		inst.PutKey(key);
+		inst.Put(mark);
+		inst.Put(value);
+		inst.Put(mark);
+	}
 
 	#endregion
 
 	#region Builders
-
-	public readonly struct WriteArray
-	{
-		public readonly byte[] values;
-		public readonly int size;
-
-		public WriteArray(byte[] values, int size)
-		{
-			this.values = values;
-			this.size = size;
-		}
-	}
-
-	private const int segmentCheck = 2048;
 
 	private const char startObject = '{';
 	private const char endObject = '}';
@@ -195,80 +316,78 @@ public static class LUIBuilder
 	private const string trueValue = "true";
 	private const string falseValue = "false";
 
+	private const int maxIntChars = 11;
+	private const int maxUlongChars = 20;
+	private const int maxFloatChars = 24;
+
 	private static readonly long[] _pow10 = {
 		1L, 10L, 100L, 1_000L, 10_000L, 100_000L,
 		1_000_000L, 10_000_000L, 100_000_000L, 1_000_000_000L
 	};
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this ref LuiBuilderInstance inst, char character)
-    {
-	    inst._charBuffer[inst._charIndex] = character;
-	    inst._charIndex++;
-	    if (inst._charIndex >= segmentCheck)
-		    inst.Flush();
-    }
+	/// <summary>
+	/// Makes sure at least <paramref name="required"/> more chars fit. Growing is the cold path and
+	/// stays out of line so the common case is a single compare.
+	/// </summary>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	internal static void Reserve(this ref LuiBuilderInstance inst, int required)
+	{
+		if (inst._charIndex + required > inst._charBuffer.Length)
+			inst.Grow(required);
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this ref LuiBuilderInstance inst, int value)
-    {
-        Span<char> tempBuffer = stackalloc char[11];
-        int written = WriteIntDigits(value, tempBuffer);
-        tempBuffer.Slice(0, written).CopyTo(inst._charBuffer.AsSpan(inst._charIndex));
-        inst._charIndex += written;
-        if (inst._charIndex >= segmentCheck)
-	        inst.Flush();
-    }
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private static void Grow(this ref LuiBuilderInstance inst, int required)
+	{
+		int wanted = Math.Max(inst._charBuffer.Length * 2, inst._charIndex + required);
+		char[] next = ArrayPool<char>.Shared.Rent(wanted);
+		inst._charBuffer.AsSpan(0, inst._charIndex).CopyTo(next);
+		ArrayPool<char>.Shared.Return(inst._charBuffer);
+		inst._charBuffer = next;
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this ref LuiBuilderInstance inst, float value)
-    {
-        Span<char> tempBuffer = stackalloc char[16];
-        int written = WriteFloatDigits(value, tempBuffer);
-        tempBuffer.Slice(0, written).CopyTo(inst._charBuffer.AsSpan(inst._charIndex));
-        inst._charIndex += written;
-        if (inst._charIndex >= segmentCheck)
-	        inst.Flush();
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static void Put(this ref LuiBuilderInstance inst, char character)
+	{
+		inst._charBuffer[inst._charIndex++] = character;
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this ref LuiBuilderInstance inst, ulong value)
-    {
-	    Span<char> tempBuffer = stackalloc char[20];
-	    int written = WriteUlongDigits(value, tempBuffer);
-	    tempBuffer.Slice(0, written).CopyTo(inst._charBuffer.AsSpan(inst._charIndex));
-	    inst._charIndex += written;
-	    if (inst._charIndex >= segmentCheck)
-		    inst.Flush();
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static void Put(this ref LuiBuilderInstance inst, string text)
+	{
+		text.AsSpan().CopyTo(inst._charBuffer.AsSpan(inst._charIndex));
+		inst._charIndex += text.Length;
+	}
 
-    private static int stringLengthCheck = Mathf.CeilToInt(segmentCheck * 1.9f);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static void PutKey(this ref LuiBuilderInstance inst, string key)
+	{
+		Span<char> span = inst._charBuffer.AsSpan(inst._charIndex);
+		span[0] = mark;
+		key.AsSpan().CopyTo(span[1..]);
+		int index = key.Length + 1;
+		span[index++] = mark;
+		span[index++] = dots;
+		inst._charIndex += index;
+	}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this ref LuiBuilderInstance inst, string text, int startPos = 0)
-    {
-	    int length = text.Length;
-	    Span<char> buffer = inst._charBuffer.AsSpan();
-	    int charIndex = inst._charIndex;
-	    int index = 0;
-	    bool shouldCheckForSize = length > segmentCheck;
-	    for (int i = startPos; i < length; i++)
-	    {
-		    int lengthSum = charIndex + index;
-		    buffer[lengthSum] = text[i];
-		    index++;
-		    if (shouldCheckForSize && lengthSum > stringLengthCheck)
-		    {
-			    inst._charIndex += index;
-			    inst.Flush();
-			    inst.Write(text, index);
-			    return;
-		    }
-	    }
-	    inst._charIndex += length - startPos;
-	    if (inst._charIndex > segmentCheck)
-		    inst.Flush();
-    }
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static void PutInt(this ref LuiBuilderInstance inst, int value)
+	{
+		inst._charIndex += WriteIntDigits(value, inst._charBuffer.AsSpan(inst._charIndex));
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static void PutFloat(this ref LuiBuilderInstance inst, float value)
+	{
+		inst._charIndex += WriteFloatDigits(value, inst._charBuffer.AsSpan(inst._charIndex));
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static void PutUlong(this ref LuiBuilderInstance inst, ulong value)
+	{
+		inst._charIndex += WriteUlongDigits(value, inst._charBuffer.AsSpan(inst._charIndex));
+	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static int WriteFloatDigits(float value, Span<char> buffer, int startIndex = 0, int precision = 3)
@@ -289,9 +408,14 @@ public static class LUIBuilder
 		float fractional = value - intPart;
 		long factor = _pow10[precision];
 		long fracAsInt = (long)(fractional * factor + 0.5f);
-		if (fracAsInt == _pow10[precision])
+		if (fracAsInt == factor)
+		{
 			intPart++;
+			fracAsInt = 0;
+		}
 		index += WriteIntDigits(intPart, buffer[index..]);
+		if (fracAsInt == 0)
+			return index - startsAt;
 		buffer[index++] = dot;
 		int fracStart = index;
 		for (int i = 0; i < precision; i++)
@@ -330,45 +454,45 @@ public static class LUIBuilder
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int WriteIntDigits(int value, Span<char> buffer)
-    {
-        if (value == 0)
-        {
-            buffer[0] = zero;
-            return 1;
-        }
-        int index = 0;
-        bool isBelow = value < 0;
-        if (isBelow)
-            value = -value;
-        while (value > 0)
-        {
-            buffer[index++] = (char)(zero + (value % 10));
-            value /= 10;
-        }
-        if (isBelow)
-            buffer[index++] = minus;
-        for (int i = 0, j = index - 1; i < j; i++, j--)
-            (buffer[i], buffer[j]) = (buffer[j], buffer[i]);
-        return index;
-    }
+	private static int WriteIntDigits(int value, Span<char> buffer)
+	{
+		if (value == 0)
+		{
+			buffer[0] = zero;
+			return 1;
+		}
+		int index = 0;
+		bool isBelow = value < 0;
+		if (isBelow)
+			value = -value;
+		while (value > 0)
+		{
+			buffer[index++] = (char)(zero + (value % 10));
+			value /= 10;
+		}
+		if (isBelow)
+			buffer[index++] = minus;
+		for (int i = 0, j = index - 1; i < j; i++, j--)
+			(buffer[i], buffer[j]) = (buffer[j], buffer[i]);
+		return index;
+	}
 
 	#endregion
 }
 
 public struct LuiBuilderInstance : IDisposable
 {
-	private static int _segmentLimit = 100;
-	private LUIBuilder.WriteArray[] _segments = ArrayPool<LUIBuilder.WriteArray>.Shared.Rent(_segmentLimit);
-	private int _segmentCount = 0;
+	/// <summary>
+	/// Big enough that a typical UI never grows, and rented rather than allocated so a build costs
+	/// nothing on the GC. Grows by doubling if a UI does turn out to be larger.
+	/// </summary>
+	private const int initialCapacity = 8192;
 
-	private const int maxSegmentSize = 4096;
-
-	public readonly char[] _charBuffer = new char[maxSegmentSize];
+	internal char[] _charBuffer = ArrayPool<char>.Shared.Rent(initialCapacity);
 
 	public int _charIndex = 0;
 
-	private string GetFieldName(LuiCompType type)
+	private static string GetFieldName(LuiCompType type)
 	{
 		return type switch
 		{
@@ -397,735 +521,373 @@ public struct LuiBuilderInstance : IDisposable
 		};
 	}
 
+	/// <summary>
+	/// Writes an element's name, using the raw identifier plus counter when it was auto-generated so
+	/// no string has to be built for it.
+	/// </summary>
+	private static void WriteName(ref LuiBuilderInstance inst, LUI.LuiContainer element, bool comma)
+	{
+		if (element.nameId != 0)
+		{
+			if (comma) inst.WriteFieldIdComma("name", element.nameIdentifier, element.nameId);
+			else inst.WriteFieldId("name", element.nameIdentifier, element.nameId);
+			return;
+		}
+
+		if (comma) inst.WriteFieldComma("name", element._name);
+		else inst.WriteField("name", element._name);
+	}
+
+	private static void WriteParent(ref LuiBuilderInstance inst, LUI.LuiContainer element, bool comma)
+	{
+		if (element.parentId != 0)
+		{
+			if (comma) inst.WriteFieldIdComma("parent", element.parentIdentifier, element.parentId);
+			else inst.WriteFieldId("parent", element.parentIdentifier, element.parentId);
+			return;
+		}
+
+		if (comma) inst.WriteFieldComma("parent", element._parent);
+		else inst.WriteField("parent", element._parent);
+	}
+
 	public LuiBuilderInstance(LUI cui)
     {
         this.WriteStartArray();
-        int elementCount = cui.elements.Count;
-        int elementCounter = 0;
-        foreach (var element in cui.elements)
+        List<LUI.LuiContainer> elements = cui.elements;
+        int elementCount = elements.Count;
+        for (int elementIndex = 0; elementIndex < elementCount; elementIndex++)
         {
-            elementCounter++;
+            LUI.LuiContainer element = elements[elementIndex];
             this.WriteStartObject();
             if (element.update)
             {
-	            this.WriteField("name", element.name);
-	            if (!string.IsNullOrEmpty(element.parent))
-	            {
-		            this.WriteComma();
-		            this.WriteField("parent", element.parent);
-	            }
+	            WriteName(ref this, element, false);
+	            if (element.HasParent)
+		            WriteParent(ref this, element, true);
             }
             else
             {
-	            this.WriteField("parent", element.parent);
-	            if (!string.IsNullOrEmpty(element.name))
-	            {
-		            this.WriteComma();
-		            this.WriteField("name", element.name);
-	            }
+	            WriteParent(ref this, element, false);
+	            if (element.HasName)
+		            WriteName(ref this, element, true);
             }
             if (element.destroyUi != null)
-            {
-	            this.WriteComma();
-	            this.WriteField("destroyUi", element.destroyUi);
-            }
+	            this.WriteFieldComma("destroyUi", element.destroyUi);
             if (element.fadeOut > 0)
-            {
-	            this.WriteComma();
-	            this.WriteField("fadeOut", element.fadeOut);
-            }
+	            this.WriteFieldComma("fadeOut", element.fadeOut);
             if (element.update)
-            {
-	            this.WriteComma();
-	            this.WriteField("update", true);
-            }
+	            this.WriteFieldComma("update", true);
             if (element.activeSelfSet || !element.activeSelf)
-            {
-	            this.WriteComma();
-	            this.WriteField("activeSelf", element.activeSelf);
-            }
+	            this.WriteFieldComma("activeSelf", element.activeSelf);
             if (element.luiComponents.Count > 0)
             {
 	            this.WriteComma();
 	            this.WriteStartArray("components");
-                int componentCount = element.luiComponents.Count;
-                int found = 0;
-                foreach (LuiCompBase component in element.luiComponents)
+                LuiComponentDictionary components = element.luiComponents;
+                int componentCount = components.Count;
+                for (int componentIndex = 0; componentIndex < componentCount; componentIndex++)
                 {
+	                LuiCompBase component = components[componentIndex];
 	                this.WriteStartObject();
 	                this.WriteField("type", GetFieldName(component.type));
 	                if (!component.enabled)
-	                {
-		                this.WriteComma();
-		                this.WriteField("enabled", false);
-	                }
+		                this.WriteFieldComma("enabled", false);
 	                if (component.fadeIn > 0)
-	                {
-		                this.WriteComma();
-		                this.WriteField("fadeIn", component.fadeIn);
-	                }
+		                this.WriteFieldComma("fadeIn", component.fadeIn);
 	                if (!component.blocksRaycast)
-	                {
-		                this.WriteComma();
-		                this.WriteField("blocksRaycast", false);
-	                }
+		                this.WriteFieldComma("blocksRaycast", false);
 	                if (component.placeholderParentId != null)
-	                {
-		                this.WriteComma();
-		                this.WriteField("placeholderParentId", component.placeholderParentId);
-	                }
+		                this.WriteFieldComma("placeholderParentId", component.placeholderParentId);
                     switch (component.type)
                     {
 	                    case LuiCompType.Text:
 		                    LuiTextComp text = component as LuiTextComp;
-		                    found++;
 		                    if (text.text != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("text", text.text);
-		                    }
+			                    this.WriteFieldComma("text", text.text);
 		                    if (text.fontSize > 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("fontSize", text.fontSize);
-		                    }
+			                    this.WriteFieldComma("fontSize", text.fontSize);
 		                    if (text.font != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("font", text.font);
-		                    }
+			                    this.WriteFieldComma("font", text.font);
 		                    if (text.align != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("align", text.align);
-		                    }
+			                    this.WriteFieldComma("align", text.align);
 		                    if (text.color != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("color", text.color);
-		                    }
+			                    this.WriteFieldComma("color", text.color);
 		                    if (text.verticalOverflow != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("verticalOverflow", text.verticalOverflow);
-		                    }
+			                    this.WriteFieldComma("verticalOverflow", text.verticalOverflow);
 		                    break;
 	                    case LuiCompType.Image:
 		                    LuiImageComp image = component as LuiImageComp;
-		                    found++;
 		                    if (image.sprite != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("sprite", image.sprite);
-		                    }
+			                    this.WriteFieldComma("sprite", image.sprite);
 		                    if (image.material != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("material", image.material);
-		                    }
+			                    this.WriteFieldComma("material", image.material);
 		                    if (image.color != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("color", image.color);
-		                    }
+			                    this.WriteFieldComma("color", image.color);
 		                    if (image.imageType != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("imagetype", image.imageType);
-		                    }
+			                    this.WriteFieldComma("imagetype", image.imageType);
 		                    if (image.fillCenter)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("fillCenter", true);
-		                    }
+			                    this.WriteFieldComma("fillCenter", true);
 		                    if (image.ppuMultiplier != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("ppuMultiplier", image.ppuMultiplier);
-		                    }
+			                    this.WriteFieldComma("ppuMultiplier", image.ppuMultiplier);
 		                    if (image.png != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("png", image.png);
-		                    }
+			                    this.WriteFieldComma("png", image.png);
 		                    if (image.slice != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("slice", image.slice);
-		                    }
+			                    this.WriteFieldComma("slice", image.slice);
 		                    if (image.itemid != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("itemid", image.itemid);
-		                    }
+			                    this.WriteFieldComma("itemid", image.itemid);
 		                    if (image.skinid != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("skinid", image.skinid);
-		                    }
+			                    this.WriteFieldComma("skinid", image.skinid);
 		                    break;
 	                    case LuiCompType.RawImage:
 		                    LuiRawImageComp rawImage = component as LuiRawImageComp;
-		                    found++;
 		                    if (rawImage.sprite != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("sprite", rawImage.sprite);
-		                    }
+			                    this.WriteFieldComma("sprite", rawImage.sprite);
 		                    if (rawImage.color != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("color", rawImage.color);
-		                    }
+			                    this.WriteFieldComma("color", rawImage.color);
 		                    if (rawImage.material != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("material", rawImage.material);
-		                    }
+			                    this.WriteFieldComma("material", rawImage.material);
 		                    if (rawImage.url != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("url", rawImage.url);
-		                    }
+			                    this.WriteFieldComma("url", rawImage.url);
 		                    if (rawImage.png != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("png", rawImage.png);
-		                    }
+			                    this.WriteFieldComma("png", rawImage.png);
 		                    if (rawImage.steamid != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("steamid", rawImage.steamid);
-		                    }
+			                    this.WriteFieldComma("steamid", rawImage.steamid);
 		                    break;
 	                    case LuiCompType.Button:
 		                    LuiButtonComp button = component as LuiButtonComp;
-		                    found++;
 		                    if (!button.interactable)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("interactable", false);
-		                    }
+			                    this.WriteFieldComma("interactable", false);
 		                    if (button.command != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("command", button.command);
-		                    }
+			                    this.WriteFieldComma("command", button.command);
 		                    if (button.close != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("close", button.close);
-		                    }
+			                    this.WriteFieldComma("close", button.close);
 		                    if (button.sprite != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("sprite", button.sprite);
-		                    }
+			                    this.WriteFieldComma("sprite", button.sprite);
 		                    if (button.material != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("material", button.material);
-		                    }
+			                    this.WriteFieldComma("material", button.material);
 		                    if (button.color != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("color", button.color);
-		                    }
+			                    this.WriteFieldComma("color", button.color);
 		                    if (button.imageType != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("imagetype", button.imageType);
-		                    }
+			                    this.WriteFieldComma("imagetype", button.imageType);
 		                    if (button.normalColor != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("normalColor", button.normalColor);
-		                    }
+			                    this.WriteFieldComma("normalColor", button.normalColor);
 		                    if (button.highlightedColor != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("highlightedColor", button.highlightedColor);
-		                    }
+			                    this.WriteFieldComma("highlightedColor", button.highlightedColor);
 		                    if (button.pressedColor != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("pressedColor", button.pressedColor);
-		                    }
+			                    this.WriteFieldComma("pressedColor", button.pressedColor);
 		                    if (button.selectedColor != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("selectedColor", button.selectedColor);
-		                    }
+			                    this.WriteFieldComma("selectedColor", button.selectedColor);
 		                    if (button.disabledColor != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("disabledColor", button.disabledColor);
-		                    }
+			                    this.WriteFieldComma("disabledColor", button.disabledColor);
 		                    if (button.colorMultiplier != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("colorMultiplier", button.colorMultiplier);
-		                    }
+			                    this.WriteFieldComma("colorMultiplier", button.colorMultiplier);
 		                    if (button.fadeDuration != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("fadeDuration", button.fadeDuration);
-		                    }
+			                    this.WriteFieldComma("fadeDuration", button.fadeDuration);
 		                    break;
 	                    case LuiCompType.Outline:
 		                    LuiOutlineComp outline = component as LuiOutlineComp;
-		                    found++;
 		                    if (outline.color != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("color", outline.color);
-		                    }
+			                    this.WriteFieldComma("color", outline.color);
 		                    if (outline.distance != default)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("distance", outline.distance);
-		                    }
+			                    this.WriteFieldComma("distance", outline.distance);
 		                    if (outline.useGraphicAlpha)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("useGraphicAlpha", true);
-		                    }
+			                    this.WriteFieldComma("useGraphicAlpha", true);
 		                    break;
 	                    case LuiCompType.InputField:
 		                    LuiInputComp input = component as LuiInputComp;
-		                    found++;
 		                    if (input.fontSize > 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("fontSize", input.fontSize);
-		                    }
+			                    this.WriteFieldComma("fontSize", input.fontSize);
 		                    if (input.font != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("font", input.font);
-		                    }
+			                    this.WriteFieldComma("font", input.font);
 		                    if (input.align != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("align", input.align);
-		                    }
+			                    this.WriteFieldComma("align", input.align);
 		                    if (input.color != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("color", input.color);
-		                    }
+			                    this.WriteFieldComma("color", input.color);
 		                    if (input.characterLimit > 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("characterLimit", input.characterLimit);
-		                    }
+			                    this.WriteFieldComma("characterLimit", input.characterLimit);
 		                    if (input.command != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("command", input.command);
-		                    }
+			                    this.WriteFieldComma("command", input.command);
 		                    if (input.lineType != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("lineType", input.lineType);
-		                    }
+			                    this.WriteFieldComma("lineType", input.lineType);
 		                    if (input.text != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("text", input.text);
-		                    }
+			                    this.WriteFieldComma("text", input.text);
 		                    if (input.readOnly)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("readOnly", true);
-		                    }
+			                    this.WriteFieldComma("readOnly", true);
 		                    if (input.placeholderId != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("placeholderId", input.placeholderId);
-		                    }
+			                    this.WriteFieldComma("placeholderId", input.placeholderId);
 		                    if (input.password)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("password", true);
-		                    }
+			                    this.WriteFieldComma("password", true);
 		                    if (input.needsKeyboard)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("needsKeyboard", true);
-		                    }
+			                    this.WriteFieldComma("needsKeyboard", true);
 		                    if (input.hudMenuInput)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("hudMenuInput", true);
-		                    }
+			                    this.WriteFieldComma("hudMenuInput", true);
 		                    if (input.autofocus)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("autofocus", true);
-		                    }
+			                    this.WriteFieldComma("autofocus", true);
 		                    if (!input.interactable)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("interactable", false);
-		                    }
+			                    this.WriteFieldComma("interactable", false);
 		                    break;
 	                    case LuiCompType.NeedsCursor:
-		                    found++;
 		                    break;
                         case LuiCompType.RectTransform:
 	                        LuiRectTransformComp rect = component as LuiRectTransformComp;
-                            found++;
 	                        if (rect.anchor != LuiPosition.Full)
 	                        {
-		                        this.WriteComma();
-		                        this.WriteField("anchormin", rect.anchor.anchorMin);
-		                        this.WriteComma();
-		                        this.WriteField("anchormax", rect.anchor.anchorMax);
+		                        this.WriteFieldComma("anchormin", rect.anchor.anchorMin);
+		                        this.WriteFieldComma("anchormax", rect.anchor.anchorMax);
 	                        }
 	                        this.WriteComma(); //Always adding offset, as RUST UI have weird one pixel offset by default, idk who came to this idea lol.
                             this.WriteField("offsetmin", rect.offset.offsetMin);
-	                        this.WriteComma();
-                            this.WriteField("offsetmax", rect.offset.offsetMax);
+	                        this.WriteFieldComma("offsetmax", rect.offset.offsetMax);
 	                        if (rect.rotation != 0)
-	                        {
-		                        this.WriteComma();
-		                        this.WriteField("rotation", rect.rotation);
-	                        }
+		                        this.WriteFieldComma("rotation", rect.rotation);
 	                        if (rect.setParent != null)
-	                        {
-		                        this.WriteComma();
-		                        this.WriteField("setParent", rect.setParent);
-	                        }
+		                        this.WriteFieldComma("setParent", rect.setParent);
 	                        if (rect.setTransformIndex != -1)
-	                        {
-		                        this.WriteComma();
-		                        this.WriteField("setTransformIndex", rect.setTransformIndex);
-	                        }
+		                        this.WriteFieldComma("setTransformIndex", rect.setTransformIndex);
                             break;
 	                    case LuiCompType.Countdown:
 		                    LuiCountdownComp countdown = component as LuiCountdownComp;
-		                    found++;
 		                    if (countdown.endTime != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("endTime", countdown.endTime);
-		                    }
+			                    this.WriteFieldComma("endTime", countdown.endTime);
 		                    if (countdown.startTime != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("startTime", countdown.startTime);
-		                    }
+			                    this.WriteFieldComma("startTime", countdown.startTime);
 		                    if (countdown.step > 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("step", countdown.step);
-		                    }
+			                    this.WriteFieldComma("step", countdown.step);
 		                    if (countdown.interval > 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("interval", countdown.interval);
-		                    }
+			                    this.WriteFieldComma("interval", countdown.interval);
 		                    if (countdown.timerFormat != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("timerFormat", countdown.timerFormat);
-		                    }
+			                    this.WriteFieldComma("timerFormat", countdown.timerFormat);
 		                    if (countdown.numberFormat != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("numberFormat", countdown.numberFormat);
-		                    }
+			                    this.WriteFieldComma("numberFormat", countdown.numberFormat);
 		                    if (!countdown.destroyIfDone)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("destroyIfDone", false);
-		                    }
+			                    this.WriteFieldComma("destroyIfDone", false);
 		                    if (countdown.command != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("command", countdown.command);
-		                    }
+			                    this.WriteFieldComma("command", countdown.command);
 		                    break;
 	                    case LuiCompType.HorizontalLayoutGroup:
 		                    LuiHorizontalLayoutGroupComp horizontalLayoutGroup = component as LuiHorizontalLayoutGroupComp;
-		                    found++;
 		                    if (horizontalLayoutGroup.spacing != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("spacing", horizontalLayoutGroup.spacing);
-		                    }
+			                    this.WriteFieldComma("spacing", horizontalLayoutGroup.spacing);
 		                    if (horizontalLayoutGroup.childAlignment != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childAlignment", horizontalLayoutGroup.childAlignment);
-		                    }
+			                    this.WriteFieldComma("childAlignment", horizontalLayoutGroup.childAlignment);
 		                    if (!horizontalLayoutGroup.childForceExpandWidth)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childForceExpandWidth", false);
-		                    }
+			                    this.WriteFieldComma("childForceExpandWidth", false);
 		                    if (!horizontalLayoutGroup.childForceExpandHeight)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childForceExpandHeight", false);
-		                    }
+			                    this.WriteFieldComma("childForceExpandHeight", false);
 		                    if (horizontalLayoutGroup.childControlWidth)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childControlWidth", true);
-		                    }
+			                    this.WriteFieldComma("childControlWidth", true);
 		                    if (horizontalLayoutGroup.childControlHeight)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childControlHeight", true);
-		                    }
+			                    this.WriteFieldComma("childControlHeight", true);
 		                    if (horizontalLayoutGroup.childScaleWidth)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childScaleWidth", true);
-		                    }
+			                    this.WriteFieldComma("childScaleWidth", true);
 		                    if (horizontalLayoutGroup.childScaleHeight)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childScaleHeight", true);
-		                    }
+			                    this.WriteFieldComma("childScaleHeight", true);
 		                    if (horizontalLayoutGroup.padding != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("padding", horizontalLayoutGroup.padding);
-		                    }
+			                    this.WriteFieldComma("padding", horizontalLayoutGroup.padding);
 		                    break;
 	                    case LuiCompType.VerticalLayoutGroup:
 		                    LuiVerticalLayoutGroupComp verticalLayoutGroup = component as LuiVerticalLayoutGroupComp;
-		                    found++;
 		                    if (verticalLayoutGroup.spacing != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("spacing", verticalLayoutGroup.spacing);
-		                    }
+			                    this.WriteFieldComma("spacing", verticalLayoutGroup.spacing);
 		                    if (verticalLayoutGroup.childAlignment != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childAlignment", verticalLayoutGroup.childAlignment);
-		                    }
+			                    this.WriteFieldComma("childAlignment", verticalLayoutGroup.childAlignment);
 		                    if (!verticalLayoutGroup.childForceExpandWidth)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childForceExpandWidth", false);
-		                    }
+			                    this.WriteFieldComma("childForceExpandWidth", false);
 		                    if (!verticalLayoutGroup.childForceExpandHeight)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childForceExpandHeight", false);
-		                    }
+			                    this.WriteFieldComma("childForceExpandHeight", false);
 		                    if (verticalLayoutGroup.childControlWidth)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childControlWidth", true);
-		                    }
+			                    this.WriteFieldComma("childControlWidth", true);
 		                    if (verticalLayoutGroup.childControlHeight)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childControlHeight", true);
-		                    }
+			                    this.WriteFieldComma("childControlHeight", true);
 		                    if (verticalLayoutGroup.childScaleWidth)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childScaleWidth", true);
-		                    }
+			                    this.WriteFieldComma("childScaleWidth", true);
 		                    if (verticalLayoutGroup.childScaleHeight)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childScaleHeight", true);
-		                    }
+			                    this.WriteFieldComma("childScaleHeight", true);
 		                    if (verticalLayoutGroup.padding != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("padding", verticalLayoutGroup.padding);
-		                    }
+			                    this.WriteFieldComma("padding", verticalLayoutGroup.padding);
 		                    break;
 	                    case LuiCompType.GridLayoutGroup:
 		                    LuiGridLayoutGroupComp gridLayoutGroup = component as LuiGridLayoutGroupComp;
-		                    found++;
 		                    if (gridLayoutGroup.cellSize != LUI.defaultCellSize)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("cellSize", gridLayoutGroup.cellSize);
-		                    }
+			                    this.WriteFieldComma("cellSize", gridLayoutGroup.cellSize);
 		                    if (gridLayoutGroup.spacing != default)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("spacing", gridLayoutGroup.spacing);
-		                    }
+			                    this.WriteFieldComma("spacing", gridLayoutGroup.spacing);
 		                    if (gridLayoutGroup.startCorner != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("startCorner", gridLayoutGroup.startCorner);
-		                    }
+			                    this.WriteFieldComma("startCorner", gridLayoutGroup.startCorner);
 		                    if (gridLayoutGroup.startAxis != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("startAxis", gridLayoutGroup.startAxis);
-		                    }
+			                    this.WriteFieldComma("startAxis", gridLayoutGroup.startAxis);
 		                    if (gridLayoutGroup.childAlignment != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("childAlignment", gridLayoutGroup.childAlignment);
-		                    }
+			                    this.WriteFieldComma("childAlignment", gridLayoutGroup.childAlignment);
 		                    if (gridLayoutGroup.constraint != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("constraint", gridLayoutGroup.constraint);
-		                    }
+			                    this.WriteFieldComma("constraint", gridLayoutGroup.constraint);
 		                    if (gridLayoutGroup.constraintCount != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("constraintCount", gridLayoutGroup.constraintCount);
-		                    }
+			                    this.WriteFieldComma("constraintCount", gridLayoutGroup.constraintCount);
 		                    if (gridLayoutGroup.padding != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("padding", gridLayoutGroup.padding);
-		                    }
+			                    this.WriteFieldComma("padding", gridLayoutGroup.padding);
 		                    break;
 	                    case LuiCompType.ContentSizeFitter:
 		                    LuiContentSizeFitterComp contentSizeFitter = component as LuiContentSizeFitterComp;
-		                    found++;
 		                    if (contentSizeFitter.horizontalFit != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("horizontalFit", contentSizeFitter.horizontalFit);
-		                    }
+			                    this.WriteFieldComma("horizontalFit", contentSizeFitter.horizontalFit);
 		                    if (contentSizeFitter.verticalFit != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("verticalFit", contentSizeFitter.verticalFit);
-		                    }
+			                    this.WriteFieldComma("verticalFit", contentSizeFitter.verticalFit);
 		                    break;
 	                    case LuiCompType.LayoutElement:
 		                    LuiLayoutElementComp layoutElement = component as LuiLayoutElementComp;
-		                    found++;
 		                    if (layoutElement.preferredWidth != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("preferredWidth", layoutElement.preferredWidth);
-		                    }
+			                    this.WriteFieldComma("preferredWidth", layoutElement.preferredWidth);
 		                    if (layoutElement.preferredHeight != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("preferredHeight", layoutElement.preferredHeight);
-		                    }
+			                    this.WriteFieldComma("preferredHeight", layoutElement.preferredHeight);
 		                    if (layoutElement.minWidth != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("minWidth", layoutElement.minWidth);
-		                    }
+			                    this.WriteFieldComma("minWidth", layoutElement.minWidth);
 		                    if (layoutElement.minHeight != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("minHeight", layoutElement.minHeight);
-		                    }
+			                    this.WriteFieldComma("minHeight", layoutElement.minHeight);
 		                    if (layoutElement.flexibleWidth != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("flexibleWidth", layoutElement.flexibleWidth);
-		                    }
+			                    this.WriteFieldComma("flexibleWidth", layoutElement.flexibleWidth);
 		                    if (layoutElement.flexibleHeight != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("flexibleHeight", layoutElement.flexibleHeight);
-		                    }
+			                    this.WriteFieldComma("flexibleHeight", layoutElement.flexibleHeight);
 		                    if (layoutElement.ignoreLayout)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("ignoreLayout", true);
-		                    }
+			                    this.WriteFieldComma("ignoreLayout", true);
 		                    break;
 	                    case LuiCompType.Draggable:
 		                    LuiDraggableComp draggable = component as LuiDraggableComp;
-		                    found++;
 		                    if (draggable.limitToParent)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("limitToParent", true);
-		                    }
+			                    this.WriteFieldComma("limitToParent", true);
 		                    if (draggable.maxDistance > 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("maxDistance", draggable.maxDistance);
-		                    }
+			                    this.WriteFieldComma("maxDistance", draggable.maxDistance);
 		                    if (draggable.allowSwapping)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("allowSwapping", true);
-		                    }
+			                    this.WriteFieldComma("allowSwapping", true);
 		                    if (!draggable.dropAnywhere)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("dropAnywhere", false);
-		                    }
+			                    this.WriteFieldComma("dropAnywhere", false);
 		                    if (draggable.dragAlpha != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("dragAlpha", draggable.dragAlpha);
-		                    }
+			                    this.WriteFieldComma("dragAlpha", draggable.dragAlpha);
 		                    if (draggable.parentLimitIndex != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("parentLimitIndex", draggable.parentLimitIndex);
-		                    }
+			                    this.WriteFieldComma("parentLimitIndex", draggable.parentLimitIndex);
 		                    if (draggable.filter != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("filter", draggable.filter);
-		                    }
+			                    this.WriteFieldComma("filter", draggable.filter);
 		                    if (draggable.parentPadding != default)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("parentPadding", draggable.parentPadding);
-		                    }
+			                    this.WriteFieldComma("parentPadding", draggable.parentPadding);
 		                    if (draggable.anchorOffset != default)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("anchorOffset", draggable.anchorOffset);
-		                    }
+			                    this.WriteFieldComma("anchorOffset", draggable.anchorOffset);
 		                    if (draggable.keepOnTop)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("keepOnTop", draggable.keepOnTop);
-		                    }
+			                    this.WriteFieldComma("keepOnTop", draggable.keepOnTop);
 		                    if (draggable.positionRPC != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("positionRPC", draggable.positionRPC);
-		                    }
+			                    this.WriteFieldComma("positionRPC", draggable.positionRPC);
 		                    if (draggable.moveToAnchor)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("moveToAnchor", draggable.moveToAnchor);
-		                    }
+			                    this.WriteFieldComma("moveToAnchor", draggable.moveToAnchor);
 		                    if (draggable.rebuildAnchor)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("rebuildAnchor", draggable.rebuildAnchor);
-		                    }
+			                    this.WriteFieldComma("rebuildAnchor", draggable.rebuildAnchor);
 		                    break;
 	                    case LuiCompType.Slot:
 		                    LuiSlotComp slot = component as LuiSlotComp;
-		                    found++;
 		                    if (slot.filter != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("filter", slot.filter);
-		                    }
+			                    this.WriteFieldComma("filter", slot.filter);
 		                    break;
 	                    case LuiCompType.NeedsKeyboard:
-		                    found++;
 		                    break;
 	                    case LuiCompType.ScrollView:
 		                    LuiScrollComp scroll = component as LuiScrollComp;
-		                    found++;
 		                    bool changeAnchor = scroll.anchor != LuiPosition.Full;
 		                    bool changeOffset = scroll.offset != LuiOffset.None;
 		                    if (changeAnchor || changeOffset || scroll.pivot != LUI.defaultPivot)
@@ -1135,60 +897,39 @@ public struct LuiBuilderInstance : IDisposable
 			                    if (changeAnchor)
 			                    {
 				                    this.WriteField("anchormin", scroll.anchor.anchorMin);
-				                    this.WriteComma();
-				                    this.WriteField("anchormax", scroll.anchor.anchorMax);
+				                    this.WriteFieldComma("anchormax", scroll.anchor.anchorMax);
 			                    }
 			                    if (changeOffset)
 			                    {
 				                    if (changeAnchor)
-					                    this.WriteComma();
-				                    this.WriteField("offsetmin", scroll.offset.offsetMin);
-				                    this.WriteComma();
-				                    this.WriteField("offsetmax", scroll.offset.offsetMax);
+					                    this.WriteFieldComma("offsetmin", scroll.offset.offsetMin);
+				                    else
+					                    this.WriteField("offsetmin", scroll.offset.offsetMin);
+				                    this.WriteFieldComma("offsetmax", scroll.offset.offsetMax);
 			                    }
 			                    if (scroll.pivot != LUI.defaultPivot)
 			                    {
 				                    if (changeAnchor || changeOffset)
-										this.WriteComma();
-				                    this.WriteField("pivot", scroll.pivot);
+										this.WriteFieldComma("pivot", scroll.pivot);
+									else
+										this.WriteField("pivot", scroll.pivot);
 			                    }
 			                    this.WriteEndObject();
 		                    }
 		                    if (scroll.horizontal)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("horizontal", true);
-		                    }
+			                    this.WriteFieldComma("horizontal", true);
 		                    if (scroll.vertical)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("vertical", true);
-		                    }
+			                    this.WriteFieldComma("vertical", true);
 		                    if (scroll.movementType != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("movementType", scroll.movementType);
-		                    }
+			                    this.WriteFieldComma("movementType", scroll.movementType);
 		                    if (scroll.elasticity != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("elasticity", scroll.elasticity);
-		                    }
+			                    this.WriteFieldComma("elasticity", scroll.elasticity);
 		                    if (scroll.inertia)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("inertia", true);
-		                    }
+			                    this.WriteFieldComma("inertia", true);
 		                    if (scroll.decelerationRate != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("decelerationRate", scroll.decelerationRate);
-		                    }
+			                    this.WriteFieldComma("decelerationRate", scroll.decelerationRate);
 		                    if (scroll.scrollSensitivity != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("scrollSensitivity", scroll.scrollSensitivity);
-		                    }
+			                    this.WriteFieldComma("scrollSensitivity", scroll.scrollSensitivity);
 		                    if (scroll.horizontal  && !scroll.horizontalScrollbar.disabled)
 		                    {
 			                    this.WriteComma();
@@ -1205,92 +946,50 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteEndObject();
 		                    }
 		                    if (scroll.horizontalNormalizedPosition != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("horizontalNormalizedPosition", scroll.horizontalNormalizedPosition);
-		                    }
+			                    this.WriteFieldComma("horizontalNormalizedPosition", scroll.horizontalNormalizedPosition);
 		                    if (scroll.verticalNormalizedPosition != 0)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("verticalNormalizedPosition", scroll.verticalNormalizedPosition);
-		                    }
+			                    this.WriteFieldComma("verticalNormalizedPosition", scroll.verticalNormalizedPosition);
 		                    break;
 	                    case LuiCompType.CanvasGroup:
 		                    LuiCanvasGroupComp canvasGroup = component as LuiCanvasGroupComp;
-		                    found++;
 		                    if (canvasGroup.alpha != -1)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("alpha", canvasGroup.alpha);
-		                    }
+			                    this.WriteFieldComma("alpha", canvasGroup.alpha);
 		                    if (!canvasGroup.blocksRaycasts)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("blocksRaycasts", false);
-		                    }
+			                    this.WriteFieldComma("blocksRaycasts", false);
 		                    if (!canvasGroup.interactable)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("interactable", false);
-		                    }
+			                    this.WriteFieldComma("interactable", false);
 		                    if (canvasGroup.fade != LUI.defaultFade)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("fade", canvasGroup.fade);
-		                    }
+			                    this.WriteFieldComma("fade", canvasGroup.fade);
 		                    break;
 	                    case LuiCompType.Mask:
 		                    LuiMaskComp mask = component as LuiMaskComp;
-		                    found++;
 		                    if (!mask.showMaskGraphic)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("showMaskGraphic", false);
-		                    }
+			                    this.WriteFieldComma("showMaskGraphic", false);
 		                    break;
 	                    case LuiCompType.Tooltip:
 		                    LuiTooltipComp tooltip = component as LuiTooltipComp;
-		                    found++;
 		                    if (tooltip.tooltipType != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("tooltipType", tooltip.tooltipType);
-		                    }
+			                    this.WriteFieldComma("tooltipType", tooltip.tooltipType);
 		                    if (tooltip.offset != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("offset", tooltip.offset);
-		                    }
+			                    this.WriteFieldComma("offset", tooltip.offset);
 		                    if (tooltip.useCentre)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("useCentre", true);
-		                    }
+			                    this.WriteFieldComma("useCentre", true);
 		                    if (tooltip.text != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("text", tooltip.text);
-		                    }
+			                    this.WriteFieldComma("text", tooltip.text);
 		                    if (tooltip.delay != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("delay", tooltip.delay);
-		                    }
+			                    this.WriteFieldComma("delay", tooltip.delay);
 		                    if (tooltip.position != null)
-		                    {
-			                    this.WriteComma();
-			                    this.WriteField("position", tooltip.position);
-		                    }
+			                    this.WriteFieldComma("position", tooltip.position);
 		                    break;
                     }
                     this.WriteEndObject();
-                    if (found < componentCount)
+                    if (componentIndex < componentCount - 1)
 	                    this.WriteComma();
                 }
                 this.WriteEndArray();
             }
             this.WriteEndObject();
-            if (elementCounter < elementCount)
+            if (elementIndex < elementCount - 1)
 	            this.WriteComma();
         }
         this.WriteEndArray();
@@ -1300,102 +999,58 @@ public struct LuiBuilderInstance : IDisposable
 	{
 		this.WriteField("enabled", !scroll.disabled); //Adding so I don't need to check for first coma.
 		if (scroll.invert)
-		{
-			this.WriteComma();
-			this.WriteField("invert", true);
-		}
+			this.WriteFieldComma("invert", true);
 		if (scroll.autoHide)
-		{
-			this.WriteComma();
-			this.WriteField("autoHide", true);
-		}
+			this.WriteFieldComma("autoHide", true);
 		if (scroll.handleSprite != null)
-		{
-			this.WriteComma();
-			this.WriteField("handleSprite", scroll.handleSprite);
-		}
+			this.WriteFieldComma("handleSprite", scroll.handleSprite);
 		if (scroll.size != 0)
-		{
-			this.WriteComma();
-			this.WriteField("size", scroll.size);
-		}
+			this.WriteFieldComma("size", scroll.size);
 		if (scroll.handleColor != null)
-		{
-			this.WriteComma();
-			this.WriteField("handleColor", scroll.handleColor);
-		}
+			this.WriteFieldComma("handleColor", scroll.handleColor);
 		if (scroll.highlightColor != null)
-		{
-			this.WriteComma();
-			this.WriteField("highlightColor", scroll.highlightColor);
-		}
+			this.WriteFieldComma("highlightColor", scroll.highlightColor);
 		if (scroll.pressedColor != null)
-		{
-			this.WriteComma();
-			this.WriteField("pressedColor", scroll.pressedColor);
-		}
+			this.WriteFieldComma("pressedColor", scroll.pressedColor);
 		if (scroll.trackSprite != null)
-		{
-			this.WriteComma();
-			this.WriteField("trackSprite", scroll.trackSprite);
-		}
+			this.WriteFieldComma("trackSprite", scroll.trackSprite);
 		if (scroll.trackColor != null)
-		{
-			this.WriteComma();
-			this.WriteField("trackColor", scroll.trackColor);
-		}
+			this.WriteFieldComma("trackColor", scroll.trackColor);
 	}
+
+    internal int MaxUtf8ByteCount
+    {
+	    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+	    get => _charIndex * 3;
+    }
+
+    internal unsafe int WriteUtf8To(Span<byte> destination)
+    {
+	    if (_charIndex == 0) return 0;
+	    fixed (char* source = _charBuffer)
+	    fixed (byte* target = destination)
+		    return Encoding.UTF8.GetBytes(source, _charIndex, target, destination.Length);
+    }
 
     public string GetJsonString()
     {
-	    byte[] buffer = GetMergedBytes();
-	    string jsonString = Encoding.UTF8.GetString(buffer);
-	    //string jsonString = "";
-	    //ArrayPool<byte>.Shared.Return(buffer);
-	    return jsonString;
+	    return new string(_charBuffer, 0, _charIndex);
     }
 
     public byte[] GetMergedBytes()
     {
-	    Flush();
-	    int totalSize = 0;
-	    for (int i = 0; i < _segmentCount; i++)
-		    totalSize += _segments[i].size;
-	    byte[] buffer = new byte[totalSize];
-	    int offset = 0;
-
-	    for (int i = 0; i < _segmentCount; i++)
-	    {
-		    LUIBuilder.WriteArray writeArray = _segments[i];
-		    writeArray.values.AsSpan(0, writeArray.size).CopyTo(buffer.AsSpan(offset));
-		    offset += writeArray.size;
-	    }
+	    byte[] buffer = new byte[Encoding.UTF8.GetByteCount(_charBuffer, 0, _charIndex)];
+	    Encoding.UTF8.GetBytes(_charBuffer, 0, _charIndex, buffer, 0);
 	    return buffer;
-    }
-
-    public void Flush()
-    {
-	    if (_charIndex == 0) return;
-	    byte[] segment = ArrayPool<byte>.Shared.Rent(maxSegmentSize);
-	    int size = Encoding.UTF8.GetBytes(_charBuffer, 0, _charIndex, segment, 0);
-	    if (_segmentCount == _segmentLimit)
-	    {
-		    _segmentLimit *= 2;
-		    var _tempArray = ArrayPool<LUIBuilder.WriteArray>.Shared.Rent(_segmentLimit);
-		    Array.Copy(_segments, _tempArray, _segmentCount);
-		    ArrayPool<LUIBuilder.WriteArray>.Shared.Return(_segments, clearArray: true);
-		    _segments = _tempArray;
-		    _segmentCount = 0;
-	    }
-	    _segments[_segmentCount++] = new LUIBuilder.WriteArray(segment, size);
-	    _charIndex = 0;
     }
 
     public void Dispose()
     {
+	    char[] buffer = _charBuffer;
+	    if (buffer == null) return;
+
+	    _charBuffer = null;
 	    _charIndex = 0;
-	    for (int i = 0; i < _segmentCount; i++)
-		    ArrayPool<byte>.Shared.Return(_segments[i].values);
-	    ArrayPool<LUIBuilder.WriteArray>.Shared.Return(_segments, clearArray: true);
+	    ArrayPool<char>.Shared.Return(buffer);
     }
 }

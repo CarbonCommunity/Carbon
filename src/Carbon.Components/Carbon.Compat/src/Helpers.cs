@@ -1,4 +1,7 @@
 ﻿using AsmResolver;
+using AsmResolver.DotNet.Serialized;
+using AsmResolver.IO;
+using AsmResolver.PE.DotNet.Metadata.Tables;
 using Carbon.Base;
 using HarmonyLib;
 using Assembly = System.Reflection.Assembly;
@@ -18,6 +21,22 @@ public static class Helpers
 	public static bool IsOxideASM(AssemblyReference aref)
 	{
 		return aref.Name.StartsWith("Oxide.") && !aref.Name.ToLower().StartsWith("oxide.ext.");
+	}
+	public static CustomAttributeSignature ReadSignature(ModuleDefinition module, CustomAttribute attribute)
+	{
+		CustomAttributeSignature signature = attribute.Signature;
+
+		if (signature is not SerializedCustomAttributeSignature)
+		{
+			return signature;
+		}
+
+		ModuleReaderContext context = ((SerializedModuleDefinition)module).ReaderContext;
+		CustomAttributeRow row = context.TablesStream.GetTable<CustomAttributeRow>(TableIndex.CustomAttribute).GetByRid(attribute.MetadataToken.Rid);
+
+		return context.BlobStream.TryGetBlobReaderByIndex(row.Value, out BinaryStreamReader reader)
+			? CustomAttributeSignature.FromReader(new BlobReaderContext(context), attribute.Constructor, reader)
+			: null;
 	}
 	public static bool TryGetLoadedIdentity(Utf8String name, Assembly[] loaded, out AssemblyName identity)
 	{

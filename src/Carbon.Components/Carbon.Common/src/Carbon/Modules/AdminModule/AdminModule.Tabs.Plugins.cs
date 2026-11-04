@@ -280,7 +280,7 @@ public partial class AdminModule
 							var card = cui.CreateProtectedButton(container, contentPanel, "0.1 0.1 0.1 0.7",
 								Cache.CUI.BlankColor, null, 0,
 								command:
-								$"pluginbrowser.selectplugin \"{Path.GetFileNameWithoutExtension(plugin.File)}\"",
+								$"pluginbrowser.selectplugin \"{Path.GetFileNameWithoutExtension(originalPlugin.File)}\"",
 								xMin: 0,
 								xMax: 0, yMin: 1, yMax: 1,
 								OxMin: currentWidth, OxMax: currentWidth + cardWidth,
@@ -318,7 +318,7 @@ public partial class AdminModule
 									originalPlugin.PreferredVendor.ToString().ToUpper().SpacedString(1), 8,
 									font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: 0.83f, yMax: 0.92f,
 									command:
-									$"pluginbrowser.interact 12 \"{Path.GetFileNameWithoutExtension(plugin.File)}\"");
+									$"pluginbrowser.interact 12 \"{Path.GetFileNameWithoutExtension(originalPlugin.File)}\"");
 							}
 
 							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(Path.GetFileNameWithoutExtension(plugin.File));
@@ -454,7 +454,7 @@ public partial class AdminModule
 								xMax: 0, OxMin: pageOffset, OxMax: pageOffset + 70f);
 							cui.CreateImage(container, pageInput, "fade", Cache.CUI.WhiteColor);
 							cui.CreateText(container, pageInput, pageButtonColorLightDark,
-								$"/ {page.TotalPages:n0}", 10, xMin: 0.5f, align: TextAnchor.MiddleLeft);
+								$"/ {page.TotalPages + 1:n0}", 10, xMin: 0.5f, align: TextAnchor.MiddleLeft);
 							cui.CreateProtectedInputField(container, pageInput, Cache.CUI.WhiteColor,
 								$"{page.CurrentPage + 1}", 10, 60, false, align: TextAnchor.MiddleRight,
 								xMax: 0.45f, command: "pluginbrowser.page");
@@ -689,7 +689,7 @@ public partial class AdminModule
 				CodeflingInstance.FetchList((vendor) =>
 				{
 					CodeflingInstance.Refresh();
-					CodeflingInstance.VersionCheck();
+					LocalInstance?.Refresh();
 				});
 			}
 
@@ -721,6 +721,7 @@ public partial class AdminModule
 				{
 					uModInstance.Refresh();
 					uModInstance.VersionCheck();
+					LocalInstance?.Refresh();
 				});
 			}
 		}
@@ -956,10 +957,10 @@ public partial class AdminModule
 			{
 				foreach (var plugin in FetchedPlugins)
 				{
-					if (plugin.IsInstalled() && !plugin.IsUpToDate())
+					if (plugin.IsInstalled() && !plugin.IsUpToDate() && Plugin.TryParseVersion(plugin.Version, out var latest))
 					{
 						// 3156772569 aka OnPluginOutdated
-						HookCaller.CallStaticHook(3156772569, plugin.Name, new VersionNumber(plugin.CurrentVersion()), new VersionNumber(plugin.Version), plugin.ExistentPlugin, Type);
+						HookCaller.CallStaticHook(3156772569, plugin.Name, plugin.ExistentPlugin.Version, latest, plugin.ExistentPlugin, Type);
 					}
 				}
 			}
@@ -1052,7 +1053,7 @@ public partial class AdminModule
 
 			public override string BarInfo => $"{FetchedPlugins.Count(x => !x.IsPaid()):n0} free, {FetchedPlugins.Count(x => x.IsPaid()):n0} paid";
 
-			public override string ListEndpoint => "https://codefling.com/db/?category=2,21";
+			public override string ListEndpoint => "https://codefling.com/db/?category=2";
 			public override string DownloadEndpoint => "https://codefling.com/files/file/[ID]-a?do=download";
 
 			private Dictionary<string, string> _headers = new();
@@ -1114,7 +1115,7 @@ public partial class AdminModule
 					FetchedPlugins.Clear();
 					var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
 					Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
-					ParseData(data, false, false, FetchedPlugins, callback, this, plugins);
+					ParseData(data, true, false, FetchedPlugins, callback, this, plugins);
 					Facepunch.Pool.FreeUnmanaged(ref plugins);
 					VersionCheck();
 
@@ -1899,6 +1900,71 @@ public partial class AdminModule
 				return true;
 			}
 
+			private static char[] _installedAuthor = new char[32];
+			private static char[] _vendorAuthor = new char[32];
+
+			private static Plugin PickCard(Plugin installed, string author)
+			{
+				var available = installed.AvailableOn;
+
+				if (installed.PickedVendor != VendorTypes.Installed)
+				{
+					for (int i = 0; i < available.Count; i++)
+					{
+						if (available[i].PreferredVendor == installed.PickedVendor) return available[i];
+					}
+				}
+
+				var length = AuthorKey(author, ref _installedAuthor);
+				Plugin partial = null;
+
+				for (int i = 0; i < available.Count; i++)
+				{
+					var otherLength = AuthorKey(available[i].Author, ref _vendorAuthor);
+					if (!SameAuthor(_installedAuthor, length, _vendorAuthor, otherLength)) continue;
+					if (length == otherLength) return available[i];
+
+					partial ??= available[i];
+				}
+
+				return partial ?? available[0];
+			}
+
+			private static bool SameAuthor(char[] a, int aLength, char[] b, int bLength)
+			{
+				if (aLength == 0 || bLength == 0) return false;
+
+				var shorter = aLength <= bLength ? a : b;
+				var longer = aLength <= bLength ? b : a;
+				var shorterLength = Math.Min(aLength, bLength);
+				var lastStart = shorterLength < 4 ? 0 : Math.Max(aLength, bLength) - shorterLength;
+
+				for (int start = 0; start <= lastStart; start++)
+				{
+					var i = 0;
+					while (i < shorterLength && longer[start + i] == shorter[i]) i++;
+					if (i == shorterLength) return true;
+				}
+
+				return false;
+			}
+
+			private static int AuthorKey(string value, ref char[] buffer)
+			{
+				if (string.IsNullOrEmpty(value)) return 0;
+				if (buffer.Length < value.Length) buffer = new char[value.Length];
+
+				var length = 0;
+
+				for (int i = 0; i < value.Length; i++)
+				{
+					var c = value[i];
+					if (char.IsLetterOrDigit(c)) buffer[length++] = char.ToLowerInvariant(c);
+				}
+
+				return length;
+			}
+
 			public override void Refresh()
 			{
 				using var temp = Pool.Get<PooledList<Plugin>>();
@@ -1940,16 +2006,28 @@ public partial class AdminModule
 							FetchedPlugins.Add(installed);
 						}
 
+						installed.AvailableOn?.Clear();
+						installed.PreferredVendorPlugin = null;
 						installed.TryMarkFoundOn(umod);
 						installed.TryMarkFoundOn(codefling);
-						if (installed.PreferredVendor == VendorTypes.Installed && installed.AvailableOn != null && installed.AvailableOn.Count > 0)
+						if (installed.AvailableOn != null && installed.AvailableOn.Count > 0)
 						{
-							var initialVendorPlugin = installed.AvailableOn[0];
-							installed.PreferredVendor = initialVendorPlugin.PreferredVendor;
-							installed.PreferredVendorPlugin = initialVendorPlugin;
+							var card = PickCard(installed, plugin.Author);
+							installed.PreferredVendor = card.PreferredVendor;
+							installed.PreferredVendorPlugin = card;
+						}
+						else
+						{
+							installed.PreferredVendor = VendorTypes.Installed;
 						}
 					}
 				}
+
+				FetchedPlugins.Sort((a, b) =>
+				{
+					var order = string.Compare(a.File, b.File, StringComparison.OrdinalIgnoreCase);
+					return order != 0 ? order : string.CompareOrdinal(a.Name, b.Name);
+				});
 
 				PriceData = FetchedPlugins.OrderBy(x => x.OriginalPrice);
 				AuthorData = FetchedPlugins.OrderBy(x => x.Author);
@@ -2045,6 +2123,7 @@ public partial class AdminModule
 			public RustPlugin ExistentPlugin;
 
 			internal Plugin PreferredVendorPlugin;
+			internal VendorTypes PickedVendor;
 			internal bool IsBusy;
 
 			[ProtoIgnore]
@@ -2060,7 +2139,9 @@ public partial class AdminModule
 			public void SetPreferredVendor(VendorTypes vendor)
 			{
 				PreferredVendor = vendor;
-				PreferredVendorPlugin = GetVendor(vendor).FetchedPlugins.FirstOrDefault(x => x.Name.Equals(Name));
+				PickedVendor = vendor;
+				PreferredVendorPlugin = AvailableOn?.FirstOrDefault(x => x.PreferredVendor == vendor)
+					?? GetVendor(vendor).FetchedPlugins.FirstOrDefault(x => x.Name.Equals(Name));
 			}
 			public void TryMarkFoundOn(Plugin plugin)
 			{
@@ -2099,7 +2180,70 @@ public partial class AdminModule
 			{
 				if (!IsInstalled()) return false;
 
-				return ExistentPlugin.Version.ToString() == Version;
+				return TryParseVersion(Version, out var latest) && ExistentPlugin.Version >= latest;
+			}
+
+			internal static bool TryParseVersion(string value, out VersionNumber version)
+			{
+				version = default;
+
+				if (string.IsNullOrEmpty(value)) return true;
+
+				var part = 0;
+				var number = 0L;
+				var digits = 0;
+				var sign = 0;
+				var trailing = false;
+
+				for (int i = 0; i <= value.Length; i++)
+				{
+					var c = i < value.Length ? value[i] : '.';
+
+					if (c == '.')
+					{
+						if (digits == 0) return false;
+
+						var parsed = (int)(sign < 0 ? -number : number);
+
+						switch (part)
+						{
+							case 0: version.Major = parsed; break;
+							case 1: version.Minor = parsed; break;
+							case 2: version.Patch = parsed; break;
+						}
+
+						part++;
+						number = 0;
+						digits = 0;
+						sign = 0;
+						trailing = false;
+						continue;
+					}
+
+					if (c == ' ' || (c >= '\t' && c <= '\r'))
+					{
+						if (digits > 0) trailing = true;
+						else if (sign != 0) return false;
+						continue;
+					}
+
+					if (trailing) return false;
+
+					if (digits == 0 && sign == 0 && (c == '-' || c == '+'))
+					{
+						sign = c == '-' ? -1 : 1;
+						continue;
+					}
+
+					if (c < '0' || c > '9') return false;
+
+					number = number * 10 + (c - '0');
+					digits++;
+
+					if (number > (sign < 0 ? 2147483648L : int.MaxValue)) return false;
+				}
+
+				return true;
 			}
 
 			public void SetOwned(bool wants) => Owned = wants;
@@ -2147,7 +2291,9 @@ public partial class AdminModule
 		var vendorType = ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed);
 		var vendor = PluginsTab.GetVendor(vendorType);
 		var pluginName = args.GetFullString(1).Replace("\"", string.Empty).Trim();
-		var tabPlugin = ap.GetStorage<PluginsTab.Plugin>(tab, "plugin") ?? vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName));
+		var tabPlugin = ap.GetStorage<PluginsTab.Plugin>(tab, "plugin")
+			?? vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName))
+			?? vendor.FetchedPlugins.FirstOrDefault(x => x.PreferredVendorPlugin != null && Path.GetFileNameWithoutExtension(x.PreferredVendorPlugin.File).Equals(pluginName));
 		var mainTabPlugin = tabPlugin;
 		if (tabPlugin.PreferredVendorPlugin != null)
 		{
@@ -2265,7 +2411,11 @@ public partial class AdminModule
 			}
 			case "12":
 			{
-				mainTabPlugin.SetPreferredVendor(mainTabPlugin.AvailableOn.FirstOrDefault(x => x.PreferredVendor != mainTabPlugin.PreferredVendor)!.PreferredVendor);
+				var otherVendor = mainTabPlugin.AvailableOn?.FirstOrDefault(x => x.PreferredVendor != mainTabPlugin.PreferredVendor);
+				if (otherVendor != null)
+				{
+					mainTabPlugin.SetPreferredVendor(otherVendor.PreferredVendor);
+				}
 				Singleton.Draw(player);
 				break;
 			}
@@ -2296,7 +2446,7 @@ public partial class AdminModule
 			{
 				page.CurrentPage++;
 
-				if(page.CurrentPage > page.TotalPages - 1)
+				if (page.CurrentPage > page.TotalPages)
 				{
 					page.CurrentPage = 0;
 				}
@@ -2309,7 +2459,7 @@ public partial class AdminModule
 
 				if (page.CurrentPage < 0)
 				{
-					page.CurrentPage = page.TotalPages - 1;
+					page.CurrentPage = page.TotalPages;
 				}
 				break;
 			}
@@ -2322,7 +2472,7 @@ public partial class AdminModule
 
 			case -3:
 			{
-				page.CurrentPage = page.TotalPages - 1;
+				page.CurrentPage = page.TotalPages;
 				break;
 			}
 
@@ -2339,7 +2489,7 @@ public partial class AdminModule
 		}
 		else if (page.CurrentPage > page.TotalPages)
 		{
-			page.CurrentPage = page.TotalPages - 1;
+			page.CurrentPage = page.TotalPages;
 		}
 
 		ap.SetStorage(ap.SelectedTab, "page", page.CurrentPage);
@@ -2402,7 +2552,7 @@ public partial class AdminModule
 
 			if (vendor is PluginsTab.IVendorStored stored && !stored.Load())
 			{
-				vendor.FetchList(vendor => vendor.Refresh());
+				vendor.FetchList(vendor => { vendor.Refresh(); PluginsTab.LocalInstance?.Refresh(); });
 				vendor.Refresh();
 			}
 			if (vendor is PluginsTab.IVendorAuthenticated auth)
@@ -2734,7 +2884,7 @@ public partial class AdminModule
 
 		if (vendor is PluginsTab.IVendorStored stored && !stored.Load())
 		{
-			vendor.FetchList(vendor => vendor.Refresh());
+			vendor.FetchList(vendor => { vendor.Refresh(); PluginsTab.LocalInstance?.Refresh(); });
 			vendor.Refresh();
 		}
 	}

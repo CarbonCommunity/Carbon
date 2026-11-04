@@ -91,19 +91,19 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 	[AuthLevel(2)]
 	private void ClearInvalid(ConsoleSystem.Arg arg)
 	{
-		var toDelete = Facepunch.Pool.Get<Dictionary<uint, FileStorage.CacheData>>();
+		var toDelete = Facepunch.Pool.Get<List<FileStorage.Slot>>();
 
 		foreach (var file in FileStorage.server._cache)
 		{
 			if (file.Value.data.Length >= MaximumBytes)
 			{
-				toDelete.Add(file.Key, file.Value);
+				toDelete.Add(file.Key);
 			}
 		}
 
-		foreach (var data in toDelete)
+		foreach (var slot in toDelete)
 		{
-			FileStorage.server.Remove(data.Key, FileStorage.Type.png, data.Value.entityID);
+			FileStorage.server.Remove(slot.EntityId, slot.Part);
 		}
 
 		arg.ReplyWith($"Removed {toDelete.Count:n0} invalid stored files from FileStorage (above the maximum size of {ByteEx.Format(MaximumBytes, shortName: true).ToUpper()}).");
@@ -247,7 +247,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 					continue;
 				}
 
-				var id = FileStorage.server.Store(result.Data, FileStorage.Type.png, new NetworkableId(_protoData.Identifier));
+				var id = FileStorage.server.StoreByCrc(new NetworkableId(_protoData.Identifier), FileStorage.Type.png, result.Data);
 
 				if (id != 0)
 				{
@@ -320,7 +320,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 							continue;
 						}
 
-						var id = FileStorage.server.Store(result.Data, FileStorage.Type.png, new NetworkableId(_protoData.Identifier));
+						var id = FileStorage.server.StoreByCrc(new NetworkableId(_protoData.Identifier), FileStorage.Type.png, result.Data);
 
 						if (id != 0)
 						{
@@ -423,7 +423,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 
 	public void AddImage(string keyOrUrl, byte[] imageData, FileStorage.Type type = FileStorage.Type.png)
 	{
-		_protoData.Map[keyOrUrl] = FileStorage.server.Store(imageData, type, new NetworkableId(_protoData.Identifier));
+		_protoData.Map[keyOrUrl] = FileStorage.server.StoreByCrc(new NetworkableId(_protoData.Identifier), type, imageData);
 	}
 	public void AddMap(string key, string url)
 	{
@@ -468,16 +468,17 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 		var image = GetImage(name);
 		if (image == default) return;
 
-		byte[] array = FileStorage.server.Get(image, FileStorage.Type.png, new NetworkableId(_protoData.Identifier));
+		byte[] array = FileStorage.server.Get(new NetworkableId(_protoData.Identifier), image, image);
 
 		if (array == null)
 			return;
 
-		CommunityEntity.ServerInstance.ClientRPC(RpcTarget.Player("CL_ReceiveFilePng", player), image, (uint)array.Length, array, 0u, (byte)FileStorage.Type.png);
+		CommunityEntity.ServerInstance.ClientRPC(RpcTarget.Player("CL_ReceiveFile", player), (ulong)image, image, (uint)array.Length, array);
 	}
 	public bool HasImage(string keyOrUrl)
 	{
-		return FileStorage.server.Get(GetImage(keyOrUrl), FileStorage.Type.png, new NetworkableId(_protoData.Identifier)) != null;
+		var image = GetImage(keyOrUrl);
+		return FileStorage.server.Get(new NetworkableId(_protoData.Identifier), image, image) != null;
 	}
 	public bool DeleteImage(string url)
 	{
@@ -488,7 +489,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 			return false;
 		}
 
-		FileStorage.server.Remove(uid, FileStorage.Type.png, new NetworkableId(_protoData.Identifier));
+		FileStorage.server.Remove(new NetworkableId(_protoData.Identifier), uid);
 		_protoData.Map.Remove(id);
 		return true;
 	}
@@ -503,7 +504,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 
 		foreach (var map in temp.Where(x => x.Key.StartsWith(url)))
 		{
-			FileStorage.server.Remove(map.Value, FileStorage.Type.png, new NetworkableId(_protoData.Identifier));
+			FileStorage.server.Remove(new NetworkableId(_protoData.Identifier), map.Value);
 			_protoData.Map.Remove(map.Key);
 		}
 
@@ -534,7 +535,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 			qrCodeImage.Dispose();
 
 			var raw = output.ToArray();
-			uid = FileStorage.server.Store(raw, FileStorage.Type.png, new NetworkableId(_protoData.Identifier));
+			uid = FileStorage.server.StoreByCrc(new NetworkableId(_protoData.Identifier), FileStorage.Type.png, raw);
 			_protoData.Map.Add($"qr_{Community.Protect(text)}_{pixels}_0", uid);
 			return uid;
 		}

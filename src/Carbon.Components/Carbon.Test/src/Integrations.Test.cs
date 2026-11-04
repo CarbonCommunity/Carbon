@@ -108,6 +108,12 @@ public static partial class Integrations
 
 		public IEnumerable<Exception> Exceptions => _exceptions.AsEnumerable();
 
+		public string MethodName => _method?.Name;
+
+		public double Duration => _duration;
+
+		public string FailureMessage { get; private set; }
+
 		public void Run()
 		{
 			SetStatus(StatusTypes.Running);
@@ -149,6 +155,7 @@ public static partial class Integrations
 
 			_exceptions.Clear();
 			SetDuration(default);
+			FailureMessage = null;
 		}
 
 		public bool HasFailedFatally() => Status == StatusTypes.Fatal || (CancelOnFail && Status != StatusTypes.Complete);
@@ -176,6 +183,7 @@ public static partial class Integrations
 			}
 
 			SetStatus(StatusTypes.Timeout);
+			FailureMessage ??= $"Timeout >= {Timeout:0}ms";
 			Warn($"Timeout >= {Timeout:0}ms");
 		}
 
@@ -223,6 +231,7 @@ public static partial class Integrations
 			Logger.Console($"{second}{main}  {(message == null ? "no message" : message.ToString())}", Severity.Error, exception);
 
 			SetStatus(StatusTypes.Failed);
+			TrackFailure(message, exception);
 		}
 
 		public void Fatal(object message, Exception exception)
@@ -231,6 +240,19 @@ public static partial class Integrations
 			Logger.Console($"{second}{main}  {(message == null ? "no message" : message.ToString())}", Severity.Error, exception);
 
 			SetStatus(StatusTypes.Fatal);
+			TrackFailure(message, exception);
+		}
+
+		private void TrackFailure(object message, Exception exception)
+		{
+			if (FailureMessage != null)
+			{
+				return;
+			}
+
+			var text = message?.ToString() ?? "no message";
+			var inner = exception is TargetInvocationException { InnerException: { } invoked } ? invoked : exception;
+			FailureMessage = inner == null ? text : $"{text} ({inner.GetType().Name}: {inner.Message})";
 		}
 
 		public virtual string ToPrettyString() => $"{_type.Name}.{_method.Name}|{_duration:0}ms|".ToLower();
