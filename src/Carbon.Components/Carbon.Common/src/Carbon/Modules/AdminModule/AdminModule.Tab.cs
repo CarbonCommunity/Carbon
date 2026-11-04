@@ -571,7 +571,7 @@ public partial class AdminModule
 						}
 
 						chartCache.Status = ChartCache.StatusTypes.Finalized;
-						chartCache.Crc = FileStorage.server.GetCRC(data, FileStorage.Type.png);
+						chartCache.Crc = FileStorage.ComputeCrc(data);
 						chartCache.Data = data;
 						this[identifier] = chartCache;
 						onProcessed?.Invoke(chartCache);
