@@ -21,12 +21,27 @@ namespace Oxide.Plugins
 #if !NOCOVALENCE
 			public static void RefreshDatabase(Dictionary<string, UserData> data)
 			{
+				_allSource = data;
 				_all = data.Select(x => x.AsIPlayer());
 			}
 
 			internal static IEnumerable<IPlayer> _all;
 
-			public IEnumerable<IPlayer> All => _all;
+			private static Dictionary<string, UserData> _allSource;
+
+			// Follows the live permission data, which is replaced on every permission reload or storage migration
+			public IEnumerable<IPlayer> All
+			{
+				get
+				{
+					if (Community.Runtime?.Permission?.userdata is { } data && !ReferenceEquals(data, _allSource))
+					{
+						RefreshDatabase(data);
+					}
+
+					return _all;
+				}
+			}
 
 			public IEnumerable<IPlayer> Connected => BasePlayer.activePlayerList.Select(x => x.AsIPlayer());
 

@@ -99,9 +99,35 @@ public sealed class Entrypoint
 			}
 		}
 
+		PreloadPackages();
 		ReadPackageManifests();
 		PerformPatch();
 		PerformStartup();
+	}
+
+	/// <summary>
+	/// Packages live outside Mono's search path, yet Rust types reference them through injected fields
+	/// long before Carbon.Bootstrap attaches its resolver. Loading them up front lets Mono bind those references.
+	/// </summary>
+	public static void PreloadPackages()
+	{
+		if (!Directory.Exists(PackageManifests.Folder))
+		{
+			return;
+		}
+
+		foreach (var file in Directory.GetFiles(PackageManifests.Folder, "*.dll"))
+		{
+			try
+			{
+				var assembly = Assembly.LoadFile(Path.GetFullPath(file));
+				Logger.Log($" Preloaded package {assembly.GetName().Name} {assembly.GetName().Version}");
+			}
+			catch (Exception e)
+			{
+				Logger.Log($"Unable to preload package '{file}' ({e?.Message})");
+			}
+		}
 	}
 
 	/// <summary>Merges the startup tasks and field injections declared by packages.</summary>

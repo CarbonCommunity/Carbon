@@ -24,15 +24,16 @@
 		if (player == null) return default;
 
 		var field = IPlayerField;
-		var rustPlayer = field != null ? field.GetValue(player) as RustPlayer : _players.TryGetValue(player.UserIDString, out var cached) ? cached : null;
+		var rustPlayer = field?.GetValue(player) as RustPlayer;
 
-		if (rustPlayer == null)
+		// The covalence database and the online player share one instance, so lookups by id see the live player
+		if (rustPlayer == null && !_players.TryGetValue(player.UserIDString, out rustPlayer))
 		{
 			rustPlayer = new RustPlayer(player);
-
-			if (field != null) field.SetValue(player, rustPlayer);
-			else _players[player.UserIDString] = rustPlayer;
 		}
+
+		field?.SetValue(player, rustPlayer);
+		_players[player.UserIDString] = rustPlayer;
 
 		rustPlayer.Object = player;
 		return rustPlayer;

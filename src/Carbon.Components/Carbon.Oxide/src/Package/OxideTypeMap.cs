@@ -16,7 +16,7 @@ public static class OxideTypeMap
 		"CuiScrollbar", "CuiLayoutGroupComponent", "CuiHorizontalLayoutGroupComponent", "CuiVerticalLayoutGroupComponent",
 		"CuiGridLayoutGroupComponent", "CuiContentSizeFitterComponent", "CuiLayoutElementComponent", "CuiDraggableComponent",
 		"CuiSlotComponent", "CuiButton", "CuiElement", "ICuiGraphic", "ICuiEnableable", "CuiLabel", "CuiPanel",
-		"CuiHelper", "ICuiComponent", "ICuiColor"
+		"CuiHelper", "ICuiComponent", "ICuiColor", "JsonContext"
 	];
 
 	/// <summary>Oxide full type name -> native full type name.</summary>

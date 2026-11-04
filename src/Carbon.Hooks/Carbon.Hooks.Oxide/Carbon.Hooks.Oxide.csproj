@@ -12,6 +12,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="$(SolutionDir)\Carbon\Carbon.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Oxide\Carbon.Oxide.csproj" Private="false" />
 	</ItemGroup>
 
 	<!-- Generated Oxide hooks are left out of the "Carbon Vanilla" flavor (-p:CarbonVanilla=true) -->

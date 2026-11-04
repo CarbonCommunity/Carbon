@@ -38,11 +38,19 @@ public static class PackageManifests
 			return;
 		}
 
+		var resolver = new DefaultAssemblyResolver();
+		resolver.AddSearchDirectory(Defines.GetManagedFolder());
+		resolver.AddSearchDirectory(Defines.GetLibFolder());
+		resolver.AddSearchDirectory(Defines.GetRustManagedFolder());
+		resolver.AddSearchDirectory(Folder);
+
+		var parameters = new ReaderParameters { AssemblyResolver = resolver };
+
 		foreach (var file in Directory.GetFiles(Folder, "*.dll"))
 		{
 			try
 			{
-				var assembly = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(file)));
+				var assembly = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(file)), parameters);
 
 				foreach (var attribute in assembly.CustomAttributes)
 				{

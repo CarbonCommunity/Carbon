@@ -63,9 +63,16 @@ public class AssemblyLoader : IDisposable
 			return cache;
 		}
 
-		Assembly result;
+		// Assemblies preloaded by Carbon.Startup (e.g. packages) are already bound to Rust's types, so loading
+		// a second copy would split their type identity.
+		var fullPath = Path.GetFullPath(path);
+		var result = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => !x.IsDynamic && string.Equals(x.Location, fullPath, StringComparison.OrdinalIgnoreCase));
 
-		if (IndexOf(raw, _needleBuffer) == 0)
+		if (result is not null)
+		{
+			Logger.Debug($"Reusing preloaded assembly '{file}'");
+		}
+		else if (IndexOf(raw, _needleBuffer) == 0)
 		{
 			ResetChechsum();
 			Buffer.BlockCopy(raw, 4, _checksumBuffer, 0, 20);

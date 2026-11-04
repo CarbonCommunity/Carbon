@@ -313,7 +313,7 @@ public partial class Tests
 
 	        return;
 
-	        int ReportUninstalled(string kind, IEnumerable<IHook> hooks)
+	        int ReportUninstalled(string kind, IEnumerable<HookEx> hooks)
 	        {
 		        var count = 0;
 

@@ -42,6 +42,15 @@ public class ScriptCompilationThread : BaseThreadedJob
 	/// <summary>Extra preprocessor symbols every plugin compiles with.</summary>
 	public static HashSet<string> ConditionalSymbols { get; } = new();
 
+	/// <summary>Whether a source may use RUST_/CARBON_ version conditionals (see <see cref="HookCaller.HandleVersionConditionals"/>).</summary>
+	private static bool HasVersionConditionals(string content)
+	{
+		return !string.IsNullOrEmpty(content) &&
+		       (content.IndexOf("_ABV_", StringComparison.Ordinal) >= 0 ||
+		        content.IndexOf("_BLW_", StringComparison.Ordinal) >= 0 ||
+		        content.IndexOf("_IS_", StringComparison.Ordinal) >= 0);
+	}
+
 	public SourceFile InitialSource => Sources != null && Sources.Count > 0 ? Sources[0] : null;
 	public List<SourceFile> Sources;
 	public string[] References;
@@ -545,6 +554,22 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Preview)
 				.WithPreprocessorSymbols(conditionals);
+
+			if (SourceTransformers.Count > 0)
+			{
+				foreach (var source in Sources)
+				{
+					source.Batch = Sources;
+
+					// Version conditionals must be known up front, or transformers skip the code they enable
+					if (HasVersionConditionals(source.Content))
+					{
+						HookCaller.HandleVersionConditionals(CSharpSyntaxTree.ParseText(source.Content, parseOptions).GetCompilationUnitRoot(), conditionals);
+					}
+				}
+
+				parseOptions = parseOptions.WithPreprocessorSymbols(conditionals);
+			}
 
 			foreach (var transformer in SourceTransformers)
 			{

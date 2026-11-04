@@ -16,6 +16,9 @@ public class SourceFile
 	/// <summary>Source code. Lazily read from <see cref="FilePath"/> when left empty.</summary>
 	public string Content { get; set; }
 
+	/// <summary>Every file compiled together with this one (itself included). Set before source transformers run.</summary>
+	public IReadOnlyList<SourceFile> Batch { get; set; }
+
 	public static SourceFile FromFile(string path, string contextPath = null, string content = null)
 	{
 		contextPath ??= path;
