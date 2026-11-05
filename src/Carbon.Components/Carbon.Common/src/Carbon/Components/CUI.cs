@@ -923,13 +923,17 @@ public readonly struct CUI : IDisposable
 		{
 			RobotoCondensedBold,
 			RobotoCondensedRegular,
+			RobotoMonoBold,
+			RobotoMonoRegular,
 			PermanentMarker,
 			DroidSansMono,
 			NotoSansArabicBold,
 			Poxel,
 			LCD,
 			NoToEmoji,
-			PressStart
+			PressStart,
+			Dripping,
+			SuperChiby
 		}
 
 		public string GetFont(FontTypes type)
@@ -938,13 +942,17 @@ public readonly struct CUI : IDisposable
 			{
 				FontTypes.RobotoCondensedBold => "robotocondensed-bold.ttf",
 				FontTypes.RobotoCondensedRegular => "robotocondensed-regular.ttf",
+				FontTypes.RobotoMonoBold => "robotomono-bold.ttf",
+				FontTypes.RobotoMonoRegular => "robotomono-regular.ttf",
 				FontTypes.PermanentMarker => "permanentmarker.ttf",
 				FontTypes.DroidSansMono => "droidsansmono.ttf",
-				FontTypes.NotoSansArabicBold => "_nonenglish/notosanscjksc-bold.otf",
+				FontTypes.NotoSansArabicBold => "_notosans/notosanscjksc-bold.otf",
 				FontTypes.Poxel => "poxel.otf",
-				FontTypes.LCD => "lcd.ttf",
+				FontTypes.LCD => "lcd/lcd.ttf",
 				FontTypes.NoToEmoji => "_nonenglish/notoemoji-regular.ttf",
 				FontTypes.PressStart => "pressstart2p-regular.ttf",
+				FontTypes.Dripping => "dripping/adrip1.ttf",
+				FontTypes.SuperChiby => "superchiby/super chiby.ttf",
 				_ => "robotocondensed-regular.ttf"
 			};
 		}
