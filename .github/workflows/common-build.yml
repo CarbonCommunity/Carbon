@@ -87,6 +87,13 @@ jobs:
               MAJOR_VER="3.1"
               RELEASE_NAME="Edge"
               ;;
+            "carbon_3.0")
+              API_ID="carbon3"
+              BUILD_DEFINE="EDGE"
+              TAG_NAME="edge_3.0_build"
+              MAJOR_VER="3.0"
+              RELEASE_NAME="Edge (3.0)"
+              ;;
             "experimental")
               API_ID="experimental"
               BUILD_DEFINE="EXPERIMENTAL"
