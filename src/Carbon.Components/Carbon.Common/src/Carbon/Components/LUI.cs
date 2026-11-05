@@ -1,8 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 using Network;
 using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
-using System.Buffers;
+using static Carbon.Components.CUI.Handler;
 
 namespace Carbon.Components;
 
@@ -620,15 +621,19 @@ public class LUI : IDisposable
 	{
 		return type switch
 		{
-			CUI.Handler.FontTypes.RobotoCondensedBold => "robotocondensed-bold.ttf",
-			CUI.Handler.FontTypes.RobotoCondensedRegular => "robotocondensed-regular.ttf",
-			CUI.Handler.FontTypes.PermanentMarker => "permanentmarker.ttf",
-			CUI.Handler.FontTypes.DroidSansMono => "droidsansmono.ttf",
-			CUI.Handler.FontTypes.NotoSansArabicBold => "_nonenglish/notosanscjksc-bold.otf",
-			CUI.Handler.FontTypes.Poxel => "poxel.otf",
-			CUI.Handler.FontTypes.LCD => "lcd.ttf",
-			CUI.Handler.FontTypes.NoToEmoji => "_nonenglish/notoemoji-regular.ttf",
-			CUI.Handler.FontTypes.PressStart => "pressstart2p-regular.ttf",
+			FontTypes.RobotoCondensedBold => "robotocondensed-bold.ttf",
+			FontTypes.RobotoCondensedRegular => "robotocondensed-regular.ttf",
+			FontTypes.RobotoMonoBold => "robotomono-bold.ttf",
+			FontTypes.RobotoMonoRegular => "robotomono-regular.ttf",
+			FontTypes.PermanentMarker => "permanentmarker.ttf",
+			FontTypes.DroidSansMono => "droidsansmono.ttf",
+			FontTypes.NotoSansArabicBold => "_notosans/notosanscjksc-bold.otf",
+			FontTypes.Poxel => "poxel.otf",
+			FontTypes.LCD => "lcd/lcd.ttf",
+			FontTypes.NoToEmoji => "_nonenglish/notoemoji-regular.ttf",
+			FontTypes.PressStart => "pressstart2p-regular.ttf",
+			FontTypes.Dripping => "dripping/adrip1.ttf",
+			FontTypes.SuperChiby => "superchiby/super chiby.ttf",
 			_ => "robotocondensed-regular.ttf"
 		};
 	}
