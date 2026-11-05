@@ -102,5 +102,5 @@ Nothing to do for regular Oxide plugins. CarbonPlugins that used Oxide types kee
 ## Known follow-ups
 
 - `Carbon.Hooks.Oxide.dll` needs to be regenerated with the 3.0 generator (HOOKGEN pipeline). The CDN copy targets 2.x (`API.Hooks.Patch`) and won't load.
-- The hook self-updater now downloads from `cdn.carbonmod.gg/hooks/server/3/...` (`Hooks.Updater.Channel`). Until the CDN serves that channel, updates fail gracefully and the hooks shipped with the build are kept.
+- The hook self-updater uses the same CDN layout as 2.x (`cdn.carbonmod.gg/hooks/server/<target>/<protocol>/...`). 3.0 builds must use their own protocol so they never pick up hooks built for 2.x.
 - The docs site's "Oxide compatible" hook badge came from `MetadataAttribute.OxideCompatible`, which was removed from the SDK.

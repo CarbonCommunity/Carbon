@@ -5,12 +5,6 @@
 /// </summary>
 public sealed class Updater
 {
-	/// <summary>
-	/// CDN channel matching Carbon's major version. Hook assemblies are only binary compatible within a major version,
-	/// so a missing channel must fail (keeping the shipped hooks) rather than fall back to another major's builds.
-	/// </summary>
-	public static string Channel { get; set; } = "3";
-
 	/// <summary>Files (relative to the server root) refreshed by the updater. Packages can append their own.</summary>
 	public static List<string> RemoteFiles { get; } =
 	[
@@ -20,8 +14,8 @@ public sealed class Updater
 	private static string BuildUrl(string file, string protocol = null)
 	{
 		var suffix = Community.Runtime.Analytics.Platform == "linux" ? "unix" : null;
-		var target = Community.Runtime.Analytics.Branch == "Release" ? "release" : "debug";
-		return $"https://cdn.carbonmod.gg/hooks/server/{Channel}/{target}{suffix}/{(protocol is null ? $"{file}" : $"{protocol}/{file}")}";
+		var target = Community.Runtime.Analytics.Branch == "release" ? "release" : "debug";
+		return $"https://cdn.carbonmod.gg/hooks/server/{target}{suffix}/{(protocol is null ? $"{file}" : $"{protocol}/{file}")}";
 	}
 
 	public static void DoUpdate(Action<bool> callback = null)
