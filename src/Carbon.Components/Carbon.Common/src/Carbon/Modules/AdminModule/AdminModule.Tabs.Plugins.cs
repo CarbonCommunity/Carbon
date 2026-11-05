@@ -1927,7 +1927,21 @@ public partial class AdminModule
 					partial ??= available[i];
 				}
 
-				return partial ?? available[0];
+				if (partial != null) return partial;
+
+				// Another author but the same version is the same plugin under a new maintainer; otherwise prefer uMod, where names are unique.
+				// A Codefling card from another author and version is a different plugin with the same name.
+				for (int i = 0; i < available.Count; i++)
+				{
+					if (Plugin.TryParseVersion(available[i].Version, out var version) && version == installed.ExistentPlugin.Version) return available[i];
+				}
+
+				for (int i = 0; i < available.Count; i++)
+				{
+					if (available[i].PreferredVendor == VendorTypes.uMod) return available[i];
+				}
+
+				return null;
 			}
 
 			private static bool SameAuthor(char[] a, int aLength, char[] b, int bLength)
@@ -2010,14 +2024,15 @@ public partial class AdminModule
 						installed.PreferredVendorPlugin = null;
 						installed.TryMarkFoundOn(umod);
 						installed.TryMarkFoundOn(codefling);
-						if (installed.AvailableOn != null && installed.AvailableOn.Count > 0)
+						var card = installed.AvailableOn != null && installed.AvailableOn.Count > 0 ? PickCard(installed, plugin.Author) : null;
+						if (card != null)
 						{
-							var card = PickCard(installed, plugin.Author);
 							installed.PreferredVendor = card.PreferredVendor;
 							installed.PreferredVendorPlugin = card;
 						}
 						else
 						{
+							installed.AvailableOn?.Clear();
 							installed.PreferredVendor = VendorTypes.Installed;
 						}
 					}
