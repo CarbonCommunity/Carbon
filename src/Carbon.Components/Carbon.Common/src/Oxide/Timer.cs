@@ -17,6 +17,8 @@ public class Timer
 
 	public bool Destroyed => instance.Destroyed;
 
+	public bool Scheduled => instance.Scheduled;
+
 	public Plugin Owner => instance.Plugin;
 
 	public int TimesTriggered => instance.TimesTriggered;

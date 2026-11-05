@@ -549,7 +549,8 @@ public partial class HammerModule : CarbonModule<HammerModule.HammerConfig, Hamm
 			var onFlag = wantsLock ? BaseEntity.Flags.Locked : BaseEntity.Flags.On;
 			if (wantsLock && entity.GetLock() is BaseLock @lock)
 			{
-				@lock.SetFlag(BaseEntity.Flags.Locked, !@lock.IsLocked());
+				using var flags = @lock.StartSetFlags(BaseEntity.FlagsUpdateMode.SendNetworkUpdate);
+				flags.Set(BaseEntity.Flags.Locked, !@lock.IsLocked());
 				return;
 			}
 			switch (entity)
@@ -588,19 +589,22 @@ public partial class HammerModule : CarbonModule<HammerModule.HammerConfig, Hamm
 				case SteeringWheel:
 				case Door:
 				{
-					entity.SetFlag(openFlag, !entity.HasFlag(openFlag));
+					using var flags = entity.StartSetFlags(BaseEntity.FlagsUpdateMode.SendNetworkUpdate);
+					flags.Set(openFlag, !entity.HasFlag(openFlag));
 					break;
 				}
 				case IOEntity:
 				{
 					var isOn = entity.HasFlag(onFlag);
-					entity.SetFlag(onFlag, !isOn);
-					entity.SetFlag(BaseEntity.Flags.Reserved8, !isOn);
+					using var flags = entity.StartSetFlags(BaseEntity.FlagsUpdateMode.SendNetworkUpdate);
+					flags.Set(onFlag, !isOn);
+					flags.Set(BaseEntity.Flags.Reserved8, !isOn);
 					break;
 				}
 				case StorageContainer:
 				{
-					entity.SetFlag(onFlag, !entity.HasFlag(onFlag));
+					using var flags = entity.StartSetFlags(BaseEntity.FlagsUpdateMode.SendNetworkUpdate);
+					flags.Set(onFlag, !entity.HasFlag(onFlag));
 					break;
 				}
 				case EngineSwitch:
@@ -954,11 +958,13 @@ public partial class HammerModule : CarbonModule<HammerModule.HammerConfig, Hamm
 		rigidbody?.isKinematic = true;
 		if (entity is BaseHelicopter)
 		{
-			entity.SetFlag(BaseEntity.Flags.Protected, true);
+			using var flags = entity.StartSetFlags(BaseEntity.FlagsUpdateMode.SendNetworkUpdate);
+			flags.Set(BaseEntity.Flags.Protected, true);
 		}
 		if (entity is RidableHorse)
 		{
-			entity.SetFlag(BaseEntity.Flags.Reserved12, true);
+			using var flags = entity.StartSetFlags(BaseEntity.FlagsUpdateMode.SendNetworkUpdate);
+			flags.Set(BaseEntity.Flags.Reserved12, true);
 		}
 		ClearGUI(player);
 		RaycastHit hit = default;
@@ -1048,11 +1054,13 @@ public partial class HammerModule : CarbonModule<HammerModule.HammerConfig, Hamm
 
 		if (entity.IsValid() && entity is BaseHelicopter)
 		{
-			entity.SetFlag(BaseEntity.Flags.Protected, false);
+			using var flags = entity.StartSetFlags(BaseEntity.FlagsUpdateMode.SendNetworkUpdate);
+			flags.Set(BaseEntity.Flags.Protected, false);
 		}
 		if(entity.IsValid() && entity is RidableHorse)
 		{
-			entity.SetFlag(BaseEntity.Flags.Reserved12, false);
+			using var flags = entity.StartSetFlags(BaseEntity.FlagsUpdateMode.SendNetworkUpdate);
+			flags.Set(BaseEntity.Flags.Reserved12, false);
 		}
 		if (entity.IsValid() && entity is not BaseCorpse && !entity.HasEntityInParents(player) && !player.HasEntityInParents(entity))
 		{

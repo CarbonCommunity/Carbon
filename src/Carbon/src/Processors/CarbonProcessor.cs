@@ -21,6 +21,8 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 
 	public override void Start()
 	{
+		Oxide.Core.Libraries.Timer.PrimeClock();
+
 		Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
 		{
 			Name = "avgfps",
@@ -46,32 +48,35 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 	}
 	public void Update()
 	{
-		Oxide.Core.Libraries.Timer.UpdateStartupTimers();
-
-		if (CurrentFrameQueue.Count <= 0) return;
-
-		var lockObject = CurrentFrameLock;
-		var queueList = (List<Action>)null;
-
-		lock (lockObject)
+		if (CurrentFrameQueue.Count > 0)
 		{
-			queueList = CurrentFrameQueue;
-			CurrentFrameQueue = PreviousFrameQueue;
-			PreviousFrameQueue = queueList;
-		}
+			var lockObject = CurrentFrameLock;
+			var queueList = (List<Action>)null;
 
-		for (int i = 0; i < queueList.Count; i++)
-		{
-			try
+			lock (lockObject)
 			{
-				queueList[i]();
+				queueList = CurrentFrameQueue;
+				CurrentFrameQueue = PreviousFrameQueue;
+				PreviousFrameQueue = queueList;
 			}
-			catch (Exception exception)
-			{
-				Logger.Error($"Failed to execute OnFrame callback", exception.InnerException ?? exception);
-			}
-		}
 
-		queueList.Clear();
+			for (int i = 0; i < queueList.Count; i++)
+			{
+				try
+				{
+					queueList[i]();
+				}
+				catch (Exception exception)
+				{
+					Logger.Error($"Failed to execute OnFrame callback", exception.InnerException ?? exception);
+				}
+			}
+
+			queueList.Clear();
+		}
+	}
+	public void LateUpdate()
+	{
+		Oxide.Core.Libraries.Timer.ProcessTimers();
 	}
 }

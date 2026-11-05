@@ -1,4 +1,5 @@
-﻿using Connection = Network.Connection;
+﻿using Rust.Ai.Gen2;
+using Connection = Network.Connection;
 
 namespace Carbon.Core;
 
@@ -44,7 +45,7 @@ public partial class CorePlugin
 	}
 	internal static object IOnBaseCombatEntityHurt(BaseCombatEntity entity, HitInfo hitInfo)
 	{
-		if (entity is not BasePlayer)
+		if (entity is not BasePlayer and not LivestockAnimal)
 		{
 			// OnEntityTakeDamage
 			return HookCaller.CallStaticHook(952055589, entity, hitInfo);

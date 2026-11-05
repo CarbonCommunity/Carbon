@@ -37,6 +37,8 @@ internal class TestServerRunner
 			WorkingDirectory = paths.RustDirectory,
 		};
 
+		startInfo.EnvironmentVariables[TestReport.ResultsEnvironmentVariable] = "1";
+
 		if (_forDebugSettings.NoRustServerRun)
 		{
 			_logger.LogInformation("Skipped rust server run based on configuration");
@@ -72,6 +74,8 @@ internal class TestServerRunner
 		{
 			result = await _processRunner.RunAsync("RustDedicated", startInfo, 600_000);
 		}
+
+		TestReport.Write(result.StandardOutput, result.ExitCode, _logger);
 
 		if (result.ExitCode != 0)
 		{

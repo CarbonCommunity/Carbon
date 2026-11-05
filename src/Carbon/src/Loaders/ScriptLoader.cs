@@ -72,12 +72,12 @@ public class ScriptLoader : IScriptLoader
 		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cszip", option: config.Watchers.ScriptWatcherOption);
 		var count = 0;
 
-		ExecuteProcess(Community.Runtime.ScriptProcessor, false, except, ref count, extensionPlugins, plugins);
-		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, except, ref count, zipPlugins);
+		ExecuteProcess(Community.Runtime.ScriptProcessor, except, ref count, extensionPlugins, plugins);
+		ExecuteProcess(Community.Runtime.ZipScriptProcessor, except, ref count, zipPlugins);
 
 #if DEBUG
 		var zipDevPlugins = Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly);
-		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, except, ref count, zipDevPlugins);
+		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, except, ref count, zipDevPlugins);
 #endif
 
 		if (count == 0)
@@ -87,7 +87,7 @@ public class ScriptLoader : IScriptLoader
 			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsInitialized, EventArgs.Empty);
 		}
 
-		static void ExecuteProcess(IScriptProcessor processor, bool folderMode, IEnumerable<string> except, ref int count, params string[][] folders)
+		static void ExecuteProcess(IScriptProcessor processor, IEnumerable<string> except, ref int count, params string[][] folders)
 		{
 			processor.Clear();
 
@@ -100,9 +100,7 @@ public class ScriptLoader : IScriptLoader
 						continue;
 					}
 
-					var folder = folderMode ? file : Path.GetDirectoryName(file);
-
-					var id = folderMode ? folder : Path.GetFileNameWithoutExtension(file);
+					var id = processor.GetInstanceKey(file);
 
 					if (processor.InstanceBuffer.ContainsKey(id))
 					{
@@ -138,7 +136,7 @@ public class ScriptLoader : IScriptLoader
 					continue;
 				}
 
-				plugin.Instance.Package.Plugins?.RemoveAll(x => x == plugin.Instance);
+				plugin.Instance.Package.RemovePlugin(plugin.Instance);
 
 				if (plugin.Instance.IsExtension)
 				{
@@ -439,7 +437,10 @@ public class ScriptLoader : IScriptLoader
 				}
 
 #if DEBUG
-				OsEx.File.Create(Path.Combine(Defines.GetScriptDebugFolder(), $"{Path.GetFileNameWithoutExtension(AsyncLoader.InitialSource.ContextFilePath)}.Internal.cs"), AsyncLoader.InternalCallHookSource);
+				if (Community.Runtime.Config.Compiler.GenerateInternalCallHookSourceOnFailure)
+				{
+					OsEx.File.Create(Path.Combine(Defines.GetScriptDebugFolder(), $"{Path.GetFileNameWithoutExtension(AsyncLoader.InitialSource.ContextFilePath)}.Internal.cs"), AsyncLoader.InternalCallHookSource);
+				}
 #endif
 			}
 			else if (AsyncLoader.IsCompileTestMode)
@@ -481,6 +482,16 @@ public class ScriptLoader : IScriptLoader
 		var firstPlugin = true;
 
 		yield return null;
+
+		var staleRequire = FindStaleRequire(requiresResult);
+		if (staleRequire != null)
+		{
+			Logger.Warn($" Required plugin '{staleRequire.Name}' of '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}' reloaded during compilation, recompiling..");
+
+			Pool.FreeUnmanaged(ref requires);
+			Process.MarkDirty();
+			yield break;
+		}
 
 		foreach (var type in assembly.GetTypes())
 		{
@@ -589,6 +600,21 @@ public class ScriptLoader : IScriptLoader
 
 		Pool.FreeUnmanaged(ref requires);
 		yield return null;
+	}
+
+	private static Plugin FindStaleRequire(Plugin[] requires)
+	{
+		for (int i = 0; i < requires.Length; i++)
+		{
+			var require = requires[i];
+
+			if (Community.Runtime.Core.plugins.Find(require.Name) != require)
+			{
+				return require;
+			}
+		}
+
+		return null;
 	}
 
 	public void Dispose()

@@ -35,7 +35,7 @@ on:
 jobs:
   configure:
     name: Setup (${{ inputs.GIT_BRANCH }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       api_id: ${{ steps.config.outputs.api_id }}
       update_arg: ${{ steps.config.outputs.update_arg }}
@@ -87,6 +87,13 @@ jobs:
               MAJOR_VER="2.1"
               RELEASE_NAME="Edge"
               ;;
+            "carbon_3.0")
+              API_ID="carbon3"
+              BUILD_DEFINE="EDGE"
+              TAG_NAME="edge_3.0_build"
+              MAJOR_VER="3.0"
+              RELEASE_NAME="Edge (3.0)"
+              ;;
             "experimental")
               API_ID="experimental"
               BUILD_DEFINE="EXPERIMENTAL"
@@ -113,7 +120,7 @@ jobs:
               API_ID="aux01"
               BUILD_DEFINE="RUST_AUX01"
               TAG_NAME="rustbeta_aux01_build"
-              UPDATE_ARG="aux01-staging"
+              UPDATE_ARG="aux01"
               MAJOR_VER="2.5"
               RELEASE_NAME="Rust (Aux01)"
               ;;
@@ -213,7 +220,7 @@ jobs:
   build:
     name: Build
     needs: configure
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     continue-on-error: false
 
     strategy:
@@ -455,7 +462,7 @@ jobs:
     name: Release (${{ needs.configure.outputs.release_name }}) (${{ needs.configure.outputs.tag_name }})
     if: github.event_name != 'pull_request'
     needs: [ "configure", "build" ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Git Clone
         uses: actions/checkout@v6

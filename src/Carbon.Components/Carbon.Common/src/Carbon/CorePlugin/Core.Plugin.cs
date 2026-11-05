@@ -56,6 +56,8 @@ public partial class CorePlugin : CarbonPlugin
 		}
 
 		var config = Community.Runtime.Config;
+		var scriptProcessor = Community.Runtime.ScriptProcessor;
+		var zipScriptProcessor = Community.Runtime.ZipScriptProcessor;
 
 		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cs", config.Watchers.ScriptWatcherOption))
 		{
@@ -65,7 +67,7 @@ public partial class CorePlugin : CarbonPlugin
 			}
 
 			ProcessableFile processableFile = default;
-			processableFile.Id = Path.GetFileNameWithoutExtension(file);
+			processableFile.Id = scriptProcessor.GetInstanceKey(file);
 			processableFile.Path = file;
 			processableFile.Type = ProcessableFile.Types.Script;
 			ProcessableFiles.Add(processableFile);
@@ -78,17 +80,18 @@ public partial class CorePlugin : CarbonPlugin
 			}
 
 			ProcessableFile processableFile = default;
-			processableFile.Id = Path.GetFileNameWithoutExtension(file);
+			processableFile.Id = zipScriptProcessor.GetInstanceKey(file);
 			processableFile.Path = file;
 			processableFile.Type = ProcessableFile.Types.CSZIP;
 			ProcessableFiles.Add(processableFile);
 		}
 #if DEBUG
 		var zipDevPlugins = Directory.GetDirectories(Defines.GetZipDevFolder(), "*", SearchOption.TopDirectoryOnly);
+		var zipDevScriptProcessor = Community.Runtime.ZipDevScriptProcessor;
 		foreach (var file in zipDevPlugins)
 		{
 			ProcessableFile processableFile = default;
-			processableFile.Id = Path.GetFileNameWithoutExtension(file);
+			processableFile.Id = zipDevScriptProcessor.GetInstanceKey(file);
 			processableFile.Path = file;
 			processableFile.Type = ProcessableFile.Types.CSZIP_Dev;
 			ProcessableFiles.Add(processableFile);

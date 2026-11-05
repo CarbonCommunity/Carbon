@@ -260,6 +260,15 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 			player.ForceUpdateTriggers(enter: true, exit: false, invoke: true);
 
+			var parent = player.GetParentEntity();
+			if (parent)
+			{
+				foreach (var triggerParent in parent.GetComponentsInChildren<TriggerParent>())
+				{
+					triggerParent?.CheckAllParenting();
+				}
+			}
+
 			if (ConfigInstance.GutshotScreamOnUnvanish)
 			{
 				if (ConfigInstance.BroadcastVanishSounds)

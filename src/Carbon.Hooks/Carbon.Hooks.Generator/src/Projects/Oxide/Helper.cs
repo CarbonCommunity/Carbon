@@ -151,11 +151,23 @@ internal static partial class Helper
 					var value = target[i];
 					var isMethod = value.Contains("()");
 					value = value.Replace("()", string.Empty);
-					var isProperty = target.Length == 1 ? type.GetRuntimeProperty(value) != null : currentType.GetProperty(value) != null;
-					var runtimeType = target.Length == 1
-						? type.GetRuntimeField(value)?.FieldType ?? type.GetRuntimeProperty(value)?.PropertyType ??
-						type.GetRuntimeMethod(value, [])?.ReturnType
-						: currentType.GetField(value, flags)?.FieldType ?? currentType.GetProperty(value, flags)?.PropertyType;
+					MemberInfo member = null;
+					for (var declaringType = currentType; declaringType != null && member == null; declaringType = declaringType.BaseType)
+					{
+						const BindingFlags declared = flags | BindingFlags.DeclaredOnly;
+						member = (MemberInfo)declaringType.GetField(value, declared) ??
+							(MemberInfo)declaringType.GetProperty(value, declared) ??
+							declaringType.GetMethod(value, declared, null, [], null);
+					}
+
+					var isProperty = member is PropertyInfo;
+					var runtimeType = member switch
+					{
+						FieldInfo field => field.FieldType,
+						PropertyInfo property => property.PropertyType,
+						MethodInfo method => method.ReturnType,
+						_ => null
+					};
 
 					if (runtimeType == null)
 					{

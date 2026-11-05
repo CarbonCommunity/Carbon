@@ -107,13 +107,21 @@ public class OxideTypeRef : BaseOxidePatch
 
 				try
 				{
-					for (int y = 0; y < attr.Signature?.FixedArguments.Count; y++)
+					CustomAttributeSignature signature = Helpers.ReadSignature(assembly, attr);
+					bool changed = false;
+
+					for (int y = 0; y < signature?.FixedArguments.Count; y++)
 					{
-						CustomAttributeArgument arg = attr.Signature.FixedArguments[y];
+						CustomAttributeArgument arg = signature.FixedArguments[y];
 						if (arg.Element is TypeDefOrRefSignature sig)
 						{
-							ProcessTypeRef(sig.Type as TypeReference, importer);
+							changed |= ProcessTypeRef(sig.Type as TypeReference, importer);
 						}
+					}
+
+					if (changed)
+					{
+						attr.Signature = new CustomAttributeSignature(signature.FixedArguments, signature.NamedArguments);
 					}
 				}
 				catch { } // Ignore
@@ -121,11 +129,11 @@ public class OxideTypeRef : BaseOxidePatch
         }
     }
 
-    public static void ProcessTypeRef(TypeReference type, ReferenceImporter importer)
+    public static bool ProcessTypeRef(TypeReference type, ReferenceImporter importer)
     {
 	    if (type == null)
 	    {
-		    return;
+		    return false;
 	    }
 
         if (type.Scope is TypeReference parent)
@@ -135,19 +143,19 @@ public class OxideTypeRef : BaseOxidePatch
                 type.Name = "Timer";
                 type.Namespace = "Oxide.Plugins";
                 type.Scope = CompatManager.Common.ImportWith(importer);
-                return;
+                return true;
             }
         }
 
         if (type.Scope is not AssemblyReference aref || !Helpers.IsOxideASM(aref))
         {
-	        return;
+	        return false;
         }
 
         if (type.FullName == "Oxide.Core.Event" || type.FullName.StartsWith("Oxide.Core.Event`"))
         {
 	        type.Scope = (IResolutionScope)importer.ImportType(typeof(OxideEvents));
-	        return;
+	        return true;
         }
 
         if (type.FullName == "Oxide.Core.Plugins.PluginEvent")
@@ -158,7 +166,7 @@ public class OxideTypeRef : BaseOxidePatch
         if (type.Namespace.StartsWith("Newtonsoft.Json"))
         {
 	        type.Scope = Helpers.GetNewtonsoftScope(type, importer);
-	        return;
+	        return true;
         }
 
         if (type.Namespace.StartsWith("ProtoBuf"))
@@ -167,7 +175,7 @@ public class OxideTypeRef : BaseOxidePatch
 		        type.Scope = CompatManager.protobuf.ImportWith(importer);
 	        else
 		        type.Scope = CompatManager.protobufCore.ImportWith(importer);
-	        return;
+	        return true;
         }
 
         if (type.Namespace.StartsWith("WebSocketSharp"))
@@ -176,7 +184,7 @@ public class OxideTypeRef : BaseOxidePatch
 		        type.Name = "ClientSslConfiguration";
 
 	        type.Scope = CompatManager.wsSharp.ImportWith(importer);
-	        return;
+	        return true;
         }
 
         if (type.Name == "VersionNumber")
@@ -221,9 +229,10 @@ public class OxideTypeRef : BaseOxidePatch
 
         common:
         type.Scope = CompatManager.Common.ImportWith(importer);
-        return;
+        return true;
 
         sdk:
         type.Scope = CompatManager.SDK.ImportWith(importer);
+        return true;
     }
 }

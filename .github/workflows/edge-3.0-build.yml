@@ -1,0 +1,51 @@
+name: Edge Build (3.0)
+concurrency:
+  group: build-edge-3.0
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - carbon_3.0
+    
+    paths-ignore:
+      - ".github/**/*"
+      - "**/*.md"
+      - "src/Carbon.Tests/**/*"
+      - "src/Carbon.Profiler.Tests/**/*"
+      - "src/Carbon.Profiler.Tests.Harness/**/*"
+      - ".gitignore"
+
+jobs:
+  call-common:
+    uses: ./.github/workflows/common-build.yml
+    name: Build
+    permissions:
+      contents: write
+    with:
+      # noinspection UndefinedParamsPresent
+      GIT_BRANCH: carbon_3.0
+      # noinspection UndefinedParamsPresent
+      RELEASE_BODY: |
+        This is a development build of Carbon based on the latest commit pushed to the repository (`carbon_3.0` branch).
+        Use this build on the `release` or `staging` Rust server branch.
+
+        This build is targeted at developers.
+        The general public is advised to use the [stable] build.
+        
+        ### How to install
+        1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
+        2. Unzip the archive to the root of your Rust Dedicated Server.
+        3. Restart the server and enjoy.
+        
+        [stable]: https://github.com/CarbonCommunity/Carbon/releases/latest
+    secrets:
+      VERSIONS_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
+
+  call-tests:
+    uses: ./.github/workflows/common-test.yml
+    needs: call-common
+    name: Tests
+    with:
+      build_identifier: 'carbon_3.0'
