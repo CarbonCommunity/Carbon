@@ -57,6 +57,9 @@ jobs:
             "main")
               DOWNLOAD_ID="edge_build"
               ;;
+            "carbon_3.0")
+              DOWNLOAD_ID="edge_3.0_build"
+              ;;
             "experimental")
               DOWNLOAD_ID="experimental_build"
               ;;
