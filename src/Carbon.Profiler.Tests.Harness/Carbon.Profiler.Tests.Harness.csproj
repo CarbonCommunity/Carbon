@@ -9,6 +9,7 @@
         <OutputType>Library</OutputType>
         <AssemblyName>Carbon.Profiler.Tests.Harness</AssemblyName>
         <RootNamespace>Carbon.Profiler.Tests.Harness</RootNamespace>
+        <Configurations>Debug;Release;ReleaseUnix;DebugUnix;Minimal;MinimalUnix</Configurations>
     </PropertyGroup>
 
     <Import Project="$(SolutionDir)\.msbuild\Configurations.props"/>

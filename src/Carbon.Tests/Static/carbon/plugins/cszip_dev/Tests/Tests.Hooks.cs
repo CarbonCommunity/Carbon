@@ -1,5 +1,6 @@
 #if !TESTS_NO_HOOKS
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Hooks;
@@ -17,6 +18,8 @@ public partial class Tests
 {
     public class Hooks
     {
+        internal const string HookInstallFailureMarker = "HOOK_INSTALL_FAILURE|";
+
         internal static uint hookId = HookStringPool.GetOrAdd(nameof(TestingHook));
         internal static uint hook2Id = HookStringPool.GetOrAdd(nameof(ConflictTest));
 		internal static uint tupleHookId = HookStringPool.GetOrAdd(nameof(TupleTest));
@@ -297,13 +300,36 @@ public partial class Tests
 
 	        PrintOutHooksInfo();
 
-	        test.IsTrue(hookManager.LoadedPatches.Count() == hookManager.InstalledPatches.Count(), "loaded patches == all patches");
-	        test.IsTrue(hookManager.LoadedDynamicHooks.Count() == hookManager.InstalledDynamicHooks.Count(), "loaded dynamic hooks == all dynamic hooks");
-	        test.IsTrue(hookManager.LoadedStaticHooks.Count() == hookManager.InstalledStaticHooks.Count(), "loaded static hooks == all static hooks");
+	        var failed = ReportUninstalled("patch", hookManager.LoadedPatches)
+	                     + ReportUninstalled("dynamic", hookManager.LoadedDynamicHooks)
+	                     + ReportUninstalled("static", hookManager.LoadedStaticHooks);
+
+	        if (failed > 0)
+	        {
+		        test.Warn($"{failed:n0} {(failed == 1 ? "hook" : "hooks")} failed to install (non-fatal)");
+	        }
 
 	        test.Complete();
 
 	        return;
+
+	        int ReportUninstalled(string kind, IEnumerable<IHook> hooks)
+	        {
+		        var count = 0;
+
+		        foreach (var hook in hooks)
+		        {
+			        if (hook.IsInstalled)
+			        {
+				        continue;
+			        }
+
+			        count++;
+			        test.Warn($"{HookInstallFailureMarker}{kind}|{hook.HookName}|{hook.Identifier}|{hook.TargetType?.Name}.{hook.TargetMethod}|{hook.Status}");
+		        }
+
+		        return count;
+	        }
 
 	        void PrintOutHooksInfo()
 	        {

@@ -98,6 +98,11 @@ public static partial class ModLoader
 	}
 	public static void AddPendingRequiree(Plugin initial, Plugin requiree)
 	{
+		if (string.IsNullOrEmpty(initial.FilePath))
+		{
+			return;
+		}
+
 		AddPendingRequiree(initial.FilePath, requiree.FilePath);
 	}
 	public static void AddPostBatchFailedRequiree(string requiree)
@@ -263,7 +268,7 @@ public static partial class ModLoader
 			HookCaller.CallStaticHook(2684549964, plugin, ex);
 
 			var innerException = ex.InnerException;
-			var compilationFailure = GetCompilationResult(plugin.FilePath);
+			var compilationFailure = GetCompilationResult(plugin.FilePath ?? type.Name);
 			Trace trace = default;
 			trace.Message = $"Constructor threw an exception ({innerException.Message})";
 			trace.Number = ".ctor";

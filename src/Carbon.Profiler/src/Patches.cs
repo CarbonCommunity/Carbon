@@ -22,6 +22,19 @@ public class Patches
 		}
 	}
 
+	[HarmonyPatch(typeof(HarmonyLoader), "LoadAssembly")]
+	public static class HarmonyLoader_LoadAssembly
+	{
+		public static void Postfix(string assemblyPath, Assembly __result)
+		{
+			if (__result == null)
+			{
+				return;
+			}
+			MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Harmony, __result, Path.GetFileNameWithoutExtension(assemblyPath));
+		}
+	}
+
 	[HarmonyPatch("OxideMod", "PluginLoaded")]
 	public static class OxideMod_PluginLoaded
 	{
@@ -33,13 +46,14 @@ public class Patches
 		public static void Prefix(object plugin)
 		{
 			var type = plugin.GetType();
-			var fileName = Path.GetFileNameWithoutExtension((string)type.GetProperty("Filename").GetValue(plugin));
+			var fileName = Path.GetFileNameWithoutExtension((string)AccessTools.Property(type, "Filename").GetValue(plugin));
 			if (string.IsNullOrEmpty(fileName))
 			{
 				return;
 			}
 			MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, type.Assembly, fileName, true);
 			Debug.Log($"MonoProfiler.TryStartProfileFor Plugin: {fileName}");
+			TargetedProfile.OnPluginLoaded(fileName);
 		}
 	}
 
@@ -53,7 +67,8 @@ public class Patches
 
 		static MethodBase TargetMethod()
 		{
-			return AccessTools.TypeByName("Oxide.Core.Extensions.Extension").GetConstructors()[0];
+			return AccessTools.Constructor(AccessTools.TypeByName("Oxide.Core.Extensions.Extension, Oxide.Core"),
+				[AccessTools.TypeByName("Oxide.Core.Extensions.ExtensionManager, Oxide.Core")]);
 		}
 
 		public static void Prefix(object manager, object __instance)
@@ -62,7 +77,7 @@ public class Patches
 
 			HarmonyProfiler.Runner.Invoke(() =>
 			{
-				var fileName = Path.GetFileNameWithoutExtension((string)type.GetProperty("Filename").GetValue(__instance));
+				var fileName = Path.GetFileNameWithoutExtension((string)AccessTools.Property(type, "Filename").GetValue(__instance));
 				if (string.IsNullOrEmpty(fileName))
 				{
 					return;
