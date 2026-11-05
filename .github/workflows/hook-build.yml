@@ -25,6 +25,7 @@ on:
           - rust_beta/aux02
           - rust_beta/aux03
           - rust_beta/aux04
+          - carbon_3.0
 
       rust_branch:
         description: 'Rust Branch'
