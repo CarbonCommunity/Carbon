@@ -18,7 +18,14 @@ public class InternalCallHook
 
 	public static ConcurrentDictionary<string, int> InheritanceCache = new();
 
+	public static ConcurrentDictionary<string, TypeDefinition> TypeCache = new();
+
 	public static TypeDefinition FindTypeInAssemblies(string fullName)
+	{
+		return TypeCache.GetOrAdd(fullName, FindTypeInAssembliesUncached);
+	}
+
+	private static TypeDefinition FindTypeInAssembliesUncached(string fullName)
 	{
 		for (int i = 0; i < Assemblies.Count; i++)
 		{
