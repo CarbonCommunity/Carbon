@@ -238,7 +238,7 @@ public class InternalCallHook
 		}
 
 		var refLikeTypeNames = GetRefLikeTypeNames(input, references);
-		if (refLikeTypeNames != null && !methods.Any(x => MentionsAny(x.ReturnType, refLikeTypeNames) || x.ParameterList.Parameters.Any(y => MentionsAny(y.Type, refLikeTypeNames))))
+		if (refLikeTypeNames != null && !AnySignatureMentions(methods, refLikeTypeNames))
 		{
 			return null;
 		}
@@ -286,26 +286,43 @@ public class InternalCallHook
 				return null;
 			}
 
-			names.UnionWith(referenceNames);
-		}
-
-		foreach (var type in input.DescendantNodes().OfType<StructDeclarationSyntax>())
-		{
-			if (type.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
+			for (int i = 0; i < referenceNames.Length; i++)
 			{
-				names.Add(type.Identifier.ValueText);
+				names.Add(referenceNames[i]);
 			}
 		}
 
-		foreach (var directive in input.DescendantNodes().OfType<UsingDirectiveSyntax>())
+		List<UsingDirectiveSyntax> aliases = null;
+
+		foreach (var node in input.DescendantNodes(IsDeclarationContainer))
 		{
-			if (directive.Alias != null && MentionsAny(directive.NamespaceOrType, names))
+			if (node is StructDeclarationSyntax type && type.Modifiers.Any(SyntaxKind.RefKeyword))
 			{
-				names.Add(directive.Alias.Name.Identifier.ValueText);
+				names.Add(type.Identifier.ValueText);
+			}
+			else if (node is UsingDirectiveSyntax { Alias: not null } directive)
+			{
+				(aliases ??= new()).Add(directive);
+			}
+		}
+
+		if (aliases != null)
+		{
+			for (int i = 0; i < aliases.Count; i++)
+			{
+				if (MentionsAny(aliases[i].NamespaceOrType, names))
+				{
+					names.Add(aliases[i].Alias.Name.Identifier.ValueText);
+				}
 			}
 		}
 
 		return names;
+	}
+
+	private static bool IsDeclarationContainer(SyntaxNode node)
+	{
+		return node is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax;
 	}
 
 	private static string[] ReadRefLikeTypeNames(MetadataReference reference)
@@ -313,24 +330,18 @@ public class InternalCallHook
 		try
 		{
 			var metadata = ((PortableExecutableReference)reference).GetMetadata();
-			var modules = metadata is AssemblyMetadata assembly ? assembly.GetModules().ToArray() : new[] { (ModuleMetadata)metadata };
 			var names = new List<string>();
 
-			foreach (var module in modules)
+			if (metadata is AssemblyMetadata assembly)
 			{
-				var reader = module.GetMetadataReader();
-				foreach (var handle in reader.TypeDefinitions)
+				foreach (var module in assembly.GetModules())
 				{
-					var type = reader.GetTypeDefinition(handle);
-					if (!IsByRefLike(reader, type))
-					{
-						continue;
-					}
-
-					var name = reader.GetString(type.Name);
-					var arity = name.IndexOf('`');
-					names.Add(arity < 0 ? name : name.Substring(0, arity));
+					AddRefLikeTypeNames(module.GetMetadataReader(), names);
 				}
+			}
+			else
+			{
+				AddRefLikeTypeNames(((ModuleMetadata)metadata).GetMetadataReader(), names);
 			}
 
 			return names.ToArray();
@@ -338,6 +349,22 @@ public class InternalCallHook
 		catch
 		{
 			return null;
+		}
+	}
+
+	private static void AddRefLikeTypeNames(SRM.MetadataReader reader, List<string> names)
+	{
+		foreach (var handle in reader.TypeDefinitions)
+		{
+			var type = reader.GetTypeDefinition(handle);
+			if (!IsByRefLike(reader, type))
+			{
+				continue;
+			}
+
+			var name = reader.GetString(type.Name);
+			var arity = name.IndexOf('`');
+			names.Add(arity < 0 ? name : name.Substring(0, arity));
 		}
 	}
 
@@ -370,9 +397,44 @@ public class InternalCallHook
 		return false;
 	}
 
+	private static bool AnySignatureMentions(IReadOnlyCollection<MethodDeclarationSyntax> methods, HashSet<string> names)
+	{
+		foreach (var method in methods)
+		{
+			if (MentionsAny(method.ReturnType, names))
+			{
+				return true;
+			}
+
+			var parameters = method.ParameterList.Parameters;
+			for (int i = 0; i < parameters.Count; i++)
+			{
+				if (MentionsAny(parameters[i].Type, names))
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	private static bool MentionsAny(SyntaxNode node, HashSet<string> names)
 	{
-		return node != null && node.DescendantNodesAndSelf().OfType<SimpleNameSyntax>().Any(x => names.Contains(x.Identifier.ValueText));
+		if (node == null)
+		{
+			return false;
+		}
+
+		foreach (var child in node.DescendantNodesAndSelf())
+		{
+			if (child is SimpleNameSyntax name && names.Contains(name.Identifier.ValueText))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static bool CanHaveRefLikeSignature(MethodDeclarationSyntax method)
