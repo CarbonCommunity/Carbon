@@ -238,7 +238,7 @@ public class InternalCallHook
 		}
 
 		var refLikeTypeNames = GetRefLikeTypeNames(input, references);
-		if (!methods.Any(x => MentionsAny(x.ReturnType, refLikeTypeNames) || x.ParameterList.Parameters.Any(y => MentionsAny(y.Type, refLikeTypeNames))))
+		if (refLikeTypeNames != null && !methods.Any(x => MentionsAny(x.ReturnType, refLikeTypeNames) || x.ParameterList.Parameters.Any(y => MentionsAny(y.Type, refLikeTypeNames))))
 		{
 			return null;
 		}
@@ -280,7 +280,13 @@ public class InternalCallHook
 
 		foreach (var reference in references)
 		{
-			names.UnionWith(RefLikeTypeNameCache.GetValue(reference, ReadRefLikeTypeNames));
+			var referenceNames = reference is PortableExecutableReference ? RefLikeTypeNameCache.GetValue(reference, ReadRefLikeTypeNames) : null;
+			if (referenceNames == null)
+			{
+				return null;
+			}
+
+			names.UnionWith(referenceNames);
 		}
 
 		foreach (var type in input.DescendantNodes().OfType<StructDeclarationSyntax>())
@@ -304,14 +310,9 @@ public class InternalCallHook
 
 	private static string[] ReadRefLikeTypeNames(MetadataReference reference)
 	{
-		if (reference is not PortableExecutableReference executable)
-		{
-			return [];
-		}
-
 		try
 		{
-			var metadata = executable.GetMetadata();
+			var metadata = ((PortableExecutableReference)reference).GetMetadata();
 			var modules = metadata is AssemblyMetadata assembly ? assembly.GetModules().ToArray() : new[] { (ModuleMetadata)metadata };
 			var names = new List<string>();
 
@@ -336,7 +337,7 @@ public class InternalCallHook
 		}
 		catch
 		{
-			return [];
+			return null;
 		}
 	}
 
