@@ -165,6 +165,7 @@ public class InternalCallHook
 			.OrderBy(x => x.Identifier.ValueText)
 			.ToArray();
 		var refLikeMethods = GetRefLikeMethodKeys(input, references, options, methods);
+		var typeCache = new Dictionary<string, Type>(StringComparer.Ordinal);
 
 		foreach (var method in methods)
 		{
@@ -173,7 +174,7 @@ public class InternalCallHook
 				continue;
 			}
 
-			var hookName = ResolveHookName(method, classes);
+			var hookName = ResolveHookName(method, classes, typeCache);
 			var hook = new InternalCallHookMethodModel
 			{
 				MethodName = method.Identifier.ValueText,
@@ -313,7 +314,7 @@ public class InternalCallHook
 		return $"{string.Join(" ", parameter.Modifiers.Select(x => x.Text))}:{parameter.Type}";
 	}
 
-	private static string ResolveHookName(MethodDeclarationSyntax method, List<ClassDeclarationSyntax> classes)
+	private static string ResolveHookName(MethodDeclarationSyntax method, List<ClassDeclarationSyntax> classes, Dictionary<string, Type> typeCache)
 	{
 		var hookMethod = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => x.Name.ToString() == "HookMethod")).FirstOrDefault();
 		var methodName = hookMethod != null && hookMethod.ArgumentList?.Arguments.Count > 0
@@ -326,6 +327,11 @@ public class InternalCallHook
 		}
 
 		var context = hookMethod.ArgumentList.Arguments[0];
+		if (context.Expression is LiteralExpressionSyntax literal && literal.IsKind(SyntaxKind.StringLiteralExpression))
+		{
+			return literal.Token.ValueText;
+		}
+
 		var contextString = context.ToString();
 		if (contextString.Contains("nameof"))
 		{
@@ -344,7 +350,7 @@ public class InternalCallHook
 			var argument = context.Expression as MemberAccessExpressionSyntax;
 			var expression = argument?.Expression.ToString();
 			var name = argument?.Name.ToString();
-			var value = AccessTools.Field(AccessTools.TypeByName(expression), name)?.GetValue(null)?.ToString();
+			var value = AccessTools.Field(TypeByNameCached(expression, typeCache), name)?.GetValue(null)?.ToString();
 			if (!string.IsNullOrEmpty(value))
 			{
 				return value;
@@ -353,7 +359,7 @@ public class InternalCallHook
 
 		if (contextString.Contains("\""))
 		{
-			var value = AccessTools.Field(AccessTools.TypeByName(classes[0].Identifier.Text), contextString.Replace("\"", string.Empty))?.GetValue(null)
+			var value = AccessTools.Field(TypeByNameCached(classes[0].Identifier.Text, typeCache), contextString.Replace("\"", string.Empty))?.GetValue(null)
 				?.ToString();
 			if (!string.IsNullOrEmpty(value))
 			{
@@ -362,6 +368,21 @@ public class InternalCallHook
 		}
 
 		return methodName;
+	}
+
+	private static Type TypeByNameCached(string name, Dictionary<string, Type> cache)
+	{
+		if (name == null)
+		{
+			return AccessTools.TypeByName(name);
+		}
+
+		if (!cache.TryGetValue(name, out var type))
+		{
+			cache[name] = type = AccessTools.TypeByName(name);
+		}
+
+		return type;
 	}
 
 	private static string GetConditionalSymbol(MethodDeclarationSyntax method)
