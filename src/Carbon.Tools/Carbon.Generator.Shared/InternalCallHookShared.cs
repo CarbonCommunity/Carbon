@@ -118,7 +118,7 @@ public static class InternalCallHookEmitter
 
 		foreach (var group in groups)
 		{
-			AppendLine(builder, indent + 4, $"// {group.Key.HookName} aka {group.Key.HookId}");
+			AppendLine(builder, indent + 4, $"// {EscapeLineBreaks(group.Key.HookName)} aka {group.Key.HookId}");
 			AppendLine(builder, indent + 4, $"case {group.Key.HookId}:");
 			AppendLine(builder, indent + 4, "{");
 
@@ -224,6 +224,11 @@ public static class InternalCallHookEmitter
 		{
 			AppendLine(builder, indent, "#endif");
 		}
+	}
+
+	private static string EscapeLineBreaks(string value)
+	{
+		return value.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\u0085", "\\u0085").Replace("\u2028", "\\u2028").Replace("\u2029", "\\u2029");
 	}
 
 	private static string NormalizeUsing(string value)
