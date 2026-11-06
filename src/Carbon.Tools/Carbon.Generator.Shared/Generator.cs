@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Carbon.InternalCallHookGeneration;
 using HarmonyLib;
@@ -7,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Mono.Cecil;
+using SRM = System.Reflection.Metadata;
 
 namespace Carbon.Generator;
 
@@ -19,6 +21,8 @@ public class InternalCallHook
 	public static ConcurrentDictionary<string, int> InheritanceCache = new();
 
 	public static ConcurrentDictionary<string, TypeDefinition> TypeCache = new();
+
+	private static readonly ConditionalWeakTable<MetadataReference, string[]> RefLikeTypeNameCache = new();
 
 	public static TypeDefinition FindTypeInAssemblies(string fullName)
 	{
@@ -233,6 +237,12 @@ public class InternalCallHook
 			return null;
 		}
 
+		var refLikeTypeNames = GetRefLikeTypeNames(input, references);
+		if (!methods.Any(x => MentionsAny(x.ReturnType, refLikeTypeNames) || x.ParameterList.Parameters.Any(y => MentionsAny(y.Type, refLikeTypeNames))))
+		{
+			return null;
+		}
+
 		var methodKeys = new HashSet<string>(methods.Select(GetMethodKey));
 		var tree = CSharpSyntaxTree.Create(input, options);
 		var compilation = CSharpCompilation.Create(
@@ -262,6 +272,106 @@ public class InternalCallHook
 		}
 
 		return refLikeMethods;
+	}
+
+	private static HashSet<string> GetRefLikeTypeNames(CompilationUnitSyntax input, IEnumerable<MetadataReference> references)
+	{
+		var names = new HashSet<string>(StringComparer.Ordinal);
+
+		foreach (var reference in references)
+		{
+			names.UnionWith(RefLikeTypeNameCache.GetValue(reference, ReadRefLikeTypeNames));
+		}
+
+		foreach (var type in input.DescendantNodes().OfType<StructDeclarationSyntax>())
+		{
+			if (type.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
+			{
+				names.Add(type.Identifier.ValueText);
+			}
+		}
+
+		foreach (var directive in input.DescendantNodes().OfType<UsingDirectiveSyntax>())
+		{
+			if (directive.Alias != null && MentionsAny(directive.NamespaceOrType, names))
+			{
+				names.Add(directive.Alias.Name.Identifier.ValueText);
+			}
+		}
+
+		return names;
+	}
+
+	private static string[] ReadRefLikeTypeNames(MetadataReference reference)
+	{
+		if (reference is not PortableExecutableReference executable)
+		{
+			return [];
+		}
+
+		try
+		{
+			var metadata = executable.GetMetadata();
+			var modules = metadata is AssemblyMetadata assembly ? assembly.GetModules().ToArray() : new[] { (ModuleMetadata)metadata };
+			var names = new List<string>();
+
+			foreach (var module in modules)
+			{
+				var reader = module.GetMetadataReader();
+				foreach (var handle in reader.TypeDefinitions)
+				{
+					var type = reader.GetTypeDefinition(handle);
+					if (!IsByRefLike(reader, type))
+					{
+						continue;
+					}
+
+					var name = reader.GetString(type.Name);
+					var arity = name.IndexOf('`');
+					names.Add(arity < 0 ? name : name.Substring(0, arity));
+				}
+			}
+
+			return names.ToArray();
+		}
+		catch
+		{
+			return [];
+		}
+	}
+
+	private static bool IsByRefLike(SRM.MetadataReader reader, SRM.TypeDefinition type)
+	{
+		foreach (var handle in type.GetCustomAttributes())
+		{
+			var constructor = reader.GetCustomAttribute(handle).Constructor;
+			var name = default(SRM.StringHandle);
+
+			if (constructor.Kind == SRM.HandleKind.MemberReference)
+			{
+				var parent = reader.GetMemberReference((SRM.MemberReferenceHandle)constructor).Parent;
+				if (parent.Kind == SRM.HandleKind.TypeReference)
+				{
+					name = reader.GetTypeReference((SRM.TypeReferenceHandle)parent).Name;
+				}
+			}
+			else if (constructor.Kind == SRM.HandleKind.MethodDefinition)
+			{
+				name = reader.GetTypeDefinition(reader.GetMethodDefinition((SRM.MethodDefinitionHandle)constructor).GetDeclaringType()).Name;
+			}
+
+			if (!name.IsNil && reader.StringComparer.Equals(name, "IsByRefLikeAttribute"))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static bool MentionsAny(SyntaxNode node, HashSet<string> names)
+	{
+		return node != null && node.DescendantNodesAndSelf().OfType<SimpleNameSyntax>().Any(x => names.Contains(x.Identifier.ValueText));
 	}
 
 	private static bool CanHaveRefLikeSignature(MethodDeclarationSyntax method)
