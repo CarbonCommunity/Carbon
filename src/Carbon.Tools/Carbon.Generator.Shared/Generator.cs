@@ -177,6 +177,7 @@ public class InternalCallHook
 			.ToArray();
 		var refLikeMethods = GetRefLikeMethodKeys(input, references, options, methods);
 		var typeCache = new Dictionary<string, Type>(StringComparer.Ordinal);
+		var namespaces = GetUsingNamespaces(input, model.NamespaceName);
 
 		foreach (var method in methods)
 		{
@@ -185,7 +186,7 @@ public class InternalCallHook
 				continue;
 			}
 
-			var hookName = ResolveHookName(method, classes, typeCache);
+			var hookName = ResolveHookName(method, classes, typeCache, namespaces);
 			var hook = new InternalCallHookMethodModel
 			{
 				MethodName = method.Identifier.ValueText,
@@ -494,7 +495,7 @@ public class InternalCallHook
 		return $"{string.Join(" ", parameter.Modifiers.Select(x => x.Text))}:{parameter.Type}";
 	}
 
-	private static string ResolveHookName(MethodDeclarationSyntax method, List<ClassDeclarationSyntax> classes, Dictionary<string, Type> typeCache)
+	private static string ResolveHookName(MethodDeclarationSyntax method, List<ClassDeclarationSyntax> classes, Dictionary<string, Type> typeCache, List<string> namespaces)
 	{
 		var hookMethod = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => x.Name.ToString() == "HookMethod")).FirstOrDefault();
 		var methodName = hookMethod != null && hookMethod.ArgumentList?.Arguments.Count > 0
@@ -530,7 +531,7 @@ public class InternalCallHook
 			var argument = context.Expression as MemberAccessExpressionSyntax;
 			var expression = argument?.Expression.ToString();
 			var name = argument?.Name.ToString();
-			var value = AccessTools.Field(TypeByNameCached(expression, typeCache), name)?.GetValue(null)?.ToString();
+			var value = AccessTools.Field(TypeByNameCached(expression, typeCache, namespaces), name)?.GetValue(null)?.ToString();
 			if (!string.IsNullOrEmpty(value))
 			{
 				return value;
@@ -539,7 +540,7 @@ public class InternalCallHook
 
 		if (contextString.Contains("\""))
 		{
-			var value = AccessTools.Field(TypeByNameCached(classes[0].Identifier.Text, typeCache), contextString.Replace("\"", string.Empty))?.GetValue(null)
+			var value = AccessTools.Field(TypeByNameCached(classes[0].Identifier.Text, typeCache, namespaces), contextString.Replace("\"", string.Empty))?.GetValue(null)
 				?.ToString();
 			if (!string.IsNullOrEmpty(value))
 			{
@@ -550,7 +551,7 @@ public class InternalCallHook
 		return methodName;
 	}
 
-	private static Type TypeByNameCached(string name, Dictionary<string, Type> cache)
+	private static Type TypeByNameCached(string name, Dictionary<string, Type> cache, List<string> namespaces)
 	{
 		if (name == null)
 		{
@@ -559,10 +560,61 @@ public class InternalCallHook
 
 		if (!cache.TryGetValue(name, out var type))
 		{
-			cache[name] = type = AccessTools.TypeByName(name);
+			cache[name] = type = FindLoadedType(name, namespaces) ?? AccessTools.TypeByName(name);
 		}
 
 		return type;
+	}
+
+	private static Type FindLoadedType(string name, List<string> namespaces)
+	{
+		var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+		for (int i = -1; i < namespaces.Count; i++)
+		{
+			var fullName = i < 0 ? name : $"{namespaces[i]}.{name}";
+
+			for (int a = 0; a < assemblies.Length; a++)
+			{
+				Type type;
+
+				try
+				{
+					type = assemblies[a].GetType(fullName, false);
+				}
+				catch
+				{
+					continue;
+				}
+
+				if (type != null)
+				{
+					return type;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private static List<string> GetUsingNamespaces(CompilationUnitSyntax input, string namespaceName)
+	{
+		var namespaces = new List<string>();
+
+		if (!string.IsNullOrEmpty(namespaceName))
+		{
+			namespaces.Add(namespaceName);
+		}
+
+		foreach (var node in input.DescendantNodes(IsDeclarationContainer))
+		{
+			if (node is UsingDirectiveSyntax { Alias: null, NamespaceOrType: not null } directive && directive.StaticKeyword.IsKind(SyntaxKind.None))
+			{
+				namespaces.Add(directive.NamespaceOrType.ToString());
+			}
+		}
+
+		return namespaces;
 	}
 
 	private static string GetConditionalSymbol(MethodDeclarationSyntax method)
