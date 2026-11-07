@@ -923,8 +923,6 @@ public readonly struct CUI : IDisposable
 		{
 			RobotoCondensedBold,
 			RobotoCondensedRegular,
-			RobotoMonoBold,
-			RobotoMonoRegular,
 			PermanentMarker,
 			DroidSansMono,
 			NotoSansArabicBold,
@@ -932,6 +930,8 @@ public readonly struct CUI : IDisposable
 			LCD,
 			NoToEmoji,
 			PressStart,
+			RobotoMonoBold,
+			RobotoMonoRegular,
 			Dripping,
 			SuperChiby
 		}
