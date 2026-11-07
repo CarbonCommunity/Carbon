@@ -625,7 +625,7 @@ public class LUI : IDisposable
 			FontTypes.RobotoCondensedRegular => "robotocondensed-regular.ttf",
 			FontTypes.PermanentMarker => "permanentmarker.ttf",
 			FontTypes.DroidSansMono => "droidsansmono.ttf",
-			FontTypes.NotoSansArabicBold => "_notosans/notosanscjksc-bold.otf",
+			FontTypes.NotoSansArabicBold => "_nonenglish/arabic/notosansarabic-bold.ttf",
 			FontTypes.Poxel => "poxel.otf",
 			FontTypes.LCD => "lcd/lcd.ttf",
 			FontTypes.NoToEmoji => "_nonenglish/notoemoji-regular.ttf",
