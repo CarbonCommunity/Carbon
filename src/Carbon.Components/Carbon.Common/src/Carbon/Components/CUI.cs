@@ -933,7 +933,12 @@ public readonly struct CUI : IDisposable
 			RobotoMonoBold,
 			RobotoMonoRegular,
 			Dripping,
-			SuperChiby
+			SuperChiby,
+			RobotoRegular,
+			NotoSansArabicRegular,
+			NotoSansHebrewBold,
+			NotoSansCJKBold,
+			Unifont
 		}
 
 		public string GetFont(FontTypes type) => LUI.GetFont(type);
