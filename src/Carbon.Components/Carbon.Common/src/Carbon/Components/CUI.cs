@@ -928,25 +928,19 @@ public readonly struct CUI : IDisposable
 			Poxel,
 			LCD,
 			NoToEmoji,
-			PressStart
+			PressStart,
+			RobotoMonoBold,
+			RobotoMonoRegular,
+			Dripping,
+			SuperChiby,
+			RobotoRegular,
+			NotoSansArabicRegular,
+			NotoSansHebrewBold,
+			NotoSansCJKBold,
+			Unifont
 		}
 
-		public string GetFont(FontTypes type)
-		{
-			return type switch
-			{
-				FontTypes.RobotoCondensedBold => "robotocondensed-bold.ttf",
-				FontTypes.RobotoCondensedRegular => "robotocondensed-regular.ttf",
-				FontTypes.PermanentMarker => "permanentmarker.ttf",
-				FontTypes.DroidSansMono => "droidsansmono.ttf",
-				FontTypes.NotoSansArabicBold => "_nonenglish/notosanscjksc-bold.otf",
-				FontTypes.Poxel => "poxel.otf",
-				FontTypes.LCD => "lcd.ttf",
-				FontTypes.NoToEmoji => "_nonenglish/notoemoji-regular.ttf",
-				FontTypes.PressStart => "pressstart2p-regular.ttf",
-				_ => "robotocondensed-regular.ttf"
-			};
-		}
+		public string GetFont(FontTypes type) => LUI.GetFont(type);
 
 		#endregion
 

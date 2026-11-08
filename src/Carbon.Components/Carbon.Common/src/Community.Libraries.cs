@@ -15,10 +15,13 @@ public partial class Community
 	/// </summary>
 	protected virtual void InstallLibraries()
 	{
-		JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+		var previous = JsonConvert.DefaultSettings;
+		JsonConvert.DefaultSettings = () =>
 		{
-			Culture = CultureInfo.InvariantCulture,
-			ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+			var settings = previous?.Invoke() ?? new JsonSerializerSettings();
+			settings.Culture = CultureInfo.InvariantCulture;
+			settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+			return settings;
 		};
 
 		DataFileSystem = new DataFileSystem(Defines.GetDataFolder());
