@@ -623,17 +623,22 @@ public class LUI : IDisposable
 		{
 			FontTypes.RobotoCondensedBold => "robotocondensed-bold.ttf",
 			FontTypes.RobotoCondensedRegular => "robotocondensed-regular.ttf",
-			FontTypes.RobotoMonoBold => "robotomono-bold.ttf",
-			FontTypes.RobotoMonoRegular => "robotomono-regular.ttf",
 			FontTypes.PermanentMarker => "permanentmarker.ttf",
 			FontTypes.DroidSansMono => "droidsansmono.ttf",
-			FontTypes.NotoSansArabicBold => "_notosans/notosanscjksc-bold.otf",
+			FontTypes.NotoSansArabicBold => "_nonenglish/arabic/notosansarabic-bold.ttf",
 			FontTypes.Poxel => "poxel.otf",
 			FontTypes.LCD => "lcd/lcd.ttf",
 			FontTypes.NoToEmoji => "_nonenglish/notoemoji-regular.ttf",
 			FontTypes.PressStart => "pressstart2p-regular.ttf",
+			FontTypes.RobotoMonoBold => "robotomono-bold.ttf",
+			FontTypes.RobotoMonoRegular => "robotomono-regular.ttf",
 			FontTypes.Dripping => "dripping/adrip1.ttf",
 			FontTypes.SuperChiby => "superchiby/super chiby.ttf",
+			FontTypes.RobotoRegular => "_roboto/roboto-regular.ttf",
+			FontTypes.NotoSansArabicRegular => "_nonenglish/arabic/notosansarabic-regular.ttf",
+			FontTypes.NotoSansHebrewBold => "_nonenglish/hebrew/notosanshebrew-bold.ttf",
+			FontTypes.NotoSansCJKBold => "_notosans/notosanscjksc-bold.otf",
+			FontTypes.Unifont => "_nonenglish/currencysymbols/unifont-17.0.03.otf",
 			_ => "robotocondensed-regular.ttf"
 		};
 	}

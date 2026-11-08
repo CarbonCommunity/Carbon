@@ -115,7 +115,6 @@ public partial class CorePlugin
 		var action = arg.GetString(0);
 		var name = arg.GetString(1);
 		var perm = arg.GetString(2);
-		var user = permission.FindUser(name);
 
 		if (!permission.PermissionExists(perm))
 		{
@@ -128,6 +127,8 @@ public partial class CorePlugin
 		switch (action)
 		{
 			case "user":
+				var user = permission.FindUser(name);
+
 				if (string.IsNullOrEmpty(user.Key))
 				{
 					arg.ReplyWith($"Couldn't grant user permission - user not found, use full name or steam ID.");
@@ -223,13 +224,14 @@ public partial class CorePlugin
 		var action = arg.GetString(0);
 		var name = arg.GetString(1);
 		var perm = arg.GetString(2);
-		var user = permission.FindUser(name);
 
 		var wildcard = perm.Equals(Permission.StarStr);
 
 		switch (action)
 		{
 			case "user":
+				var user = permission.FindUser(name);
+
 				if (string.IsNullOrEmpty(user.Key))
 				{
 					arg.ReplyWith($"Couldn't revoke user permission - user not found, use full name or steam ID.");
