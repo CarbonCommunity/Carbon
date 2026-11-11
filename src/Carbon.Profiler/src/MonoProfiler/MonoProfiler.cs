@@ -745,6 +745,95 @@ public static unsafe partial class MonoProfiler
 		return Enabled;
 	}
 
+	// The native scope stack holds 16 entries
+	private const int MaxAllocationScopes = 16;
+
+	private static int _allocationScopes;
+	private static bool _allocationScopesUnavailable;
+	private static bool _allocationEventsLeftOn;
+
+	/// <summary>
+	/// Opens a scope that counts the bytes the main thread allocates until <see cref="EndAllocationScope"/>.
+	/// Scopes nest: an allocation is counted by the innermost open scope only, and neither collections
+	/// nor other threads change the count. Allocation events are switched on when the outermost scope
+	/// opens and off again when it closes, so code outside of scopes pays nothing for them.
+	/// Starts the native profiler when it isn't running. Must be called on the main thread.
+	/// </summary>
+	/// <returns>False when no scope was opened: don't call <see cref="EndAllocationScope"/> then.</returns>
+	public static bool BeginAllocationScope()
+	{
+		if (_allocationScopes > 0)
+		{
+			// A scope nested deeper than the native stack counts nothing: its allocations stay with the deepest counted scope
+			if (_allocationScopes < MaxAllocationScopes)
+			{
+				profiler_alloc_push();
+			}
+
+			_allocationScopes++;
+			return true;
+		}
+
+		// The native side refuses to switch allocation events while recording
+		if (_allocationScopesUnavailable || Crashed || IsRecording || string.IsNullOrEmpty(ConfigPath))
+		{
+			return false;
+		}
+
+		if (!Enabled && !Start())
+		{
+			_allocationScopesUnavailable = true;
+			return false;
+		}
+
+		switch (enable_method_alloc_stack(true))
+		{
+			case ProfilerResultCode.OK:
+			case ProfilerResultCode.NoOp:
+				break;
+
+			case ProfilerResultCode.Busy:
+			case ProfilerResultCode.MainThreadOnly:
+				return false;
+
+			default:
+				_allocationScopesUnavailable = true;
+				return false;
+		}
+
+		profiler_alloc_push();
+		_allocationScopes = 1;
+		return true;
+	}
+
+	/// <summary>
+	/// Closes the scope opened by the last <see cref="BeginAllocationScope"/> that returned true.
+	/// </summary>
+	/// <returns>The bytes allocated inside the scope, without those counted by scopes nested in it.</returns>
+	public static long EndAllocationScope()
+	{
+		if (_allocationScopes <= 0)
+		{
+			return 0L;
+		}
+
+		if (_allocationScopes > MaxAllocationScopes)
+		{
+			_allocationScopes--;
+			return 0L;
+		}
+
+		var bytes = profiler_alloc_pop();
+
+		if (--_allocationScopes == 0)
+		{
+			// Refused when a recording started inside the scope: switched off once that recording stops
+			_allocationEventsLeftOn = enable_method_alloc_stack(false) == ProfilerResultCode.Busy;
+		}
+
+		return (long)bytes;
+	}
+
 	/// <summary>
 	/// Clears currently collected and Rust-returned information.
 	/// </summary>
@@ -843,6 +932,13 @@ public static unsafe partial class MonoProfiler
 	private static void OnRecordingStopped()
 	{
 		CancelTimers();
+
+		if (_allocationEventsLeftOn && _allocationScopes == 0)
+		{
+			_allocationEventsLeftOn = false;
+			enable_method_alloc_stack(false);
+		}
+
 		RecordingStopped?.Invoke();
 	}
 
@@ -1150,6 +1246,16 @@ public static unsafe partial class MonoProfiler
 	[DllImport("CarbonNative")]
 	[return: MarshalAs(UnmanagedType.U1)]
 	private static extern bool start_profiler(char* ptr, int length);
+
+	[DllImport("CarbonNative")]
+	private static extern ProfilerResultCode enable_method_alloc_stack([MarshalAs(UnmanagedType.U1)] bool toggle);
+
+	[DllImport("CarbonNative")]
+	[return: MarshalAs(UnmanagedType.U1)]
+	private static extern bool profiler_alloc_push();
+
+	[DllImport("CarbonNative")]
+	private static extern ulong profiler_alloc_pop();
 
 	[DllImport("CarbonNative")]
 	private static extern void carbon_init_logger(delegate*<int, int, byte*, int, LogSource, void> logger);
