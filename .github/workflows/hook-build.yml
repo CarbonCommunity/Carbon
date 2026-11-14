@@ -60,7 +60,6 @@ on:
         type: string
 
 env:
-  FTP_PWD: ${{ secrets.FTP_PWD }}
   DISCORD_HOOK_WH: ${{ secrets.DISCORD_HOOK_WH }}
   PROTOCOL: ${{ inputs.protocol }}
   RUST_BRANCH: ${{ inputs.rust_branch }}
@@ -131,82 +130,69 @@ jobs:
           path: |
             src/Carbon.Hooks/Carbon.Hooks.Generator/ftp/*
 
-      - name: ⬆️ FTP - Upload Debug (Carbon.Hooks.Community)
-        uses: tomasbkk/action-ftp-upload@v1.0
-        if: ${{ inputs.debug }}
-        with:
-          user: redist@carbonmod.gg
-          password: ${{ secrets.FTP_PWD }}
-          host: ${{ secrets.FTP_IP }}
-          src: "src/Carbon.Hooks/Carbon.Hooks.Generator/ftp/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
-          dest: "hooks/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+      - name: ⬆️ SFTP - Upload Hooks
+        if: ${{ inputs.debug || inputs.release }}
+        shell: pwsh
+        env:
+          SFTP_HOST: redist.carbonmod.gg
+          SFTP_PORT: 22
+          SFTP_USER: carbonmod
+          # Remote folder holding 'server/<target>/<protocol>', relative to the SSH user's login folder (or absolute)
+          SFTP_ROOT: /home/carbonmod/public_html/cdn.carbonmod.gg/hooks
+          # Private key of the SSH user (OpenSSH format, no passphrase)
+          SFTP_KEY: ${{ secrets.SFTP_KEY }}
+          # Optional 'ssh-keyscan' output for the host; when empty the host key is trusted on first use
+          SFTP_KNOWN_HOSTS: ${{ vars.SFTP_KNOWN_HOSTS }}
+        run: |
+          if (-not $env:SFTP_KEY) { throw 'The SFTP_KEY secret is not set.' }
 
-      - name: ⬆️ FTP - Upload DebugUnix (Carbon.Hooks.Community)
-        uses: tomasbkk/action-ftp-upload@v1.0
-        if: ${{ inputs.debug }}
-        with:
-          user: redist@carbonmod.gg
-          password: ${{ secrets.FTP_PWD }}
-          host: ${{ secrets.FTP_IP }}
-          src: "src/Carbon.Hooks/Carbon.Hooks.Generator/ftp/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
-          dest: "hooks/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+          $key = Join-Path $env:RUNNER_TEMP 'sftp_key'
+          $knownHosts = Join-Path $env:RUNNER_TEMP 'sftp_known_hosts'
+          $batch = Join-Path $env:RUNNER_TEMP 'sftp_batch.txt'
 
-      - name: ⬆️ FTP - Upload Debug (Carbon.Hooks.Oxide)
-        uses: tomasbkk/action-ftp-upload@v1.0
-        if: ${{ inputs.debug }}
-        with:
-          user: redist@carbonmod.gg
-          password: ${{ secrets.FTP_PWD }}
-          host: ${{ secrets.FTP_IP }}
-          src: "src/Carbon.Hooks/Carbon.Hooks.Generator/ftp/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
-          dest: "hooks/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+          try {
+            # OpenSSH wants LF line endings and refuses private keys other accounts can read
+            [IO.File]::WriteAllText($key, ($env:SFTP_KEY.Trim() -replace "`r", '') + "`n")
+            icacls $key /inheritance:r /grant:r "$($env:USERNAME):(F)" | Out-Null
 
-      - name: ⬆️ FTP - Upload DebugUnix (Carbon.Hooks.Oxide)
-        uses: tomasbkk/action-ftp-upload@v1.0
-        if: ${{ inputs.debug }}
-        with:
-          user: redist@carbonmod.gg
-          password: ${{ secrets.FTP_PWD }}
-          host: ${{ secrets.FTP_IP }}
-          src: "src/Carbon.Hooks/Carbon.Hooks.Generator/ftp/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
-          dest: "hooks/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+            $options = @('-b', $batch, '-i', $key, '-P', $env:SFTP_PORT, '-o', 'IdentitiesOnly=yes')
 
-      - name: ⬆️ FTP - Upload Release (Carbon.Hooks.Community)
-        uses: tomasbkk/action-ftp-upload@v1.0
-        if: ${{ inputs.release }}
-        with:
-          user: redist@carbonmod.gg
-          password: ${{ secrets.FTP_PWD }}
-          host: ${{ secrets.FTP_IP }}
-          src: "src/Carbon.Hooks/Carbon.Hooks.Generator/ftp/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
-          dest: "hooks/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+            if ($env:SFTP_KNOWN_HOSTS) {
+              [IO.File]::WriteAllText($knownHosts, ($env:SFTP_KNOWN_HOSTS.Trim() -replace "`r", '') + "`n")
+              $options += '-o', 'StrictHostKeyChecking=yes', '-o', "UserKnownHostsFile=$($knownHosts -replace '\', '/')"
+            } else {
+              Write-Output '::warning::SFTP_KNOWN_HOSTS is not set, the SFTP host key is not being verified.'
+              $options += '-o', 'StrictHostKeyChecking=accept-new'
+            }
 
-      - name: ⬆️ FTP - Upload ReleaseUnix (Carbon.Hooks.Community)
-        uses: tomasbkk/action-ftp-upload@v1.0
-        if: ${{ inputs.release }}
-        with:
-          user: redist@carbonmod.gg
-          password: ${{ secrets.FTP_PWD }}
-          host: ${{ secrets.FTP_IP }}
-          src: "src/Carbon.Hooks/Carbon.Hooks.Generator/ftp/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
-          dest: "hooks/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+            $targets = @()
+            if ($env:DEBUG_BUILD -eq 'true') { $targets += 'debug', 'debugunix' }
+            if ($env:RELEASE_BUILD -eq 'true') { $targets += 'release', 'releaseunix' }
 
-      - name: ⬆️ FTP - Upload Release (Carbon.Hooks.Oxide)
-        uses: tomasbkk/action-ftp-upload@v1.0
-        if: ${{ inputs.release }}
-        with:
-          user: redist@carbonmod.gg
-          password: ${{ secrets.FTP_PWD }}
-          host: ${{ secrets.FTP_IP }}
-          src: "src/Carbon.Hooks/Carbon.Hooks.Generator/ftp/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
-          dest: "hooks/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+            $commands = [Collections.Generic.List[string]]::new()
+            foreach ($target in $targets) {
+              $remote = "$env:SFTP_ROOT/server/$target/$env:PROTOCOL"
 
-      - name: ⬆️ FTP - Upload ReleaseUnix (Carbon.Hooks.Oxide)
-        uses: tomasbkk/action-ftp-upload@v1.0
-        if: ${{ inputs.release }}
-        with:
-          user: redist@carbonmod.gg
-          password: ${{ secrets.FTP_PWD }}
-          host: ${{ secrets.FTP_IP }}
-          src: "src/Carbon.Hooks/Carbon.Hooks.Generator/ftp/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
-          dest: "hooks/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+              # mkdir isn't recursive, the '-' prefix ignores folders that already exist
+              foreach ($folder in '', '/carbon', '/carbon/managed', '/carbon/managed/hooks') {
+                $commands.Add("-mkdir `"$remote$folder`"")
+              }
+
+              foreach ($dll in 'Carbon.Hooks.Community.dll', 'Carbon.Hooks.Oxide.dll') {
+                $file = "src/Carbon.Hooks/Carbon.Hooks.Generator/ftp/server/$target/$env:PROTOCOL/carbon/managed/hooks/$dll"
+                if (-not (Test-Path $file)) { throw "Missing build output: $file" }
+                $commands.Add("put `"$file`" `"$remote/carbon/managed/hooks/$dll`"")
+              }
+            }
+            $commands.Add('bye')
+            [IO.File]::WriteAllText($batch, ($commands -join "`n") + "`n")
+
+            $sftp = Join-Path $env:SystemRoot 'System32\OpenSSH\sftp.exe'
+            if (-not (Test-Path $sftp)) { $sftp = 'sftp' }
+
+            & $sftp @options "$($env:SFTP_USER)@$($env:SFTP_HOST)"
+            if ($LASTEXITCODE -ne 0) { throw "sftp failed with exit code $LASTEXITCODE" }
+          }
+          finally {
+            Remove-Item $key, $knownHosts, $batch -Force -ErrorAction SilentlyContinue
+          }
