@@ -128,7 +128,7 @@ public partial class AdminModule
 						foreach (var vendor in Enum.GetNames(typeof(VendorTypes)))
 						{
 							var disabled = GetVendor((VendorTypes)Enum.Parse(typeof(VendorTypes), vendor)) == null;
-							var isSelected =  selectedVendor.GetType().Name == vendor;
+							var isSelected = selectedVendor.GetType().Name == vendor;
 							CreateTabButton(cui, container, options, vendor, selectedVendor?.BarInfo.ToUpper(),
 								isSelected, ref optionsOffset, disabled);
 						}
@@ -245,19 +245,9 @@ public partial class AdminModule
 								OyMax: -50, font: CUI.Handler.FontTypes.RobotoCondensedRegular,
 								align: TextAnchor.UpperRight);
 
-							if (authVendor != null)
+							if (Singleton.HasAccess(ap.Player, "plugins.setup") && authVendor.User?.PendingAccessToken != true)
 							{
-								cui.CreateProtectedButton(container, contentPanel,
-									authVendor != null && authVendor.IsLoggedIn
-										? "0.55 0.1 0.1 1"
-										: "0.1 0.55 0.1 1",
-									authVendor != null && authVendor.IsLoggedIn
-										? "1 0.5 0.5 1"
-										: "0.5 1 0.5 1",
-									authVendor != null && authVendor.IsLoggedIn ? "LOG OUT" : "LOG IN", 10,
-									xMin: 0.85f, xMax: 0.9f, yMin: 1, yMax: 1, OyMin: -90, OyMax: -70,
-									font: CUI.Handler.FontTypes.RobotoCondensedBold,
-									command: "pluginbrowser.login");
+								cui.CreateProtectedButton(container, contentPanel, authVendor.IsLoggedIn ? "0.55 0.1 0.1 1" : "0.1 0.55 0.1 1", authVendor.IsLoggedIn ? "1 0.5 0.5 1" : "0.5 1 0.5 1", authVendor.IsLoggedIn ? "LOG OUT" : "LOG IN", 10, xMin: 0.85f, xMax: 0.9f, yMin: 1, yMax: 1, OyMin: -90, OyMax: -70, font: CUI.Handler.FontTypes.RobotoCondensedBold, command: "pluginbrowser.login");
 							}
 						}
 
@@ -279,7 +269,7 @@ public partial class AdminModule
 							}
 
 							var displayVendor = Singleton.DataInstance.HidePluginIcons || plugin.HasNoImage() ||
-							                    plugin.HasInvalidImage();
+												plugin.HasInvalidImage();
 							var card = cui.CreateProtectedButton(container, contentPanel, "0.1 0.1 0.1 0.7",
 								Cache.CUI.BlankColor, null, 0,
 								command:
@@ -315,7 +305,7 @@ public partial class AdminModule
 							}
 
 							if (selectedVendor == LocalInstance && originalPlugin.AvailableOn != null &&
-							    originalPlugin.AvailableOn.Count > 1)
+								originalPlugin.AvailableOn.Count > 1)
 							{
 								cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor, "0.75 1 0.5 0.8",
 									originalPlugin.PreferredVendor.ToString().ToUpper().SpacedString(1), 8,
@@ -618,7 +608,7 @@ public partial class AdminModule
 
 						if (auth != null)
 						{
-							if (auth.IsLoggedIn && auth.User != null && auth.User.PendingAccessToken)
+							if (auth.User?.PendingAccessToken == true && auth.IsPairingFor(ap) && Singleton.HasAccess(ap.Player, "plugins.setup"))
 							{
 								var mainPanel = cui.CreatePanel(container, panel, "0.15 0.15 0.15 0.35",
 									blur: true);
@@ -641,13 +631,8 @@ public partial class AdminModule
 
 								var image = cui.CreatePanel(container, panel, "1 1 1 1", xMin: 0.12f,
 									xMax: 0.45f, yMin: 0.2f, yMax: 0.8f);
-								var code = string.Format(auth.AuthRequestEndpoint, auth.AuthCode);
 
-								cui.CreateQRCodeImage(container, image, code,
-									brandUrl: selectedVendor.Logo,
-									brandColor: "0 0 0 1",
-									brandBgColor: "1 1 1 1", 15, true, true, "0 0 0 1", xMin: 0, xMax: 1,
-									yMin: 0, yMax: 1);
+								cui.CreateQRCodeImage(container, image, string.Format(auth.AuthRequestEndpoint, auth.AuthCode), brandUrl: selectedVendor.Logo, brandColor: "0 0 0 1", brandBgColor: "1 1 1 1", 15, true, true, "0 0 0 1", xMin: 0, xMax: 1, yMin: 0, yMax: 1);
 								var pan = cui.CreatePanel(container, panel, "0.1 0.1 0.1 1", xMin: 0.5f,
 									xMax: 0.8f, yMin: 0.21f, yMax: 0.31f);
 								var authUrl = cui.CreatePanel(container, image, "0.1 0.1 0.1 0.8", yMax: 0,
@@ -981,22 +966,16 @@ public partial class AdminModule
 		}
 		public interface IVendorAuthenticated
 		{
-			public string AuthCode { get; set; }
+			public string AuthCode { get; }
 			public string AuthRequestEndpoint { get; }
 			public string AuthRequestEndpointPreview { get; }
-			public string AuthValidationEndpoint { get; }
-			public string AuthUserInfoEndpoint { get; }
-			public string AuthOwnedPluginsEndpoint { get; }
-			public string AuthDownloadFileEndpoint { get; }
-			public KeyValuePair<HttpRequestHeader, string> AuthHeader { get; }
-
-			public float AuthValidationCheckRate { get; }
-			public Timer ValidationTimer { get; set; }
-
 			public LoggedInUser User { get; set; }
 			public bool IsLoggedIn { get; }
 
-			public void Validate(PlayerSession session, Action onCompletion);
+			public bool IsPairingFor(PlayerSession session);
+			public void BeginPairing(PlayerSession session);
+			public void CancelPairing(PlayerSession session);
+			public void SignOut();
 			public void RefreshUser(PlayerSession session);
 		}
 
@@ -1060,7 +1039,6 @@ public partial class AdminModule
 			public override string ListEndpoint => "https://codefling.com/db/?category=2";
 			public override string DownloadEndpoint => "https://codefling.com/files/file/[ID]-a?do=download";
 
-			private Dictionary<string, string> _headers = new();
 			private static readonly string _backSlashes = "\\";
 
 			public override void Refresh()
@@ -1082,10 +1060,10 @@ public partial class AdminModule
 						foreach (var existentPlugin in plugins)
 						{
 							if ((!string.IsNullOrEmpty(existentPlugin.FileName) &&
-							     (existentPlugin.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
-							     existentPlugin.FileName.Equals(fileNameNoExtension, StringComparison.OrdinalIgnoreCase))) ||
-							    (!string.IsNullOrEmpty(existentPlugin.Name) && !string.IsNullOrEmpty(plugin.Name) &&
-							     existentPlugin.Name.Equals(plugin.Name, StringComparison.OrdinalIgnoreCase)))
+								 (existentPlugin.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
+								 existentPlugin.FileName.Equals(fileNameNoExtension, StringComparison.OrdinalIgnoreCase))) ||
+								(!string.IsNullOrEmpty(existentPlugin.Name) && !string.IsNullOrEmpty(plugin.Name) &&
+								 existentPlugin.Name.Equals(plugin.Name, StringComparison.OrdinalIgnoreCase)))
 							{
 								plugin.SetExistentPlugin(existentPlugin);
 								break;
@@ -1108,18 +1086,19 @@ public partial class AdminModule
 			}
 			public override void FetchList(Action<Vendor> callback = null)
 			{
-				Community.Runtime.Core.webrequest.Enqueue(ListEndpoint, null, (error, data) =>
+				RequestCodefling(ListEndpoint, null, null, false, (error, data, _) =>
 				{
-					if (error != 200)
+					if (error != 200 || data == null)
 					{
 						Logger.Log($"[{Type}] Failed fetching vendor. Error code {error}!");
+
 						return;
 					}
 
 					FetchedPlugins.Clear();
 					var plugins = Facepunch.Pool.Get<List<Carbon.Plugins.Plugin>>();
 					ModLoader.Packages.GetAllHookables(plugins);
-					ParseData(data, true, false, FetchedPlugins, callback, this, plugins);
+					ParseData(Encoding.UTF8.GetString(data).TrimStart('\uFEFF'), true, false, FetchedPlugins, callback, this, plugins);
 					Facepunch.Pool.FreeUnmanaged(ref plugins);
 					VersionCheck();
 
@@ -1190,190 +1169,199 @@ public partial class AdminModule
 							Logger.Error($" Couldn't fetch Codefling API to get the plugins list. Most likely because it's down.", ex);
 						}
 					}
-				}, Community.Runtime.Core);
+				});
 			}
 			public override void Download(string id, Action onTimeout = null)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.CurrentCultureIgnoreCase) || string.Equals(x.Name, id, StringComparison.CurrentCultureIgnoreCase) || string.Equals(Path.GetFileNameWithoutExtension(x.File), id, StringComparison.CurrentCultureIgnoreCase));
+
 				if (plugin == null)
 				{
 					Logger.Error($"Couldn't find '{id}' on {Type}");
+
+					return;
 				}
+
+				if (plugin.IsBusy)
+				{
+					return;
+				}
+
+				var user = User;
+				var extension = Path.GetExtension(plugin.File);
+
 				plugin.IsBusy = true;
 				plugin.DownloadCount++;
 
-				var core = Community.Runtime.Core;
-
-				core.timer.In(2f, () =>
+				if (!IsLoggedIn)
 				{
-					if (plugin.IsBusy)
+					RequestCodefling(DownloadEndpoint.Replace("[ID]", plugin.Id), null, null, true, (status, bytes, _) => StoreDownload(status, bytes, plugin.File));
+
+					return;
+				}
+
+				if (extension is not (".cs" or ".zip"))
+				{
+					FailDownload("Unsupported plugin file type.");
+
+					return;
+				}
+
+				RequestCodeflingApi($"https://codefling.com/api/downloads/files/{plugin.Id}/download", user.AccessToken, (status, result, _) =>
+				{
+					if (User != user)
 					{
-						plugin.IsBusy = false;
-						onTimeout?.Invoke();
+						FailDownload("The linked Codefling account changed.");
+
+						return;
 					}
+
+					if (status == 401)
+					{
+						SignOut();
+
+						FailDownload("The Codefling authorization expired. Sign in again.");
+
+						return;
+					}
+
+					if (status != 200 || result?["files"] is not JArray files || files.FirstOrDefault() is not JObject file)
+					{
+						FailDownload($"Codefling could not provide a download URL (HTTP {status}).");
+
+						return;
+					}
+
+					RequestCodefling(ReadValue(file["url"]), user.AccessToken, null, true, (fileStatus, bytes, _) => StoreDownload(fileStatus, bytes, extension == ".zip" ? Path.GetFileName((ReadValue(file["name"]) ?? plugin.File).Replace('\\', '/')) : plugin.File));
 				});
 
-				if (IsLoggedIn)
+				void FailDownload(string message)
 				{
-					var extension = Path.GetExtension(plugin.File);
+					plugin.IsBusy = false;
 
-					switch (extension)
-					{
-						case ".zip":
-							core.webrequest.Enqueue(string.Format(AuthDownloadFileEndpoint, plugin.Id), null, (error, source) =>
-							{
-								if (error != 200)
-								{
-									Logger.Error($"Auth token for Codefling is expired! Please log in once again.");
-									User = null;
-									return;
-								}
+					Logger.Error($"[Codefling] {message}");
 
-								var jobject = JObject.Parse(source);
-								var name = jobject["files"][0]["name"].ToString();
-								var file = jobject["files"][0]["url"].ToString();
-								var path = plugin.ExistentPlugin == null ? Path.Combine(Defines.GetScriptsFolder(), name) : plugin.ExistentPlugin.FilePath;
-
-								core.webrequest.EnqueueData(file, null, (_, source) =>
-								{
-									plugin.IsBusy = false;
-
-									using var stream = new MemoryStream(source);
-									using var zip = new ZipArchive(stream);
-
-									const string sourceExtension = ".cs";
-									const string dllExtension = ".dll";
-									const string jsonExtension = ".json";
-									const string dataFolder = "data";
-									const string configFolder = "config";
-
-									static void StoreFile(ZipArchiveEntry entry, string path, string context)
-									{
-										using var memoryStream = new MemoryStream();
-										using var entryStream = entry.Open();
-										entryStream.CopyTo(memoryStream);
-										var bytes = memoryStream.ToArray();
-
-										OsEx.File.Move(path, Path.Combine(Defines.GetScriptsFolder(), "backups", Path.GetFileName(path)));
-										OsEx.File.Create(path, bytes);
-										Singleton.Puts($" Extracted plugin {context} file '{entry.Name}'");
-									}
-
-									foreach (var file in zip.Entries)
-									{
-										switch (Path.GetExtension(file.Name))
-										{
-											case sourceExtension:
-												{
-													using var reader = new StreamReader(file.Open());
-													var fileSource = reader.ReadToEnd();
-
-													OsEx.File.Move(Path.Combine(Defines.GetScriptsFolder(), file.Name), Path.Combine(Defines.GetScriptsFolder(), "backups", file.Name));
-													OsEx.File.Create(Path.Combine(Defines.GetScriptsFolder(), file.Name), fileSource);
-													Singleton.Puts($" Extracted plugin file {file.Name}");
-												}
-												break;
-
-											case dllExtension:
-												{
-													StoreFile(file, Path.Combine(Defines.GetLibFolder(), $"{file.Name}"), "extension");
-												}
-												break;
-
-											case jsonExtension:
-												{
-													switch (file.FullName)
-													{
-														case var data when data.Contains(dataFolder):
-															{
-																var offsetIndex = data.IndexOf(dataFolder) + 5;
-																var subFolder = Path.GetDirectoryName(data[offsetIndex..]);
-																StoreFile(file, Path.Combine(Defines.GetDataFolder(), subFolder, file.Name), "data");
-															}
-															break;
-
-														case var config when config.Contains(configFolder):
-															{
-																var offsetIndex = config.IndexOf(configFolder) + 5;
-																var subFolder = Path.GetDirectoryName(config[offsetIndex..]);
-																StoreFile(file, Path.Combine(Defines.GetConfigsFolder(), subFolder, file.Name), "config");
-															}
-															break;
-													}
-												}
-												break;
-										}
-									}
-
-									Singleton.Puts($"Downloaded {plugin.Name}");
-									OsEx.File.Create(path, source);
-								}, core, headers: _headers);
-
-							}, core, headers: _headers);
-							break;
-
-						case ".cs":
-							core.webrequest.Enqueue(string.Format(AuthDownloadFileEndpoint, plugin.Id), null, (error, source) =>
-							{
-								if (error != 200)
-								{
-									Logger.Error($"Auth token for Codefling is expired! Please log in once again.");
-									User = null;
-									return;
-								}
-
-								var jobject = JObject.Parse(source);
-								var file = jobject["files"][0]["url"].ToString();
-								var path = plugin.ExistentPlugin == null ? Path.Combine(Defines.GetScriptsFolder(), plugin.File) : plugin.ExistentPlugin.FilePath;
-
-								core.webrequest.Enqueue(file, null, (_, source) =>
-								{
-									plugin.IsBusy = false;
-
-									Singleton.Puts($"Downloaded {plugin.Name}");
-									OsEx.File.Move(path, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.File));
-									OsEx.File.Create(path, source);
-								}, core, headers: _headers);
-
-							}, core, headers: _headers);
-							break;
-					}
+					onTimeout?.Invoke();
 				}
-				else
+
+				void StoreDownload(int status, byte[] bytes, string name)
 				{
-					var path = plugin.ExistentPlugin == null ? Path.Combine(Defines.GetScriptsFolder(), plugin.File) : plugin.ExistentPlugin.FilePath;
-					var url = DownloadEndpoint.Replace("[ID]", id);
-
-					core.webrequest.Enqueue(url, null, (error, source) =>
+					if (User != user || status != 200 || bytes == null || bytes.Length == 0 || string.IsNullOrEmpty(name) || name is "." or "..")
 					{
-						if (error != 200)
+						FailDownload($"Could not download '{plugin.Name}' (HTTP {status}).");
+
+						return;
+					}
+
+					plugin.IsBusy = false;
+
+					try
+					{
+						var path = plugin.ExistentPlugin == null ? Path.Combine(Defines.GetScriptsFolder(), name) : plugin.ExistentPlugin.FilePath;
+
+						if (!string.IsNullOrEmpty(user?.AccessToken) && extension == ".zip")
 						{
-							Logger.Error($"[{Type}] Failed downloading item '{plugin.Name} by {plugin.Author}'. Error code {error}!");
-							return;
+							StoreArchive(bytes);
+							OsEx.File.Create(path, bytes);
 						}
-
-						plugin.IsBusy = false;
-
-						if (!source.StartsWith("<!DOCTYPE html>"))
+						else
 						{
-							Singleton.Puts($"Downloaded {plugin.Name}");
+							var source = Encoding.UTF8.GetString(bytes).TrimStart('\uFEFF');
+
+							if (source.TrimStart().StartsWith("<", StringComparison.Ordinal))
+							{
+								FailDownload("Codefling returned an HTML page for the download.");
+
+								return;
+							}
+
 							OsEx.File.Move(path, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.File));
 							OsEx.File.Create(path, source);
 						}
-					}, core, headers: new Dictionary<string, string>
+
+						Singleton.Puts($"Downloaded {plugin.Name}");
+					}
+					catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException)
 					{
-						["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.63",
-						["accept"] = "ext/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
-					});
+						FailDownload($"Could not save '{plugin.Name}' ({error.GetType().Name}).");
+					}
+				}
+			}
+
+			private static void StoreArchive(byte[] bytes)
+			{
+				using var stream = new MemoryStream(bytes);
+				using var zip = new ZipArchive(stream);
+
+				const string sourceExtension = ".cs";
+				const string dllExtension = ".dll";
+				const string jsonExtension = ".json";
+				const string dataFolder = "data";
+				const string configFolder = "config";
+
+				static void StoreFile(ZipArchiveEntry entry, string path, string context)
+				{
+					using var memoryStream = new MemoryStream();
+					using var entryStream = entry.Open();
+
+					entryStream.CopyTo(memoryStream);
+
+					OsEx.File.Move(path, Path.Combine(Defines.GetScriptsFolder(), "backups", Path.GetFileName(path)));
+					OsEx.File.Create(path, memoryStream.ToArray());
+					Singleton.Puts($" Extracted plugin {context} file '{entry.Name}'");
+				}
+
+				foreach (var file in zip.Entries)
+				{
+					if (file.FullName.Contains(':') || file.FullName.Contains('\\') || file.FullName.Split('/').Any(part => part is "." or ".."))
+					{
+						continue;
+					}
+
+					switch (Path.GetExtension(file.Name))
+					{
+						case sourceExtension:
+						{
+							using var reader = new StreamReader(file.Open());
+
+							OsEx.File.Move(Path.Combine(Defines.GetScriptsFolder(), file.Name), Path.Combine(Defines.GetScriptsFolder(), "backups", file.Name));
+							OsEx.File.Create(Path.Combine(Defines.GetScriptsFolder(), file.Name), reader.ReadToEnd());
+							Singleton.Puts($" Extracted plugin file {file.Name}");
+						}
+						break;
+
+						case dllExtension:
+						{
+							StoreFile(file, Path.Combine(Defines.GetLibFolder(), file.Name), "extension");
+						}
+						break;
+
+						case jsonExtension:
+						{
+							switch (file.FullName)
+							{
+								case var data when data.Contains(dataFolder):
+								{
+									StoreFile(file, Path.Combine(Defines.GetDataFolder(), Path.GetDirectoryName(data[(data.IndexOf(dataFolder) + 5)..]) ?? string.Empty, file.Name), "data");
+								}
+								break;
+
+								case var config when config.Contains(configFolder):
+								{
+									StoreFile(file, Path.Combine(Defines.GetConfigsFolder(), Path.GetDirectoryName(config[(config.IndexOf(configFolder) + 7)..]) ?? string.Empty, file.Name), "config");
+								}
+								break;
+							}
+						}
+						break;
+					}
 				}
 			}
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
+																x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+																Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
@@ -1388,116 +1376,483 @@ public partial class AdminModule
 			[ProtoMember(50, IsRequired = false)]
 			public LoggedInUser User { get; set; }
 
-			public string AuthRequestEndpoint => "https://codefling.com/auth/?pin={0}";
-			public string AuthRequestEndpointPreview => "codefling.com/auth";
-			public string AuthValidationEndpoint => "https://codefling.com/auth/bearer?code={0}";
-			public string AuthUserInfoEndpoint => "https://codefling.com/api/core/me";
-			public string AuthOwnedPluginsEndpoint => "https://codefling.com/api/nexus/purchases?perPage=100000&itemType=file&itemApp=downloads";
-			public string AuthDownloadFileEndpoint => "https://codefling.com/api/downloads/files/{0}/download";
-			public KeyValuePair<HttpRequestHeader, string> AuthHeader => new(HttpRequestHeader.Authorization, "Bearer {0}");
-			public float AuthValidationCheckRate => 5f;
-			public Timer ValidationTimer { get; set; }
-			public string AuthCode { get; set; }
+			public string AuthCode { get; private set; }
+			public string AuthRequestEndpoint => "https://auth.carbonmod.gg/?pin={0}";
+			public string AuthRequestEndpointPreview => "auth.carbonmod.gg";
+			public bool IsLoggedIn => !string.IsNullOrEmpty(User?.AccessToken);
 
-			public void Validate(PlayerSession session, Action onComplete)
+			private PlayerSession _pairingSession;
+			private Timer _pairingTimer;
+			private string _deviceCode;
+			private int _pairingAttempt;
+
+			public bool IsPairingFor(PlayerSession session)
 			{
-				var core = Community.Runtime.Core;
+				return session != null && _pairingSession == session;
+			}
 
-				ValidationTimer = core.timer.Every(AuthValidationCheckRate, () =>
+			public void BeginPairing(PlayerSession session)
+			{
+				if (_pairingSession != null || IsLoggedIn || session?.IsInMenu != true || session.Player == null || !session.Player.IsConnected || !Singleton.HasAccess(session.Player, "plugins.setup"))
 				{
-					if (User == null || !session.IsInMenu)
+					return;
+				}
+
+				_pairingSession = session;
+
+				var attempt = ++_pairingAttempt;
+
+				RequestCodeflingApi("https://auth.carbonmod.gg/bearer/", null, (status, result, retryAfter) =>
+				{
+					var deviceCode = ReadValue(result?["device_code"]);
+
+					if (deviceCode != null && !Regex.IsMatch(deviceCode, @"\A[a-f0-9]{64}\z"))
 					{
-						ValidationTimer?.Destroy();
-						ValidationTimer = null;
-						User = null;
+						deviceCode = null;
+					}
+
+					if (!CanContinuePairing(session, attempt))
+					{
+						if (deviceCode != null)
+						{
+							CancelDeviceCode(deviceCode);
+						}
+
 						return;
 					}
 
-					var url = string.Format(AuthValidationEndpoint, AuthCode);
+					_deviceCode = deviceCode;
 
-					core.webrequest.Enqueue(url, null, (code, result) =>
+					var userCode = ReadValue(result?["user_code"]);
+
+					int.TryParse(ReadValue(result?["expires_in"]), out var lifetime);
+					int.TryParse(ReadValue(result?["interval"]), out var interval);
+
+					if (status == 429)
 					{
-						User ??= new();
+						StopPairing(session, $"Too many Codefling sign-in attempts. Try again in {Math.Max(5, retryAfter)} seconds.");
 
-						switch (code)
+						return;
+					}
+
+					if (status != 200 || deviceCode == null || userCode == null || !Regex.IsMatch(userCode, @"\A[23456789A-HJ-NP-Z]{6}\z") || lifetime is <= 0 or > 600 || interval <= 0 || interval >= lifetime)
+					{
+						StopPairing(session, "Couldn't start Codefling sign-in. Try again.");
+
+						return;
+					}
+
+					var expiresAt = DateTime.UtcNow.AddSeconds(lifetime);
+
+					AuthCode = userCode;
+					User = new LoggedInUser { PendingAccessToken = true };
+
+					Singleton.Draw(session.Player);
+
+					_pairingTimer = Community.Runtime.Core.timer.In(interval, Poll);
+
+					void Poll()
+					{
+						if (!CanContinuePairing(session, attempt))
 						{
-							case 401:
-								var previous = User.PendingResult;
-								User.PendingResult = LoggedInUser.RequestResult.Processing;
-
-								if (previous != User.PendingResult)
-								{
-									Singleton.Draw(session.Player);
-								}
-								break;
-
-							default:
-								var jobject = JObject.Parse(result);
-								User.AccessToken = jobject["accesstoken"].ToString();
-								User.AccessTokenEncoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(User.AccessToken));
-								ValidationTimer.Destroy();
-								ValidationTimer = null;
-								_headers[AuthHeader.Key.ToString()] = string.Format(AuthHeader.Value, User.AccessToken);
-								Analytics.codefling_login();
-
-								User.PendingResult = LoggedInUser.RequestResult.Complete;
-								onComplete?.Invoke();
-								break;
+							return;
 						}
-					}, null);
-				});
-			}
-			public void RefreshUser(PlayerSession session)
-			{
-				if (!IsLoggedIn) return;
 
-				var core = Community.Runtime.Core;
-				var authHeader = AuthHeader;
-				var headers = new Dictionary<string, string>()
-				{
-					[authHeader.Key.ToString()] = string.Format(authHeader.Value, User.AccessToken)
-				};
+						_pairingTimer = null;
 
-				core.webrequest.Enqueue(AuthUserInfoEndpoint, null, (code, info) =>
-				{
-					switch (code)
-					{
-						case 200:
-							var jobject = JObject.Parse(info);
-							User.Authority = jobject["primaryGroup"]["name"]?.ToString();
-							User.AvatarUrl = jobject["photoUrl"]?.ToString();
-							User.DisplayName = jobject["formattedName"]?.ToString();
-							User.CoverUrl = jobject["coverPhotoUrl"]?.ToString();
-							User.Id = jobject["id"].ToString().ToInt();
-							User.IsAdmin = User.Authority == "Administrator";
+						if (DateTime.UtcNow >= expiresAt)
+						{
+							StopPairing(session, "The Codefling code expired. Sign in again for a new code.");
 
-							core.webrequest.Enqueue(AuthOwnedPluginsEndpoint, null, (code, data) =>
+							return;
+						}
+
+						RequestCodeflingApi("https://auth.carbonmod.gg/bearer/", null, (pollStatus, pollResult, pollRetryAfter) =>
+						{
+							if (!CanContinuePairing(session, attempt))
 							{
-								var jobject = JObject.Parse(data);
-								User.OwnedFiles.Clear();
+								return;
+							}
 
-								foreach (var item in jobject["results"])
+							var error = ReadValue(pollResult?["error"]);
+
+							if (error == "expired_token")
+							{
+								StopPairing(session, "The Codefling code expired. Sign in again for a new code.");
+
+								return;
+							}
+
+							var retryWithBackoff = error == "slow_down" || pollStatus is 0 or 429 or >= 500;
+
+							if (error == "authorization_pending" || retryWithBackoff)
+							{
+								if (retryWithBackoff)
 								{
-									User.OwnedFiles.Add(item["itemId"].ToString());
+									interval += 5;
 								}
+
+								var delay = Math.Max(interval, pollRetryAfter);
+
+								if (DateTime.UtcNow.AddSeconds(delay) >= expiresAt)
+								{
+									StopPairing(session, "The Codefling code will expire before the next retry. Sign in again for a new code.");
+
+									return;
+								}
+
+								_pairingTimer = Community.Runtime.Core.timer.In(delay, Poll);
+
+								return;
+							}
+
+							var token = ReadValue(pollResult?["access_token"]);
+
+							if (pollStatus != 200 || !string.Equals(ReadValue(pollResult?["token_type"]), "Bearer", StringComparison.OrdinalIgnoreCase) || !ValidToken(token))
+							{
+								StopPairing(session, "Couldn't finish Codefling sign-in. Try again.");
+
+								return;
+							}
+
+							_deviceCode = null;
+
+							LoadCodeflingUser(token, (_, user) =>
+							{
+								if (!CanContinuePairing(session, attempt))
+								{
+									return;
+								}
+
+								if (user == null)
+								{
+									StopPairing(session, "Couldn't load the linked Codefling account and purchases. Try again.");
+
+									return;
+								}
+
+								User = user;
 
 								Refresh();
 								Save();
-								Singleton.Draw(session.Player);
-							}, core, headers: headers);
-							break;
-
-						default:
-							User = null;
-							Refresh();
-							Save();
-							Singleton.Draw(session.Player);
-							break;
+								StopPairing(session);
+								Analytics.codefling_login();
+							});
+						}, new JObject { ["action"] = "poll", ["device_code"] = deviceCode });
 					}
-				}, core, headers: headers);
+				}, new JObject { ["action"] = "start" });
 			}
 
-			public bool IsLoggedIn => User != null;
+			public void CancelPairing(PlayerSession session)
+			{
+				if (IsPairingFor(session))
+				{
+					StopPairing(session);
+				}
+			}
+
+			public void SignOut()
+			{
+				User = null;
+
+				Refresh();
+				Save();
+			}
+
+			private bool CanContinuePairing(PlayerSession session, int attempt)
+			{
+				if (_pairingAttempt != attempt || !IsPairingFor(session))
+				{
+					return false;
+				}
+
+				if (session.IsInMenu && session.Player != null && session.Player.IsConnected && Singleton.HasAccess(session.Player, "plugins.setup"))
+				{
+					return true;
+				}
+
+				StopPairing(session);
+
+				return false;
+			}
+
+			private void StopPairing(PlayerSession session, string message = null)
+			{
+				_pairingAttempt++;
+				_pairingSession = null;
+
+				_pairingTimer?.Destroy();
+				_pairingTimer = null;
+				AuthCode = null;
+
+				if (_deviceCode != null)
+				{
+					CancelDeviceCode(_deviceCode);
+					_deviceCode = null;
+				}
+
+				if (User?.PendingAccessToken == true)
+				{
+					User = null;
+				}
+
+				if (session.Player == null || !session.Player.IsConnected)
+				{
+					return;
+				}
+
+				if (message != null)
+				{
+					session.Player.ChatMessage(message);
+				}
+
+				if (session.IsInMenu && Singleton.HasAccess(session.Player, "plugins.setup"))
+				{
+					Singleton.Draw(session.Player);
+				}
+			}
+
+			private void CancelDeviceCode(string deviceCode)
+			{
+				RequestCodeflingApi("https://auth.carbonmod.gg/bearer/", null, null, new JObject { ["action"] = "cancel", ["device_code"] = deviceCode });
+			}
+
+			public void RefreshUser(PlayerSession session)
+			{
+				if (!IsLoggedIn)
+				{
+					return;
+				}
+
+				var previous = User;
+
+				LoadCodeflingUser(previous.AccessToken, (status, user) =>
+				{
+					if (User != previous || (user == null && status != 401))
+					{
+						return;
+					}
+
+					User = user;
+
+					Refresh();
+					Save();
+
+					if (session.IsInMenu && session.Player != null && session.Player.IsConnected)
+					{
+						Singleton.Draw(session.Player);
+					}
+				});
+			}
+
+			private void LoadCodeflingUser(string token, Action<int, LoggedInUser> callback)
+			{
+				RequestCodeflingApi("https://codefling.com/api/core/me", token, (status, profile, _) =>
+				{
+					if (status != 200 || !int.TryParse(ReadValue(profile?["id"]), out var id) || id <= 0)
+					{
+						callback(status, null);
+
+						return;
+					}
+
+					RequestCodeflingApi("https://codefling.com/api/nexus/purchases?perPage=100000&itemType=file&itemApp=downloads", token, (purchasesStatus, purchases, _) =>
+					{
+						if (purchasesStatus != 200 || purchases?["results"] is not JArray results)
+						{
+							callback(purchasesStatus, null);
+
+							return;
+						}
+
+						var authority = ReadValue((profile["primaryGroup"] as JObject)?["name"]);
+
+						var user = new LoggedInUser
+						{
+							Id = id,
+							Authority = authority,
+							DisplayName = ReadValue(profile["formattedName"]),
+							AvatarUrl = ReadValue(profile["photoUrl"]),
+							CoverUrl = ReadValue(profile["coverPhotoUrl"]),
+							IsAdmin = authority == "Administrator",
+							AccessToken = token,
+							AccessTokenEncoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(token))
+						};
+
+						user.OwnedFiles.AddRange(results.OfType<JObject>().Select(item => ReadValue(item["itemId"])).Where(itemId => !string.IsNullOrEmpty(itemId)));
+
+						callback(200, user);
+					});
+				});
+			}
+
+			private static string ReadValue(JToken token)
+			{
+				return (token as JValue)?.ToString(CultureInfo.InvariantCulture);
+			}
+
+			private static bool ValidToken(string token)
+			{
+				return token != null && Regex.IsMatch(token, @"\A[A-Za-z0-9._~+/\-]{1,8192}={0,2}\z");
+			}
+
+			private void RequestCodeflingApi(string url, string token, Action<int, JObject, int> callback, JObject form = null)
+			{
+				RequestCodefling(url, token, form == null ? null : Encoding.UTF8.GetBytes(form.ToString(Formatting.None)), false, (status, bytes, retryAfter) =>
+				{
+					if (callback == null)
+					{
+						return;
+					}
+
+					JObject result;
+
+					try
+					{
+						result = bytes == null || bytes.Length == 0 ? null : JObject.Parse(Encoding.UTF8.GetString(bytes).TrimStart('\uFEFF'));
+					}
+					catch (JsonException)
+					{
+						result = null;
+					}
+
+					callback(status, result, retryAfter);
+				});
+			}
+
+			private void RequestCodefling(string url, string token, byte[] payload, bool download, Action<int, byte[], int> callback)
+			{
+				if (!Uri.TryCreate(url, UriKind.Absolute, out var address))
+				{
+					Community.Runtime.Core.NextTick(() => callback(0, null, 0));
+
+					return;
+				}
+
+				var userAgent = Community.Runtime.Analytics.UserAgent;
+
+				Task.Run(() =>
+				{
+					var status = 0;
+					var retryAfter = 0;
+					byte[] result = null;
+
+					try
+					{
+						for (var redirects = 0; redirects <= 4; redirects++)
+						{
+							if (address.Scheme != Uri.UriSchemeHttps || !address.IsDefaultPort || address.UserInfo.Length != 0)
+							{
+								break;
+							}
+
+							var isCodefling = address.Host == "codefling.com";
+
+							if (payload != null ? address.AbsoluteUri != "https://auth.carbonmod.gg/bearer/" : !download && !isCodefling)
+							{
+								break;
+							}
+
+							var request = System.Net.WebRequest.CreateHttp(address);
+
+							request.Proxy = null;
+							request.AllowAutoRedirect = false;
+							request.KeepAlive = false;
+							request.ConnectionGroupName = "CarbonCodefling";
+							request.Timeout = download ? 30000 : 8000;
+							request.ReadWriteTimeout = request.Timeout;
+							request.UserAgent = string.IsNullOrEmpty(userAgent) ? "Carbon-Codefling/2.0" : userAgent;
+							request.Accept = download ? "*/*" : "application/json";
+							request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+							request.ServerCertificateValidationCallback = (_, _, _, errors) => errors == System.Net.Security.SslPolicyErrors.None;
+
+							if (!isCodefling)
+							{
+								token = null;
+							}
+							else if (token != null)
+							{
+								request.Headers[HttpRequestHeader.Authorization] = "Bearer " + token;
+							}
+
+							using var response = SendRequest(request, payload);
+
+							status = (int)response.StatusCode;
+
+							if (status == 429)
+							{
+								var header = response.Headers[HttpResponseHeader.RetryAfter];
+
+								if (!int.TryParse(header, NumberStyles.None, CultureInfo.InvariantCulture, out retryAfter) && DateTimeOffset.TryParse(header, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var retryAt))
+								{
+									retryAfter = (int)Math.Min(int.MaxValue, Math.Max(0, Math.Ceiling((retryAt - DateTimeOffset.UtcNow).TotalSeconds)));
+								}
+							}
+
+							if (download && (status is 301 or 302 or 303 or 307 or 308) && Uri.TryCreate(address, response.Headers[HttpResponseHeader.Location], out var target))
+							{
+								address = target;
+
+								continue;
+							}
+
+							if (download && status != 200)
+							{
+								break;
+							}
+
+							using var stream = response.GetResponseStream();
+							using var body = new MemoryStream();
+
+							var buffer = new byte[download ? 81920 : 8192];
+
+							while (stream?.Read(buffer, 0, buffer.Length) is int count && count > 0)
+							{
+								if (!download && body.Length + count > 16 * 1024 * 1024)
+								{
+									throw new IOException("The Codefling response exceeded 16 MB.");
+								}
+
+								body.Write(buffer, 0, count);
+							}
+
+							result = body.ToArray();
+
+							break;
+						}
+					}
+					catch (Exception error) when (error is WebException or IOException or FormatException or InvalidOperationException)
+					{
+						status = 0;
+						result = null;
+					}
+
+					Community.Runtime.Core.NextTick(() => callback(status, result, retryAfter));
+				});
+			}
+
+			private static HttpWebResponse SendRequest(HttpWebRequest request, byte[] payload)
+			{
+				try
+				{
+					if (payload != null)
+					{
+						request.Method = "POST";
+						request.ContentType = "application/json";
+						request.ContentLength = payload.Length;
+
+						using var requestBody = request.GetRequestStream();
+
+						requestBody.Write(payload, 0, payload.Length);
+					}
+
+					return (HttpWebResponse)request.GetResponse();
+				}
+				catch (WebException error) when (error.Response is HttpWebResponse response)
+				{
+					return response;
+				}
+			}
 
 			#endregion
 
@@ -1508,7 +1863,11 @@ public partial class AdminModule
 				try
 				{
 					var path = Path.Combine(Defines.GetDataFolder(), "vendordata_cf.db");
-					if (!OsEx.File.Exists(path)) return false;
+
+					if (!OsEx.File.Exists(path))
+					{
+						return false;
+					}
 
 					using var file = new MemoryStream(OsEx.File.ReadBytes(path));
 					var value = Serializer.Deserialize<Codefling>(file);
@@ -1516,12 +1875,24 @@ public partial class AdminModule
 					LastTick = value.LastTick;
 					FetchedPlugins.Clear();
 					FetchedPlugins.AddRange(value.FetchedPlugins);
-					User = value.User;
 
-					if (User != null && !string.IsNullOrEmpty(User.AccessTokenEncoded))
+					User = null;
+
+					if (value.User?.PendingAccessToken == false && !string.IsNullOrEmpty(value.User.AccessTokenEncoded))
 					{
-						User.AccessToken = Encoding.UTF8.GetString(Convert.FromBase64String(User.AccessTokenEncoded));
-						_headers[AuthHeader.Key.ToString()] = string.Format(AuthHeader.Value, User.AccessToken);
+						try
+						{
+							value.User.AccessToken = Encoding.UTF8.GetString(Convert.FromBase64String(value.User.AccessTokenEncoded));
+
+							if (ValidToken(value.User.AccessToken))
+							{
+								User = value.User;
+							}
+						}
+						catch (FormatException)
+						{
+							Logger.Warn("Ignored an invalid saved access token.");
+						}
 					}
 
 					if ((DateTime.Now - new DateTime(value.LastTick)).TotalHours >= 24)
@@ -1533,12 +1904,16 @@ public partial class AdminModule
 					Singleton.Puts($"Loaded {Type} plugin metadata cache from file.");
 					Refresh();
 				}
-				catch
+				catch (Exception error)
 				{
+					Logger.Warn($"Failed to load the {Type} vendor cache ({error.GetType().Name}).");
+
 					return false;
 				}
+
 				return true;
 			}
+
 			public void Save()
 			{
 				try
@@ -1591,8 +1966,8 @@ public partial class AdminModule
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
+																x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+																Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName));
 				plugin.ExistentPlugin = null;
@@ -2124,7 +2499,7 @@ public partial class AdminModule
 					Run(Option.Server, $"c.unload \"{fileName}\"");
 					Singleton.Draw(player);
 				}
-				else if(isLoadable)
+				else if (isLoadable)
 				{
 					Run(Option.Server, $"c.load \"{fileName}\"");
 					Singleton.Draw(player);
@@ -2217,7 +2592,7 @@ public partial class AdminModule
 		ap.SetStorage(ap.SelectedTab, "page", page.CurrentPage);
 		PluginsTab.DropdownShow = false;
 
-		if(currentPage != page.CurrentPage)
+		if (currentPage != page.CurrentPage)
 		{
 			Singleton.Draw(player);
 		}
@@ -2471,76 +2846,62 @@ public partial class AdminModule
 	[ProtectedCommand("pluginbrowser.login")]
 	private void PluginBrowserLogin(Arg args)
 	{
-		var ap = Singleton.GetPlayerSession(args.Player());
-		var player = ap.Player;
-		var tab = Singleton.GetTab(ap.Player);
+		var player = args.Player();
 
-		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		if (vendor is PluginsTab.IVendorAuthenticated auth)
+		if (player == null || !Singleton.HasAccess(player, "plugins.setup"))
 		{
-			if (auth.IsLoggedIn)
-			{
-				tab.CreateDialog("Are you sure you want to log out?", onConfirm: ap =>
-				{
-					auth.User = null;
-					vendor.Refresh();
-
-					Singleton.Draw(player);
-
-					if (vendor is PluginsTab.IVendorStored store)
-					{
-						store.Save();
-					}
-				}, null);
-			}
-			else
-			{
-				auth.AuthCode = Extensions.StringEx.Truncate(Guid.NewGuid().ToString(), 6).ToUpper();
-				auth.User = new PluginsTab.LoggedInUser { PendingAccessToken = true };
-
-				var currentCode = auth.AuthCode;
-				var core = Community.Runtime.Core;
-
-				core.timer.In(5f, () =>
-				{
-					if (currentCode != auth.AuthCode || !ap.IsInMenu)
-					{
-						auth.User = null;
-						return;
-					}
-
-					auth.Validate(ap, () =>
-					{
-						core.timer.In(2f, () =>
-						{
-							auth.User.PendingAccessToken = false;
-							Singleton.Draw(player);
-
-							auth.RefreshUser(ap);
-						});
-
-						Singleton.Draw(player);
-					});
-				});
-			}
-
-			Singleton.Draw(args.Player());
+			return;
 		}
+
+		var session = Singleton.GetPlayerSession(player);
+		var tab = Singleton.GetTab(player);
+
+		if (!session.IsInMenu || tab == null)
+		{
+			return;
+		}
+
+		if (PluginsTab.GetVendor(session.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed)) is not PluginsTab.IVendorAuthenticated auth)
+		{
+			return;
+		}
+
+		if (!auth.IsLoggedIn)
+		{
+			auth.BeginPairing(session);
+
+			return;
+		}
+
+		var user = auth.User;
+
+		tab.CreateDialog("Are you sure you want to log out?", currentSession =>
+		{
+			if (currentSession == session && currentSession.IsInMenu && auth.User == user && Singleton.HasAccess(player, "plugins.setup"))
+			{
+				auth.SignOut();
+			}
+		});
+
+		Singleton.Draw(player);
 	}
 
 	[Conditional("!MINIMAL")]
 	[ProtectedCommand("pluginbrowser.closelogin")]
 	private void PluginBrowserCloseLogin(Arg args)
 	{
-		var ap = Singleton.GetPlayerSession(args.Player());
-		var tab = Singleton.GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		if (vendor is PluginsTab.IVendorAuthenticated auth)
-		{
-			auth.User = null;
-			auth.ValidationTimer?.Destroy();
+		var player = args.Player();
 
-			Singleton.Draw(args.Player());
+		if (player == null || !Singleton.HasAccess(player, "plugins.setup"))
+		{
+			return;
+		}
+
+		var session = Singleton.GetPlayerSession(player);
+
+		if (Singleton.GetTab(player) is { } tab && PluginsTab.GetVendor(session.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed)) is PluginsTab.IVendorAuthenticated auth)
+		{
+			auth.CancelPairing(session);
 		}
 	}
 
