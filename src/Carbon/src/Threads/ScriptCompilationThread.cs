@@ -519,11 +519,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 				!string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
 
 			var foundPluginClass = false;
+			var sourceTrees = new List<SyntaxTree>(Sources.Count);
 
 			foreach (var source in Sources)
 			{
 				var tree = CSharpSyntaxTree.ParseText(
 					source.Content, options: parseOptions, source.FilePath, Encoding.UTF8);
+				sourceTrees.Add(tree);
 
 				var root = tree.GetCompilationUnitRoot();
 
@@ -565,7 +567,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
 
 				InternalCallHook.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
-					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings, references);
+					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings, references, sourceTrees);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
 
