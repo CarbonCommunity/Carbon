@@ -5,7 +5,6 @@ using Carbon.Components;
 using Carbon.Pooling;
 using Facepunch;
 using Oxide.Core.Plugins;
-using UnityEngine;
 using static Carbon.Base.BaseHookable;
 
 namespace Carbon.Hooks;
@@ -117,8 +116,8 @@ public class HookCallerInternal : HookCallerCommon
 			}
 
 			hookable.TrackStart();
-			var trackMemory = Community.Runtime.Config.Debugging.TrackHookMemory;
-			var beforeMemory = trackMemory ? CurrentMemory : 0L;
+			var memory = HookMemory.Begin();
+			var totalMemory = 0L;
 
 			if (hook != null && args != null)
 			{
@@ -135,26 +134,32 @@ public class HookCallerInternal : HookCallerCommon
 				}
 			}
 
-			if (hook != null && hook.IsAsync)
+			// An exception that gets past the plugin must not leave the memory scope open
+			try
 			{
-				hookable.InternalCallHook(hookId, args);
-				hookable.TrackEnd();
-			}
-			else
-			{
-				var currentResult = hookable.InternalCallHook(hookId, args);
-				hookable.TrackEnd();
-
-				if (currentResult != null)
+				if (hook != null && hook.IsAsync)
 				{
-					conflicts ??= Pool.Get<List<Conflict>>();
-					HookCaller.ResultOverride(conflicts, hookable, hookId, result = currentResult);
+					hookable.InternalCallHook(hookId, args);
+					hookable.TrackEnd();
 				}
+				else
+				{
+					var currentResult = hookable.InternalCallHook(hookId, args);
+					hookable.TrackEnd();
+
+					if (currentResult != null)
+					{
+						conflicts ??= Pool.Get<List<Conflict>>();
+						HookCaller.ResultOverride(conflicts, hookable, hookId, result = currentResult);
+					}
+				}
+			}
+			finally
+			{
+				totalMemory = HookMemory.End(memory);
 			}
 
 			var afterHookTime = hookable.CurrentHookTime;
-			var afterMemory = trackMemory ? CurrentMemory : 0L;
-			var totalMemory = trackMemory ? Mathf.Abs(afterMemory - beforeMemory) : 0L;
 
 			hook?.OnFired(hookable, afterHookTime, totalMemory);
 
@@ -250,7 +255,7 @@ public class HookCallerInternal : HookCallerCommon
 
 				var result2 = (object)default;
 				hookable.TrackStart();
-				var beforeMemory = hookable.TotalMemoryUsed;
+				var memory = HookMemory.Begin();
 
 				try
 				{
@@ -265,8 +270,7 @@ public class HookCallerInternal : HookCallerCommon
 
 				hookable.TrackEnd();
 				var afterHookTime = hookable.CurrentHookTime;
-				var afterMemory = hookable.TotalMemoryUsed;
-				var totalMemory = afterMemory - beforeMemory;
+				var totalMemory = HookMemory.End(memory);
 
 				hook?.OnFired(hookable, afterHookTime, totalMemory);
 
