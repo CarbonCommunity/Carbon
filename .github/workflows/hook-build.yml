@@ -65,7 +65,7 @@ env:
   RUST_BRANCH: ${{ inputs.rust_branch }}
   DEBUG_BUILD: ${{ inputs.debug }}
   RELEASE_BUILD: ${{ inputs.release }}
-  OXIDE_HOOKS_OVERRIDE: ${{ inputs.oxide_hooks_override }}
+  OXIDE_HOOKS: ${{ inputs.oxide_hooks_override || format('https://api.carbonmod.gg/oxide/{0}.opj', inputs.rust_branch) }}
   ACTION_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
@@ -96,12 +96,6 @@ jobs:
       - name: Build Hooks
         shell: cmd
         run: |
-          set OXIDE_HOOKS=https://api.carbonmod.gg/oxide/%RUST_BRANCH%.opj
-
-          if NOT "%OXIDE_HOOKS_OVERRIDE%" EQU "" (
-              set OXIDE_HOOKS=%OXIDE_HOOKS_OVERRIDE%
-          )
-
           set ROOT=%GITHUB_WORKSPACE%\src\Carbon.Hooks\Carbon.Hooks.Generator\scripts
           
           if %DEBUG_BUILD% EQU true (
@@ -119,9 +113,6 @@ jobs:
           ) else (
               echo Release build is disabled.
           )
-          
-          cd %ROOT%
-          call discord.bat %RUST_BRANCH% %PROTOCOL%
 
       - name: ⬆️ Artifacts - Upload
         uses: actions/upload-artifact@v7
@@ -196,3 +187,8 @@ jobs:
           finally {
             Remove-Item $key, $knownHosts, $batch -Force -ErrorAction SilentlyContinue
           }
+
+      - name: 📣 Discord - Announce
+        shell: cmd
+        working-directory: src/Carbon.Hooks/Carbon.Hooks.Generator/scripts
+        run: call discord.bat %RUST_BRANCH% %PROTOCOL%
