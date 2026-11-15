@@ -525,15 +525,20 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				var tree = CSharpSyntaxTree.ParseText(
 					source.Content, options: parseOptions, source.FilePath, Encoding.UTF8);
-				sourceTrees.Add(tree);
-
 				var root = tree.GetCompilationUnitRoot();
+				var conditionalCount = conditionals.Count;
 
 				HookCaller.HandleVersionConditionals(root, conditionals);
 
-				parseOptions = parseOptions.WithPreprocessorSymbols(conditionals);
+				if (conditionals.Count != conditionalCount)
+				{
+					parseOptions = parseOptions.WithPreprocessorSymbols(conditionals);
+					tree = CSharpSyntaxTree.ParseText(
+						source.Content, options: parseOptions, source.FilePath, Encoding.UTF8);
+					root = tree.GetCompilationUnitRoot();
+				}
 
-				tree = tree.WithRootAndOptions(root, parseOptions);
+				sourceTrees.Add(tree);
 
 				if (InternalCallHook.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
