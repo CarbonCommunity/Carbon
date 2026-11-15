@@ -116,8 +116,6 @@ public class HookCallerInternal : HookCallerCommon
 			}
 
 			hookable.TrackStart();
-			var memory = HookMemory.Begin();
-			var totalMemory = 0L;
 
 			if (hook != null && args != null)
 			{
@@ -133,6 +131,9 @@ public class HookCallerInternal : HookCallerCommon
 					HookCaller.Caller.ProcessDefaults(args, hook);
 				}
 			}
+
+			var memory = HookMemory.Begin();
+			var totalMemory = 0L;
 
 			// An exception that gets past the plugin must not leave the memory scope open
 			try
@@ -256,6 +257,7 @@ public class HookCallerInternal : HookCallerCommon
 				var result2 = (object)default;
 				hookable.TrackStart();
 				var memory = HookMemory.Begin();
+				var totalMemory = 0L;
 
 				try
 				{
@@ -267,10 +269,13 @@ public class HookCallerInternal : HookCallerCommon
 					var readableHook = HookStringPool.GetOrAdd(hookId);
 					Carbon.Logger.Error($"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'", exception);
 				}
+				finally
+				{
+					totalMemory = HookMemory.End(memory);
+				}
 
 				hookable.TrackEnd();
 				var afterHookTime = hookable.CurrentHookTime;
-				var totalMemory = HookMemory.End(memory);
 
 				hook?.OnFired(hookable, afterHookTime, totalMemory);
 
