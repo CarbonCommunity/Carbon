@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Carbon.InternalCallHookGeneration;
 using HarmonyLib;
@@ -7,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Mono.Cecil;
+using SRM = System.Reflection.Metadata;
 
 namespace Carbon.Generator;
 
@@ -18,7 +20,16 @@ public class InternalCallHook
 
 	public static ConcurrentDictionary<string, int> InheritanceCache = new();
 
+	public static ConcurrentDictionary<string, TypeDefinition> TypeCache = new();
+
+	private static readonly ConditionalWeakTable<MetadataReference, string[]> RefLikeTypeNameCache = new();
+
 	public static TypeDefinition FindTypeInAssemblies(string fullName)
+	{
+		return TypeCache.GetOrAdd(fullName, FindTypeInAssembliesUncached);
+	}
+
+	private static TypeDefinition FindTypeInAssembliesUncached(string fullName)
 	{
 		for (int i = 0; i < Assemblies.Count; i++)
 		{
@@ -165,6 +176,8 @@ public class InternalCallHook
 			.OrderBy(x => x.Identifier.ValueText)
 			.ToArray();
 		var refLikeMethods = GetRefLikeMethodKeys(input, references, options, methods);
+		var typeCache = new Dictionary<string, Type>(StringComparer.Ordinal);
+		var namespaces = GetUsingNamespaces(input, model.NamespaceName);
 
 		foreach (var method in methods)
 		{
@@ -173,7 +186,7 @@ public class InternalCallHook
 				continue;
 			}
 
-			var hookName = ResolveHookName(method, classes);
+			var hookName = ResolveHookName(method, classes, typeCache, namespaces);
 			var hook = new InternalCallHookMethodModel
 			{
 				MethodName = method.Identifier.ValueText,
@@ -225,6 +238,12 @@ public class InternalCallHook
 			return null;
 		}
 
+		var refLikeTypeNames = GetRefLikeTypeNames(input, references);
+		if (refLikeTypeNames != null && !AnySignatureMentions(methods, refLikeTypeNames))
+		{
+			return null;
+		}
+
 		var methodKeys = new HashSet<string>(methods.Select(GetMethodKey));
 		var tree = CSharpSyntaxTree.Create(input, options);
 		var compilation = CSharpCompilation.Create(
@@ -254,6 +273,169 @@ public class InternalCallHook
 		}
 
 		return refLikeMethods;
+	}
+
+	private static HashSet<string> GetRefLikeTypeNames(CompilationUnitSyntax input, IEnumerable<MetadataReference> references)
+	{
+		var names = new HashSet<string>(StringComparer.Ordinal);
+
+		foreach (var reference in references)
+		{
+			var referenceNames = reference is PortableExecutableReference ? RefLikeTypeNameCache.GetValue(reference, ReadRefLikeTypeNames) : null;
+			if (referenceNames == null)
+			{
+				return null;
+			}
+
+			for (int i = 0; i < referenceNames.Length; i++)
+			{
+				names.Add(referenceNames[i]);
+			}
+		}
+
+		List<UsingDirectiveSyntax> aliases = null;
+
+		foreach (var node in input.DescendantNodes(IsDeclarationContainer))
+		{
+			if (node is StructDeclarationSyntax type && type.Modifiers.Any(SyntaxKind.RefKeyword))
+			{
+				names.Add(type.Identifier.ValueText);
+			}
+			else if (node is UsingDirectiveSyntax { Alias: not null } directive)
+			{
+				(aliases ??= new()).Add(directive);
+			}
+		}
+
+		if (aliases != null)
+		{
+			for (int i = 0; i < aliases.Count; i++)
+			{
+				if (MentionsAny(aliases[i].NamespaceOrType, names))
+				{
+					names.Add(aliases[i].Alias.Name.Identifier.ValueText);
+				}
+			}
+		}
+
+		return names;
+	}
+
+	private static bool IsDeclarationContainer(SyntaxNode node)
+	{
+		return node is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax;
+	}
+
+	private static string[] ReadRefLikeTypeNames(MetadataReference reference)
+	{
+		try
+		{
+			var metadata = ((PortableExecutableReference)reference).GetMetadata();
+			var names = new List<string>();
+
+			if (metadata is AssemblyMetadata assembly)
+			{
+				foreach (var module in assembly.GetModules())
+				{
+					AddRefLikeTypeNames(module.GetMetadataReader(), names);
+				}
+			}
+			else
+			{
+				AddRefLikeTypeNames(((ModuleMetadata)metadata).GetMetadataReader(), names);
+			}
+
+			return names.ToArray();
+		}
+		catch
+		{
+			return null;
+		}
+	}
+
+	private static void AddRefLikeTypeNames(SRM.MetadataReader reader, List<string> names)
+	{
+		foreach (var handle in reader.TypeDefinitions)
+		{
+			var type = reader.GetTypeDefinition(handle);
+			if (!IsByRefLike(reader, type))
+			{
+				continue;
+			}
+
+			var name = reader.GetString(type.Name);
+			var arity = name.IndexOf('`');
+			names.Add(arity < 0 ? name : name.Substring(0, arity));
+		}
+	}
+
+	private static bool IsByRefLike(SRM.MetadataReader reader, SRM.TypeDefinition type)
+	{
+		foreach (var handle in type.GetCustomAttributes())
+		{
+			var constructor = reader.GetCustomAttribute(handle).Constructor;
+			var name = default(SRM.StringHandle);
+
+			if (constructor.Kind == SRM.HandleKind.MemberReference)
+			{
+				var parent = reader.GetMemberReference((SRM.MemberReferenceHandle)constructor).Parent;
+				if (parent.Kind == SRM.HandleKind.TypeReference)
+				{
+					name = reader.GetTypeReference((SRM.TypeReferenceHandle)parent).Name;
+				}
+			}
+			else if (constructor.Kind == SRM.HandleKind.MethodDefinition)
+			{
+				name = reader.GetTypeDefinition(reader.GetMethodDefinition((SRM.MethodDefinitionHandle)constructor).GetDeclaringType()).Name;
+			}
+
+			if (!name.IsNil && reader.StringComparer.Equals(name, "IsByRefLikeAttribute"))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static bool AnySignatureMentions(IReadOnlyCollection<MethodDeclarationSyntax> methods, HashSet<string> names)
+	{
+		foreach (var method in methods)
+		{
+			if (MentionsAny(method.ReturnType, names))
+			{
+				return true;
+			}
+
+			var parameters = method.ParameterList.Parameters;
+			for (int i = 0; i < parameters.Count; i++)
+			{
+				if (MentionsAny(parameters[i].Type, names))
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private static bool MentionsAny(SyntaxNode node, HashSet<string> names)
+	{
+		if (node == null)
+		{
+			return false;
+		}
+
+		foreach (var child in node.DescendantNodesAndSelf())
+		{
+			if (child is SimpleNameSyntax name && names.Contains(name.Identifier.ValueText))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static bool CanHaveRefLikeSignature(MethodDeclarationSyntax method)
@@ -313,7 +495,7 @@ public class InternalCallHook
 		return $"{string.Join(" ", parameter.Modifiers.Select(x => x.Text))}:{parameter.Type}";
 	}
 
-	private static string ResolveHookName(MethodDeclarationSyntax method, List<ClassDeclarationSyntax> classes)
+	private static string ResolveHookName(MethodDeclarationSyntax method, List<ClassDeclarationSyntax> classes, Dictionary<string, Type> typeCache, List<string> namespaces)
 	{
 		var hookMethod = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => x.Name.ToString() == "HookMethod")).FirstOrDefault();
 		var methodName = hookMethod != null && hookMethod.ArgumentList?.Arguments.Count > 0
@@ -326,6 +508,11 @@ public class InternalCallHook
 		}
 
 		var context = hookMethod.ArgumentList.Arguments[0];
+		if (context.Expression is LiteralExpressionSyntax literal && literal.IsKind(SyntaxKind.StringLiteralExpression))
+		{
+			return literal.Token.ValueText;
+		}
+
 		var contextString = context.ToString();
 		if (contextString.Contains("nameof"))
 		{
@@ -344,7 +531,7 @@ public class InternalCallHook
 			var argument = context.Expression as MemberAccessExpressionSyntax;
 			var expression = argument?.Expression.ToString();
 			var name = argument?.Name.ToString();
-			var value = AccessTools.Field(AccessTools.TypeByName(expression), name)?.GetValue(null)?.ToString();
+			var value = AccessTools.Field(TypeByNameCached(expression, typeCache, namespaces), name)?.GetValue(null)?.ToString();
 			if (!string.IsNullOrEmpty(value))
 			{
 				return value;
@@ -353,7 +540,7 @@ public class InternalCallHook
 
 		if (contextString.Contains("\""))
 		{
-			var value = AccessTools.Field(AccessTools.TypeByName(classes[0].Identifier.Text), contextString.Replace("\"", string.Empty))?.GetValue(null)
+			var value = AccessTools.Field(TypeByNameCached(classes[0].Identifier.Text, typeCache, namespaces), contextString.Replace("\"", string.Empty))?.GetValue(null)
 				?.ToString();
 			if (!string.IsNullOrEmpty(value))
 			{
@@ -362,6 +549,72 @@ public class InternalCallHook
 		}
 
 		return methodName;
+	}
+
+	private static Type TypeByNameCached(string name, Dictionary<string, Type> cache, List<string> namespaces)
+	{
+		if (name == null)
+		{
+			return AccessTools.TypeByName(name);
+		}
+
+		if (!cache.TryGetValue(name, out var type))
+		{
+			cache[name] = type = FindLoadedType(name, namespaces) ?? AccessTools.TypeByName(name);
+		}
+
+		return type;
+	}
+
+	private static Type FindLoadedType(string name, List<string> namespaces)
+	{
+		var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+		for (int i = -1; i < namespaces.Count; i++)
+		{
+			var fullName = i < 0 ? name : $"{namespaces[i]}.{name}";
+
+			for (int a = 0; a < assemblies.Length; a++)
+			{
+				Type type;
+
+				try
+				{
+					type = assemblies[a].GetType(fullName, false);
+				}
+				catch
+				{
+					continue;
+				}
+
+				if (type != null)
+				{
+					return type;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private static List<string> GetUsingNamespaces(CompilationUnitSyntax input, string namespaceName)
+	{
+		var namespaces = new List<string>();
+
+		if (!string.IsNullOrEmpty(namespaceName))
+		{
+			namespaces.Add(namespaceName);
+		}
+
+		foreach (var node in input.DescendantNodes(IsDeclarationContainer))
+		{
+			if (node is UsingDirectiveSyntax { Alias: null, NamespaceOrType: not null } directive && directive.StaticKeyword.IsKind(SyntaxKind.None))
+			{
+				namespaces.Add(directive.NamespaceOrType.ToString());
+			}
+		}
+
+		return namespaces;
 	}
 
 	private static string GetConditionalSymbol(MethodDeclarationSyntax method)
