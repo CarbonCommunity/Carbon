@@ -226,7 +226,7 @@ public class InternalCallHook
 	{
 		return (method.Modifiers.Count == 0 ||
 		        method.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.PublicKeyword) && !modifier.IsKind(SyntaxKind.StaticKeyword)) ||
-		        method.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && method.TypeParameterList == null;
+		        method.AttributeLists.Any(x => x.Attributes.Any(y => IsHookMethodAttribute(y.Name)))) && method.TypeParameterList == null;
 	}
 
 	private static CSharpCompilation CreateAnalysisCompilation(CompilationUnitSyntax input, IEnumerable<MetadataReference> references, CSharpParseOptions options, IReadOnlyList<SyntaxTree> sourceTrees)
@@ -496,32 +496,28 @@ public class InternalCallHook
 
 	private static string ResolveHookName(MethodDeclarationSyntax method, Lazy<CSharpCompilation> analysis)
 	{
-		var hookMethod = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => x.Name.ToString() == "HookMethod")).FirstOrDefault();
-		var methodName = hookMethod != null && hookMethod.ArgumentList?.Arguments.Count > 0
-			? hookMethod.ArgumentList.Arguments[0].ToString().Replace("\"", string.Empty)
-			: method.Identifier.ValueText;
+		var hookMethod = method.AttributeLists.SelectMany(x => x.Attributes).FirstOrDefault(x => IsHookMethodAttribute(x.Name));
+		var context = GetHookNameArgument(hookMethod);
 
-		if (hookMethod == null || hookMethod.ArgumentList?.Arguments.Count == 0)
+		if (context == null)
 		{
-			return methodName;
+			return method.Identifier.ValueText;
 		}
 
-		var context = hookMethod.ArgumentList.Arguments[0];
+		var methodName = context.ToString().Replace("\"", string.Empty);
 		if (context.Expression is LiteralExpressionSyntax literal && literal.IsKind(SyntaxKind.StringLiteralExpression))
 		{
 			return literal.Token.ValueText.Length > 0 ? literal.Token.ValueText : method.Identifier.ValueText;
 		}
 
-		if (context.Expression is InvocationExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "nameof" } })
+		if (context.Expression is InvocationExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "nameof" }, ArgumentList.Arguments: { Count: 1 } nameofArguments })
 		{
-			methodName = context.ToString().Replace("nameof", string.Empty).Replace("(", string.Empty).Replace(")", string.Empty);
-			if (methodName.Contains("."))
+			var target = nameofArguments[0].Expression;
+			var name = (target as MemberAccessExpressionSyntax)?.Name ?? target as SimpleNameSyntax;
+			if (name != null)
 			{
-				var split = methodName.Split('.');
-				methodName = split[^1];
+				return name.Identifier.ValueText;
 			}
-
-			return methodName;
 		}
 
 		var compilation = analysis.Value;
@@ -531,6 +527,33 @@ public class InternalCallHook
 		}
 
 		return methodName;
+	}
+
+	private static AttributeArgumentSyntax GetHookNameArgument(AttributeSyntax hookMethod)
+	{
+		if (hookMethod?.ArgumentList == null)
+		{
+			return null;
+		}
+
+		var arguments = hookMethod.ArgumentList.Arguments;
+		AttributeArgumentSyntax positional = null;
+		AttributeArgumentSyntax named = null;
+
+		for (int i = 0; i < arguments.Count; i++)
+		{
+			var argument = arguments[i];
+			if (argument.NameEquals == null)
+			{
+				positional ??= argument;
+			}
+			else if (argument.NameEquals.Name.Identifier.ValueText == "Name")
+			{
+				named = argument;
+			}
+		}
+
+		return named ?? positional;
 	}
 
 	private static string GetConditionalSymbol(MethodDeclarationSyntax method)
@@ -543,6 +566,14 @@ public class InternalCallHook
 
 		return conditional?.Replace("\"", string.Empty) ?? string.Empty;
 	}
+
+	private static bool IsHookMethodAttribute(NameSyntax name) => name switch
+	{
+		QualifiedNameSyntax qualified => IsHookMethodAttribute(qualified.Right),
+		AliasQualifiedNameSyntax alias => IsHookMethodAttribute(alias.Name),
+		SimpleNameSyntax simple => simple.Identifier.ValueText is "HookMethod" or "HookMethodAttribute",
+		_ => false
+	};
 
 	private static bool IsInfoAttribute(NameSyntax name) => name switch
 	{
