@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Carbon.InternalCallHookGeneration;
-using HarmonyLib;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -96,7 +95,7 @@ public class InternalCallHook
 		return totalDepth;
 	}
 
-	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null, List<string> usingsList = null, IEnumerable<MetadataReference> references = null)
+	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null, List<string> usingsList = null, IEnumerable<MetadataReference> references = null, IReadOnlyList<SyntaxTree> sourceTrees = null)
 	{
 		var @namespace = (BaseNamespaceDeclarationSyntax)null;
 
@@ -114,7 +113,7 @@ public class InternalCallHook
 
 		@namespace ??= classes[0].Parent as BaseNamespaceDeclarationSyntax;
 
-		var model = CreateModel(input, @namespace, classes, usingsList, references, options);
+		var model = CreateModel(input, @namespace, classes, usingsList, references, options, sourceTrees);
 		if (model.Methods.Count == 0)
 		{
 			output = null;
@@ -146,7 +145,7 @@ public class InternalCallHook
 
 	private static InternalCallHookTypeModel CreateModel(
 		CompilationUnitSyntax input, BaseNamespaceDeclarationSyntax @namespace, List<ClassDeclarationSyntax> classes, List<string> usingsList,
-		IEnumerable<MetadataReference> references, CSharpParseOptions options
+		IEnumerable<MetadataReference> references, CSharpParseOptions options, IReadOnlyList<SyntaxTree> sourceTrees
 	)
 	{
 		var model = new InternalCallHookTypeModel
@@ -175,9 +174,8 @@ public class InternalCallHook
 			.Where(IsHookableMethod)
 			.OrderBy(x => x.Identifier.ValueText)
 			.ToArray();
-		var refLikeMethods = GetRefLikeMethodKeys(input, references, options, methods);
-		var typeCache = new Dictionary<string, Type>(StringComparer.Ordinal);
-		var namespaces = GetUsingNamespaces(input, model.NamespaceName);
+		var analysis = new Lazy<CSharpCompilation>(() => CreateAnalysisCompilation(input, references, options, sourceTrees), false);
+		var refLikeMethods = GetRefLikeMethodKeys(input, references, options, methods, analysis);
 
 		foreach (var method in methods)
 		{
@@ -186,7 +184,7 @@ public class InternalCallHook
 				continue;
 			}
 
-			var hookName = ResolveHookName(method, classes, typeCache, namespaces);
+			var hookName = ResolveHookName(method, analysis);
 			var hook = new InternalCallHookMethodModel
 			{
 				MethodName = method.Identifier.ValueText,
@@ -228,10 +226,24 @@ public class InternalCallHook
 	{
 		return (method.Modifiers.Count == 0 ||
 		        method.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.PublicKeyword) && !modifier.IsKind(SyntaxKind.StaticKeyword)) ||
-		        method.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && method.TypeParameterList == null;
+		        method.AttributeLists.Any(x => x.Attributes.Any(y => IsHookMethodAttribute(y.Name)))) && method.TypeParameterList == null;
 	}
 
-	private static HashSet<string> GetRefLikeMethodKeys(CompilationUnitSyntax input, IEnumerable<MetadataReference> references, CSharpParseOptions options, IReadOnlyCollection<MethodDeclarationSyntax> methods)
+	private static CSharpCompilation CreateAnalysisCompilation(CompilationUnitSyntax input, IEnumerable<MetadataReference> references, CSharpParseOptions options, IReadOnlyList<SyntaxTree> sourceTrees)
+	{
+		if (references == null || options == null)
+		{
+			return null;
+		}
+
+		return CSharpCompilation.Create(
+			"Carbon.InternalCallHook.Analysis",
+			sourceTrees ?? new[] { input.SyntaxTree },
+			references,
+			new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+	}
+
+	private static HashSet<string> GetRefLikeMethodKeys(CompilationUnitSyntax input, IEnumerable<MetadataReference> references, CSharpParseOptions options, IReadOnlyCollection<MethodDeclarationSyntax> methods, Lazy<CSharpCompilation> analysis)
 	{
 		if (methods.Count == 0 || !methods.Any(CanHaveRefLikeSignature) || references == null || options == null)
 		{
@@ -244,25 +256,12 @@ public class InternalCallHook
 			return null;
 		}
 
-		var methodKeys = new HashSet<string>(methods.Select(GetMethodKey));
-		var tree = CSharpSyntaxTree.Create(input, options);
-		var compilation = CSharpCompilation.Create(
-			"Carbon.InternalCallHook.Analysis",
-			new[] { tree },
-			references,
-			new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
-
-		var model = compilation.GetSemanticModel(tree, true);
+		var compilation = analysis.Value;
 		HashSet<string> refLikeMethods = null;
 
-		foreach (var method in tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>())
+		foreach (var method in methods)
 		{
-			if (!methodKeys.Contains(GetMethodKey(method)))
-			{
-				continue;
-			}
-
-			var methodSymbol = model.GetDeclaredSymbol(method);
+			var methodSymbol = compilation.GetSemanticModel(method.SyntaxTree, true).GetDeclaredSymbol(method);
 			if (methodSymbol == null || !HasRefLikeSignature(methodSymbol))
 			{
 				continue;
@@ -495,126 +494,66 @@ public class InternalCallHook
 		return $"{string.Join(" ", parameter.Modifiers.Select(x => x.Text))}:{parameter.Type}";
 	}
 
-	private static string ResolveHookName(MethodDeclarationSyntax method, List<ClassDeclarationSyntax> classes, Dictionary<string, Type> typeCache, List<string> namespaces)
+	private static string ResolveHookName(MethodDeclarationSyntax method, Lazy<CSharpCompilation> analysis)
 	{
-		var hookMethod = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => x.Name.ToString() == "HookMethod")).FirstOrDefault();
-		var methodName = hookMethod != null && hookMethod.ArgumentList?.Arguments.Count > 0
-			? hookMethod.ArgumentList.Arguments[0].ToString().Replace("\"", string.Empty)
-			: method.Identifier.ValueText;
+		var hookMethod = method.AttributeLists.SelectMany(x => x.Attributes).FirstOrDefault(x => IsHookMethodAttribute(x.Name));
+		var context = GetHookNameArgument(hookMethod);
 
-		if (hookMethod == null || hookMethod.ArgumentList?.Arguments.Count == 0)
+		if (context == null)
 		{
-			return methodName;
+			return method.Identifier.ValueText;
 		}
 
-		var context = hookMethod.ArgumentList.Arguments[0];
+		var methodName = context.ToString().Replace("\"", string.Empty);
 		if (context.Expression is LiteralExpressionSyntax literal && literal.IsKind(SyntaxKind.StringLiteralExpression))
 		{
-			return literal.Token.ValueText;
+			return literal.Token.ValueText.Length > 0 ? literal.Token.ValueText : method.Identifier.ValueText;
 		}
 
-		var contextString = context.ToString();
-		if (contextString.Contains("nameof"))
+		if (context.Expression is InvocationExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "nameof" }, ArgumentList.Arguments: { Count: 1 } nameofArguments })
 		{
-			methodName = contextString.Replace("nameof", string.Empty).Replace("(", string.Empty).Replace(")", string.Empty);
-			if (methodName.Contains("."))
+			var target = nameofArguments[0].Expression;
+			var name = (target as MemberAccessExpressionSyntax)?.Name ?? target as SimpleNameSyntax;
+			if (name != null)
 			{
-				var split = methodName.Split('.');
-				methodName = split[^1];
-			}
-
-			return methodName;
-		}
-
-		if (contextString.Contains("."))
-		{
-			var argument = context.Expression as MemberAccessExpressionSyntax;
-			var expression = argument?.Expression.ToString();
-			var name = argument?.Name.ToString();
-			var value = AccessTools.Field(TypeByNameCached(expression, typeCache, namespaces), name)?.GetValue(null)?.ToString();
-			if (!string.IsNullOrEmpty(value))
-			{
-				return value;
+				return name.Identifier.ValueText;
 			}
 		}
 
-		if (contextString.Contains("\""))
+		var compilation = analysis.Value;
+		if (compilation != null && compilation.GetSemanticModel(context.SyntaxTree, true).GetConstantValue(context.Expression) is { HasValue: true } constant)
 		{
-			var value = AccessTools.Field(TypeByNameCached(classes[0].Identifier.Text, typeCache, namespaces), contextString.Replace("\"", string.Empty))?.GetValue(null)
-				?.ToString();
-			if (!string.IsNullOrEmpty(value))
-			{
-				return value;
-			}
+			return constant.Value is string { Length: > 0 } value ? value : method.Identifier.ValueText;
 		}
 
 		return methodName;
 	}
 
-	private static Type TypeByNameCached(string name, Dictionary<string, Type> cache, List<string> namespaces)
+	private static AttributeArgumentSyntax GetHookNameArgument(AttributeSyntax hookMethod)
 	{
-		if (name == null)
+		if (hookMethod?.ArgumentList == null)
 		{
-			return AccessTools.TypeByName(name);
+			return null;
 		}
 
-		if (!cache.TryGetValue(name, out var type))
+		var arguments = hookMethod.ArgumentList.Arguments;
+		AttributeArgumentSyntax positional = null;
+		AttributeArgumentSyntax named = null;
+
+		for (int i = 0; i < arguments.Count; i++)
 		{
-			cache[name] = type = FindLoadedType(name, namespaces) ?? AccessTools.TypeByName(name);
-		}
-
-		return type;
-	}
-
-	private static Type FindLoadedType(string name, List<string> namespaces)
-	{
-		var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-		for (int i = -1; i < namespaces.Count; i++)
-		{
-			var fullName = i < 0 ? name : $"{namespaces[i]}.{name}";
-
-			for (int a = 0; a < assemblies.Length; a++)
+			var argument = arguments[i];
+			if (argument.NameEquals == null)
 			{
-				Type type;
-
-				try
-				{
-					type = assemblies[a].GetType(fullName, false);
-				}
-				catch
-				{
-					continue;
-				}
-
-				if (type != null)
-				{
-					return type;
-				}
+				positional ??= argument;
+			}
+			else if (argument.NameEquals.Name.Identifier.ValueText == "Name")
+			{
+				named = argument;
 			}
 		}
 
-		return null;
-	}
-
-	private static List<string> GetUsingNamespaces(CompilationUnitSyntax input, string namespaceName)
-	{
-		var namespaces = new List<string>();
-
-		if (!string.IsNullOrEmpty(namespaceName))
-		{
-			namespaces.Add(namespaceName);
-		}
-
-		foreach (var node in input.DescendantNodes(IsDeclarationContainer))
-		{
-			if (node is UsingDirectiveSyntax { Alias: null, NamespaceOrType: not null } directive && directive.StaticKeyword.IsKind(SyntaxKind.None))
-			{
-				namespaces.Add(directive.NamespaceOrType.ToString());
-			}
-		}
-
-		return namespaces;
+		return named ?? positional;
 	}
 
 	private static string GetConditionalSymbol(MethodDeclarationSyntax method)
@@ -627,6 +566,14 @@ public class InternalCallHook
 
 		return conditional?.Replace("\"", string.Empty) ?? string.Empty;
 	}
+
+	private static bool IsHookMethodAttribute(NameSyntax name) => name switch
+	{
+		QualifiedNameSyntax qualified => IsHookMethodAttribute(qualified.Right),
+		AliasQualifiedNameSyntax alias => IsHookMethodAttribute(alias.Name),
+		SimpleNameSyntax simple => simple.Identifier.ValueText is "HookMethod" or "HookMethodAttribute",
+		_ => false
+	};
 
 	private static bool IsInfoAttribute(NameSyntax name) => name switch
 	{
