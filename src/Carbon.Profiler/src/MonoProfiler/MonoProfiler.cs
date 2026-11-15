@@ -751,6 +751,7 @@ public static unsafe partial class MonoProfiler
 	private static int _allocationScopes;
 	private static bool _allocationScopesUnavailable;
 	private static bool _allocationEventsLeftOn;
+	private static bool _allocationCallbackReplaced;
 
 	/// <summary>
 	/// Opens a scope that counts the bytes the main thread allocates until <see cref="EndAllocationScope"/>.
@@ -786,7 +787,7 @@ public static unsafe partial class MonoProfiler
 			return false;
 		}
 
-		switch (enable_method_alloc_stack(true))
+		switch (SwitchAllocationEvents(true))
 		{
 			case ProfilerResultCode.OK:
 			case ProfilerResultCode.NoOp:
@@ -828,10 +829,22 @@ public static unsafe partial class MonoProfiler
 		if (--_allocationScopes == 0)
 		{
 			// Refused when a recording started inside the scope: switched off once that recording stops
-			_allocationEventsLeftOn = enable_method_alloc_stack(false) == ProfilerResultCode.Busy;
+			_allocationEventsLeftOn = SwitchAllocationEvents(false) == ProfilerResultCode.Busy;
 		}
 
 		return (long)bytes;
+	}
+
+	private static ProfilerResultCode SwitchAllocationEvents(bool on)
+	{
+		var result = enable_method_alloc_stack(on);
+
+		if (result == ProfilerResultCode.OK)
+		{
+			_allocationCallbackReplaced = true;
+		}
+
+		return result;
 	}
 
 	/// <summary>
@@ -936,7 +949,7 @@ public static unsafe partial class MonoProfiler
 		if (_allocationEventsLeftOn && _allocationScopes == 0)
 		{
 			_allocationEventsLeftOn = false;
-			enable_method_alloc_stack(false);
+			SwitchAllocationEvents(false);
 		}
 
 		RecordingStopped?.Invoke();
@@ -966,7 +979,14 @@ public static unsafe partial class MonoProfiler
 			_dataProcessTimer.Start();
 		}
 
-		ProfilerResultCode result = profiler_toggle(args, &state, &gcOutput, &assemblyOutput, &callOutput, &memoryOutput);
+		var nativeArgs = args;
+
+		if (!IsRecording && _allocationCallbackReplaced)
+		{
+			nativeArgs &= ~ProfilerArgs.FastResume;
+		}
+
+		ProfilerResultCode result = profiler_toggle(nativeArgs, &state, &gcOutput, &assemblyOutput, &callOutput, &memoryOutput);
 
 		if (result == ProfilerResultCode.Aborted)
 		{
@@ -1020,6 +1040,8 @@ public static unsafe partial class MonoProfiler
 
 		if (state)
 		{
+			_allocationCallbackReplaced = false;
+
 			if (logging)
 			{
 				UnityEngine.Debug.LogWarning($"[MonoProfiler] Started recording..");
