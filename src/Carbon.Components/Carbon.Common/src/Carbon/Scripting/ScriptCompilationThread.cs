@@ -595,19 +595,26 @@ public class ScriptCompilationThread : BaseThreadedJob
 				!string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
 
 			var foundPluginClass = false;
+			var sourceTrees = new List<SyntaxTree>(Sources.Count);
 
 			foreach (var source in Sources)
 			{
 				var tree = CSharpSyntaxTree.ParseText(
 					source.Content, options: parseOptions, source.FilePath, Encoding.UTF8);
-
 				var root = tree.GetCompilationUnitRoot();
+				var conditionalCount = conditionals.Count;
 
 				HookCaller.HandleVersionConditionals(root, conditionals);
 
-				parseOptions = parseOptions.WithPreprocessorSymbols(conditionals);
+				if (conditionals.Count != conditionalCount)
+				{
+					parseOptions = parseOptions.WithPreprocessorSymbols(conditionals);
+					tree = CSharpSyntaxTree.ParseText(
+						source.Content, options: parseOptions, source.FilePath, Encoding.UTF8);
+					root = tree.GetCompilationUnitRoot();
+				}
 
-				tree = tree.WithRootAndOptions(root, parseOptions);
+				sourceTrees.Add(tree);
 
 				if (InternalCallHook.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
@@ -641,7 +648,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
 
 				InternalCallHook.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
-					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings, references);
+					pdbFilename, ClassList, Defines.GetScriptDebugFolder(), Usings, references, sourceTrees);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
 
