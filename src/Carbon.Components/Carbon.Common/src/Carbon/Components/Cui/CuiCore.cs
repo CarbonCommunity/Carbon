@@ -160,7 +160,7 @@ public class CuiButtonComponent : ICuiComponent, ICuiColor, ICuiEnableable, ICui
 	public float ColorMultiplier { get; set; }
 
 	[JsonProperty("fadeDuration")]
-	public float FadeDuration { get; set; }
+	public float? FadeDuration { get; set; }
 
 	[JsonProperty("fadeIn")]
 	public float FadeIn { get; set; }
@@ -541,6 +541,9 @@ public class CuiCanvasGroupComponent : ICuiComponent, ICuiEnableable
 	[JsonProperty("interactable")]
 	public bool? Interactable { get; set; }
 
+	[JsonProperty("fade")]
+	public string Fade { get; set; }
+
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }
 }
@@ -707,6 +710,9 @@ public class CuiScrollbar : ICuiComponent, ICuiEnableable
 
 	[JsonProperty("trackColor")]
 	public string TrackColor { get; set; }
+
+	[JsonProperty("fadeDuration")]
+	public float? FadeDuration { get; set; }
 
 	[JsonProperty("enabled")]
 	public bool? Enabled { get; set; }

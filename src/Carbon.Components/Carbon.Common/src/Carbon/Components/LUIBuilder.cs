@@ -1016,6 +1016,8 @@ public struct LuiBuilderInstance : IDisposable
 			this.WriteFieldComma("trackSprite", scroll.trackSprite);
 		if (scroll.trackColor != null)
 			this.WriteFieldComma("trackColor", scroll.trackColor);
+		if (scroll.fadeDuration.HasValue)
+			this.WriteFieldComma("fadeDuration", scroll.fadeDuration.Value);
 	}
 
     internal int MaxUtf8ByteCount

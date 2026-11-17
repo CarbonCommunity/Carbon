@@ -810,6 +810,7 @@ public readonly struct CUI : IDisposable
 				element.Alpha = _defaultCanvasGroup.Alpha;
 				element.BlocksRaycasts = _defaultCanvasGroup.BlocksRaycasts;
 				element.Interactable = _defaultCanvasGroup.Interactable;
+				element.Fade = _defaultCanvasGroup.Fade;
 				element.Enabled = _defaultCanvasGroup.Enabled;
 				_canvasGroups.RemoveAt(0);
 			}
@@ -911,6 +912,7 @@ public readonly struct CUI : IDisposable
 			scrollbar.PressedColor = _defaultScrollBar.PressedColor;
 			scrollbar.TrackSprite = _defaultScrollBar.TrackSprite;
 			scrollbar.TrackColor = _defaultScrollBar.TrackColor;
+			scrollbar.FadeDuration = _defaultScrollBar.FadeDuration;
 			scrollbar.Enabled = _defaultScrollBar.Enabled;
 		}
 

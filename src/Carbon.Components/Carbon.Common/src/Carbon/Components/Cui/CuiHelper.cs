@@ -165,6 +165,50 @@ public static class CuiHelper
 		return false;
 	}
 
+	public static bool DestroyUi(BasePlayer player, List<string> names)
+	{
+		if (player?.net == null || names == null || names.Count == 0)
+		{
+			return false;
+		}
+
+		var panelList = GetActivePanelList(player);
+
+		for (var i = 0; i < names.Count; i++)
+		{
+			var name = names[i];
+			panelList.Remove(name);
+
+			// OnDestroyUI
+			HookCaller.CallStaticHook(503981600, player, name);
+		}
+
+		CommunityEntity.ServerInstance.SendDestroyUIs(player, names);
+		return true;
+	}
+
+	public static bool DestroyUi(BasePlayer player, string[] names)
+	{
+		if (player?.net == null || names == null || names.Length == 0)
+		{
+			return false;
+		}
+
+		var panelList = GetActivePanelList(player);
+
+		for (var i = 0; i < names.Length; i++)
+		{
+			var name = names[i];
+			panelList.Remove(name);
+
+			// OnDestroyUI
+			HookCaller.CallStaticHook(503981600, player, name);
+		}
+
+		CommunityEntity.ServerInstance.SendDestroyUIs(player, names);
+		return true;
+	}
+
 	public static void SetColor(this ICuiColor elem, Color color)
 	{
 		var sb = _colorSb.Value;
