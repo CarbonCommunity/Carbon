@@ -2910,6 +2910,7 @@ public struct LuiScrollbar
 	public string pressedColor;
 	public string trackSprite;
 	public string trackColor;
+	public float? fadeDuration;
 }
 
 public class LuiCanvasGroupComp : LuiCompBase
