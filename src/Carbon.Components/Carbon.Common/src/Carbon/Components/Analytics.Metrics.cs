@@ -89,7 +89,7 @@ public partial struct Analytics
 	/// <summary>
 	/// Metric executed when a major time warning caused by a plugin occurs.
 	/// </summary>
-	public static void plugin_time_warn(string readableHook, Plugin basePlugin, double afterHookTime, double totalMemory, bool lagSpike, BaseHookable.CachedHook cachedHook, BaseHookable hookable)
+	public static void plugin_time_warn(string readableHook, Plugin basePlugin, double afterHookTime, double totalMemory, bool lagSpike, BaseHookable.CachedHook cachedHook, bool hasGcCollected)
 	{
 		if (!Enabled)
 		{
@@ -101,7 +101,7 @@ public partial struct Analytics
 			Include("time", $"{afterHookTime.RoundUpToNearestCount(50)}ms").
 			Include("memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}").
 			Include("fires", $"{cachedHook?.TimesFired}").
-			Include("hasgc", hookable.HasGCCollected).
+			Include("hasgc", hasGcCollected).
 			Include("lagspike", lagSpike).
 			Submit("plugin_time_warn");
 	}
