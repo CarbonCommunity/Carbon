@@ -1,12 +1,13 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Carbon.InternalCallHookGeneration;
-using HarmonyLib;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Mono.Cecil;
+using SRM = System.Reflection.Metadata;
 
 namespace Carbon.Generator;
 
@@ -18,7 +19,16 @@ public class InternalCallHook
 
 	public static ConcurrentDictionary<string, int> InheritanceCache = new();
 
+	public static ConcurrentDictionary<string, TypeDefinition> TypeCache = new();
+
+	private static readonly ConditionalWeakTable<MetadataReference, string[]> RefLikeTypeNameCache = new();
+
 	public static TypeDefinition FindTypeInAssemblies(string fullName)
+	{
+		return TypeCache.GetOrAdd(fullName, FindTypeInAssembliesUncached);
+	}
+
+	private static TypeDefinition FindTypeInAssembliesUncached(string fullName)
 	{
 		for (int i = 0; i < Assemblies.Count; i++)
 		{
@@ -85,7 +95,7 @@ public class InternalCallHook
 		return totalDepth;
 	}
 
-	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null, List<string> usingsList = null, IEnumerable<MetadataReference> references = null)
+	public static void GeneratePartial(CompilationUnitSyntax input, out CompilationUnitSyntax output, CSharpParseOptions options, string fileName, List<ClassDeclarationSyntax> classes = null, string debugOutputPath = null, List<string> usingsList = null, IEnumerable<MetadataReference> references = null, IReadOnlyList<SyntaxTree> sourceTrees = null)
 	{
 		var @namespace = (BaseNamespaceDeclarationSyntax)null;
 
@@ -103,7 +113,7 @@ public class InternalCallHook
 
 		@namespace ??= classes[0].Parent as BaseNamespaceDeclarationSyntax;
 
-		var model = CreateModel(input, @namespace, classes, usingsList, references, options);
+		var model = CreateModel(input, @namespace, classes, usingsList, references, options, sourceTrees);
 		if (model.Methods.Count == 0)
 		{
 			output = null;
@@ -135,7 +145,7 @@ public class InternalCallHook
 
 	private static InternalCallHookTypeModel CreateModel(
 		CompilationUnitSyntax input, BaseNamespaceDeclarationSyntax @namespace, List<ClassDeclarationSyntax> classes, List<string> usingsList,
-		IEnumerable<MetadataReference> references, CSharpParseOptions options
+		IEnumerable<MetadataReference> references, CSharpParseOptions options, IReadOnlyList<SyntaxTree> sourceTrees
 	)
 	{
 		var model = new InternalCallHookTypeModel
@@ -164,7 +174,8 @@ public class InternalCallHook
 			.Where(IsHookableMethod)
 			.OrderBy(x => x.Identifier.ValueText)
 			.ToArray();
-		var refLikeMethods = GetRefLikeMethodKeys(input, references, options, methods);
+		var analysis = new Lazy<CSharpCompilation>(() => CreateAnalysisCompilation(input, references, options, sourceTrees), false);
+		var refLikeMethods = GetRefLikeMethodKeys(input, references, options, methods, analysis);
 
 		foreach (var method in methods)
 		{
@@ -173,7 +184,7 @@ public class InternalCallHook
 				continue;
 			}
 
-			var hookName = ResolveHookName(method, classes);
+			var hookName = ResolveHookName(method, analysis);
 			var hook = new InternalCallHookMethodModel
 			{
 				MethodName = method.Identifier.ValueText,
@@ -215,35 +226,42 @@ public class InternalCallHook
 	{
 		return (method.Modifiers.Count == 0 ||
 		        method.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.PublicKeyword) && !modifier.IsKind(SyntaxKind.StaticKeyword)) ||
-		        method.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && method.TypeParameterList == null;
+		        method.AttributeLists.Any(x => x.Attributes.Any(y => IsHookMethodAttribute(y.Name)))) && method.TypeParameterList == null;
 	}
 
-	private static HashSet<string> GetRefLikeMethodKeys(CompilationUnitSyntax input, IEnumerable<MetadataReference> references, CSharpParseOptions options, IReadOnlyCollection<MethodDeclarationSyntax> methods)
+	private static CSharpCompilation CreateAnalysisCompilation(CompilationUnitSyntax input, IEnumerable<MetadataReference> references, CSharpParseOptions options, IReadOnlyList<SyntaxTree> sourceTrees)
+	{
+		if (references == null || options == null)
+		{
+			return null;
+		}
+
+		return CSharpCompilation.Create(
+			"Carbon.InternalCallHook.Analysis",
+			sourceTrees ?? new[] { input.SyntaxTree },
+			references,
+			new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+	}
+
+	private static HashSet<string> GetRefLikeMethodKeys(CompilationUnitSyntax input, IEnumerable<MetadataReference> references, CSharpParseOptions options, IReadOnlyCollection<MethodDeclarationSyntax> methods, Lazy<CSharpCompilation> analysis)
 	{
 		if (methods.Count == 0 || !methods.Any(CanHaveRefLikeSignature) || references == null || options == null)
 		{
 			return null;
 		}
 
-		var methodKeys = new HashSet<string>(methods.Select(GetMethodKey));
-		var tree = CSharpSyntaxTree.Create(input, options);
-		var compilation = CSharpCompilation.Create(
-			"Carbon.InternalCallHook.Analysis",
-			new[] { tree },
-			references,
-			new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+		var refLikeTypeNames = GetRefLikeTypeNames(input, references);
+		if (refLikeTypeNames != null && !AnySignatureMentions(methods, refLikeTypeNames))
+		{
+			return null;
+		}
 
-		var model = compilation.GetSemanticModel(tree, true);
+		var compilation = analysis.Value;
 		HashSet<string> refLikeMethods = null;
 
-		foreach (var method in tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>())
+		foreach (var method in methods)
 		{
-			if (!methodKeys.Contains(GetMethodKey(method)))
-			{
-				continue;
-			}
-
-			var methodSymbol = model.GetDeclaredSymbol(method);
+			var methodSymbol = compilation.GetSemanticModel(method.SyntaxTree, true).GetDeclaredSymbol(method);
 			if (methodSymbol == null || !HasRefLikeSignature(methodSymbol))
 			{
 				continue;
@@ -254,6 +272,169 @@ public class InternalCallHook
 		}
 
 		return refLikeMethods;
+	}
+
+	private static HashSet<string> GetRefLikeTypeNames(CompilationUnitSyntax input, IEnumerable<MetadataReference> references)
+	{
+		var names = new HashSet<string>(StringComparer.Ordinal);
+
+		foreach (var reference in references)
+		{
+			var referenceNames = reference is PortableExecutableReference ? RefLikeTypeNameCache.GetValue(reference, ReadRefLikeTypeNames) : null;
+			if (referenceNames == null)
+			{
+				return null;
+			}
+
+			for (int i = 0; i < referenceNames.Length; i++)
+			{
+				names.Add(referenceNames[i]);
+			}
+		}
+
+		List<UsingDirectiveSyntax> aliases = null;
+
+		foreach (var node in input.DescendantNodes(IsDeclarationContainer))
+		{
+			if (node is StructDeclarationSyntax type && type.Modifiers.Any(SyntaxKind.RefKeyword))
+			{
+				names.Add(type.Identifier.ValueText);
+			}
+			else if (node is UsingDirectiveSyntax { Alias: not null } directive)
+			{
+				(aliases ??= new()).Add(directive);
+			}
+		}
+
+		if (aliases != null)
+		{
+			for (int i = 0; i < aliases.Count; i++)
+			{
+				if (MentionsAny(aliases[i].NamespaceOrType, names))
+				{
+					names.Add(aliases[i].Alias.Name.Identifier.ValueText);
+				}
+			}
+		}
+
+		return names;
+	}
+
+	private static bool IsDeclarationContainer(SyntaxNode node)
+	{
+		return node is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax;
+	}
+
+	private static string[] ReadRefLikeTypeNames(MetadataReference reference)
+	{
+		try
+		{
+			var metadata = ((PortableExecutableReference)reference).GetMetadata();
+			var names = new List<string>();
+
+			if (metadata is AssemblyMetadata assembly)
+			{
+				foreach (var module in assembly.GetModules())
+				{
+					AddRefLikeTypeNames(module.GetMetadataReader(), names);
+				}
+			}
+			else
+			{
+				AddRefLikeTypeNames(((ModuleMetadata)metadata).GetMetadataReader(), names);
+			}
+
+			return names.ToArray();
+		}
+		catch
+		{
+			return null;
+		}
+	}
+
+	private static void AddRefLikeTypeNames(SRM.MetadataReader reader, List<string> names)
+	{
+		foreach (var handle in reader.TypeDefinitions)
+		{
+			var type = reader.GetTypeDefinition(handle);
+			if (!IsByRefLike(reader, type))
+			{
+				continue;
+			}
+
+			var name = reader.GetString(type.Name);
+			var arity = name.IndexOf('`');
+			names.Add(arity < 0 ? name : name.Substring(0, arity));
+		}
+	}
+
+	private static bool IsByRefLike(SRM.MetadataReader reader, SRM.TypeDefinition type)
+	{
+		foreach (var handle in type.GetCustomAttributes())
+		{
+			var constructor = reader.GetCustomAttribute(handle).Constructor;
+			var name = default(SRM.StringHandle);
+
+			if (constructor.Kind == SRM.HandleKind.MemberReference)
+			{
+				var parent = reader.GetMemberReference((SRM.MemberReferenceHandle)constructor).Parent;
+				if (parent.Kind == SRM.HandleKind.TypeReference)
+				{
+					name = reader.GetTypeReference((SRM.TypeReferenceHandle)parent).Name;
+				}
+			}
+			else if (constructor.Kind == SRM.HandleKind.MethodDefinition)
+			{
+				name = reader.GetTypeDefinition(reader.GetMethodDefinition((SRM.MethodDefinitionHandle)constructor).GetDeclaringType()).Name;
+			}
+
+			if (!name.IsNil && reader.StringComparer.Equals(name, "IsByRefLikeAttribute"))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static bool AnySignatureMentions(IReadOnlyCollection<MethodDeclarationSyntax> methods, HashSet<string> names)
+	{
+		foreach (var method in methods)
+		{
+			if (MentionsAny(method.ReturnType, names))
+			{
+				return true;
+			}
+
+			var parameters = method.ParameterList.Parameters;
+			for (int i = 0; i < parameters.Count; i++)
+			{
+				if (MentionsAny(parameters[i].Type, names))
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private static bool MentionsAny(SyntaxNode node, HashSet<string> names)
+	{
+		if (node == null)
+		{
+			return false;
+		}
+
+		foreach (var child in node.DescendantNodesAndSelf())
+		{
+			if (child is SimpleNameSyntax name && names.Contains(name.Identifier.ValueText))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static bool CanHaveRefLikeSignature(MethodDeclarationSyntax method)
@@ -313,55 +494,66 @@ public class InternalCallHook
 		return $"{string.Join(" ", parameter.Modifiers.Select(x => x.Text))}:{parameter.Type}";
 	}
 
-	private static string ResolveHookName(MethodDeclarationSyntax method, List<ClassDeclarationSyntax> classes)
+	private static string ResolveHookName(MethodDeclarationSyntax method, Lazy<CSharpCompilation> analysis)
 	{
-		var hookMethod = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => x.Name.ToString() == "HookMethod")).FirstOrDefault();
-		var methodName = hookMethod != null && hookMethod.ArgumentList?.Arguments.Count > 0
-			? hookMethod.ArgumentList.Arguments[0].ToString().Replace("\"", string.Empty)
-			: method.Identifier.ValueText;
+		var hookMethod = method.AttributeLists.SelectMany(x => x.Attributes).FirstOrDefault(x => IsHookMethodAttribute(x.Name));
+		var context = GetHookNameArgument(hookMethod);
 
-		if (hookMethod == null || hookMethod.ArgumentList?.Arguments.Count == 0)
+		if (context == null)
 		{
-			return methodName;
+			return method.Identifier.ValueText;
 		}
 
-		var context = hookMethod.ArgumentList.Arguments[0];
-		var contextString = context.ToString();
-		if (contextString.Contains("nameof"))
+		var methodName = context.ToString().Replace("\"", string.Empty);
+		if (context.Expression is LiteralExpressionSyntax literal && literal.IsKind(SyntaxKind.StringLiteralExpression))
 		{
-			methodName = contextString.Replace("nameof", string.Empty).Replace("(", string.Empty).Replace(")", string.Empty);
-			if (methodName.Contains("."))
-			{
-				var split = methodName.Split('.');
-				methodName = split[^1];
-			}
-
-			return methodName;
+			return literal.Token.ValueText.Length > 0 ? literal.Token.ValueText : method.Identifier.ValueText;
 		}
 
-		if (contextString.Contains("."))
+		if (context.Expression is InvocationExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "nameof" }, ArgumentList.Arguments: { Count: 1 } nameofArguments })
 		{
-			var argument = context.Expression as MemberAccessExpressionSyntax;
-			var expression = argument?.Expression.ToString();
-			var name = argument?.Name.ToString();
-			var value = AccessTools.Field(AccessTools.TypeByName(expression), name)?.GetValue(null)?.ToString();
-			if (!string.IsNullOrEmpty(value))
+			var target = nameofArguments[0].Expression;
+			var name = (target as MemberAccessExpressionSyntax)?.Name ?? target as SimpleNameSyntax;
+			if (name != null)
 			{
-				return value;
+				return name.Identifier.ValueText;
 			}
 		}
 
-		if (contextString.Contains("\""))
+		var compilation = analysis.Value;
+		if (compilation != null && compilation.GetSemanticModel(context.SyntaxTree, true).GetConstantValue(context.Expression) is { HasValue: true } constant)
 		{
-			var value = AccessTools.Field(AccessTools.TypeByName(classes[0].Identifier.Text), contextString.Replace("\"", string.Empty))?.GetValue(null)
-				?.ToString();
-			if (!string.IsNullOrEmpty(value))
-			{
-				return value;
-			}
+			return constant.Value is string { Length: > 0 } value ? value : method.Identifier.ValueText;
 		}
 
 		return methodName;
+	}
+
+	private static AttributeArgumentSyntax GetHookNameArgument(AttributeSyntax hookMethod)
+	{
+		if (hookMethod?.ArgumentList == null)
+		{
+			return null;
+		}
+
+		var arguments = hookMethod.ArgumentList.Arguments;
+		AttributeArgumentSyntax positional = null;
+		AttributeArgumentSyntax named = null;
+
+		for (int i = 0; i < arguments.Count; i++)
+		{
+			var argument = arguments[i];
+			if (argument.NameEquals == null)
+			{
+				positional ??= argument;
+			}
+			else if (argument.NameEquals.Name.Identifier.ValueText == "Name")
+			{
+				named = argument;
+			}
+		}
+
+		return named ?? positional;
 	}
 
 	private static string GetConditionalSymbol(MethodDeclarationSyntax method)
@@ -374,6 +566,14 @@ public class InternalCallHook
 
 		return conditional?.Replace("\"", string.Empty) ?? string.Empty;
 	}
+
+	private static bool IsHookMethodAttribute(NameSyntax name) => name switch
+	{
+		QualifiedNameSyntax qualified => IsHookMethodAttribute(qualified.Right),
+		AliasQualifiedNameSyntax alias => IsHookMethodAttribute(alias.Name),
+		SimpleNameSyntax simple => simple.Identifier.ValueText is "HookMethod" or "HookMethodAttribute",
+		_ => false
+	};
 
 	private static bool IsInfoAttribute(NameSyntax name) => name switch
 	{

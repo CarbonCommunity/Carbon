@@ -112,7 +112,6 @@ set OUT_STEAM_LIBS=%CARBON_SLN%\..\rust\%TARGET_OS%
 set OUT_CSFILES=%CARBON_SLN%\Carbon.Hooks\%ID%\src
 set OUT_SLN_BIN=%CARBON_SLN%\..\release\.tmp\%WORKING_TARGET%\carbon\managed
 set OUT_LOG=%CARBON_REDIST%\logs\log_%WORKING_TARGET_LOWER%_%STEAM_TARGET%.txt
-set OUT_FTP=%CARBON_REDIST%\ftp_%WORKING_TARGET_LOWER%_%STEAM_TARGET%.txt
 
 if NOT EXIST %CARBON_REDIST%\logs (
 	mkdir %CARBON_REDIST%\logs
@@ -160,24 +159,7 @@ echo ** Release the dlls
 
 ) 2>NUL
 
-echo open redist.carbonmod.gg> %OUT_FTP%
-echo redist@carbonmod.gg>> %OUT_FTP%
-echo %FTP_PWD%>> %OUT_FTP%
-echo prompt>> %OUT_FTP%
-echo binary>> %OUT_FTP%
-echo literal pasv>> %OUT_FTP%
-echo lcd ..\..\FTP>> %OUT_FTP%
-echo mkdir "hooks/server/%WORKING_TARGET_LOWER%/%PROTOCOL%">> %OUT_FTP%
-echo mkdir "hooks/server/%WORKING_TARGET_LOWER%/%PROTOCOL%/carbon">> %OUT_FTP%
-echo mkdir "hooks/server/%WORKING_TARGET_LOWER%/%PROTOCOL%/carbon/managed">> %OUT_FTP%
-echo mkdir "hooks/server/%WORKING_TARGET_LOWER%/%PROTOCOL%/carbon/managed/hooks">> %OUT_FTP%
-echo bye>> %OUT_FTP%
-
-echo ** Build hook dll files
-(
-	call ftp -s:%OUT_FTP%
-	del /q %OUT_FTP%
-) >> %OUT_LOG%
+:: Uploading happens in the "SFTP - Upload Hooks" step of .github/workflows/hook-build.yml
 
 :eof
 

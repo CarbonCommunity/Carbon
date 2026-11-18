@@ -174,6 +174,10 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private bool TrackHookMemory { get { return Community.Runtime.Config.Debugging.TrackHookMemory; } set { Community.Runtime.Config.Debugging.TrackHookMemory = value; Community.Runtime.SaveConfig(); } }
 
+	[CommandVar("precisehookmemory", "Counts the bytes each hook allocates through the native profiler instead of estimating them from heap growth. Slows down allocations made inside hooks.")]
+	[AuthLevel(2)]
+	private bool PreciseHookMemory { get { return Community.Runtime.Config.Debugging.PreciseHookMemory; } set { Community.Runtime.Config.Debugging.PreciseHookMemory = value; Community.Runtime.SaveConfig(); } }
+
 	[ConsoleCommand("assignalias", "Assigns a new command alias. (Eg. c.assignalias myalias c.reload)")]
 	[AuthLevel(2)]
 	private void AssignAlias(ConsoleSystem.Arg arg)

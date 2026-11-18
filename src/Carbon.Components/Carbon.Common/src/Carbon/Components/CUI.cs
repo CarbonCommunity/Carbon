@@ -811,6 +811,7 @@ public readonly struct CUI : IDisposable
 				element.Alpha = _defaultCanvasGroup.Alpha;
 				element.BlocksRaycasts = _defaultCanvasGroup.BlocksRaycasts;
 				element.Interactable = _defaultCanvasGroup.Interactable;
+				element.Fade = _defaultCanvasGroup.Fade;
 				element.Enabled = _defaultCanvasGroup.Enabled;
 				_canvasGroups.RemoveAt(0);
 			}
@@ -912,6 +913,7 @@ public readonly struct CUI : IDisposable
 			scrollbar.PressedColor = _defaultScrollBar.PressedColor;
 			scrollbar.TrackSprite = _defaultScrollBar.TrackSprite;
 			scrollbar.TrackColor = _defaultScrollBar.TrackColor;
+			scrollbar.FadeDuration = _defaultScrollBar.FadeDuration;
 			scrollbar.Enabled = _defaultScrollBar.Enabled;
 		}
 
@@ -929,25 +931,19 @@ public readonly struct CUI : IDisposable
 			Poxel,
 			LCD,
 			NoToEmoji,
-			PressStart
+			PressStart,
+			RobotoMonoBold,
+			RobotoMonoRegular,
+			Dripping,
+			SuperChiby,
+			RobotoRegular,
+			NotoSansArabicRegular,
+			NotoSansHebrewBold,
+			NotoSansCJKBold,
+			Unifont
 		}
 
-		public string GetFont(FontTypes type)
-		{
-			return type switch
-			{
-				FontTypes.RobotoCondensedBold => "robotocondensed-bold.ttf",
-				FontTypes.RobotoCondensedRegular => "robotocondensed-regular.ttf",
-				FontTypes.PermanentMarker => "permanentmarker.ttf",
-				FontTypes.DroidSansMono => "droidsansmono.ttf",
-				FontTypes.NotoSansArabicBold => "_nonenglish/notosanscjksc-bold.otf",
-				FontTypes.Poxel => "poxel.otf",
-				FontTypes.LCD => "lcd.ttf",
-				FontTypes.NoToEmoji => "_nonenglish/notoemoji-regular.ttf",
-				FontTypes.PressStart => "pressstart2p-regular.ttf",
-				_ => "robotocondensed-regular.ttf"
-			};
-		}
+		public string GetFont(FontTypes type) => LUI.GetFont(type);
 
 		#endregion
 

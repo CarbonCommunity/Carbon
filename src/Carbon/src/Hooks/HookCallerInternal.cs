@@ -1,17 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
+using Carbon.Base;
 using Carbon.Components;
 using Carbon.Pooling;
 using Facepunch;
 using Oxide.Core.Plugins;
-using UnityEngine;
 using static Carbon.Base.BaseHookable;
 
 namespace Carbon.Hooks;
 
 public class HookCallerInternal : HookCallerCommon
 {
+	private static readonly long _timestampsPerTick = Stopwatch.Frequency / TimeSpan.TicksPerSecond;
+
+	private static bool IsHookTimeTracked(BaseHookable hookable)
+	{
+		return Community.IsServerInitialized && !(hookable is Plugin { IsCorePlugin: true });
+	}
+
+	private static TimeSpan GetHookTime(BaseHookable hookable, long startTimestamp, int startGcCount)
+	{
+		var hookTime = TimeSpan.FromTicks((Stopwatch.GetTimestamp() - startTimestamp) / _timestampsPerTick);
+		hookable.CurrentHookTime = hookTime;
+		hookable._currentGcCount = startGcCount;
+		return hookTime;
+	}
+
 	public override object[] AllocateBuffer(int count)
 	{
 		if (_argumentBuffer.TryGetValue(count, out var pool))
@@ -116,9 +132,9 @@ public class HookCallerInternal : HookCallerCommon
 				hook = hookInstance.PrimaryHook;
 			}
 
-			hookable.TrackStart();
-			var trackMemory = Community.Runtime.Config.Debugging.TrackHookMemory;
-			var beforeMemory = trackMemory ? CurrentMemory : 0L;
+			var isHookTimeTracked = IsHookTimeTracked(hookable);
+			var startTimestamp = isHookTimeTracked ? Stopwatch.GetTimestamp() : 0L;
+			var startGcCount = isHookTimeTracked ? CurrentGcCount : 0;
 
 			if (hook != null && args != null)
 			{
@@ -135,36 +151,42 @@ public class HookCallerInternal : HookCallerCommon
 				}
 			}
 
-			if (hook != null && hook.IsAsync)
-			{
-				hookable.InternalCallHook(hookId, args);
-				hookable.TrackEnd();
-			}
-			else
+			var memory = HookMemory.Begin();
+			var totalMemory = 0L;
+			var afterHookTime = TimeSpan.Zero;
+			var hasGcCollected = false;
+
+			// An exception that gets past the plugin must not leave the memory scope open
+			try
 			{
 				var currentResult = hookable.InternalCallHook(hookId, args);
-				hookable.TrackEnd();
 
-				if (currentResult != null)
+				if (isHookTimeTracked)
+				{
+					afterHookTime = GetHookTime(hookable, startTimestamp, startGcCount);
+					hasGcCollected = afterHookTime.TotalMilliseconds > 100 && startGcCount != CurrentGcCount;
+				}
+
+				if (currentResult != null && (hook == null || !hook.IsAsync))
 				{
 					conflicts ??= Pool.Get<List<Conflict>>();
 					HookCaller.ResultOverride(conflicts, hookable, hookId, result = currentResult);
 				}
 			}
-
-			var afterHookTime = hookable.CurrentHookTime;
-			var afterMemory = trackMemory ? CurrentMemory : 0L;
-			var totalMemory = trackMemory ? Mathf.Abs(afterMemory - beforeMemory) : 0L;
-
-			hook?.OnFired(hookable, afterHookTime, totalMemory);
+			finally
+			{
+				totalMemory = HookMemory.End(memory);
+			}
 
 			var afterHookTimeMs = afterHookTime.TotalMilliseconds;
+
+			hook?.OnFired(hookable, afterHookTime, totalMemory);
 
 			if (afterHookTimeMs > 100 && hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 			{
 				var readableHook = HookStringPool.GetOrAdd(hookId);
 
-				Logger.Warn($" {hookable.ToPrettyString()} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+				Logger.Warn($" {hookable.ToPrettyString()} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hasGcCollected ? " [GC]" : string.Empty)}");
 
 				var wasLagSpike = afterHookTimeMs >= Community.Runtime.Config.Debugging.HookLagSpikeThreshold;
 
@@ -173,7 +195,7 @@ public class HookCallerInternal : HookCallerCommon
 					hook?.OnLagSpike(hookable);
 				}
 
-				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, wasLagSpike, hook, hookable);
+				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, wasLagSpike, hook, hasGcCollected);
 			}
 
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
@@ -249,8 +271,11 @@ public class HookCallerInternal : HookCallerCommon
 				}
 
 				var result2 = (object)default;
-				hookable.TrackStart();
-				var beforeMemory = hookable.TotalMemoryUsed;
+				var isHookTimeTracked = IsHookTimeTracked(hookable);
+				var startTimestamp = isHookTimeTracked ? Stopwatch.GetTimestamp() : 0L;
+				var startGcCount = isHookTimeTracked ? CurrentGcCount : 0;
+				var memory = HookMemory.Begin();
+				var totalMemory = 0L;
 
 				try
 				{
@@ -262,22 +287,23 @@ public class HookCallerInternal : HookCallerCommon
 					var readableHook = HookStringPool.GetOrAdd(hookId);
 					Carbon.Logger.Error($"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'", exception);
 				}
+				finally
+				{
+					totalMemory = HookMemory.End(memory);
+				}
 
-				hookable.TrackEnd();
-				var afterHookTime = hookable.CurrentHookTime;
-				var afterMemory = hookable.TotalMemoryUsed;
-				var totalMemory = afterMemory - beforeMemory;
+				var afterHookTime = isHookTimeTracked ? GetHookTime(hookable, startTimestamp, startGcCount) : TimeSpan.Zero;
+				var afterHookTimeMs = afterHookTime.TotalMilliseconds;
+				var hasGcCollected = afterHookTimeMs > 100 && startGcCount != CurrentGcCount;
 
 				hook?.OnFired(hookable, afterHookTime, totalMemory);
-
-				var afterHookTimeMs = afterHookTime.TotalMilliseconds;
 
 				if (afterHookTimeMs > 100)
 				{
 					if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 					{
 						var readableHook = HookStringPool.GetOrAdd(hookId);
-						Carbon.Logger.Warn($" {hookable.ToPrettyString()} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+						Carbon.Logger.Warn($" {hookable.ToPrettyString()} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hasGcCollected ? " [GC]" : string.Empty)}");
 
 						var wasLagSpike = afterHookTimeMs >= Community.Runtime.Config.Debugging.HookLagSpikeThreshold;
 
@@ -286,7 +312,7 @@ public class HookCallerInternal : HookCallerCommon
 							hook.OnLagSpike(hookable);
 						}
 
-						Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, wasLagSpike, hook, hookable);
+						Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, wasLagSpike, hook, hasGcCollected);
 					}
 				}
 
