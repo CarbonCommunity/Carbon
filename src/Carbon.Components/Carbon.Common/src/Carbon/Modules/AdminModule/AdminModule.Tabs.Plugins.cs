@@ -2962,7 +2962,7 @@ public partial class AdminModule
 		var session = Singleton.GetPlayerSession(arg.Player());
 		var tab = session.SelectedTab;
 		var vendor = PluginsTab.GetVendor(session.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		var pluginName = arg.GetString(0).Replace("\"", string.Empty);
+		var pluginName = arg.GetFullString(0).Replace("\"", string.Empty);
 		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.File).Equals(pluginName, StringComparison.CurrentCultureIgnoreCase));
 		try
 		{
