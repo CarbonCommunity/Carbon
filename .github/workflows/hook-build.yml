@@ -150,7 +150,7 @@ jobs:
 
             if ($env:SFTP_KNOWN_HOSTS) {
               [IO.File]::WriteAllText($knownHosts, ($env:SFTP_KNOWN_HOSTS.Trim() -replace "`r", '') + "`n")
-              $options += '-o', 'StrictHostKeyChecking=yes', '-o', "UserKnownHostsFile=$($knownHosts -replace '\', '/')"
+              $options += '-o', 'StrictHostKeyChecking=yes', '-o', "UserKnownHostsFile=$($knownHosts.Replace('\', '/'))"
             } else {
               Write-Output '::warning::SFTP_KNOWN_HOSTS is not set, the SFTP host key is not being verified.'
               $options += '-o', 'StrictHostKeyChecking=accept-new'
