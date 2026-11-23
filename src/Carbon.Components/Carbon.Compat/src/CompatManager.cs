@@ -87,12 +87,18 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 	    return true;
     }
 
-    ConversionResult ICompatManager.AttemptOxideConvert(ref byte[] data)
+    ConversionResult ICompatManager.AttemptOxideConvert(ref byte[] data) => ConvertExtension(ref data, false);
+
+    internal ConversionResult ConvertExtension(ref byte[] data, bool patchNative = true)
     {
 	    ModuleDefinition asm = ModuleDefinition.FromBytes(data, readerArgs);
 
 	    if (!asm.AssemblyReferences.Any(Helpers.IsOxideASM))
 	    {
+		    if (patchNative)
+		    {
+			    data = Patches.PrefabIdPatch.Rewrite(data, asm);
+		    }
 		    return ConversionResult.Skip;
 	    }
 
