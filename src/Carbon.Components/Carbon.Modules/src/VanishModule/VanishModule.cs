@@ -140,7 +140,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			return;
 		}
 
-		var effectInstance = Effect.reusableInstance;
+		using var effectInstance = Facepunch.Pool.Get<Effect>();
 		effectInstance.Init(Effect.Type.Generic, player, 0, Vector3.up, Vector3.zero);
 		effectInstance.pooledstringid = StringPool.Get(effect);
 
@@ -148,7 +148,6 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		netWrite.PacketID(Message.Type.Effect);
 		effectInstance.WriteToStream(netWrite);
 		netWrite.Send(new SendInfo(player.net.connection));
-		effectInstance.Clear();
 	}
 
 	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool toggleNoclip = true, bool ignorePermanentVanish = false)
