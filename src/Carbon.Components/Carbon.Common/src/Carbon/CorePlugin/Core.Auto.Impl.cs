@@ -8,6 +8,54 @@ public partial class CorePlugin
 {
 #if !MINIMAL
 
+	/// <summary>
+	/// Hooks that only exist to back Carbon Auto variables, mapped to whether any of their variables are non-vanilla.
+	/// Core only subscribes to these while needed, so vanilla values leave the game methods unpatched.
+	/// </summary>
+	private static readonly Dictionary<string, Func<CorePlugin, bool>> AutoHooks = new()
+	{
+		[nameof(IRecyclerThinkSpeed)] = core => core.RecycleTickMultiplier != -1 || core.SafezoneRecycleTickMultiplier != -1,
+		[nameof(ICraftDurationMultiplier)] = core => core.CraftingSpeedMultiplierNoWB != -1 || core.CraftingSpeedMultiplierWB1 != -1 ||
+		                                             core.CraftingSpeedMultiplierWB2 != -1 || core.CraftingSpeedMultiplierWB3 != -1,
+		[nameof(IMixingSpeedMultiplier)] = core => core.MixingSpeedMultiplier != -1,
+		[nameof(IVendingBuyDuration)] = core => core.VendingMachineBuyDurationMultiplier != -1,
+		[nameof(IOnExcavatorInit)] = core => core.ExcavatorResourceTickRateMultiplier != -1 || core.ExcavatorTimeForFullResourcesMultiplier != -1 ||
+		                                     core.ExcavatorBeltSpeedMaxMultiplier != -1,
+		[nameof(IOvenSmeltSpeedMultiplier)] = core => core.OvenSpeedMultiplier != -1 || core.OvenBlacklistSpeedMultiplier != -1,
+		[nameof(IResearchDuration)] = core => core.ResearchDurationMultiplier != -1,
+		[nameof(CanUnlockTechTreeNode)] = core => core.NoTechTreeUnlockCache
+	};
+
+	internal static bool IsAutoHook(string hookName)
+	{
+		return AutoHooks.ContainsKey(hookName);
+	}
+
+	/// <summary>
+	/// Subscribes or unsubscribes Core from the Carbon Auto hooks based on the current variable values.
+	/// </summary>
+	public void RefreshAutoHooks()
+	{
+		var hookManager = Community.Runtime?.HookManager;
+
+		if (hookManager == null)
+		{
+			return;
+		}
+
+		foreach (var autoHook in AutoHooks)
+		{
+			if (autoHook.Value(this))
+			{
+				hookManager.Subscribe(autoHook.Key, Name);
+			}
+			else
+			{
+				hookManager.Unsubscribe(autoHook.Key, Name);
+			}
+		}
+	}
+
 	[Conditional("!MINIMAL")]
 	internal object IRecyclerThinkSpeed(Recycler recycler)
 	{

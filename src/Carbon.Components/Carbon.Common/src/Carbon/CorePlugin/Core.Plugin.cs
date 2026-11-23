@@ -132,7 +132,13 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			if (Community.Runtime.HookManager.IsHook(method.Name))
 			{
-				Community.Runtime.HookManager.Subscribe(method.Name, Name);
+#if !MINIMAL
+				// Carbon Auto hooks are subscribed on demand by RefreshAutoHooks
+				if (!IsAutoHook(method.Name))
+#endif
+				{
+					Community.Runtime.HookManager.Subscribe(method.Name, Name);
+				}
 
 				var hash = HookStringPool.GetOrAdd(method.Name);
 				if (!Hooks.Contains(hash)) Hooks.Add(hash);

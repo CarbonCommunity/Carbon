@@ -445,6 +445,16 @@ public static partial class ModLoader
 		return recursive && IsValidPlugin(type.BaseType, recursive);
 	}
 
+	private static void OnCommandVarChanged(BaseHookable hookable, CommandVarAttribute cmdVar)
+	{
+#if !MINIMAL
+		if (cmdVar is CarbonAutoVar && hookable is CorePlugin core)
+		{
+			core.RefreshAutoHooks();
+		}
+#endif
+	}
+
 	public static void ProcessCommands(Type type, BaseHookable hookable = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null, bool hidden = false)
 	{
 		var methods = type.GetMethods(flags);
@@ -721,6 +731,7 @@ public static partial class ModLoader
 							}
 
 							field.SetValue(hookable, value);
+							OnCommandVarChanged(hookable, cmdVar);
 						}
 						catch { }
 					}
@@ -799,6 +810,7 @@ public static partial class ModLoader
 							else if (pt == typeof(ulong)) value = args.GetULong(0);
 
 							property.SetValue(hookable, value);
+							OnCommandVarChanged(hookable, cmdVar);
 						}
 						catch { }
 					}
