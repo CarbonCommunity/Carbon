@@ -62,7 +62,7 @@ internal sealed class AssemblyLoader : IDisposable
 		switch (extensionType)
 		{
 			case IExtensionManager.ExtensionTypes.Extension:
-				ConversionResult oxideConvert = Community.Runtime.Compat.AttemptOxideConvert(ref raw);
+				ConversionResult oxideConvert = ((Carbon.Compat.CompatManager)Community.Runtime.Compat).ConvertExtension(ref raw);
 
 				switch (oxideConvert)
 				{
