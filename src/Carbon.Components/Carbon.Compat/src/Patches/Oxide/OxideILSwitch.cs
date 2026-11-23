@@ -28,6 +28,8 @@ public class OxideILSwitch : BaseOxidePatch
 
     public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, ref BaseConverter.Context context)
     {
+        PrefabIdPatch.Apply(assembly);
+
         foreach (TypeDefinition type in assembly.GetAllTypes())
         {
             bool classIsRustPlugin = type.IsBaseType(x => x.Name == "RustPlugin" && x.DefinitionAssembly().Name == "Carbon.Common");
