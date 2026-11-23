@@ -28,6 +28,11 @@ public class OxideILSwitch : BaseOxidePatch
 
     public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, ref BaseConverter.Context context)
     {
+        var prefabId = typeof(BaseNetworkable).GetProperty("prefabID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        bool hasPrefabIdProperty = prefabId?.PropertyType == typeof(uint);
+        IMethodDescriptor prefabIdGetter = null;
+        IMethodDescriptor prefabIdSetter = null;
+
         foreach (TypeDefinition type in assembly.GetAllTypes())
         {
             bool classIsRustPlugin = type.IsBaseType(x => x.Name == "RustPlugin" && x.DefinitionAssembly().Name == "Carbon.Common");
@@ -45,6 +50,19 @@ public class OxideILSwitch : BaseOxidePatch
                 for (int index = 0; index < body.Instructions.Count; index++)
                 {
                     CilInstruction CIL = body.Instructions[index];
+                    if (hasPrefabIdProperty && (CIL.OpCode == CilOpCodes.Ldfld || CIL.OpCode == CilOpCodes.Stfld) &&
+                        CIL.Operand is MemberReference field && field.Name == "prefabID" &&
+                        field.Signature is FieldSignature signature && signature.FieldType.ElementType == ElementType.U4 &&
+                        field.Parent is TypeReference owner && owner.FullName == "BaseNetworkable" &&
+                        owner.DefinitionAssembly().Name == "Assembly-CSharp")
+                    {
+                        CIL.Operand = CIL.OpCode == CilOpCodes.Ldfld
+                            ? prefabIdGetter ??= importer.ImportMethod(prefabId.GetMethod)
+                            : prefabIdSetter ??= importer.ImportMethod(prefabId.SetMethod);
+                        CIL.OpCode = CilOpCodes.Callvirt;
+                        continue;
+                    }
+
                     // IL Patches
 
                     // plugin loader
