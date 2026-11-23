@@ -50,6 +50,10 @@ public class CarbonAuto : API.Abstracts.CarbonAuto
 					property.SetValue(core, Convert.ChangeType(value, GetVarType()));
 					break;
 			}
+
+#if !MINIMAL
+			core.RefreshAutoHooks();
+#endif
 		}
 		public readonly bool IsChanged()
 		{
@@ -205,6 +209,10 @@ public class CarbonAuto : API.Abstracts.CarbonAuto
 			{
 				Logger.Error($"Failed loading Carbon auto file", ex);
 			}
+
+#if !MINIMAL
+			Community.Runtime.Core.RefreshAutoHooks();
+#endif
 		}
 	}
 }
