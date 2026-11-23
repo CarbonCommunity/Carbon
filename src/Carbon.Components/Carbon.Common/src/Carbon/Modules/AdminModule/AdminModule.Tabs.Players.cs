@@ -333,7 +333,7 @@ public partial class AdminModule
 			{
 				tab.AddName(column, "Crafting");
 
-				var queue = player.inventory.crafting.queue.Where(x => !x.cancelled);
+				var queue = player.inventory.crafting.queue;
 				foreach (var craft in queue)
 				{
 					tab.AddInputButton(column,
