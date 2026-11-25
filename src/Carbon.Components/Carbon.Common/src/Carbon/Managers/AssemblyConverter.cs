@@ -5,7 +5,8 @@ public enum AddonType
 {
 	Default,
 	Extension,
-	HarmonyMod
+	HarmonyMod,
+	Module
 }
 
 public enum ConversionResult

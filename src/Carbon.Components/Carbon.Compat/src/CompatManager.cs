@@ -10,6 +10,7 @@ using Facepunch;
 using Defines = Carbon.Core.Defines;
 
 [assembly: InternalsVisibleTo("Carbon.Bootstrap")]
+[assembly: InternalsVisibleTo("Carbon.Oxide")]
 
 namespace Carbon.Compat;
 
@@ -93,6 +94,7 @@ public class CompatManager : FacepunchBehaviour
     private void Awake()
     {
 	    Services.Assemblies.Converters.Add(new HarmonyModConverter(this));
+	    Services.Assemblies.Converters.Add(new PrefabIdConverter());
 
 	    Services.Events.Subscribe(CarbonEvent.HookFetchStart, _ => HookProcessor.HookClear());
 	    Services.Events.Subscribe(CarbonEvent.HookFetchEnd, _ => HookProcessor.HookReload());
@@ -105,5 +107,24 @@ public class CompatManager : FacepunchBehaviour
 	    public override bool Handles(AddonType type) => type == AddonType.HarmonyMod;
 	    public override ConversionResult Convert(string file, AddonType type, ref byte[] raw)
 		    => compat.ConvertHarmonyMod(ref raw) ? ConversionResult.Success : ConversionResult.Fail;
+    }
+
+    /// <summary>Rewrites legacy <c>BaseNetworkable.prefabID</c> field access in Carbon extensions and modules.</summary>
+    private sealed class PrefabIdConverter : AssemblyConverter
+    {
+	    public override string Name => "PrefabID";
+	    public override bool Handles(AddonType type) => type is AddonType.Extension or AddonType.Module;
+	    public override ConversionResult Convert(string file, AddonType type, ref byte[] raw)
+	    {
+		    var patched = Patches.PrefabIdPatch.Rewrite(raw, ModuleDefinition.FromBytes(raw, readerArgs));
+
+		    if (ReferenceEquals(patched, raw))
+		    {
+			    return ConversionResult.Skip;
+		    }
+
+		    raw = patched;
+		    return ConversionResult.Success;
+	    }
     }
 }

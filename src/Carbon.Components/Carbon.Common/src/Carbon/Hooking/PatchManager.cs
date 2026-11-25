@@ -300,9 +300,10 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 				{
 					// Not installed but has subs, install
 					case true when !isInstalled:
+						// A failed hook keeps its Failure status; keep draining the queue for the rest
 						if (!hook.ApplyPatch())
 						{
-							return;
+							continue;
 						}
 						_installed.Add(hook);
 						break;
@@ -311,7 +312,7 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 					case false when isInstalled:
 						if (!hook.RemovePatch())
 						{
-							return;
+							continue;
 						}
 						_installed.Remove(hook);
 

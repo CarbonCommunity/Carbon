@@ -8,7 +8,6 @@ namespace Carbon.Generation;
 internal static class HookPolicies
 {
 	private const string OnClanCreatedKnownMsilHash = "635jwYcCfWiJfWKJFGaT8v7zfRJT0VND5GqMKxQMUVE=";
-	private const string OnClanLogoChangedPatchKnownMsilHash = "KuTX1u22EO8+4GjS+SACsxt4g298bNL2E6omZgUevf8=";
 
 	public static bool MatchesOnClanCreatedAsyncSuccessRetargetPolicy(HookDef.Data hook)
 	{
@@ -26,31 +25,17 @@ internal static class HookPolicies
 		       && hook.Signature.Name == "sendinvite";
 	}
 
-	public static bool MatchesOnClanLogoChangedPatchDependencyPolicy(HookDef.Data hook)
-	{
-		return hook.HookName == "OnClanLogoChanged [patch]"
-		       && hook.Name == "OnClanLogoChanged [patch]"
-		       && hook.TypeName == "LocalClan/<SetLogo>d__60"
-		       && hook.Signature.Name == "MoveNext";
-	}
-
 	public static void WarnOnPolicyHashDrift(HookDef.Data hook)
 	{
 		if (MatchesOnClanCreatedAsyncSuccessRetargetPolicy(hook))
 		{
 			WarnOnPolicyHashDrift(hook, OnClanCreatedKnownMsilHash, nameof(TryGenerateOnClanCreatedAsyncSuccessRetargetPolicy));
 		}
-
-		if (MatchesOnClanLogoChangedPatchDependencyPolicy(hook))
-		{
-			WarnOnPolicyHashDrift(hook, OnClanLogoChangedPatchKnownMsilHash, nameof(MatchesOnClanLogoChangedPatchDependencyPolicy));
-		}
 	}
 
 	public static bool ShouldEmitDependencyAttribute(HookDef.Data hook)
 	{
-		return !MatchesOnTeamMemberInviteSendInviteAnchorPolicy(hook)
-		       && !MatchesOnClanLogoChangedPatchDependencyPolicy(hook);
+		return !MatchesOnTeamMemberInviteSendInviteAnchorPolicy(hook);
 	}
 
 	public static string GetEmittedTargetTypeName(HookDef.Data hook)

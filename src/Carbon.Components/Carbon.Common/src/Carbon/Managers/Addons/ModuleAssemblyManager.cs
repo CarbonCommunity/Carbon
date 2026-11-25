@@ -141,6 +141,13 @@ public class ModuleAssemblyManager : AddonManager
 		definition.Dispose();
 
 		var bytes = memoryStream.ToArray();
+
+		if (!AssemblyManager.Convert(file, AddonType.Module, ref bytes))
+		{
+			Dispose();
+			return null;
+		}
+
 		result = Assembly.Load(bytes);
 		ModuleAssemblyCache[result.FullName] = result;
 

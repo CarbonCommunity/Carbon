@@ -31,23 +31,26 @@ public static class AccessToolsEx
 			}
 
 			var bracketIndex = name.IndexOf('<');
+			if (bracketIndex < 0 || name[^1] != '>')
+			{
+				return FindTypeByFullName(name);
+			}
+
 			var genericTypeDefName = name[..bracketIndex];
-			var genericArgPart = name[bracketIndex..];
 
 			using var genericArgs = Pool.Get<PooledList<string>>();
-			genericArgs.AddRange(genericArgPart.Replace("<", string.Empty).Replace(">", string.Empty).Split(','));
+			SplitGenericArguments(name.Substring(bracketIndex + 1, name.Length - bracketIndex - 2), genericArgs);
 
-			var argTypes = genericArgs
-				.Select(arg => Type.GetType(arg, throwOnError: false) ?? AccessTools.TypeByName(arg))
-				.ToArray();
+			// Resolve each argument recursively so nested generics (e.g. List`1<Outer/Inner`1<T>>) work
+			var argTypes = genericArgs.Select(TypeByName).ToArray();
 
-			if (argTypes.Length != genericArgs.Count)
+			if (argTypes.Any(x => x == null))
 			{
 				Logger.Warn("AccessTools.TypeByName: Failed to resolve one or more generic arguments for " + name);
 				return null;
 			}
 
-			var genericDef = AccessTools.TypeByName(genericTypeDefName);
+			var genericDef = AccessTools.TypeByName(genericTypeDefName) ?? FindTypeByFullName(genericTypeDefName);
 			if (genericDef == null)
 			{
 				Logger.Warn("AccessTools.TypeByName: Could not find generic type definition " + genericTypeDefName);
@@ -74,7 +77,46 @@ public static class AccessToolsEx
 		if (type != null)
 			return type;
 
-		return types.FirstOrDefault(t => t.Name == name);
+		return types.FirstOrDefault(t => t.Name == name) ?? FindTypeByFullName(name);
+	}
+
+	private static Type FindTypeByFullName(string name)
+	{
+		// Cecil-style nested type names use '/', reflection uses '+'
+		if (!name.Contains('/'))
+		{
+			return null;
+		}
+
+		var reflectionName = name.Replace('/', '+');
+		return AccessTools.TypeByName(reflectionName) ?? AccessTools.AllTypes().FirstOrDefault(t => t.FullName == reflectionName);
+	}
+
+	private static void SplitGenericArguments(string value, List<string> output)
+	{
+		var depth = 0;
+		var start = 0;
+
+		for (var i = 0; i < value.Length; i++)
+		{
+			switch (value[i])
+			{
+				case '<':
+					depth++;
+					break;
+
+				case '>':
+					depth--;
+					break;
+
+				case ',' when depth == 0:
+					output.Add(value[start..i].Trim());
+					start = i + 1;
+					break;
+			}
+		}
+
+		output.Add(value[start..].Trim());
 	}
 
 	public static IEnumerable<Type> AllTypes()
