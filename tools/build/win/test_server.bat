@@ -32,7 +32,7 @@ goto args
 :args_done
 
 if not defined BRANCH (
-	set "BRANCH=release"
+	set "BRANCH=staging"
 	for /f "delims=" %%B in ('git -C "%ROOT%" rev-parse --abbrev-ref HEAD 2^>NUL') do set "GITBRANCH=%%B"
 	if /i "!GITBRANCH:~0,10!"=="rust_beta/" set "BRANCH=!GITBRANCH:~10!"
 )
