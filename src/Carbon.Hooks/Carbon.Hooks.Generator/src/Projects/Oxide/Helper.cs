@@ -17,7 +17,10 @@ internal static partial class Helper
 	];
 	public static readonly string[] PatchBlacklist =
 	[
-		"OnPlayerAttack [Projectile] [Patch]"
+		"OnPlayerAttack [Projectile] [Patch]",
+		// Removes instruction 66: on the vanilla body that's a no-op stloc, on top of
+		// OnClanLogoChanged it drops an argument load and produces invalid IL
+		"OnClanLogoChanged [patch]"
 	];
 
 	[ThreadStatic] public static Type CurrentField;

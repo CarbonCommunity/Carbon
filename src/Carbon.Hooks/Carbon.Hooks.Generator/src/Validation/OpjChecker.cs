@@ -1358,8 +1358,7 @@ internal sealed partial class OpjChecker(OpjCheckOptions options) : IDisposable
 	private void WarnOnPolicyCoupling(OpjHookCheck check, HookDef.Data hook)
 	{
 		if (!HookPolicies.MatchesOnClanCreatedAsyncSuccessRetargetPolicy(hook)
-		    && !HookPolicies.MatchesOnTeamMemberInviteSendInviteAnchorPolicy(hook)
-		    && !HookPolicies.MatchesOnClanLogoChangedPatchDependencyPolicy(hook))
+		    && !HookPolicies.MatchesOnTeamMemberInviteSendInviteAnchorPolicy(hook))
 		{
 			return;
 		}
