@@ -1,0 +1,34 @@
+{
+  "profiles": {
+    "Test Server (QAIsland)": {
+      "commandName": "Executable",
+      "executablePath": "cmd.exe",
+      "commandLineArgs": "/c tools\\build\\win\\test_server.bat",
+      "workingDirectory": "$(ProjectDir)..\\.."
+    },
+    "Test Server (QAIsland, local hooks)": {
+      "commandName": "Executable",
+      "executablePath": "cmd.exe",
+      "commandLineArgs": "/c tools\\build\\win\\test_server.bat -hooks",
+      "workingDirectory": "$(ProjectDir)..\\.."
+    },
+    "Test Server (QAIsland, update server)": {
+      "commandName": "Executable",
+      "executablePath": "cmd.exe",
+      "commandLineArgs": "/c tools\\build\\win\\test_server.bat -update",
+      "workingDirectory": "$(ProjectDir)..\\.."
+    },
+    "Test Server (QAIsland, update server, no build)": {
+      "commandName": "Executable",
+      "executablePath": "cmd.exe",
+      "commandLineArgs": "/c tools\\build\\win\\test_server.bat -update -nobuild",
+      "workingDirectory": "$(ProjectDir)..\\.."
+    },
+    "Test Server (QAIsland, no build)": {
+      "commandName": "Executable",
+      "executablePath": "cmd.exe",
+      "commandLineArgs": "/c tools\\build\\win\\test_server.bat -nobuild",
+      "workingDirectory": "$(ProjectDir)..\\.."
+    }
+  }
+}
