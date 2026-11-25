@@ -142,7 +142,7 @@ internal sealed class ModuleManager : AddonManager
 		memoryStream.Position = 0;
 		definition.Dispose();
 
-		var bytes = memoryStream.ToArray();
+		var bytes = Carbon.Compat.Patches.PrefabIdPatch.Rewrite(memoryStream.ToArray());
 		result = Assembly.Load(bytes);
 		ModuleAssemblyCache[result.FullName] = result;
 
