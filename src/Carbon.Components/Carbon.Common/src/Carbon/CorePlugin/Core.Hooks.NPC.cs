@@ -42,20 +42,6 @@ public partial class CorePlugin
 
 				return null;
 			}
-
-			case BaseNpc npc:
-			{
-				if (HookCaller.CallStaticHook(1066895325, npc, target) != null)
-				{
-					npc.SetFact(BaseNpc.Facts.HasEnemy, 0);
-					npc.SetFact(BaseNpc.Facts.EnemyRange, 3);
-					npc.SetFact(BaseNpc.Facts.AfraidRange, 1);
-					npc.playerTargetDecisionStartTime = 0f;
-					return Cache.DefaultSingle;
-				}
-
-				return null;
-			}
 		}
 
 		return null;
