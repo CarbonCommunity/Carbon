@@ -35,16 +35,40 @@ public class Config
 			@"^Pool$"
 		];
 
+		private List<string> _cachedIgnoreSource;
+		private int _cachedIgnoreCount;
+		private Regex[] _cachedIgnores;
+
 		public bool IsMemberIgnored(string name)
 		{
-			foreach (var item in PublicizerMemberIgnores)
+			var ignores = GetIgnoreRegexes();
+			for (int i = 0; i < ignores.Length; i++)
 			{
-				if (Regex.IsMatch(name, item))
+				if (ignores[i].IsMatch(name))
 				{
 					return true;
 				}
 			}
 			return false;
+		}
+
+		private Regex[] GetIgnoreRegexes()
+		{
+			var source = PublicizerMemberIgnores;
+			if (_cachedIgnores != null && ReferenceEquals(_cachedIgnoreSource, source) && _cachedIgnoreCount == (source?.Count ?? 0))
+			{
+				return _cachedIgnores;
+			}
+
+			var regexes = new Regex[source?.Count ?? 0];
+			for (int i = 0; i < regexes.Length; i++)
+			{
+				regexes[i] = new Regex(source[i]);
+			}
+
+			_cachedIgnoreSource = source;
+			_cachedIgnoreCount = regexes.Length;
+			return _cachedIgnores = regexes;
 		}
 	}
 

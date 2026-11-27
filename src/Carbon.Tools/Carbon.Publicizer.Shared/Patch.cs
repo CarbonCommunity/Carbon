@@ -104,24 +104,16 @@ public class Patch : IDisposable
 			var directories = GetSearchDirectories();
 			foreach (var directory in directories)
 			{
-				if (!Directory.Exists(directory))
+				if (!GetDirectoryIndex(directory).TryGetValue(name.Name, out var file))
 				{
 					continue;
 				}
-				var files = Directory.GetFiles(directory, "*.dll", SearchOption.AllDirectories);
-				foreach (var file in files)
+
+				try
 				{
-					var fileName = Path.GetFileNameWithoutExtension(file);
-					if (fileName.Equals(name.Name, StringComparison.OrdinalIgnoreCase))
-					{
-						try
-						{
-							assembly = AssemblyDefinition.ReadAssembly(file, parameters);
-						}
-						catch { }
-						break;
-					}
+					assembly = AssemblyDefinition.ReadAssembly(file, parameters);
 				}
+				catch { }
 
 				if (assembly != null)
 				{
@@ -131,6 +123,31 @@ public class Patch : IDisposable
 
 			_cache [name.FullName] = assembly;
 			return assembly;
+		}
+
+		private readonly Dictionary<string, Dictionary<string, string>> _directoryIndex = new(StringComparer.OrdinalIgnoreCase);
+
+		private Dictionary<string, string> GetDirectoryIndex(string directory)
+		{
+			if (_directoryIndex.TryGetValue(directory, out var index))
+			{
+				return index;
+			}
+
+			index = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+			if (Directory.Exists(directory))
+			{
+				foreach (var file in Directory.GetFiles(directory, "*.dll", SearchOption.AllDirectories))
+				{
+					var fileName = Path.GetFileNameWithoutExtension(file);
+					if (!index.ContainsKey(fileName))
+					{
+						index[fileName] = file;
+					}
+				}
+			}
+
+			return _directoryIndex[directory] = index;
 		}
 
 		public void RegisterAssembly (AssemblyDefinition assembly)

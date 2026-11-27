@@ -79,6 +79,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	private static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
 	private static Dictionary<string, PortableExecutableReference> _referenceCache = new();
 	private static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
+	private static readonly Dictionary<string, (byte[] raw, PortableExecutableReference reference)> _moduleReferenceCache = new();
 	private static readonly string[] _libraryDirectories =
 	[
 		Defines.GetLibFolder(),
@@ -133,6 +134,21 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.TryRemove(name, out _);
 		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
+	}
+	private static PortableExecutableReference _getModuleReference(string path, byte[] raw)
+	{
+		lock (_moduleReferenceCache)
+		{
+			if (_moduleReferenceCache.TryGetValue(path, out var cached) && ReferenceEquals(cached.raw, raw))
+			{
+				return cached.reference;
+			}
+
+			using var mem = new MemoryStream(raw);
+			var reference = MetadataReference.CreateFromStream(mem);
+			_moduleReferenceCache[path] = (raw, reference);
+			return reference;
+		}
 	}
 	internal static void _injectPatchedReferences()
 	{
@@ -258,8 +274,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			try
 			{
 				var name = Path.GetFileName(item.Value.Key);
-				using var mem = new MemoryStream(item.Value.Value);
-				var processedReference = MetadataReference.CreateFromStream(mem);
+				var processedReference = _getModuleReference(item.Value.Key, item.Value.Value);
 
 				references.Add(processedReference);
 				_referenceCache[name] = processedReference;

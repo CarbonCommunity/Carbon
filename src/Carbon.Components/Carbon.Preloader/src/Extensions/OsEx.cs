@@ -125,6 +125,6 @@ public static class OsEx
 
 		downloadProcess.WaitForExit();
 
-		return true;
+		return downloadProcess.ExitCode == 0;
 	}
 }

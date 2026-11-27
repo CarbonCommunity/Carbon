@@ -45,19 +45,87 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 	private Stopwatch sw;
 	private bool _doReload;
 	private Queue<string> _workQueue;
+	private readonly HashSet<string> _workQueueSet = new();
 	private List<Subscription> _subscribers;
-	private readonly Dictionary<string, string> _checksums = new();
 	private static bool FullFramePatch;
 	private static bool InitialOnEnable;
+	private static string _rustAssemblyChecksum;
+
+	private readonly Dictionary<string, HookEx> _hooksById = new();
+	private readonly Dictionary<string, List<HookEx>> _hooksByName = new();
+	private readonly Dictionary<string, List<HookEx>> _hooksByFullName = new();
+	private readonly Dictionary<string, int> _subscriberCounts = new();
+	private readonly HashSet<(string identifier, string subscriber)> _subscriberPairs = new();
 
 	public void Enqueue(string identifier)
 	{
-		if (_workQueue.Contains(identifier))
+		if (!_workQueueSet.Add(identifier))
 		{
 			return;
 		}
 
 		_workQueue.Enqueue(identifier);
+	}
+
+	private string DequeueWork()
+	{
+		var identifier = _workQueue.Dequeue();
+		_workQueueSet.Remove(identifier);
+		return identifier;
+	}
+
+	private static string GetRustAssemblyChecksum()
+	{
+		return _rustAssemblyChecksum ??= BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(typeof(ServerMgr).Assembly.Location)), 0).ToString();
+	}
+
+	private void IndexHook(HookEx hook)
+	{
+		if (!_hooksById.ContainsKey(hook.Identifier))
+		{
+			_hooksById[hook.Identifier] = hook;
+		}
+
+		AddToIndex(_hooksByName, hook.HookName, hook);
+		AddToIndex(_hooksByFullName, hook.HookFullName, hook);
+
+		static void AddToIndex(Dictionary<string, List<HookEx>> index, string key, HookEx hook)
+		{
+			if (key == null)
+			{
+				return;
+			}
+
+			if (!index.TryGetValue(key, out var list))
+			{
+				index[key] = list = new List<HookEx>();
+			}
+
+			list.Add(hook);
+		}
+	}
+
+	private void ClearHookIndices()
+	{
+		_hooksById.Clear();
+		_hooksByName.Clear();
+		_hooksByFullName.Clear();
+	}
+
+	// Patches, then dynamic, then static
+	private static int GetHookCategoryOrder(HookEx hook)
+	{
+		return hook.IsPatch ? 0 : hook.IsStaticHook ? 2 : 1;
+	}
+
+	private static IEnumerable<HookEx> GetLoadedFromIndex(Dictionary<string, List<HookEx>> index, string key)
+	{
+		if (key == null || !index.TryGetValue(key, out var list))
+		{
+			return Enumerable.Empty<HookEx>();
+		}
+
+		return list.Where(x => x.IsLoaded).OrderBy(GetHookCategoryOrder);
 	}
 
 	/// <summary>
@@ -105,7 +173,7 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 		else
 		{
 			Logger.Log("Hook updates disabled, loading from disk...");
-			Invoke(() => enabled = true, 0.1f);
+			Invoke(() => enabled = true, 0f);
 		}
 	}
 
@@ -114,6 +182,7 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 		_patches.Clear();
 		_staticHooks.Clear();
 		_dynamicHooks.Clear();
+		ClearHookIndices();
 
 		foreach (string file in HookAssemblies)
 		{
@@ -160,7 +229,7 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 		{
 			InitialOnEnable = true;
 
-			Invoke(() => Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty), 1f);
+			Invoke(() => Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty), 0f);
 		}
 	}
 
@@ -274,7 +343,7 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 
 		while (_workQueue.Count > 0 && limit-- > 0)
 		{
-			string identifier = _workQueue.Dequeue();
+			string identifier = DequeueWork();
 
 			try
 			{
@@ -282,18 +351,12 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 
 				bool hasSubscribers = HookHasSubscribers(hook.Identifier);
 				bool isInstalled = hook.IsInstalled;
-				string checksum = null;
 
-				if (!isInstalled)
+				if (!isInstalled && hook.Status == HookState.Failure)
 				{
-					if (hook.Status == HookState.Failure)
-					{
-						Logger.Warn($"A hook request for '{hook}' received:");
-						Logger.Warn($" - The current status is FAILURE: {hook.LastError}");
-						Logger.Warn($" - Check for possible errors on the log file");
-					}
-
-					checksum = GetMethodMSILHash(hook.GetTargetMethodInfo());
+					Logger.Warn($"A hook request for '{hook}' received:");
+					Logger.Warn($" - The current status is FAILURE: {hook.LastError}");
+					Logger.Warn($" - Check for possible errors on the log file");
 				}
 
 				switch (hasSubscribers)
@@ -386,7 +449,7 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 			if (hooks.GetType("Carbon.Hooks._Meta") is Type type)
 			{
 				var checksum = (string)type.GetField("Checksum").GetValue(null);
-				var currentChecksum = BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(typeof(ServerMgr).Assembly.Location)), 0).ToString();
+				var currentChecksum = GetRustAssemblyChecksum();
 				if (!checksum.Equals(currentChecksum) && !Community.Runtime.Config.Logging.ReducedLogging)
 				{
 					Logger.Warn($"Checksum validation failed for Rust has failed ({currentChecksum} =/ {checksum}) - [{fileName}]");
@@ -453,18 +516,21 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 				{
 					retvar.Patch++;
 					_patches.Add(hook);
+					IndexHook(hook);
 					if (!hook.HasDependencies()) Subscribe(hook.Identifier, "Carbon.Patch");
 				}
 				else if (hook.IsStaticHook)
 				{
 					retvar.Static++;
 					_staticHooks.Add(hook);
+					IndexHook(hook);
 					Subscribe(hook.Identifier, "Carbon.Static");
 				}
 				else
 				{
 					retvar.Dynamic++;
 					_dynamicHooks.Add(hook);
+					IndexHook(hook);
 				}
 
 				HookStringPool.GetOrAdd(hook.HookName);
@@ -509,15 +575,13 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 		}
 	}
 
-	private IEnumerable<HookEx> LoadedHooks => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Where(x => x.IsLoaded);
-
 	private IEnumerable<HookEx> Hooks => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Concat(_metadataHooks);
 
-	private IEnumerable<HookEx> GetHookByName(string name) => LoadedHooks.Where(x => x.HookName.Equals(name)) ?? null;
+	private IEnumerable<HookEx> GetHookByName(string name) => GetLoadedFromIndex(_hooksByName, name);
 
-	private IEnumerable<HookEx> GetHookByFullName(string name) => LoadedHooks.Where(x => x.HookFullName.Equals(name)) ?? null;
+	private IEnumerable<HookEx> GetHookByFullName(string name) => GetLoadedFromIndex(_hooksByFullName, name);
 
-	private HookEx GetHookById(string identifier) => LoadedHooks.FirstOrDefault(x => x.Identifier.Equals(identifier)) ?? null;
+	private HookEx GetHookById(string identifier) => identifier != null && _hooksById.TryGetValue(identifier, out var hook) && hook.IsLoaded ? hook : null;
 
 	private IEnumerable<HookEx> GetHookByNameAll(string name) => Hooks.Where(x => x.HookName.Equals(name)) ?? null;
 
@@ -525,7 +589,7 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 
 	private HookEx GetHookByIdAll(string identifier) => Hooks.FirstOrDefault(x => x.Identifier.Equals(identifier)) ?? null;
 
-	internal bool IsHookLoaded(HookEx hook) => LoadedHooks.Any(x => x.HookFullName.Equals(hook.HookFullName) && x.TargetType == hook.TargetType && x.TargetMethod == hook.TargetMethod && (x.TargetMethodArgs?.SequenceEqual(hook.TargetMethodArgs) ?? true));
+	internal bool IsHookLoaded(HookEx hook) => GetHookByFullName(hook.HookFullName).Any(x => x.HookFullName.Equals(hook.HookFullName) && x.TargetType == hook.TargetType && x.TargetMethod == hook.TargetMethod && (x.TargetMethodArgs?.SequenceEqual(hook.TargetMethodArgs) ?? true));
 
 	public bool IsHook(string hookName) => GetHookByNameAll(hookName).Any();
 
@@ -556,21 +620,40 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 	{ get => _dynamicHooks.Where(x => x.IsInstalled); }
 
 	private bool HookIsSubscribedBy(string hookName, string subscriber)
-		=> _subscribers?.Where(x => x.Identifier.Equals(hookName)).Any(x => x.Subscriber == subscriber) ?? false;
+		=> _subscribers != null && _subscriberPairs.Contains((hookName, subscriber));
 
 	private bool HookHasSubscribers(string hookName)
-		=> _subscribers?.Any(x => x.Identifier.Equals(hookName)) ?? false;
+		=> _subscribers != null && hookName != null && _subscriberCounts.TryGetValue(hookName, out var count) && count > 0;
 
-	public int GetHookSubscriberCount(string hookName) => _subscribers.Count(x => x.Identifier.Equals(hookName));
+	public int GetHookSubscriberCount(string hookName) => hookName != null && _subscriberCounts.TryGetValue(hookName, out var count) ? count : 0;
 
 	private void AddSubscriber(string hookName, string subscriber)
 	{
 		_subscribers.Add(item: new Subscription { Identifier = hookName, Subscriber = subscriber });
+		_subscriberPairs.Add((hookName, subscriber));
+		_subscriberCounts[hookName] = GetHookSubscriberCount(hookName) + 1;
 	}
 
 	private void RemoveSubscriber(string hookName, string subscriber)
 	{
-		_subscribers.RemoveAll(x => x.Identifier.Equals(hookName) && x.Subscriber.Equals(subscriber));	}
+		var removed = _subscribers.RemoveAll(x => x.Identifier.Equals(hookName) && x.Subscriber.Equals(subscriber));
+		_subscriberPairs.Remove((hookName, subscriber));
+
+		if (removed == 0)
+		{
+			return;
+		}
+
+		var remaining = GetHookSubscriberCount(hookName) - removed;
+		if (remaining > 0)
+		{
+			_subscriberCounts[hookName] = remaining;
+		}
+		else
+		{
+			_subscriberCounts.Remove(hookName);
+		}
+	}
 
 
 	public void Subscribe(string hookName, string requester)
@@ -700,7 +783,7 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 		}
 	}
 
-	public bool AnySubscribers(string hookName) => _subscribers.Any(x => x.Identifier.Equals(hookName));
+	public bool AnySubscribers(string hookName) => HookHasSubscribers(hookName);
 
 	public static string GetMethodMSILHash(MethodInfo method)
 		=> SHA1(method?.GetMethodBody()?.GetILAsByteArray());
@@ -734,7 +817,11 @@ public class PatchManager : FacepunchBehaviour, IDisposable
 				_staticHooks = default;
 
 				_workQueue = default;
+				_workQueueSet.Clear();
 				_subscribers = default;
+				_subscriberPairs.Clear();
+				_subscriberCounts.Clear();
+				ClearHookIndices();
 			}
 
 			// unmanaged resources

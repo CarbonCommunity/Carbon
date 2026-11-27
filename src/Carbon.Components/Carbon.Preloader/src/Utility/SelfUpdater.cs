@@ -14,6 +14,12 @@ public static class SelfUpdater
 	private const string Repository = "CarbonCommunity/Carbon";
 	private const string CarbonVersionsEndpoint = "https://api.carbonmod.gg/releases";
 
+	private const int ConnectTimeout = 10;
+	private const int VersionsMaxTime = 20;
+	private const int PatchMaxTime = 300;
+
+	private static string CurlTimeouts(int maxTime) => $"--connect-timeout {ConnectTimeout} --max-time {maxTime}";
+
 	private static OsType Platform;
 	private static ReleaseType Release;
 	private static string Target;
@@ -152,14 +158,18 @@ public static class SelfUpdater
 			Logger.Log($" Carbon {Target} is out of date and now self-updating - {Release} [{Tag}] on {Platform} [{Versions.CurrentVersion} -> {version.Version}]");
 		}
 
+		if (!OsEx.ExecuteProcess("curl", $"-s {CurlTimeouts(PatchMaxTime)} -H \"Cache-Control: no-store, no-cache, must-revalidate, max-age=0\" -H \"Pragma: no-cache\" -fSL -o \"{Path.Combine(Defines.GetTempFolder(), "patch.zip")}\" \"{url}\""))
+		{
+			Logger.Error($"Failed downloading Carbon update from '{url}', skipping self-update.", null);
+			return;
+		}
+
 #if PROD
 		if (!hasVersionOverride)
 		{
 			WriteLocalProtocol(currentRustProtocol, version.Protocol);
 		}
 #endif
-
-		OsEx.ExecuteProcess("curl", $"-s -H \"Cache-Control: no-store, no-cache, must-revalidate, max-age=0\" -H \"Pragma: no-cache\" -fSL -o \"{Path.Combine(Defines.GetTempFolder(), "patch.zip")}\" \"{url}\"");
 
 		var count = 0;
 
@@ -310,9 +320,15 @@ public static class SelfUpdater
 	internal static bool GetCarbonVersions()
 	{
 		var tempPath = Path.Combine(Defines.GetTempFolder(), "versions.json");
-		var gotVersions = OsEx.ExecuteProcess("curl", $"-s -H \"Cache-Control: no-store, no-cache, must-revalidate, max-age=0\" -H \"Pragma: no-cache\" -fSL -o \"{tempPath}\" \"{CarbonVersionsEndpoint}\"");
+		var gotVersions = OsEx.ExecuteProcess("curl", $"-s {CurlTimeouts(VersionsMaxTime)} -H \"Cache-Control: no-store, no-cache, must-revalidate, max-age=0\" -H \"Pragma: no-cache\" -fSL -o \"{tempPath}\" \"{CarbonVersionsEndpoint}\"");
 
-		return gotVersions && Versions.Init(System.IO.File.ReadAllText(tempPath));
+		if (!gotVersions)
+		{
+			Logger.Log($" Unable to fetch Carbon versions from '{CarbonVersionsEndpoint}', skipping self-update check.");
+			return false;
+		}
+
+		return Versions.Init(System.IO.File.ReadAllText(tempPath));
 	}
 
 	internal static string GithubReleaseUrl()
